@@ -3,20 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./TrustedNodes.sol";
-import "../../policy/Policy.sol";
-import "../../policy/PolicedUtils.sol";
-import "../../currency/IECO.sol";
-import "./RandomInflation.sol";
-import "../../utils/TimeUtils.sol";
-import "../../VDF/VDFVerifier.sol";
 
-/** @title Inflation/Deflation Process
+/** @title Trustee monetary policy decision process
  *
- * This contract oversees the voting on the currency inflation/deflation process.
- * Trusted nodes vote on a policy that is implemented the following generation
- * to manage the relative price of Eco tokens.
+ * This contract oversees the voting on the currency monetary levers.
+ * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
-contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
+contract CurrencyGovernance is Pauseable {
     enum Stage {
         Propose,
         Commit,
@@ -25,11 +18,8 @@ contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
         Finished
     }
 
-    // tracks the progress of the contract
-    Stage public currentStage;
-
     // data structure for monetary policy proposals
-    struct GovernanceProposal {
+    struct MonetaryPolicy {
         // random inflation recipients
         uint256 numberOfRecipients;
         // amount of weico recieved by each random inflation recipient
@@ -52,6 +42,15 @@ contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
         uint256 score;
     }
 
+    // the initial voting cycle index to prevent underflow
+    uint256 private constant VOTING_CYCLE_START = 1000;
+
+    // tracks the index of the current voting cycle for proposal and vote storage
+    uint256 public currentCycle;
+
+    // tracks the progress of the contract
+    Stage public currentStage;
+
     // timescales
     uint256 public constant PROPOSAL_TIME = 10 days;
     uint256 public constant VOTING_TIME = 3 days;
@@ -67,11 +66,11 @@ contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
     // max length of description field
     uint256 public constant MAX_DATA = 160;
 
-    // mapping of proposing trustee addresses to their submitted proposals
-    mapping(address => GovernanceProposal) public proposals;
-    // mapping of trustee addresses to their hash commits for voting
-    mapping(address => bytes32) public commitments;
-    // mapping of proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
+    // mapping of cycle to proposing trustee addresses to their submitted proposals
+    mapping(uint256 => mapping(address => MonetaryPolicy)) public proposals;
+    // mapping of cycle to trustee addresses to their hash commits for voting
+    mapping(uint256 => mapping(address => bytes32)) public commitments;
+    // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
     mapping(address => uint256) public score;
 
     // used to track the leading proposal during the vote totalling
@@ -189,7 +188,7 @@ contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
             "Description is too long"
         );
 
-        GovernanceProposal storage p = proposals[msg.sender];
+        MonetaryPolicy storage p = proposals[msg.sender];
         p.numberOfRecipients = _numberOfRecipients;
         p.randomInflationReward = _randomInflationReward;
         p.lockupDuration = _lockupDuration;
@@ -334,7 +333,7 @@ contract CurrencyGovernance is PolicedUtils, TimeUtils, Pausable {
         // should not emit an event
         pauser = CurrencyGovernance(_self).pauser();
 
-        GovernanceProposal storage p = proposals[address(0)];
+        MonetaryPolicy storage p = proposals[address(0)];
         p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
         // sets the default votes for the default proposal
