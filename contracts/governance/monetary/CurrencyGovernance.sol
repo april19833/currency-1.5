@@ -84,6 +84,9 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // address that can pause currency governance
     address public pauser;
 
+    // setting the trusted nodes address to a bad address stops governance
+    error NonZeroTrustedNodesAddr();
+
     // emitted when a proposal is submitted to track the values
     event ProposalCreation(
         address indexed trusteeAddress,
@@ -172,6 +175,15 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             "Only trusted nodes can call this method"
         );
         _;
+    }
+
+    function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
+        if(
+            address(_trustedNodes) != address(0)
+        ) {
+            revert NonZeroTrustedNodesAddr();
+        }
+        trustedNodes = _trustedNodes;
     }
 
     function propose(
