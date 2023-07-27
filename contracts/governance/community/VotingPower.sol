@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../monetary/Lockup.sol";
-import "../../policy/PolicedUtils.sol";
+import "../../policy/Policed.sol";
 import "../../currency/ECO.sol";
 import "../../currency/ECOx.sol";
 import "./ECOxStaking.sol";
@@ -10,7 +9,7 @@ import "./ECOxStaking.sol";
 /** @title VotingPower
  * Compute voting power for user
  */
-contract VotingPower is PolicedUtils {
+contract VotingPower is Policed {
     // ECOx voting power is snapshotted when the contract is cloned
     uint256 public totalECOxSnapshot;
 
@@ -20,7 +19,7 @@ contract VotingPower is PolicedUtils {
     // the ECO contract address
     ECO public immutable ecoToken;
 
-    constructor(Policy _policy, ECO _ecoAddr) PolicedUtils(_policy) {
+    constructor(Policy _policy, ECO _ecoAddr) Policed(_policy) {
         require(
             address(_ecoAddr) != address(0),
             "Unrecoverable: do not set the _ecoAddr as the zero address"
@@ -50,6 +49,6 @@ contract VotingPower is PolicedUtils {
     }
 
     function getXStaking() internal view returns (ECOxStaking) {
-        return ECOxStaking(policyFor(ID_ECOXSTAKING));
+        return ECOxStaking(address(0x0));//placeholder
     }
 }

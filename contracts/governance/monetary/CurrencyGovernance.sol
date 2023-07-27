@@ -9,7 +9,7 @@ import "./TrustedNodes.sol";
  * This contract oversees the voting on the currency monetary levers.
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
-contract CurrencyGovernance is Pauseable {
+contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     enum Stage {
         Propose,
         Commit,
@@ -41,6 +41,9 @@ contract CurrencyGovernance is Pauseable {
         // to get a score of zero, an item must be unscored
         uint256 score;
     }
+
+    // this var stores the current contract that holds the trusted nodes role
+    TrustedNodes public trustedNodes;
 
     // the initial voting cycle index to prevent underflow
     uint256 private constant VOTING_CYCLE_START = 1000;
@@ -155,7 +158,7 @@ contract CurrencyGovernance is Pauseable {
         }
     }
 
-    constructor(Policy _policy, address _initialPauser) PolicedUtils(_policy) {
+    constructor(Policy _policy, address _initialPauser) Policed(_policy) {
         pauser = _initialPauser;
         emit PauserAssignment(_initialPauser);
     }
@@ -164,7 +167,7 @@ contract CurrencyGovernance is Pauseable {
      */
     modifier onlyTrusted() {
         require(
-            getTrustedNodes().isTrusted(msg.sender),
+            trustedNodes.isTrusted(msg.sender),
             "Only trusted nodes can call this method"
         );
         _;
@@ -188,7 +191,7 @@ contract CurrencyGovernance is Pauseable {
             "Description is too long"
         );
 
-        MonetaryPolicy storage p = proposals[msg.sender];
+        MonetaryPolicy storage p = proposals[currentCycle][msg.sender];
         p.numberOfRecipients = _numberOfRecipients;
         p.randomInflationReward = _randomInflationReward;
         p.lockupDuration = _lockupDuration;
@@ -209,10 +212,10 @@ contract CurrencyGovernance is Pauseable {
 
     function unpropose() external atStage(Stage.Propose) {
         require(
-            proposals[msg.sender].inflationMultiplier != 0,
+            proposals[currentCycle][msg.sender].inflationMultiplier != 0,
             "You do not have a proposal to retract"
         );
-        delete proposals[msg.sender];
+        delete proposals[currentCycle][msg.sender];
         emit ProposalRetraction(msg.sender);
     }
 
@@ -221,7 +224,7 @@ contract CurrencyGovernance is Pauseable {
         onlyTrusted
         atStage(Stage.Commit)
     {
-        commitments[msg.sender] = _commitment;
+        commitments[currentCycle][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
@@ -232,16 +235,16 @@ contract CurrencyGovernance is Pauseable {
         uint256 numVotes = _votes.length;
         require(numVotes > 0, "Invalid vote, cannot vote empty");
         require(
-            commitments[msg.sender] != bytes32(0),
+            commitments[currentCycle][msg.sender] != bytes32(0),
             "Invalid vote, no unrevealed commitment exists"
         );
         require(
             keccak256(abi.encode(_seed, msg.sender, _votes)) ==
-                commitments[msg.sender],
+                commitments[currentCycle][msg.sender],
             "Invalid vote, commitment mismatch"
         );
 
-        delete commitments[msg.sender];
+        delete commitments[currentCycle][msg.sender];
 
         // remove the trustee's default vote
         score[address(0)] -= 1;
@@ -262,7 +265,7 @@ contract CurrencyGovernance is Pauseable {
             uint256 _score = v.score;
 
             require(
-                proposals[_proposal].inflationMultiplier > 0,
+                proposals[currentCycle][_proposal].inflationMultiplier > 0,
                 "Invalid vote, missing proposal"
             );
             require(
@@ -301,7 +304,7 @@ contract CurrencyGovernance is Pauseable {
         }
 
         // record the trustee's vote for compensation purposes
-        getTrustedNodes().recordVote(msg.sender);
+        trustedNodes.recordVote(msg.sender);
 
         emit VoteReveal(msg.sender, _votes);
     }
@@ -333,15 +336,11 @@ contract CurrencyGovernance is Pauseable {
         // should not emit an event
         pauser = CurrencyGovernance(_self).pauser();
 
-        MonetaryPolicy storage p = proposals[address(0)];
+        MonetaryPolicy storage p = proposals[currentCycle][address(0)];
         p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
         // sets the default votes for the default proposal
-        score[address(0)] = getTrustedNodes().numTrustees();
-    }
-
-    function getTrustedNodes() private view returns (TrustedNodes) {
-        return TrustedNodes(policyFor(ID_TRUSTED_NODES));
+        score[address(0)] = trustedNodes.numTrustees();
     }
 
     /**

@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../../policy/Policed.sol";
 import "../../currency/ECOx.sol";
-import "../TimedPolicies.sol";
-import "../IGeneration.sol";
 import "../../utils/TimeUtils.sol";
 
 // temp trusted nodes until merging
@@ -84,7 +82,7 @@ contract TrustedNodes is Policed, TimeUtils {
         Policy _policy,
         address[] memory _initialTrustedNodes,
         uint256 _voteReward
-    ) PolicedUtils(_policy) {
+    ) Policed(_policy) {
         voteReward = _voteReward;
         uint256 trusteeCount = _initialTrustedNodes.length;
         hoard = address(_policy);
@@ -92,33 +90,6 @@ contract TrustedNodes is Policed, TimeUtils {
         for (uint256 i = 0; i < trusteeCount; ++i) {
             address node = _initialTrustedNodes[i];
             _trust(node);
-        }
-    }
-
-    /** Initialize the storage context using parameters copied from the
-     * original contract (provided as _self).
-     *
-     * Can only be called once, during proxy initialization.
-     *
-     * @param _self The original contract address.
-     */
-    function initialize(address _self) public override onlyConstruction {
-        super.initialize(_self);
-        // vote reward is left as mutable for easier governance
-        voteReward = TrustedNodes(_self).voteReward();
-        hoard = TrustedNodes(_self).hoard();
-        yearStartGen = GENERATION_START + 1;
-        yearEnd = getTime() + GENERATIONS_PER_YEAR * MIN_GENERATION_DURATION;
-
-        uint256 _numTrustees = TrustedNodes(_self).numTrustees();
-
-        unallocatedRewardsCount = _numTrustees * GENERATIONS_PER_YEAR;
-        uint256 _cohort = TrustedNodes(_self).cohort();
-        address[] memory trustees = TrustedNodes(_self)
-            .getTrustedNodesFromCohort(_cohort);
-
-        for (uint256 i = 0; i < _numTrustees; ++i) {
-            _trust(trustees[i]);
         }
     }
 
@@ -171,48 +142,11 @@ contract TrustedNodes is Policed, TimeUtils {
      * only callable by the CurrencyGovernance contract
      */
     function recordVote(address _who) external {
-        require(
-            msg.sender == policyFor(ID_CURRENCY_GOVERNANCE),
-            "Must be the monetary policy contract to call"
-        );
-
         votingRecord[_who]++;
 
         if (unallocatedRewardsCount > 0) {
             unallocatedRewardsCount--;
         }
-    }
-
-    /** The calling trustee can redeem any rewards from the previous generation
-     *  that they have earned for participating in that generation's voting.
-     */
-    function redeemVoteRewards() external {
-        // rewards from last year
-        uint256 yearGenerationCount = IGeneration(policyFor(ID_TIMED_POLICIES))
-            .generation() - yearStartGen;
-
-        uint256 record = lastYearVotingRecord[msg.sender];
-        uint256 vested = fullyVestedRewards[msg.sender];
-        require(record + vested > 0, "No vested rewards to redeem");
-        uint256 rewardsToRedeem = (
-            record > yearGenerationCount ? yearGenerationCount : record
-        );
-        lastYearVotingRecord[msg.sender] = record - rewardsToRedeem;
-
-        // fully vested rewards if they exist
-        if (vested > 0) {
-            rewardsToRedeem += vested;
-            fullyVestedRewards[msg.sender] = 0;
-        }
-
-        uint256 reward = rewardsToRedeem * voteReward;
-
-        require(
-            ECOx(policyFor(ID_ECOX)).transfer(msg.sender, reward),
-            "Transfer Failed"
-        );
-
-        emit VotingRewardRedemption(msg.sender, reward);
     }
 
     /** Return the number of entries in trustedNodes array.
@@ -244,57 +178,5 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     function isTrusted(address _node) public view returns (bool) {
         return cohorts[cohort].trusteeNumbers[_node] > 0;
-    }
-
-    /** Function for adding a new cohort of trustees
-     * used for implementing the results of a trustee election
-     */
-    function newCohort(address[] memory _newCohort) external onlyPolicy {
-        uint256 trustees = cohorts[cohort].trustedNodes.length;
-        if (_newCohort.length > trustees) {
-            emit FundingRequest(
-                voteReward *
-                    GENERATIONS_PER_YEAR *
-                    (_newCohort.length - trustees)
-            );
-        }
-
-        cohort++;
-
-        for (uint256 i = 0; i < _newCohort.length; ++i) {
-            _trust(_newCohort[i]);
-        }
-    }
-
-    /** Updates the trustee rewards that they have earned for the year
-     * and then sends the unallocated reward to the hoard.
-     */
-    function annualUpdate() external {
-        require(
-            getTime() > yearEnd,
-            "cannot call this until the current year term has ended"
-        );
-        address[] memory trustees = cohorts[cohort].trustedNodes;
-        for (uint256 i = 0; i < trustees.length; ++i) {
-            address trustee = trustees[i];
-            fullyVestedRewards[trustee] += lastYearVotingRecord[trustee];
-            lastYearVotingRecord[trustee] = votingRecord[trustee];
-            votingRecord[trustee] = 0;
-        }
-
-        uint256 reward = unallocatedRewardsCount * voteReward;
-        unallocatedRewardsCount =
-            cohorts[cohort].trustedNodes.length *
-            GENERATIONS_PER_YEAR;
-        yearEnd = getTime() + GENERATIONS_PER_YEAR * MIN_GENERATION_DURATION;
-        yearStartGen = IGeneration(policyFor(ID_TIMED_POLICIES)).generation();
-
-        ECOx ecoX = ECOx(policyFor(ID_ECOX));
-
-        require(ecoX.transfer(hoard, reward), "Transfer Failed");
-
-        emit FundingRequest(unallocatedRewardsCount * voteReward);
-        emit VotingRewardRedemption(hoard, reward);
-        emit RewardsTrackingUpdate(yearEnd, unallocatedRewardsCount);
     }
 }

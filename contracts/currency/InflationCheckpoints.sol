@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "../currency/VoteCheckpoints.sol";
-import "../governance/IGenerationIncrease.sol";
-import "../policy/PolicedUtils.sol";
+import "../policy/Policed.sol";
 
 /** @title InflationCheckpoints
  * This implements a generational store with snapshotted balances. Balances
@@ -12,8 +11,7 @@ import "../policy/PolicedUtils.sol";
  */
 abstract contract InflationCheckpoints is
     VoteCheckpoints,
-    PolicedUtils,
-    IGenerationIncrease
+    Policed
 {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
@@ -41,7 +39,7 @@ abstract contract InflationCheckpoints is
         address _initialPauser
     )
         VoteCheckpoints(_name, _symbol, address(_policy), _initialPauser)
-        PolicedUtils(_policy)
+        Policed(_policy)
     {
         _writeCheckpoint(
             _linearInflationCheckpoints,

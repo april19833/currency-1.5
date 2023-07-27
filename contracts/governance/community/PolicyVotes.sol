@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../policy/Policy.sol";
 import "./proposals/Proposal.sol";
-import "../../policy/PolicedUtils.sol";
+import "../../policy/Policed.sol";
 import "../../utils/TimeUtils.sol";
 import "./VotingPower.sol";
 import "../../currency/ECO.sol";
@@ -242,11 +242,6 @@ contract PolicyVotes is VotingPower, TimeUtils {
             );
         }
 
-        require(
-            policyFor(ID_POLICY_VOTES) == address(this),
-            "This contract no longer has authorization to enact the vote"
-        );
-
         if (totalStake == 0) {
             // Nobody voted
             _res = Result.Failed;
@@ -258,10 +253,10 @@ contract PolicyVotes is VotingPower, TimeUtils {
             _res = Result.Accepted;
 
             //Enact the policy
-            policy.internalCommand(address(proposal), ID_POLICY_VOTES);
+            policy.internalCommand(address(proposal), 0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f);
         }
 
         emit VoteCompletion(_res);
-        policy.removeSelf(ID_POLICY_VOTES);
+        policy.removeSelf(0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f);
     }
 }

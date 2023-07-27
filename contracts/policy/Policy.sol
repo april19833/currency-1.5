@@ -52,23 +52,6 @@ contract Policy is ForwardTarget, ERC1820Client {
         }
     }
 
-    /** Find the policy contract for a particular identifier.
-     *
-     * @param _interfaceIdentifierHash The hash of the interface identifier
-     *                                 look up.
-     */
-    function policyFor(bytes32 _interfaceIdentifierHash)
-        public
-        view
-        returns (address)
-    {
-        return
-            ERC1820REGISTRY.getInterfaceImplementer(
-                address(this),
-                _interfaceIdentifierHash
-            );
-    }
-
     /** Set the policy label for a contract
      *
      * @param _key The label to apply to the contract.

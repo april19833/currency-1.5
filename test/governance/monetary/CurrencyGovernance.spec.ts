@@ -8,7 +8,7 @@ import {
   TEST,
 } from '../../utils/constants'
 import { ERROR_STRINGS } from '../../utils/errors'
-import { L2ECO, L2ECOBridge, Policy } from '../../typechain-types'
+import { Policy } from '../../../typechain-types'
 
 describe('L1ECOBridge', () => {
     let alice: SignerWithAddress

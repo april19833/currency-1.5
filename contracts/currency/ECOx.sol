@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./IECO.sol";
-import "../policy/PolicedUtils.sol";
+import "../policy/Policed.sol";
 import "./ERC20Pausable.sol";
 
 /** @title An ERC20 token interface for ECOx
  *
  * Contains the conversion mechanism for turning ECOx into ECO.
  */
-contract ECOx is ERC20Pausable, PolicedUtils {
+contract ECOx is ERC20Pausable, Policed {
     // bits of precision used in the exponentiation approximation
     uint8 public constant PRECISION_BITS = 100;
 
@@ -29,7 +29,7 @@ contract ECOx is ERC20Pausable, PolicedUtils {
         address _initialPauser
     )
         ERC20Pausable("ECOx", "ECOx", address(_policy), _initialPauser)
-        PolicedUtils(_policy)
+        Policed(_policy)
     {
         require(_initialSupply > 0, "initial supply not properly set");
         require(
@@ -187,11 +187,6 @@ contract ECOx is ERC20Pausable, PolicedUtils {
     }
 
     function mint(address _to, uint256 _value) external {
-        require(
-            msg.sender == policyFor(ID_FAUCET),
-            "Caller not authorized to mint tokens"
-        );
-
         _mint(_to, _value);
     }
 }

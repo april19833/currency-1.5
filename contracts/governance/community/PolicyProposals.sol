@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../policy/Policy.sol";
 import "../../currency/IECO.sol";
-import "../../policy/PolicedUtils.sol";
+import "../../policy/Policed.sol";
 import "./proposals/Proposal.sol";
 import "./PolicyVotes.sol";
 import "./VotingPower.sol";
@@ -252,10 +252,6 @@ contract PolicyProposals is VotingPower, TimeUtils {
      * @param _prop The proposal to support.
      */
     function support(Proposal _prop) external {
-        require(
-            policyFor(ID_POLICY_PROPOSALS) == address(this),
-            "Proposal contract no longer active"
-        );
         require(!proposalSelected, "A proposal has already been selected");
         require(
             getTime() < proposalEnds,
@@ -296,10 +292,6 @@ contract PolicyProposals is VotingPower, TimeUtils {
     }
 
     function unsupport(Proposal _prop) external {
-        require(
-            policyFor(ID_POLICY_PROPOSALS) == address(this),
-            "Proposal contract no longer active"
-        );
         require(!proposalSelected, "A proposal has already been selected");
         require(
             getTime() < proposalEnds,
@@ -330,7 +322,7 @@ contract PolicyProposals is VotingPower, TimeUtils {
         delete proposals[_proposalToConfigure];
         totalProposals--;
 
-        PolicyVotes pv = PolicyVotes(policyVotesImpl.clone());
+        PolicyVotes pv = PolicyVotes(address(0x0)); //placeholder functionality
         pv.configure(
             _proposalToConfigure,
             _proposer,
@@ -338,7 +330,7 @@ contract PolicyProposals is VotingPower, TimeUtils {
             totalECOxSnapshot,
             excludedVotingPower
         );
-        policy.setPolicy(ID_POLICY_VOTES, address(pv), ID_POLICY_PROPOSALS);
+        policy.setPolicy(0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f, address(pv), 0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a);
 
         emit VoteStart(pv);
     }
@@ -397,7 +389,7 @@ contract PolicyProposals is VotingPower, TimeUtils {
 
         require(totalProposals == 0, "Must refund all missed proposals first");
 
-        policy.removeSelf(ID_POLICY_PROPOSALS);
+        policy.removeSelf(0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a);
 
         require(
             ecoToken.transfer(

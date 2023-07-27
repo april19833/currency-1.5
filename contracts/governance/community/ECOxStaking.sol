@@ -3,13 +3,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../currency/VoteCheckpoints.sol";
 import "../../currency/ECOx.sol";
-import "../../policy/PolicedUtils.sol";
-import "../IGeneration.sol";
+import "../../policy/Policed.sol";
 
 /** @title ECOxStaking
  *
  */
-contract ECOxStaking is VoteCheckpoints, PolicedUtils {
+contract ECOxStaking is VoteCheckpoints, Policed {
     /** The Deposit event indicates that ECOx has been locked up, credited
      * to a particular address in a particular amount.
      *
@@ -34,7 +33,7 @@ contract ECOxStaking is VoteCheckpoints, PolicedUtils {
         // through ERC20Pausable, although transfers are paused by default
         // therefore the pauser is unset
         VoteCheckpoints("Staked ECOx", "sECOx", address(_policy), address(0))
-        PolicedUtils(_policy)
+        Policed(_policy)
     {
         require(
             address(_ecoXAddr) != address(0),
