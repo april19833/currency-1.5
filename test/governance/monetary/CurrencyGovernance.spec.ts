@@ -8,7 +8,7 @@ import {
   TEST,
 } from '../../utils/constants'
 import { ERROR_STRINGS } from '../../utils/errors'
-import { Policy } from '../../../typechain-types'
+import { TrustedNodes, CurrencyGovernance } from '../../../typechain-types'
 
 describe('L1ECOBridge', () => {
     let alice: SignerWithAddress
@@ -28,20 +28,24 @@ describe('L1ECOBridge', () => {
     beforeEach(async () => {
         // Get a new mock L1 messenger
         Fake__Policy = await smock.fake<Contract>(
-          L1CrossDomainMessenger.abi,
-          { address: await policyImpersonater.getAddress() } // This allows us to use an ethers override {from: Mock__L2CrossDomainMessenger.address} to mock calls
+          'Policy',
+          { address: await policyImpersonater.getAddress() } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
         )
     
-        L1ERC20 = await (
+        TrustedNodes = await (
           await smock.mock(
-            '@helix-foundation/currency/contracts/currency/ECO.sol:ECO'
+            'TrustedNodes'
           )
         ).deploy(
-          DUMMY_L1_ERC20_ADDRESS,
-          alice.address,
-          ethers.utils.parseEther('10000'),
-          alice.address
+          Fake__Policy.address,
+          [
+            bob.address,
+            charlie.address,
+            dave.address,
+          ],
+          0,
         )
-        L2ECOBridge = await (await smock.mock('L2ECOBridge')).deploy()
+
+        CurrencyGovernance = await (await smock.mock('CurrencyGovernance')).deploy(Fake__Policy.address,TrustedNodes.address,alice.address)
     })
 })

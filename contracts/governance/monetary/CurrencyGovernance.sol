@@ -158,7 +158,8 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         }
     }
 
-    constructor(Policy _policy, address _initialPauser) Policed(_policy) {
+    constructor(Policy _policy, TrustedNodes _trustedNodes, address _initialPauser) Policed(_policy) {
+        trustedNodes = _trustedNodes;
         pauser = _initialPauser;
         emit PauserAssignment(_initialPauser);
     }
