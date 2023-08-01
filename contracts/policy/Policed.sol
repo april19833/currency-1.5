@@ -15,7 +15,18 @@ abstract contract Policed is ForwardTarget {
      * This address can be used for ERC1820 lookup of other components, ERC1820
      * lookup of role policies, and interaction with the policy hierarchy.
      */
-    Policy public immutable policy;
+    Policy public policy;
+
+    // If the policy address is set to zero, the contract is unrecoverably ungovernable
+    error NonZeroPolicyAddr();
+
+    /** 
+     * emits when the policy contract is changed
+     * @param newPolicy denotes the new policy contract address
+     * @param oldPolicy denotes the new policy contract address
+     */
+
+    event NewPolicy(Policy newPolicy, Policy oldPolicy);
 
     /** Restrict method access to the root policy instance only.
      */
@@ -28,10 +39,20 @@ abstract contract Policed is ForwardTarget {
     }
 
     constructor(Policy _policy) {
-        require(
-            address(_policy) != address(0),
-            "Unrecoverable: do not set the policy as the zero address"
-        );
+        _setPolicy(_policy);
+    }
+
+    function setPolicy(Policy _policy) external onlyPolicy {
+        emit NewPolicy(_policy, policy);
+        _setPolicy(_policy);
+    }
+
+    function _setPolicy(Policy _policy) private {
+        if(
+            address(_policy) == address(0)
+        ) {
+            revert NonZeroPolicyAddr();
+        }
         policy = _policy;
     }
 }
