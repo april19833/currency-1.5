@@ -179,7 +179,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
         if(
-            address(_trustedNodes) != address(0)
+            address(_trustedNodes) == address(0)
         ) {
             revert NonZeroTrustedNodesAddr();
         }

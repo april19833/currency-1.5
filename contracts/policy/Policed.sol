@@ -49,7 +49,7 @@ abstract contract Policed is ForwardTarget {
 
     function _setPolicy(Policy _policy) private {
         if(
-            address(_policy) != address(0)
+            address(_policy) == address(0)
         ) {
             revert NonZeroPolicyAddr();
         }
