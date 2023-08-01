@@ -15,40 +15,38 @@ import "../../utils/TimeUtils.sol";
  *
  */
 contract TrustedNodes is Policed, TimeUtils {
-    uint256 public constant GENERATIONS_PER_YEAR = 26;
+    uint256 public constant generationTime = 14 days;
 
-    uint256 public yearEnd;
+    uint256 public termEndTimestamp;
 
-    uint256 public yearStartGen;
+    // address with the policy role
+    address policyRole;
+
+    // address with the trusteeGovernance role
+    address trusteeGovernanceRole;
 
     address public hoard;
 
-    /** Tracks the current trustee cohort
-     * each trustee election cycle corresponds to a new trustee cohort.
-     */
+    address public EcoXAddress;
 
-    struct Cohort {
-        /** The list of trusted nodes in the cohort*/
-        address[] trustedNodes;
-        /** @dev address of trusted node to index in trustedNodes */
-        mapping(address => uint256) trusteeNumbers;
-    }
+    mapping(address => uint256) trusteeNumbers;
 
-    /** cohort number */
-    uint256 public cohort;
+    address[] trustees;
 
-    /** cohort number to cohort */
-    mapping(uint256 => Cohort) internal cohorts;
+    address[] removedTrustees;
 
     /** Represents the number of votes for which the trustee can claim rewards.
     Increments each time the trustee votes, set to zero upon redemption */
     mapping(address => uint256) public votingRecord;
 
     // last year's voting record
-    mapping(address => uint256) public lastYearVotingRecord;
+    mapping(address => uint256) public lastYearVotingRecord;    
 
     // completely vested
     mapping(address => uint256) public fullyVestedRewards;
+
+    // timestamp of last withdrawal
+    mapping(address => uint256) public lastWithdrawals;
 
     /** reward earned per completed and revealed vote */
     uint256 public voteReward;
@@ -58,11 +56,11 @@ contract TrustedNodes is Policed, TimeUtils {
 
     /** Event emitted when a node added to a list of trusted nodes.
      */
-    event TrustedNodeAddition(address indexed node, uint256 cohort);
+    event TrustedNodeAddition(address indexed node);
 
     /** Event emitted when a node removed from a list of trusted nodes
      */
-    event TrustedNodeRemoval(address indexed node, uint256 cohort);
+    event TrustedNodeRemoval(address indexed node);
 
     /** Event emitted when voting rewards are redeemed */
     event VotingRewardRedemption(address indexed recipient, uint256 amount);
@@ -76,6 +74,14 @@ contract TrustedNodes is Policed, TimeUtils {
         uint256 newRewardsCount
     );
 
+    modifier onlyTrusteeGovernance() {
+        require(
+            msg.sender == trusteeGovernanceRole,
+            "only TrusteeGovernance has permission to call this method"
+        );
+        _;
+    }
+
     /** Creates a new trusted node registry, populated with some initial nodes.
      */
     constructor(
@@ -84,22 +90,20 @@ contract TrustedNodes is Policed, TimeUtils {
         uint256 _voteReward
     ) Policed(_policy) {
         voteReward = _voteReward;
-        uint256 trusteeCount = _initialTrustedNodes.length;
         hoard = address(_policy);
-
-        for (uint256 i = 0; i < trusteeCount; ++i) {
-            address node = _initialTrustedNodes[i];
-            _trust(node);
+        uint256 numTrustees = _initialTrustedNodes.length;
+        for (uint256 i = 0; i < numTrustees; i++) {
+            _trust(_initialTrustedNodes[i]);
         }
     }
 
-    function getTrustedNodesFromCohort(uint256 _cohort)
-        public
-        view
-        returns (address[] memory)
-    {
-        return cohorts[_cohort].trustedNodes;
-    }
+    // function getTrustedNodesFromCohort(uint256 _cohort)
+    //     public
+    //     view
+    //     returns (address[] memory)
+    // {
+    //     return cohorts[_cohort].trustedNodes;
+    // }
 
     /** Grant trust to a node.
      *
@@ -111,6 +115,15 @@ contract TrustedNodes is Policed, TimeUtils {
         _trust(_node);
     }
 
+    /** helper for trust
+     * @param _node The node to start trusting.
+     */
+    function _trust(address _node) internal {
+        trustees.push(_node);
+        trusteeNumbers[_node] = trustees.length;
+        emit TrustedNodeAddition(_node);
+    }
+
     /** Stop trusting a node.
      *
      * Node to distrust swaped to be a last element in the trustedNodes, then deleted
@@ -118,30 +131,25 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _node The node to stop trusting.
      */
     function distrust(address _node) external onlyPolicy {
-        Cohort storage currentCohort = cohorts[cohort];
-        uint256 trusteeNumber = currentCohort.trusteeNumbers[_node];
-        require(trusteeNumber > 0, "Node already not trusted");
+        require(isTrusted(_node), "Node already not trusted");
 
-        uint256 lastIndex = currentCohort.trustedNodes.length - 1;
-
-        delete currentCohort.trusteeNumbers[_node];
-
-        uint256 trusteeIndex = trusteeNumber - 1;
+        uint256 lastIndex = trustees.length - 1;
+        uint256 trusteeIndex = trusteeNumbers[_node] - 1;
         if (trusteeIndex != lastIndex) {
-            address lastNode = currentCohort.trustedNodes[lastIndex];
-
-            currentCohort.trustedNodes[trusteeIndex] = lastNode;
-            currentCohort.trusteeNumbers[lastNode] = trusteeNumber;
+            address lastNode = trustees[lastIndex];
+            trustees[trusteeIndex] = lastNode;
+            trusteeNumbers[lastNode] = trusteeIndex + 1;
         }
 
-        currentCohort.trustedNodes.pop();
-        emit TrustedNodeRemoval(_node, cohort);
+        trustees.pop();
+        removedTrustees.push(_node);
+        emit TrustedNodeRemoval(_node);
     }
 
     /** Incements the counter when the trustee reveals their vote
      * only callable by the CurrencyGovernance contract
      */
-    function recordVote(address _who) external {
+    function recordVote(address _who) external onlyTrusteeGovernance(){
         votingRecord[_who]++;
 
         if (unallocatedRewardsCount > 0) {
@@ -152,31 +160,54 @@ contract TrustedNodes is Policed, TimeUtils {
     /** Return the number of entries in trustedNodes array.
      */
     function numTrustees() external view returns (uint256) {
-        return cohorts[cohort].trustedNodes.length;
+        return trustees.length;
     }
 
-    /** Helper function for adding a node to the trusted set.
-     *
-     * @param _node The node to add to the trusted set.
-     */
-    function _trust(address _node) private {
-        uint256 _cohort = cohort;
-        Cohort storage currentCohort = cohorts[_cohort];
-        require(
-            currentCohort.trusteeNumbers[_node] == 0,
-            "Node is already trusted"
-        );
-        // trustee number of new node is len(trustedNodes) + 1, since there can't be a trustee with trusteeNumber = 0
-        currentCohort.trusteeNumbers[_node] =
-            currentCohort.trustedNodes.length +
-            1;
-        currentCohort.trustedNodes.push(_node);
-        emit TrustedNodeAddition(_node, _cohort);
-    }
-
-    /** Checks if a node address is trusted in the current cohort
-     */
+    // /** Checks if a node address is trusted in the current cohort
+    //  */
     function isTrusted(address _node) public view returns (bool) {
-        return cohorts[cohort].trusteeNumbers[_node] > 0;
+        return trusteeNumbers[_node] > 0;
+    }
+
+    // occurs on election
+    // previous years voting record is fully vested at this point, so swept into that bucket
+    // this year's voting is now available to start vesting, swept into lastYearVotingRecord
+    // every year this will need to be called for two contracts: TrustedNodes for the current and previous cohorts
+    function cohortChange() public onlyPolicy {
+        termEndTimestamp = getTime();
+        uint256 trusteeCount = trustees.length;
+        uint256 removedCount = removedTrustees.length;
+        address trustee;
+        for (uint256 i = 0; i < trusteeCount; i++) {
+            trustee = trustees[i];
+            fullyVestedRewards[trustee] += lastYearVotingRecord[trustee];
+            lastYearVotingRecord[trustee] = votingRecord[trustee];
+            votingRecord[trustee] = 0;
+        }
+        for (uint256 i = 0; i < removedCount; i++) {
+            fullyVestedRewards[trustee] += lastYearVotingRecord[trustee];
+            lastYearVotingRecord[trustee] = votingRecord[trustee];
+            votingRecord[trustee] = 0;
+        }
+    }
+
+    // withdraws everything that can be withdrawn
+    // marks th
+    function withdraw() public {
+        uint256 lastWithdrawal = lastWithdrawals[msg.sender];
+        uint256 currentTime = getTime();
+        lastWithdrawals[msg.sender] = currentTime;
+        if(lastWithdrawal == 0) {
+            lastWithdrawal = termEndTimestamp;
+        }
+        uint256 limit = (currentTime - lastWithdrawal)/generationTime;
+        uint256 lastYearWithdrawals = limit > lastYearVotingRecord[msg.sender] ? lastYearVotingRecord[msg.sender] : limit;
+        uint256 toWithdraw = (fullyVestedRewards[msg.sender] + lastYearWithdrawals) * voteReward;
+        fullyVestedRewards[msg.sender] = 0;
+        lastYearVotingRecord[msg.sender] -= lastYearWithdrawals;
+
+        ECOx(EcoXAddress).transfer(msg.sender, toWithdraw);
+        emit VotingRewardRedemption(msg.sender, toWithdraw);
+
     }
 }
