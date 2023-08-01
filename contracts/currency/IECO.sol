@@ -3,9 +3,8 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../governance/IGenerationIncrease.sol";
 
-interface IECO is IERC20, IGenerationIncrease {
+interface IECO is IERC20 {
     /**
      * Only available to CurrencyTimer and ECOx
      */
