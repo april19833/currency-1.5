@@ -36,14 +36,8 @@ contract TrustedNodes is Policed, TimeUtils {
     address[] removedTrustees;
 
     /** Represents the number of votes for which the trustee can claim rewards.
-    Increments each time the trustee votes, set to zero upon redemption */
+    Increments each time the trustee votes, decremented on withdrawal */
     mapping(address => uint256) public votingRecord;
-
-    // last year's voting record
-    mapping(address => uint256) public lastYearVotingRecord;    
-
-    // completely vested
-    mapping(address => uint256) public fullyVestedRewards;
 
     // timestamp of last withdrawal
     mapping(address => uint256) public lastWithdrawals;
@@ -151,10 +145,6 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     function recordVote(address _who) external onlyTrusteeGovernance(){
         votingRecord[_who]++;
-
-        if (unallocatedRewardsCount > 0) {
-            unallocatedRewardsCount--;
-        }
     }
 
     /** Return the number of entries in trustedNodes array.
@@ -175,25 +165,13 @@ contract TrustedNodes is Policed, TimeUtils {
     // every year this will need to be called for two contracts: TrustedNodes for the current and previous cohorts
     function cohortChange() public onlyPolicy {
         termEndTimestamp = getTime();
-        uint256 trusteeCount = trustees.length;
-        uint256 removedCount = removedTrustees.length;
-        address trustee;
-        for (uint256 i = 0; i < trusteeCount; i++) {
-            trustee = trustees[i];
-            fullyVestedRewards[trustee] += lastYearVotingRecord[trustee];
-            lastYearVotingRecord[trustee] = votingRecord[trustee];
-            votingRecord[trustee] = 0;
-        }
-        for (uint256 i = 0; i < removedCount; i++) {
-            fullyVestedRewards[trustee] += lastYearVotingRecord[trustee];
-            lastYearVotingRecord[trustee] = votingRecord[trustee];
-            votingRecord[trustee] = 0;
-        }
     }
 
     // withdraws everything that can be withdrawn
     // marks th
     function withdraw() public {
+        require(termEndTimestamp > 0, "Current trustee term has not ended yet.");
+
         uint256 lastWithdrawal = lastWithdrawals[msg.sender];
         uint256 currentTime = getTime();
         lastWithdrawals[msg.sender] = currentTime;
@@ -201,13 +179,16 @@ contract TrustedNodes is Policed, TimeUtils {
             lastWithdrawal = termEndTimestamp;
         }
         uint256 limit = (currentTime - lastWithdrawal)/generationTime;
-        uint256 lastYearWithdrawals = limit > lastYearVotingRecord[msg.sender] ? lastYearVotingRecord[msg.sender] : limit;
-        uint256 toWithdraw = (fullyVestedRewards[msg.sender] + lastYearWithdrawals) * voteReward;
-        fullyVestedRewards[msg.sender] = 0;
-        lastYearVotingRecord[msg.sender] -= lastYearWithdrawals;
+        uint256 numWithdrawals = limit > votingRecord[msg.sender] ? votingRecord[msg.sender] : limit;
+        uint256 toWithdraw = numWithdrawals * voteReward;
+        votingRecord[msg.sender] -= numWithdrawals;
 
         ECOx(EcoXAddress).transfer(msg.sender, toWithdraw);
         emit VotingRewardRedemption(msg.sender, toWithdraw);
 
+    }
+
+    function sweep() public onlyPolicy {
+        ECOx(EcoXAddress).transfer(msg.sender, ECOx(EcoXAddress).balanceOf(address(this)));
     }
 }
