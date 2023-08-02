@@ -87,6 +87,12 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // setting the trusted nodes address to a bad address stops governance
     error NonZeroTrustedNodesAddr();
 
+    // For if a non-trustee address tries to access trustee role gated functionality
+    error TrusteeOnlyFunction();
+
+    // For if a non-pauser address tries to access pauser role gated functionality
+    error PauserOnlyFunction();
+
     // emitted when a proposal is submitted to track the values
     event ProposalCreation(
         address indexed trusteeAddress,
@@ -133,7 +139,9 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     event PauserAssignment(address indexed pauser);
 
     modifier onlyPauser() {
-        require(msg.sender == pauser, "CurrencyGovernance: not pauser");
+        if(msg.sender != pauser){
+            revert PauserOnlyFunction();
+        }
         _;
     }
 
@@ -170,10 +178,11 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     /** Restrict access to trusted nodes only.
      */
     modifier onlyTrusted() {
-        require(
-            trustedNodes.isTrusted(msg.sender),
-            "Only trusted nodes can call this method"
-        );
+        if(
+            trustedNodes.isTrusted(msg.sender)
+        ) {
+            TrusteeOnlyFunction();
+        }
         _;
     }
 
