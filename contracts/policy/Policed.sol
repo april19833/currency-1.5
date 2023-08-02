@@ -20,6 +20,9 @@ abstract contract Policed is ForwardTarget {
     // If the policy address is set to zero, the contract is unrecoverably ungovernable
     error NonZeroPolicyAddr();
 
+    // For if a non-policy address tries to access policy role gated functionality
+    error PolicyOnlyFunction();
+
     /** 
      * emits when the policy contract is changed
      * @param newPolicy denotes the new policy contract address
@@ -31,10 +34,11 @@ abstract contract Policed is ForwardTarget {
     /** Restrict method access to the root policy instance only.
      */
     modifier onlyPolicy() {
-        require(
-            msg.sender == address(policy),
-            "Only the policy contract may call this method"
-        );
+        if(
+            msg.sender != address(policy)
+        ) {
+            revert PolicyOnlyFunction();
+        }
         _;
     }
 
