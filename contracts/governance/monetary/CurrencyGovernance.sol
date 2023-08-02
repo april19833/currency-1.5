@@ -181,7 +181,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         if(
             trustedNodes.isTrusted(msg.sender)
         ) {
-            TrusteeOnlyFunction();
+            revert TrusteeOnlyFunction();
         }
         _;
     }
