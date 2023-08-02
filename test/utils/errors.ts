@@ -1,10 +1,10 @@
 /**
- * @notice Contains all error strings used in the contracts.
+ * @notice Contains all custom errors used in the contracts.
  * Should be exported in package
  */
-export const ERROR_STRINGS = {
+export const ERRORS = {
     CurrencyGovernance: {
-        EXAMPLE: 'error string',
+        EXAMPLE: 'CustomError',
     }
   }
   
