@@ -50,12 +50,12 @@ describe('CurrencyGovernance', () => {
 
     describe('trustee role', async () => {
       it('trustees can call onlyTrusted functions', async () => {
-        await CurrencyGovernance.connect(bob).propose(1,1,1,1,1,'')
+        await CurrencyGovernance.connect(bob).propose(0,1,1,1,1,1,'')
       })
 
       it('non-trustees cannot call onlyTrusted functions', async () => {
         await expect(
-          CurrencyGovernance.connect(alice).propose(1,1,1,1,1,'')
+          CurrencyGovernance.connect(alice).propose(0,1,1,1,1,1,'')
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
       })
     })

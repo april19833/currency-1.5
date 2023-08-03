@@ -4,7 +4,7 @@
  */
 export const ERRORS = {
     CurrencyGovernance: {
-        EXAMPLE: 'CustomError',
+        TRUSTEE_ONLY: 'TrusteeOnlyFunction',
     },
     Policed: {
         POLICY_ONLY: 'PolicyOnlyFunction',
