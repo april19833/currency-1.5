@@ -10,14 +10,6 @@ import "./TrustedNodes.sol";
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
 contract CurrencyGovernance is Policed, Pausable, TimeUtils {
-    enum Stage {
-        Propose,
-        Commit,
-        Reveal,
-        Compute,
-        Finished
-    }
-
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
         // random inflation recipients
@@ -45,24 +37,15 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
-    // the initial voting cycle index to prevent underflow
-    uint256 private constant VOTING_CYCLE_START = 1000;
-
-    // tracks the index of the current voting cycle for proposal and vote storage
-    uint256 public currentCycle;
-
-    // tracks the progress of the contract
-    Stage public currentStage;
+    // this variable tracks the start of governance
+    // it is use to track the voting cycle and stage
+    uint256 public immutable governanceStartTime;
 
     // timescales
     uint256 public constant PROPOSAL_TIME = 10 days;
     uint256 public constant VOTING_TIME = 3 days;
     uint256 public constant REVEAL_TIME = 1 days;
-
-    // timestamps for the above periods
-    uint256 public proposalEnds;
-    uint256 public votingEnds;
-    uint256 public revealEnds;
+    uint256 public constant CYCLE_LENGTH = PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 
     uint256 public constant IDEMPOTENT_INFLATION_MULTIPLIER = 1e18;
 
@@ -74,12 +57,12 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // mapping of cycle to trustee addresses to their hash commits for voting
     mapping(uint256 => mapping(address => bytes32)) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
-    mapping(address => uint256) public score;
+    mapping(uint256 => mapping(address => uint256)) public score;
 
     // used to track the leading proposal during the vote totalling
     address public leader;
     // used to denote the winning proposal when the vote is finalized
-    address public winner;
+    mapping(uint256 => address) public winner;
 
     // address that can pause currency governance
     address public pauser;
@@ -92,6 +75,24 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     // For if a non-pauser address tries to access pauser role gated functionality
     error PauserOnlyFunction();
+
+    // For when governance calls are made before or after their time windows for their stage
+    error WrongStage();
+
+    /** Bad cycle request error
+     * for when a cycle is attempted to interacted with before or after its time
+     * found on all stage related functions
+     * @param requestedCycle the cycle submitted by the end user to access
+     * @param currentCycle the current cycle as calculated by the contract
+     */
+    error CycleInactive(uint256 requestedCycle, uint256 currentCycle);
+
+    /** Early finazilation error
+     * for when a cycle is attempted to be finalized before it finishes
+     * @param requestedCycle the cycle submitted by the end user to access
+     * @param currentCycle the current cycle as calculated by the contract
+     */
+    error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle);
 
     // emitted when a proposal is submitted to track the values
     event ProposalCreation(
@@ -107,19 +108,9 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // emitted when a trustee retracts their proposal
     event ProposalRetraction(address indexed trustee);
 
-    /** Fired when the voting stage begins.
-     * Triggered by updateStage().
-     */
-    event VoteStart();
-
     /** Fired when a trustee casts a vote.
      */
     event VoteCast(address indexed trustee);
-
-    /** Fired when the reveal stage begins.
-     * Triggered by updateStage().
-     */
-    event RevealStart();
 
     /** Fired when a vote is revealed, to create a voting history for all
      * participants. Records the voter, as well as all of the parameters of
@@ -138,6 +129,17 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
      */
     event PauserAssignment(address indexed pauser);
 
+    /** Restrict access to trusted nodes only.
+     */
+    modifier onlyTrusted() {
+        if(
+            !trustedNodes.isTrusted(msg.sender)
+        ) {
+            revert TrusteeOnlyFunction();
+        }
+        _;
+    }
+
     modifier onlyPauser() {
         if(msg.sender != pauser){
             revert PauserOnlyFunction();
@@ -145,45 +147,65 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         _;
     }
 
-    modifier atStage(Stage _stage) {
-        updateStage();
-        require(
-            currentStage == _stage,
-            "This call is not allowed at this stage"
-        );
+    modifier duringProposePhase(uint256 cycleIndex) {
+        uint256 timeDifference = getTime() - governanceStartTime;
+        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+
+        if(completedCycles != cycleIndex) {
+            revert CycleInactive(cycleIndex, completedCycles);
+        }
+        
+        if(governanceTime > PROPOSAL_TIME) {
+            revert WrongStage();
+        }
         _;
     }
 
-    function updateStage() public {
-        uint256 time = getTime();
-        if (currentStage == Stage.Propose && time >= proposalEnds) {
-            currentStage = Stage.Commit;
-            emit VoteStart();
+    modifier duringVotePhase(uint256 cycleIndex) {
+        uint256 timeDifference = getTime() - governanceStartTime;
+        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+
+        if(completedCycles != cycleIndex) {
+            revert CycleInactive(cycleIndex, completedCycles);
         }
-        if (currentStage == Stage.Commit && time >= votingEnds) {
-            currentStage = Stage.Reveal;
-            emit RevealStart();
+
+        if(governanceTime <= PROPOSAL_TIME || governanceTime > PROPOSAL_TIME+VOTING_TIME) {
+            revert WrongStage();
         }
-        if (currentStage == Stage.Reveal && time >= revealEnds) {
-            currentStage = Stage.Compute;
+        _;
+    }
+
+    modifier duringRevealPhase(uint256 cycleIndex) {
+        uint256 timeDifference = getTime() - governanceStartTime;
+        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+
+        if(completedCycles != cycleIndex) {
+            revert CycleInactive(cycleIndex, completedCycles);
         }
+
+        if(governanceTime <= PROPOSAL_TIME+VOTING_TIME) {
+            revert WrongStage();
+        }
+        _;
+    }
+
+    modifier cycleComplete(uint256 cycle) {
+        uint256 completedCycles = (getTime() - governanceStartTime)/CYCLE_LENGTH;
+
+        if(completedCycles <= cycle) {
+            revert CycleIncomplete(cycle, completedCycles);
+        }
+        _;
     }
 
     constructor(Policy _policy, TrustedNodes _trustedNodes, address _initialPauser) Policed(_policy) {
         trustedNodes = _trustedNodes;
         pauser = _initialPauser;
+        governanceStartTime = getTime();
         emit PauserAssignment(_initialPauser);
-    }
-
-    /** Restrict access to trusted nodes only.
-     */
-    modifier onlyTrusted() {
-        if(
-            trustedNodes.isTrusted(msg.sender)
-        ) {
-            revert TrusteeOnlyFunction();
-        }
-        _;
     }
 
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
@@ -196,13 +218,14 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     function propose(
+        uint256 _cycle,
         uint256 _numberOfRecipients,
         uint256 _randomInflationReward,
         uint256 _lockupDuration,
         uint256 _lockupInterest,
         uint256 _inflationMultiplier,
         string calldata _description
-    ) external onlyTrusted atStage(Stage.Propose) {
+    ) external onlyTrusted duringProposePhase(_cycle) {
         require(
             _inflationMultiplier > 0,
             "Inflation multiplier cannot be zero"
@@ -213,7 +236,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             "Description is too long"
         );
 
-        MonetaryPolicy storage p = proposals[currentCycle][msg.sender];
+        MonetaryPolicy storage p = proposals[_cycle][msg.sender];
         p.numberOfRecipients = _numberOfRecipients;
         p.randomInflationReward = _randomInflationReward;
         p.lockupDuration = _lockupDuration;
@@ -232,44 +255,46 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         );
     }
 
-    function unpropose() external atStage(Stage.Propose) {
+    function unpropose(uint256 _cycle) external duringProposePhase(_cycle) {
         require(
-            proposals[currentCycle][msg.sender].inflationMultiplier != 0,
+            proposals[_cycle][msg.sender].inflationMultiplier != 0,
             "You do not have a proposal to retract"
         );
-        delete proposals[currentCycle][msg.sender];
+        delete proposals[_cycle][msg.sender];
         emit ProposalRetraction(msg.sender);
     }
 
-    function commit(bytes32 _commitment)
+    function commit(uint256 _cycle, bytes32 _commitment)
         external
         onlyTrusted
-        atStage(Stage.Commit)
+        duringVotePhase(_cycle)
     {
-        commitments[currentCycle][msg.sender] = _commitment;
+        commitments[_cycle][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
-    function reveal(bytes32 _seed, Vote[] calldata _votes)
+    function reveal(uint256 _cycle, bytes32 _seed, Vote[] calldata _votes)
         external
-        atStage(Stage.Reveal)
+        duringRevealPhase(_cycle)
     {
         uint256 numVotes = _votes.length;
         require(numVotes > 0, "Invalid vote, cannot vote empty");
         require(
-            commitments[currentCycle][msg.sender] != bytes32(0),
+            commitments[_cycle][msg.sender] != bytes32(0),
             "Invalid vote, no unrevealed commitment exists"
         );
         require(
             keccak256(abi.encode(_seed, msg.sender, _votes)) ==
-                commitments[currentCycle][msg.sender],
+                commitments[_cycle][msg.sender],
             "Invalid vote, commitment mismatch"
         );
 
-        delete commitments[currentCycle][msg.sender];
+        delete commitments[_cycle][msg.sender];
 
         // remove the trustee's default vote
-        score[address(0)] -= 1;
+        // default vote needs to change
+        // likely changes to default support of the default proposal
+        score[_cycle][address(0)] -= 1;
 
         // use memory vars to store and track the changes of the leader
         address priorLeader = leader;
@@ -287,7 +312,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             uint256 _score = v.score;
 
             require(
-                proposals[currentCycle][_proposal].inflationMultiplier > 0,
+                proposals[_cycle][_proposal].inflationMultiplier > 0,
                 "Invalid vote, missing proposal"
             );
             require(
@@ -305,11 +330,11 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
             scoreDuplicateCheck += 1 << _score;
 
-            score[_proposal] += _score;
-            if (score[_proposal] > score[leaderTracker]) {
+            score[_cycle][_proposal] += _score;
+            if (score[_cycle][_proposal] > score[_cycle][leaderTracker]) {
                 leaderTracker = _proposal;
                 leaderRankTracker = _score;
-            } else if (score[_proposal] == score[leaderTracker]) {
+            } else if (score[_cycle][_proposal] == score[_cycle][leaderTracker]) {
                 if (_score > leaderRankTracker) {
                     leaderTracker = _proposal;
                     leaderRankTracker = _score;
@@ -320,7 +345,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         // only changes the leader if the new leader is of greater score
         if (
             leaderTracker != priorLeader &&
-            score[leaderTracker] > score[priorLeader]
+            score[_cycle][leaderTracker] > score[_cycle][priorLeader]
         ) {
             leader = leaderTracker;
         }
@@ -331,40 +356,42 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         emit VoteReveal(msg.sender, _votes);
     }
 
-    function compute() external atStage(Stage.Compute) {
+    function compute(uint256 _cycle) external cycleComplete(_cycle) {
         // if paused then the default policy automatically wins
         if (!paused()) {
-            winner = leader;
+            winner[_cycle] = leader;
         }
+        // need a marker of computation complete that doesn't depend on if the vote is paused or not
+        // probably pausing can be removed in general
 
-        currentStage = Stage.Finished;
-
-        emit VoteResult(winner);
+        emit VoteResult(winner[_cycle]);
     }
 
-    /** Initialize the storage context using parameters copied from the
-     * original contract (provided as _self).
-     *
-     * Can only be called once, during proxy initialization.
-     *
-     * @param _self The original contract address.
-     */
-    function initialize(address _self) public override onlyConstruction {
-        super.initialize(_self);
-        proposalEnds = getTime() + PROPOSAL_TIME;
-        votingEnds = proposalEnds + VOTING_TIME;
-        revealEnds = votingEnds + REVEAL_TIME;
+    // initialization no longer required
+    // /** Initialize the storage context using parameters copied from the
+    //  * original contract (provided as _self).
+    //  *
+    //  * Can only be called once, during proxy initialization.
+    //  *
+    //  * @param _self The original contract address.
+    //  */
+    // function initialize(address _self) public override onlyConstruction {
+    //     super.initialize(_self);
+    //     proposalEnds = getTime() + PROPOSAL_TIME;
+    //     votingEnds = proposalEnds + VOTING_TIME;
+    //     revealEnds = votingEnds + REVEAL_TIME;
 
-        // should not emit an event
-        pauser = CurrencyGovernance(_self).pauser();
+    //     // should not emit an event
+    //     pauser = CurrencyGovernance(_self).pauser();
 
-        MonetaryPolicy storage p = proposals[currentCycle][address(0)];
-        p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
+    //     MonetaryPolicy storage p = proposals[currentCycle][address(0)];
+    //     p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
-        // sets the default votes for the default proposal
-        score[address(0)] = trustedNodes.numTrustees();
-    }
+    //     // sets the default votes for the default proposal
+    //     score[address(0)] = trustedNodes.numTrustees();
+    // }
 
+    // pausing likely no longer required
     /**
      * @notice set the given address as the pauser
      * @param _pauser The address that can pause this token
