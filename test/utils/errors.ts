@@ -5,6 +5,9 @@
 export const ERRORS = {
     CurrencyGovernance: {
         EXAMPLE: 'CustomError',
-    }
+    },
+    Policed: {
+        POLICY_ONLY: 'PolicyOnlyFunction',
+    },
   }
   
