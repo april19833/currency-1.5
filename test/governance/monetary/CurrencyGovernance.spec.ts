@@ -1,16 +1,15 @@
-/* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { Signer, Contract, constants, BigNumber } from 'ethers'
+import { Signer, constants, BigNumber } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import {
   TEST,
 } from '../../utils/constants'
-import { ERROR_STRINGS } from '../../utils/errors'
-import { TrustedNodes, CurrencyGovernance } from '../../../typechain-types'
+import { ERRORS } from '../../utils/errors'
+import { TrustedNodes__factory, TrustedNodes, CurrencyGovernance__factory, CurrencyGovernance, Policy } from '../../../typechain-types'
 
-describe('L1ECOBridge', () => {
+describe('CurrencyGovernance', () => {
     let alice: SignerWithAddress
     let bob: SignerWithAddress
     let charlie: SignerWithAddress
@@ -22,18 +21,18 @@ describe('L1ECOBridge', () => {
       ;[policyImpersonater, alice, bob, charlie, dave, niko, mila] = await ethers.getSigners()
     })
 
-    let TrustedNodes: MockContract<Contract>
-    let CurrencyGovernance: MockContract<Contract>
-    let Fake__Policy: FakeContract
+    let TrustedNodes: MockContract<TrustedNodes>
+    let CurrencyGovernance: MockContract<CurrencyGovernance>
+    let Fake__Policy: FakeContract<Policy>
     beforeEach(async () => {
         // Get a new mock L1 messenger
-        Fake__Policy = await smock.fake<Contract>(
+        Fake__Policy = await smock.fake<Policy>(
           'Policy',
-          { address: await policyImpersonater.getAddress() } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
+          { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
         )
     
-        TrustedNodes = await (
-          await smock.mock(
+        TrustedNodes = await(
+          await smock.mock<TrustedNodes__factory>(
             'TrustedNodes'
           )
         ).deploy(
@@ -46,6 +45,18 @@ describe('L1ECOBridge', () => {
           0,
         )
 
-        CurrencyGovernance = await (await smock.mock('CurrencyGovernance')).deploy(Fake__Policy.address,TrustedNodes.address,alice.address)
+        CurrencyGovernance = await (await smock.mock<CurrencyGovernance__factory>('CurrencyGovernance')).deploy(Fake__Policy.address,TrustedNodes.address,alice.address)
+    })
+
+    describe('trustee role', async () => {
+      it('trustees can call onlyTrusted functions', async () => {
+        await CurrencyGovernance.connect(bob).propose(1,1,1,1,1,'')
+      })
+
+      it('non-trustees cannot call onlyTrusted functions', async () => {
+        await expect(
+          CurrencyGovernance.connect(alice).propose(1,1,1,1,1,'')
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+      })
     })
 })
