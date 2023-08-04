@@ -10,19 +10,19 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
 
     constructor() CurrencyGovernance(Policy(address(0x11)), TrustedNodes(address(0x12)), address(0x13)) {}
 
-    function inProposePhase(uint256 _cycle) public duringProposePhase(_cycle) returns (bool) {
+    function inProposePhase(uint256 _cycle) public view duringProposePhase(_cycle) returns (bool) {
         return true;
     }
 
-    function inVotePhase(uint256 _cycle) public duringVotePhase(_cycle) returns (bool) {
+    function inVotePhase(uint256 _cycle) public view duringVotePhase(_cycle) returns (bool) {
         return true;
     }
 
-    function inRevealPhase(uint256 _cycle) public duringRevealPhase(_cycle) returns (bool) {
+    function inRevealPhase(uint256 _cycle) public view duringRevealPhase(_cycle) returns (bool) {
         return true;
     }
 
-    function cycleCompleted(uint256 _cycle) public cycleComplete(_cycle) returns (bool) {
+    function cycleCompleted(uint256 _cycle) public view cycleComplete(_cycle) returns (bool) {
         return true;
     }
 }
