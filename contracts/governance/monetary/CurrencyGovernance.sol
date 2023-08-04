@@ -221,13 +221,17 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     constructor(Policy _policy, TrustedNodes _trustedNodes, address _initialPauser) Policed(_policy) {
-        trustedNodes = _trustedNodes;
+        _setTrustedNodes(_trustedNodes);
         pauser = _initialPauser;
         governanceStartTime = getTime();
         emit PauserAssignment(_initialPauser);
     }
 
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
+        _setTrustedNodes(_trustedNodes);
+    }
+
+    function _setTrustedNodes(TrustedNodes _trustedNodes) internal {
         if(
             address(_trustedNodes) == address(0)
         ) {
