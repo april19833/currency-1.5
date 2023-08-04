@@ -26,12 +26,31 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         string description;
     }
 
+    // struct for the array of submitted votes
     struct Vote {
         // the proposal being voted for
+        // proposals must be scored in ascending order of address to be accepted
         address proposal;
         // the score of this proposal within the ballot, min recorded score is one
         // to get a score of zero, an item must be unscored
         uint256 score;
+    }
+
+    // struct for the getCurrentStage() return data type
+    struct TimingData {
+        // the cycle index
+        // calculated by looking at how many CYCLE_LENGTHs have elapsed since the governanceStartTime
+        uint256 currentCycle;
+        // the governance stage
+        // calculated by looking at how much time has progressed during the current cycle
+        Stage currentStage;
+    }
+
+    // enum for denoting the current stage in getCurrentStage()
+    enum Stage {
+        Propose,
+        Commit,
+        Reveal
     }
 
     // this var stores the current contract that holds the trusted nodes role
@@ -215,6 +234,20 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             revert NonZeroTrustedNodesAddr();
         }
         trustedNodes = _trustedNodes;
+    }
+
+    function getCurrentStage() public view returns (TimingData memory) {
+        uint256 timeDifference = getTime() - governanceStartTime;
+        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+
+        if(governanceTime <= PROPOSAL_TIME) {
+            return TimingData(completedCycles, Stage.Propose);
+        } else if(governanceTime <= PROPOSAL_TIME+VOTING_TIME) {
+            return TimingData(completedCycles, Stage.Commit);
+        } else {
+            return TimingData(completedCycles, Stage.Reveal);
+        }
     }
 
     function propose(
