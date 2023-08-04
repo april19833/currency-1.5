@@ -93,11 +93,9 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
-    function getTrustedNodesFromCohort(uint256 _cohort)
-        public
-        view
-        returns (address[] memory)
-    {
+    function getTrustedNodesFromCohort(
+        uint256 _cohort
+    ) public view returns (address[] memory) {
         return cohorts[_cohort].trustedNodes;
     }
 

@@ -28,7 +28,10 @@ contract ECOxStaking is VoteCheckpoints, Policed {
     // the ECOx contract address
     IERC20 public immutable ecoXToken;
 
-    constructor(Policy _policy, IERC20 _ecoXAddr)
+    constructor(
+        Policy _policy,
+        IERC20 _ecoXAddr
+    )
         // Note that the policy has the ability to pause transfers
         // through ERC20Pausable, although transfers are paused by default
         // therefore the pauser is unset
@@ -66,19 +69,16 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         emit Withdrawal(_destination, _amount);
     }
 
-    function votingECOx(address _voter, uint256 _blockNumber)
-        external
-        view
-        returns (uint256)
-    {
+    function votingECOx(
+        address _voter,
+        uint256 _blockNumber
+    ) external view returns (uint256) {
         return getPastVotingGons(_voter, _blockNumber);
     }
 
-    function totalVotingECOx(uint256 _blockNumber)
-        external
-        view
-        returns (uint256)
-    {
+    function totalVotingECOx(
+        uint256 _blockNumber
+    ) external view returns (uint256) {
         return getPastTotalSupply(_blockNumber);
     }
 

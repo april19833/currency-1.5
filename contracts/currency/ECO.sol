@@ -31,27 +31,20 @@ contract ECO is InflationCheckpoints {
         initialSupply = _initialSupply;
     }
 
-    function initialize(address _self)
-        public
-        virtual
-        override
-        onlyConstruction
-    {
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
         _mint(distributor, initialSupply);
     }
 
     function mint(address _to, uint256 _value) external {
-
         _mint(_to, _value);
     }
 
     function burn(address _from, uint256 _value) external {
-        require(
-            msg.sender == _from,
-            "Caller not authorized to burn tokens"
-        );
+        require(msg.sender == _from, "Caller not authorized to burn tokens");
 
         _burn(_from, _value);
     }

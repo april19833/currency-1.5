@@ -64,7 +64,8 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     uint256 public constant PROPOSAL_TIME = 10 days;
     uint256 public constant VOTING_TIME = 3 days;
     uint256 public constant REVEAL_TIME = 1 days;
-    uint256 public constant CYCLE_LENGTH = PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
+    uint256 public constant CYCLE_LENGTH =
+        PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 
     uint256 public constant IDEMPOTENT_INFLATION_MULTIPLIER = 1e18;
 
@@ -151,16 +152,14 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     /** Restrict access to trusted nodes only.
      */
     modifier onlyTrusted() {
-        if(
-            !trustedNodes.isTrusted(msg.sender)
-        ) {
+        if (!trustedNodes.isTrusted(msg.sender)) {
             revert TrusteeOnlyFunction();
         }
         _;
     }
 
     modifier onlyPauser() {
-        if(msg.sender != pauser){
+        if (msg.sender != pauser) {
             revert PauserOnlyFunction();
         }
         _;
@@ -168,14 +167,14 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     modifier duringProposePhase(uint256 cycleIndex) {
         uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
 
-        if(completedCycles != cycleIndex) {
+        if (completedCycles != cycleIndex) {
             revert CycleInactive(cycleIndex, completedCycles);
         }
-        
-        if(governanceTime >= PROPOSAL_TIME) {
+
+        if (governanceTime >= PROPOSAL_TIME) {
             revert WrongStage();
         }
         _;
@@ -183,14 +182,17 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     modifier duringVotePhase(uint256 cycleIndex) {
         uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
 
-        if(completedCycles != cycleIndex) {
+        if (completedCycles != cycleIndex) {
             revert CycleInactive(cycleIndex, completedCycles);
         }
 
-        if(governanceTime < PROPOSAL_TIME || governanceTime >= PROPOSAL_TIME+VOTING_TIME) {
+        if (
+            governanceTime < PROPOSAL_TIME ||
+            governanceTime >= PROPOSAL_TIME + VOTING_TIME
+        ) {
             revert WrongStage();
         }
         _;
@@ -198,29 +200,34 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     modifier duringRevealPhase(uint256 cycleIndex) {
         uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
 
-        if(completedCycles != cycleIndex) {
+        if (completedCycles != cycleIndex) {
             revert CycleInactive(cycleIndex, completedCycles);
         }
 
-        if(governanceTime < PROPOSAL_TIME+VOTING_TIME) {
+        if (governanceTime < PROPOSAL_TIME + VOTING_TIME) {
             revert WrongStage();
         }
         _;
     }
 
     modifier cycleComplete(uint256 cycle) {
-        uint256 completedCycles = (getTime() - governanceStartTime)/CYCLE_LENGTH;
+        uint256 completedCycles = (getTime() - governanceStartTime) /
+            CYCLE_LENGTH;
 
-        if(completedCycles <= cycle) {
+        if (completedCycles <= cycle) {
             revert CycleIncomplete(cycle, completedCycles);
         }
         _;
     }
 
-    constructor(Policy _policy, TrustedNodes _trustedNodes, address _initialPauser) Policed(_policy) {
+    constructor(
+        Policy _policy,
+        TrustedNodes _trustedNodes,
+        address _initialPauser
+    ) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
         pauser = _initialPauser;
         governanceStartTime = getTime();
@@ -232,9 +239,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     function _setTrustedNodes(TrustedNodes _trustedNodes) internal {
-        if(
-            address(_trustedNodes) == address(0)
-        ) {
+        if (address(_trustedNodes) == address(0)) {
             revert NonZeroTrustedNodesAddr();
         }
         trustedNodes = _trustedNodes;
@@ -242,12 +247,12 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     function getCurrentStage() public view returns (TimingData memory) {
         uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference/CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference%CYCLE_LENGTH;
+        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
+        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
 
-        if(governanceTime < PROPOSAL_TIME) {
+        if (governanceTime < PROPOSAL_TIME) {
             return TimingData(completedCycles, Stage.Propose);
-        } else if(governanceTime < PROPOSAL_TIME+VOTING_TIME) {
+        } else if (governanceTime < PROPOSAL_TIME + VOTING_TIME) {
             return TimingData(completedCycles, Stage.Commit);
         } else {
             return TimingData(completedCycles, Stage.Reveal);
@@ -301,19 +306,19 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         emit ProposalRetraction(msg.sender);
     }
 
-    function commit(uint256 _cycle, bytes32 _commitment)
-        external
-        onlyTrusted
-        duringVotePhase(_cycle)
-    {
+    function commit(
+        uint256 _cycle,
+        bytes32 _commitment
+    ) external onlyTrusted duringVotePhase(_cycle) {
         commitments[_cycle][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
-    function reveal(uint256 _cycle, bytes32 _seed, Vote[] calldata _votes)
-        external
-        duringRevealPhase(_cycle)
-    {
+    function reveal(
+        uint256 _cycle,
+        bytes32 _seed,
+        Vote[] calldata _votes
+    ) external duringRevealPhase(_cycle) {
         // uint256 numVotes = _votes.length;
         // require(numVotes > 0, "Invalid vote, cannot vote empty");
         // require(
