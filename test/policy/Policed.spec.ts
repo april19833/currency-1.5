@@ -1,13 +1,10 @@
 import { ethers } from 'hardhat'
-import { Contract } from 'ethers'
+import { constants } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import {
-  TEST,
-} from '../utils/constants'
 import { ERRORS } from '../utils/errors'
-import { DummyPoliced, DummyPoliced__factory } from '../../typechain-types'
+import { DummyPoliced, DummyPoliced__factory, Policy } from '../../typechain-types'
 
 describe('Policed', () => {
     let alice: SignerWithAddress
@@ -18,10 +15,10 @@ describe('Policed', () => {
     })
 
     let DummyPoliced: MockContract<DummyPoliced>
-    let Fake__Policy: FakeContract
+    let Fake__Policy: FakeContract<Policy>
     beforeEach(async () => {
         // Get a new mock L1 messenger
-        Fake__Policy = await smock.fake<Contract>(
+        Fake__Policy = await smock.fake<Policy>(
           'Policy',
           { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
         )
@@ -48,6 +45,10 @@ describe('Policed', () => {
             ).to.be.revertedWith(
                 ERRORS.Policed.POLICY_ONLY
             )
+        })
+
+        it('Policy cannot be set to zero address', async () => {
+            await expect(DummyPoliced.connect(policyImpersonater).setPolicy(constants.AddressZero)).to.be.revertedWith(ERRORS.Policed.REQUIRE_NON_ZERO_ADDRESS)
         })
     })
 

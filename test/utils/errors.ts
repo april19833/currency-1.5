@@ -14,6 +14,7 @@ export const ERRORS = {
     },
     Policed: {
         POLICY_ONLY: 'PolicyOnlyFunction',
+        REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
     },
   }
   
