@@ -175,7 +175,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             revert CycleInactive(cycleIndex, completedCycles);
         }
         
-        if(governanceTime > PROPOSAL_TIME) {
+        if(governanceTime >= PROPOSAL_TIME) {
             revert WrongStage();
         }
         _;
@@ -190,7 +190,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             revert CycleInactive(cycleIndex, completedCycles);
         }
 
-        if(governanceTime <= PROPOSAL_TIME || governanceTime > PROPOSAL_TIME+VOTING_TIME) {
+        if(governanceTime < PROPOSAL_TIME || governanceTime >= PROPOSAL_TIME+VOTING_TIME) {
             revert WrongStage();
         }
         _;
@@ -205,7 +205,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             revert CycleInactive(cycleIndex, completedCycles);
         }
 
-        if(governanceTime <= PROPOSAL_TIME+VOTING_TIME) {
+        if(governanceTime < PROPOSAL_TIME+VOTING_TIME) {
             revert WrongStage();
         }
         _;
@@ -241,9 +241,9 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         uint256 completedCycles = timeDifference/CYCLE_LENGTH;
         uint256 governanceTime = timeDifference%CYCLE_LENGTH;
 
-        if(governanceTime <= PROPOSAL_TIME) {
+        if(governanceTime < PROPOSAL_TIME) {
             return TimingData(completedCycles, Stage.Propose);
-        } else if(governanceTime <= PROPOSAL_TIME+VOTING_TIME) {
+        } else if(governanceTime < PROPOSAL_TIME+VOTING_TIME) {
             return TimingData(completedCycles, Stage.Commit);
         } else {
             return TimingData(completedCycles, Stage.Reveal);
