@@ -1,5 +1,3 @@
 const TEST = 'test'
 
-export {
-    TEST,
-}
+export { TEST }
