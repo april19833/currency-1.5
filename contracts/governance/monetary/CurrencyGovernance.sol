@@ -314,81 +314,81 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         external
         duringRevealPhase(_cycle)
     {
-        uint256 numVotes = _votes.length;
-        require(numVotes > 0, "Invalid vote, cannot vote empty");
-        require(
-            commitments[_cycle][msg.sender] != bytes32(0),
-            "Invalid vote, no unrevealed commitment exists"
-        );
-        require(
-            keccak256(abi.encode(_seed, msg.sender, _votes)) ==
-                commitments[_cycle][msg.sender],
-            "Invalid vote, commitment mismatch"
-        );
+        // uint256 numVotes = _votes.length;
+        // require(numVotes > 0, "Invalid vote, cannot vote empty");
+        // require(
+        //     commitments[_cycle][msg.sender] != bytes32(0),
+        //     "Invalid vote, no unrevealed commitment exists"
+        // );
+        // require(
+        //     keccak256(abi.encode(_seed, msg.sender, _votes)) ==
+        //         commitments[_cycle][msg.sender],
+        //     "Invalid vote, commitment mismatch"
+        // );
 
-        delete commitments[_cycle][msg.sender];
+        // delete commitments[_cycle][msg.sender];
 
-        // remove the trustee's default vote
-        // default vote needs to change
-        // likely changes to default support of the default proposal
-        score[_cycle][address(0)] -= 1;
+        // // remove the trustee's default vote
+        // // default vote needs to change
+        // // likely changes to default support of the default proposal
+        // score[_cycle][address(0)] -= 1;
 
-        // use memory vars to store and track the changes of the leader
-        address priorLeader = leader;
-        address leaderTracker = priorLeader;
-        uint256 leaderRankTracker = 0;
+        // // use memory vars to store and track the changes of the leader
+        // address priorLeader = leader;
+        // address leaderTracker = priorLeader;
+        // uint256 leaderRankTracker = 0;
 
-        /**
-         * by setting this to 1, the code can skip checking _score != 0
-         */
-        uint256 scoreDuplicateCheck = 1;
+        // /**
+        //  * by setting this to 1, the code can skip checking _score != 0
+        //  */
+        // uint256 scoreDuplicateCheck = 1;
 
-        for (uint256 i = 0; i < numVotes; ++i) {
-            Vote memory v = _votes[i];
-            address _proposal = v.proposal;
-            uint256 _score = v.score;
+        // for (uint256 i = 0; i < numVotes; ++i) {
+        //     Vote memory v = _votes[i];
+        //     address _proposal = v.proposal;
+        //     uint256 _score = v.score;
 
-            require(
-                proposals[_cycle][_proposal].inflationMultiplier > 0,
-                "Invalid vote, missing proposal"
-            );
-            require(
-                i == 0 || _votes[i - 1].proposal < _proposal,
-                "Invalid vote, proposals not in increasing order"
-            );
-            require(
-                _score <= numVotes,
-                "Invalid vote, proposal score out of bounds"
-            );
-            require(
-                scoreDuplicateCheck & (1 << _score) == 0,
-                "Invalid vote, duplicate score"
-            );
+        //     require(
+        //         proposals[_cycle][_proposal].inflationMultiplier > 0,
+        //         "Invalid vote, missing proposal"
+        //     );
+        //     require(
+        //         i == 0 || _votes[i - 1].proposal < _proposal,
+        //         "Invalid vote, proposals not in increasing order"
+        //     );
+        //     require(
+        //         _score <= numVotes,
+        //         "Invalid vote, proposal score out of bounds"
+        //     );
+        //     require(
+        //         scoreDuplicateCheck & (1 << _score) == 0,
+        //         "Invalid vote, duplicate score"
+        //     );
 
-            scoreDuplicateCheck += 1 << _score;
+        //     scoreDuplicateCheck += 1 << _score;
 
-            score[_cycle][_proposal] += _score;
-            if (score[_cycle][_proposal] > score[_cycle][leaderTracker]) {
-                leaderTracker = _proposal;
-                leaderRankTracker = _score;
-            } else if (score[_cycle][_proposal] == score[_cycle][leaderTracker]) {
-                if (_score > leaderRankTracker) {
-                    leaderTracker = _proposal;
-                    leaderRankTracker = _score;
-                }
-            }
-        }
+        //     score[_cycle][_proposal] += _score;
+        //     if (score[_cycle][_proposal] > score[_cycle][leaderTracker]) {
+        //         leaderTracker = _proposal;
+        //         leaderRankTracker = _score;
+        //     } else if (score[_cycle][_proposal] == score[_cycle][leaderTracker]) {
+        //         if (_score > leaderRankTracker) {
+        //             leaderTracker = _proposal;
+        //             leaderRankTracker = _score;
+        //         }
+        //     }
+        // }
 
-        // only changes the leader if the new leader is of greater score
-        if (
-            leaderTracker != priorLeader &&
-            score[_cycle][leaderTracker] > score[_cycle][priorLeader]
-        ) {
-            leader = leaderTracker;
-        }
+        // // only changes the leader if the new leader is of greater score
+        // if (
+        //     leaderTracker != priorLeader &&
+        //     score[_cycle][leaderTracker] > score[_cycle][priorLeader]
+        // ) {
+        //     leader = leaderTracker;
+        // }
 
-        // record the trustee's vote for compensation purposes
-        trustedNodes.recordVote(msg.sender);
+        // // record the trustee's vote for compensation purposes
+        // trustedNodes.recordVote(msg.sender);
 
         emit VoteReveal(msg.sender, _votes);
     }

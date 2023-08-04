@@ -23,13 +23,13 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            details: {
-              yulDetails: {
-                optimizerSteps: "u",
-              },
-            },
+            // details: {
+            //   yulDetails: {
+            //     optimizerSteps: "u",
+            //   },
+            // },
           },
-          viaIR: true,
+          // viaIR: true,
         },
       },
     ],
