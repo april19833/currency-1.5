@@ -71,6 +71,24 @@ describe('CurrencyGovernance', () => {
       })
     })
 
+    describe('trusted nodes role', async () => {
+      it('can be changed by the policy', async () => {
+        const initialTNAddress = await CurrencyGovernance.trustedNodes()
+        await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(alice.address)
+        const changedTNAddress = await CurrencyGovernance.trustedNodes()
+        expect(changedTNAddress !== initialTNAddress).to.be.true
+        expect(changedTNAddress === alice.address).to.be.true
+      })
+
+      it('is onlyPolicy gated', async () => {
+        await expect(CurrencyGovernance.connect(alice).setTrustedNodes(alice.address)).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+      })
+
+      it('cannot be set to the zero address', async () => {
+        await expect(CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(constants.AddressZero)).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ADDRESS)
+      })
+    })
+
     describe('time calculations', () => {
       const initialCycle = 0
       let StageTestCG: MockContract<StageTestCurrencyGovernance>
