@@ -48,8 +48,4 @@ describe('L1ECOBridge', () => {
 
         CurrencyGovernance = await (await smock.mock('CurrencyGovernance')).deploy(Fake__Policy.address,TrustedNodes.address,alice.address)
     })
-
-    it("works", async () => {
-      console.log('womp')
-    })
 })
