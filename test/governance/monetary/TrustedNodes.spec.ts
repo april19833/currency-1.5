@@ -279,6 +279,14 @@ describe('TrustedNodes', () => {
             ).to.be.revertedWith('You have not vested any tokens')
         })
     })
+    describe('sweep', async () => {
+        it('works', async () => {
+            expect(await ecoX.balanceOf(alice.address)).to.eq(0)
+            await trustedNodes.connect(policyImpersonator).sweep(alice.address)
+            expect(await ecoX.balanceOf(alice.address)).to.eq(1000)
+        })
+    })
+    
 
 
 })
