@@ -76,13 +76,9 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     /**
      * @dev See {IERC20Permit-nonces}.
      */
-    function nonces(address owner)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function nonces(
+        address owner
+    ) public view virtual override returns (uint256) {
         return _nonces[owner].current();
     }
 
@@ -99,11 +95,9 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
      *
      * _Available since v4.1._
      */
-    function _useNonce(address owner)
-        internal
-        virtual
-        returns (uint256 current)
-    {
+    function _useNonce(
+        address owner
+    ) internal virtual returns (uint256 current) {
         Counters.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();

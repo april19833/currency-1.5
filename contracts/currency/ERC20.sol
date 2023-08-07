@@ -130,11 +130,10 @@ contract ERC20 is ERC20Permit {
      * - `recipient` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address recipient, uint256 amount)
-        public
-        virtual
-        returns (bool)
-    {
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) public virtual returns (bool) {
         _transfer(msg.sender, recipient, amount);
         return true;
     }
@@ -142,12 +141,10 @@ contract ERC20 is ERC20Permit {
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(address owner, address spender)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -158,11 +155,10 @@ contract ERC20 is ERC20Permit {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount)
-        public
-        virtual
-        returns (bool)
-    {
+    function approve(
+        address spender,
+        uint256 amount
+    ) public virtual returns (bool) {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -211,11 +207,10 @@ contract ERC20 is ERC20Permit {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue)
-        public
-        virtual
-        returns (bool)
-    {
+    function increaseAllowance(
+        address spender,
+        uint256 addedValue
+    ) public virtual returns (bool) {
         _approve(
             msg.sender,
             spender,
@@ -238,11 +233,10 @@ contract ERC20 is ERC20Permit {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
-        virtual
-        returns (bool)
-    {
+    function decreaseAllowance(
+        address spender,
+        uint256 subtractedValue
+    ) public virtual returns (bool) {
         uint256 currentAllowance = _allowances[msg.sender][spender];
         require(
             currentAllowance >= subtractedValue,
@@ -306,11 +300,10 @@ contract ERC20 is ERC20Permit {
      *
      * - `account` cannot be the zero address.
      */
-    function _mint(address account, uint256 originalAmount)
-        internal
-        virtual
-        returns (uint256)
-    {
+    function _mint(
+        address account,
+        uint256 originalAmount
+    ) internal virtual returns (uint256) {
         require(account != address(0), "ERC20: mint to the zero address");
 
         uint256 amount = _beforeTokenTransfer(
@@ -339,11 +332,10 @@ contract ERC20 is ERC20Permit {
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens.
      */
-    function _burn(address account, uint256 originalAmount)
-        internal
-        virtual
-        returns (uint256)
-    {
+    function _burn(
+        address account,
+        uint256 originalAmount
+    ) internal virtual returns (uint256) {
         uint256 amount = _beforeTokenTransfer(
             account,
             address(0),

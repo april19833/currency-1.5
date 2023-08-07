@@ -23,18 +23,17 @@ interface IECO is IERC20 {
     /**
      * Returns final votes of an address at the end of a blockNumber
      */
-    function getPastVotes(address owner, uint256 blockNumber)
-        external
-        view
-        returns (uint256);
+    function getPastVotes(
+        address owner,
+        uint256 blockNumber
+    ) external view returns (uint256);
 
     /**
      * Returns the inflation multiplier value checkpointed on or before the blockNumber
      */
-    function getPastLinearInflation(uint256 blockNumber)
-        external
-        view
-        returns (uint256);
+    function getPastLinearInflation(
+        uint256 blockNumber
+    ) external view returns (uint256);
 
     /**
      * Returns the final total supply at the end of the given block number

@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import "../currency/ERC20.sol";
 
 contract MockToken is ERC20 {
-   
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
+    constructor(
+        string memory _name,
+        string memory _symbol
+    ) ERC20(_name, _symbol) {}
 
-    function mint(address destination, uint256 amount) public{
+    function mint(address destination, uint256 amount) public {
         _mint(destination, amount);
     }
-
 }

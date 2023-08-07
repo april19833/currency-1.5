@@ -85,12 +85,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /** Returns the total (inflation corrected) token supply at a specified block number
      */
-    function totalSupplyAt(uint256 _blockNumber)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
+    function totalSupplyAt(
+        uint256 _blockNumber
+    ) public view virtual returns (uint256) {
         return getPastTotalSupply(_blockNumber);
     }
 
@@ -105,24 +102,19 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      *                        of. Must be less than or equal to the present
      *                        block number.
      */
-    function getPastVotes(address _owner, uint256 _blockNumber)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
+    function getPastVotes(
+        address _owner,
+        uint256 _blockNumber
+    ) public view virtual returns (uint256) {
         return getPastVotingGons(_owner, _blockNumber);
     }
 
     /**
      * @dev Get number of checkpoints for `account`.
      */
-    function numCheckpoints(address account)
-        public
-        view
-        virtual
-        returns (uint32)
-    {
+    function numCheckpoints(
+        address account
+    ) public view virtual returns (uint32) {
         uint256 _numCheckpoints = checkpoints[account].length;
         require(
             _numCheckpoints <= type(uint32).max,
@@ -179,12 +171,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * @dev Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
      * The primary delegate is the one that is delegated any new funds the address recieves.
      */
-    function getPrimaryDelegate(address account)
-        public
-        view
-        virtual
-        returns (address)
-    {
+    function getPrimaryDelegate(
+        address account
+    ) public view virtual returns (address) {
         address _voter = _primaryDelegates[account];
         return _voter == address(0) ? account : _voter;
     }
@@ -192,9 +181,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * sets the primaryDelegate and emits an event to track it
      */
-    function _setPrimaryDelegate(address delegator, address delegatee)
-        internal
-    {
+    function _setPrimaryDelegate(
+        address delegator,
+        address delegatee
+    ) internal {
         _primaryDelegates[delegator] = delegatee;
 
         emit NewPrimaryDelegate(
@@ -219,11 +209,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      *
      * - `blockNumber` must have been already mined
      */
-    function getPastVotingGons(address account, uint256 blockNumber)
-        public
-        view
-        returns (uint256)
-    {
+    function getPastVotingGons(
+        address account,
+        uint256 blockNumber
+    ) public view returns (uint256) {
         require(
             blockNumber < block.number,
             "VoteCheckpoints: block not yet mined"
@@ -239,11 +228,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      *
      * - `blockNumber` must have been already mined
      */
-    function getPastTotalSupply(uint256 blockNumber)
-        public
-        view
-        returns (uint256)
-    {
+    function getPastTotalSupply(
+        uint256 blockNumber
+    ) public view returns (uint256) {
         require(
             blockNumber < block.number,
             "VoteCheckpoints: block not yet mined"
@@ -254,11 +241,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * @dev Lookup a value in a list of (sorted) checkpoints.
      */
-    function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 blockNumber)
-        internal
-        view
-        returns (uint256)
-    {
+    function _checkpointsLookup(
+        Checkpoint[] storage ckpts,
+        uint256 blockNumber
+    ) internal view returns (uint256) {
         // This function runs a binary search to look for the last checkpoint taken before `blockNumber`.
         //
         // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
@@ -405,9 +391,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * @dev Undelegate votes from the `delegatee` back to the delegator.
      */
-    function _undelegateFromAddress(address delegator, address delegatee)
-        internal
-    {
+    function _undelegateFromAddress(
+        address delegator,
+        address delegatee
+    ) internal {
         uint256 _amount = _delegates[delegator][delegatee];
         _undelegate(delegator, delegatee, _amount);
         if (delegatee == getPrimaryDelegate(delegator)) {
@@ -418,9 +405,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * @dev Undelegate a specific amount of votes from the `delegatee` back to the sender.
      */
-    function undelegateAmountFromAddress(address delegatee, uint256 amount)
-        public
-    {
+    function undelegateAmountFromAddress(
+        address delegatee,
+        uint256 amount
+    ) public {
         require(
             _delegates[msg.sender][delegatee] >= amount,
             "amount not available to undelegate"
@@ -453,12 +441,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * @dev Snapshots the totalSupply after it has been increased.
      */
-    function _mint(address account, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256)
-    {
+    function _mint(
+        address account,
+        uint256 amount
+    ) internal virtual override returns (uint256) {
         amount = super._mint(account, amount);
         require(
             totalSupply() <= _maxSupply(),
@@ -472,12 +458,10 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     /**
      * @dev Snapshots the totalSupply after it has been decreased.
      */
-    function _burn(address account, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256)
-    {
+    function _burn(
+        address account,
+        uint256 amount
+    ) internal virtual override returns (uint256) {
         amount = super._burn(account, amount);
 
         _writeCheckpoint(_totalSupplyCheckpoints, _subtract, amount);

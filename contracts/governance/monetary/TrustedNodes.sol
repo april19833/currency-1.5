@@ -86,14 +86,19 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
-    function getLastWithdrawal(address trustee) internal view returns (uint256 time) {
+    function getLastWithdrawal(
+        address trustee
+    ) internal view returns (uint256 time) {
         return termEnd + lastWithdrawals[trustee];
     }
 
-    function updateTrusteeGovernanceRole(address _currencyGovernance) public onlyPolicy {
+    function updateTrusteeGovernanceRole(
+        address _currencyGovernance
+    ) public onlyPolicy {
         trusteeGovernanceRole = _currencyGovernance;
         emit TrusteeGovernanceRoleChanged(_currencyGovernance);
     }
+
     /** Grant trust to a node.
      *
      * The node is pushed to trustedNodes array.
@@ -138,7 +143,7 @@ contract TrustedNodes is Policed, TimeUtils {
     /** Incements the counter when the trustee reveals their vote
      * only callable by the CurrencyGovernance contract
      */
-    function recordVote(address _who) external onlyTrusteeGovernance(){
+    function recordVote(address _who) external onlyTrusteeGovernance {
         votingRecord[_who]++;
     }
 
@@ -166,26 +171,39 @@ contract TrustedNodes is Policed, TimeUtils {
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
-    function currentlyWithdrawable() public view returns(uint256 amount){
+    function currentlyWithdrawable() public view returns (uint256 amount) {
         return voteReward * calculateWithdrawal(msg.sender);
     }
 
-    function calculateWithdrawal(address withdrawer) internal view returns(uint256 amount){
+    function calculateWithdrawal(
+        address withdrawer
+    ) internal view returns (uint256 amount) {
         uint256 timeNow = getTime();
-        if (timeNow < termEnd) {return 0;}
+        if (timeNow < termEnd) {
+            return 0;
+        }
 
         uint256 lastWithdrawal = getLastWithdrawal(withdrawer);
-        uint256 limit = (timeNow - lastWithdrawal)/generationTime;
-        uint256 numWithdrawals = limit > votingRecord[withdrawer] ? votingRecord[withdrawer] : limit;
+        uint256 limit = (timeNow - lastWithdrawal) / generationTime;
+        uint256 numWithdrawals = limit > votingRecord[withdrawer]
+            ? votingRecord[withdrawer]
+            : limit;
         return numWithdrawals;
     }
 
-    function fullyVested() public view returns (uint256 amount, uint256 timestamp) {
+    function fullyVested()
+        public
+        view
+        returns (uint256 amount, uint256 timestamp)
+    {
         uint256 record = votingRecord[msg.sender];
         return (record * voteReward, termEnd + record * generationTime);
     }
 
     function sweep(address recipient) public onlyPolicy {
-        ECOx(EcoXAddress).transfer(recipient, ECOx(EcoXAddress).balanceOf(address(this)));
+        ECOx(EcoXAddress).transfer(
+            recipient,
+            ECOx(EcoXAddress).balanceOf(address(this))
+        );
     }
 }
