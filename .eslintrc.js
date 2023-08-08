@@ -45,7 +45,9 @@ module.exports = {
         "error", {
           allowModules: [],
           tryExtensions: [".js", ".json", ".node", ".ts", ".d.ts"]
-        }]
+        }
+      ],
+      "camelcase": 0
     },
     globals: {
       BigInt: "readonly",
