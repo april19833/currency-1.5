@@ -15,18 +15,15 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
         )
     {}
 
-    function inProposePhase(
-    ) public view duringProposePhase() returns (bool) {
+    function inProposePhase() public view duringProposePhase returns (bool) {
         return true;
     }
 
-    function inVotePhase(
-    ) public view duringVotePhase() returns (bool) {
+    function inVotePhase() public view duringVotePhase returns (bool) {
         return true;
     }
 
-    function inRevealPhase(
-    ) public view duringRevealPhase() returns (bool) {
+    function inRevealPhase() public view duringRevealPhase returns (bool) {
         return true;
     }
 

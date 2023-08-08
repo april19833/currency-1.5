@@ -145,7 +145,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     modifier duringVotePhase() {
-        uint256 governanceTime = (getTime() - governanceStartTime) % CYCLE_LENGTH;
+        uint256 governanceTime = (getTime() - governanceStartTime) %
+            CYCLE_LENGTH;
 
         if (
             governanceTime < PROPOSAL_TIME ||
@@ -157,7 +158,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     modifier duringRevealPhase() {
-        if ((getTime() - governanceStartTime) % CYCLE_LENGTH < PROPOSAL_TIME + VOTING_TIME) {
+        if (
+            (getTime() - governanceStartTime) % CYCLE_LENGTH <
+            PROPOSAL_TIME + VOTING_TIME
+        ) {
             revert WrongStage();
         }
         _;
@@ -173,10 +177,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    constructor(
-        Policy _policy,
-        TrustedNodes _trustedNodes
-    ) Policed(_policy) {
+    constructor(Policy _policy, TrustedNodes _trustedNodes) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
         governanceStartTime = getTime();
     }
@@ -217,7 +218,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 _lockupInterest,
         uint256 _inflationMultiplier,
         string calldata _description
-    ) external onlyTrusted duringProposePhase() {
+    ) external onlyTrusted duringProposePhase {
         require(
             _inflationMultiplier > 0,
             "Inflation multiplier cannot be zero"
@@ -249,7 +250,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         );
     }
 
-    function unpropose() external duringProposePhase() {
+    function unpropose() external duringProposePhase {
         uint256 _cycle = getCurrentCycle();
         require(
             proposals[_cycle][msg.sender].inflationMultiplier != 0,
@@ -259,9 +260,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         emit ProposalRetraction(msg.sender);
     }
 
-    function commit(
-        bytes32 _commitment
-    ) external onlyTrusted duringVotePhase() {
+    function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
         commitments[getCurrentCycle()][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
@@ -269,7 +268,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     function reveal(
         bytes32 _seed,
         Vote[] calldata _votes
-    ) external duringRevealPhase() {
+    ) external duringRevealPhase {
         uint256 _cycle = getCurrentCycle();
         // uint256 numVotes = _votes.length;
         // require(numVotes > 0, "Invalid vote, cannot vote empty");
