@@ -3,8 +3,8 @@ import { constants, BigNumber } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import * as time from '../../utils/time'
-import { TEST } from '../../utils/constants'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
 import {
   TrustedNodes__factory,
@@ -16,9 +16,9 @@ import {
   Policy,
 } from '../../../typechain-types'
 
-const PROPOSE_STAGE_LENGTH = 10 * time.DAY
-const COMMIT_STAGE_LENGTH = 3 * time.DAY
-const REVEAL_STAGE_LENGTH = 1 * time.DAY
+const PROPOSE_STAGE_LENGTH = 10 * DAY
+const COMMIT_STAGE_LENGTH = 3 * DAY
+const REVEAL_STAGE_LENGTH = 1 * DAY
 const REVEAL_STAGE_START = PROPOSE_STAGE_LENGTH + COMMIT_STAGE_LENGTH
 const CYCLE_LENGTH =
   PROPOSE_STAGE_LENGTH + COMMIT_STAGE_LENGTH + REVEAL_STAGE_LENGTH
