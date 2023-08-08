@@ -16,73 +16,91 @@ import "./CurrencyGovernance.sol";
  *
  */
 contract TrustedNodes is Policed, TimeUtils {
-    uint256 public constant generationTime = 14 days;
+    uint256 public constant GENERATION_TIME = 14 days;
 
-    uint256 public termEnd;
+    uint256 public immutable termEnd;
 
-    uint256 public termLength;
+    uint256 public immutable termLength;
 
-    // address with the trusteeGovernance role
-    address public trusteeGovernanceRole;
+    /** address with the currencyGovernance role */
+    CurrencyGovernance public currencyGovernance;
 
-    address public EcoXAddress;
+    ECOx public immutable ecoX;
 
     mapping(address => uint256) public trusteeNumbers;
 
     address[] public trustees;
 
     /** Represents the number of votes for which the trustee can claim rewards.
-    Increments each time the trustee votes, decremented on withdrawal */
+     * Increments each time the trustee votes, decremented on withdrawal
+     */
     mapping(address => uint256) public votingRecord;
 
-    // timestamp of last withdrawal
+    /** timestamp of last withdrawal */
     mapping(address => uint256) lastWithdrawals;
 
     /** reward earned per completed and revealed vote */
-    uint256 public voteReward;
-
-    // unallocated rewards to be sent to hoard upon the end of the year term
-    uint256 public unallocatedRewardsCount;
+    uint256 public immutable voteReward;
 
     /** Event emitted when a node added to a list of trusted nodes.
+     * @param trustee the trustee being added
      */
-    event TrustedNodeAddition(address indexed node);
+    event TrustedNodeAddition(address indexed trustee);
 
     /** Event emitted when a node removed from a list of trusted nodes
+     * @param trustee the trustee being removed
      */
-    event TrustedNodeRemoval(address indexed node);
+    event TrustedNodeRemoval(address indexed trustee);
 
-    /** Event emitted when voting rewards are redeemed */
+    /** Event emitted when a node removed from a list of trusted nodes
+     * @param trustee the trustee whose vote was recorded
+     * @param newVotingRecord the new voting record for the trustee
+     */
+    event VoteRecorded(address indexed trustee, uint256 newVotingRecord);
+
+    /** Event emitted when voting rewards are redeemed
+     * @param recipient the address redeeming the rewards
+     * @param amount the amount being redeemed
+     */
     event VotingRewardRedemption(address indexed recipient, uint256 amount);
 
-    event TrusteeGovernanceRoleChanged(address newRoleHolder);
+    /** Event emitted when the currencyGovernance role changes
+     * @param newRoleHolder the new holder of the currencyGovernance role
+     */
+    event CurrencyGovernanceChanged(address newRoleHolder);
 
-    modifier onlyTrusteeGovernance() {
+    modifier onlyCurrencyGovernance() {
         require(
-            msg.sender == trusteeGovernanceRole,
-            "only the trusteeGovernanceRole holder may call this method"
+            msg.sender == address(currencyGovernance),
+            "only the currencyGovernance holder may call this method"
         );
         _;
     }
 
     /** Creates a new trusted node registry, populated with some initial nodes.
+     * @param _policy the address of the root policy contract
+     * @param _currencyGovernance the address of the currencyGovernance contract
+     * @param _EcoX the address of the EcoX contract
+     * @param _termLength the length of the trustee term
+     * @param _voteReward the reward awarded to a trustee for each successfully revealed vote
+     * @param _initialTrustees the initial cohort of trustees
      */
     constructor(
         Policy _policy,
         CurrencyGovernance _currencyGovernance,
-        ECOx _ecox,
+        ECOx _EcoX,
         uint256 _termLength,
         uint256 _voteReward,
-        address[] memory _initialTrustedNodes
+        address[] memory _initialTrustees
     ) Policed(_policy) {
-        trusteeGovernanceRole = address(_currencyGovernance);
-        EcoXAddress = address(_ecox);
+        currencyGovernance = _currencyGovernance;
+        ecoX = _EcoX;
         termLength = _termLength;
         termEnd = getTime() + termLength;
         voteReward = _voteReward;
-        uint256 numTrustees = _initialTrustedNodes.length;
+        uint256 numTrustees = _initialTrustees.length;
         for (uint256 i = 0; i < numTrustees; i++) {
-            _trust(_initialTrustedNodes[i]);
+            _trust(_initialTrustees[i]);
         }
     }
 
@@ -92,11 +110,11 @@ contract TrustedNodes is Policed, TimeUtils {
         return termEnd + lastWithdrawals[trustee];
     }
 
-    function updateTrusteeGovernanceRole(
+    function updateCurrencyGovernance(
         address _currencyGovernance
     ) public onlyPolicy {
-        trusteeGovernanceRole = _currencyGovernance;
-        emit TrusteeGovernanceRoleChanged(_currencyGovernance);
+        currencyGovernance = CurrencyGovernance(_currencyGovernance);
+        emit CurrencyGovernanceChanged(_currencyGovernance);
     }
 
     /** Grant trust to a node.
@@ -143,8 +161,9 @@ contract TrustedNodes is Policed, TimeUtils {
     /** Incements the counter when the trustee reveals their vote
      * only callable by the CurrencyGovernance contract
      */
-    function recordVote(address _who) external onlyTrusteeGovernance {
+    function recordVote(address _who) external onlyCurrencyGovernance {
         votingRecord[_who]++;
+        emit VoteRecorded(_who, votingRecord[_who]);
     }
 
     /** Return the number of entries in trustedNodes array.
@@ -164,10 +183,10 @@ contract TrustedNodes is Policed, TimeUtils {
         uint256 numWithdrawals = calculateWithdrawal(msg.sender);
         require(numWithdrawals > 0, "You have not vested any tokens");
         uint256 toWithdraw = numWithdrawals * voteReward;
-        lastWithdrawals[msg.sender] += numWithdrawals * generationTime;
+        lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
         votingRecord[msg.sender] -= numWithdrawals;
 
-        ECOx(EcoXAddress).transfer(msg.sender, toWithdraw);
+        ECOx(ecoX).transfer(msg.sender, toWithdraw);
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
@@ -184,7 +203,7 @@ contract TrustedNodes is Policed, TimeUtils {
         }
 
         uint256 lastWithdrawal = getLastWithdrawal(withdrawer);
-        uint256 limit = (timeNow - lastWithdrawal) / generationTime;
+        uint256 limit = (timeNow - lastWithdrawal) / GENERATION_TIME;
         uint256 numWithdrawals = limit > votingRecord[withdrawer]
             ? votingRecord[withdrawer]
             : limit;
@@ -197,13 +216,10 @@ contract TrustedNodes is Policed, TimeUtils {
         returns (uint256 amount, uint256 timestamp)
     {
         uint256 record = votingRecord[msg.sender];
-        return (record * voteReward, termEnd + record * generationTime);
+        return (record * voteReward, termEnd + record * GENERATION_TIME);
     }
 
     function sweep(address recipient) public onlyPolicy {
-        ECOx(EcoXAddress).transfer(
-            recipient,
-            ECOx(EcoXAddress).balanceOf(address(this))
-        );
+        ECOx(ecoX).transfer(recipient, ECOx(ecoX).balanceOf(address(this)));
     }
 }

@@ -102,8 +102,8 @@ describe('TrustedNodes', () => {
     describe('constructor', async () => {
         it('works', async () => {
             expect(await trustedNodes.policy()).to.eq(policy.address)
-            expect(await trustedNodes.trusteeGovernanceRole()).to.eq(currencyGovernance.address)
-            expect(await trustedNodes.EcoXAddress()).to.eq(ecoX.address)
+            expect(await trustedNodes.currencyGovernance()).to.eq(currencyGovernance.address)
+            expect(await trustedNodes.ecoX()).to.eq(ecoX.address)
             expect(await trustedNodes.termLength()).to.eq(3600*24)
             expect(await trustedNodes.voteReward()).to.eq(initialReward)
 
@@ -115,7 +115,7 @@ describe('TrustedNodes', () => {
         })
     })
     describe('permissions', async () => {
-        it("doesn't allow non-policy address to trust, distrust, change the trusteeGovernance role, or sweep funds", async () => {
+        it("doesn't allow non-policy address to trust, distrust, change the currencyGovernance role, or sweep funds", async () => {
             await expect(
                 trustedNodes.connect(alice).trust(charlie.address)
             ).to.be.revertedWith("Only the policy contract may call this method")
@@ -123,16 +123,16 @@ describe('TrustedNodes', () => {
                 trustedNodes.connect(alice).distrust(bob.address)
             ).to.be.revertedWith("Only the policy contract may call this method")
             await expect(
-                trustedNodes.connect(alice).updateTrusteeGovernanceRole(constants.AddressZero)
+                trustedNodes.connect(alice).updateCurrencyGovernance(constants.AddressZero)
             ).to.be.revertedWith("Only the policy contract may call this method")
             await expect(
                 trustedNodes.connect(alice).sweep(alice.address)
             ).to.be.revertedWith("Only the policy contract may call this method")
         })
-        it("doesn't allow non-trusteeGovernanceRole address to record a vote", async () => {
+        it("doesn't allow non-currencyGovernance role to record a vote", async () => {
             await expect(
                 trustedNodes.connect(alice).recordVote(alice.address)
-            ).to.be.revertedWith("only the trusteeGovernanceRole holder may call this method")
+            ).to.be.revertedWith("only the currencyGovernance holder may call this method")
         })
     })
 
@@ -183,14 +183,14 @@ describe('TrustedNodes', () => {
         })
     })
 
-    describe('updateTrusteeGovernanceRole', async ()=> {
+    describe('updateCurrencyGovernance', async ()=> {
         it('works', async () => {
-            expect(await trustedNodes.trusteeGovernanceRole()).to.eq(currencyGovernance.address)
+            expect(await trustedNodes.currencyGovernance()).to.eq(currencyGovernance.address)
             await expect(
-                await trustedNodes.connect(policyImpersonator).updateTrusteeGovernanceRole(dave.address)
-            ).to.emit(trustedNodes, "TrusteeGovernanceRoleChanged")
+                await trustedNodes.connect(policyImpersonator).updateCurrencyGovernance(dave.address)
+            ).to.emit(trustedNodes, "CurrencyGovernanceChanged")
             .withArgs(dave.address)
-            expect(await trustedNodes.trusteeGovernanceRole()).to.eq(dave.address)
+            expect(await trustedNodes.currencyGovernance()).to.eq(dave.address)
         })
     })
 
@@ -210,7 +210,7 @@ describe('TrustedNodes', () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)// voted twice
             expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
             // console.log((await trustedNodes.termEnd()).toNumber())
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 4*(await trustedNodes.generationTime()))// at this time you'd be able to withdraw 4 rewards
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 4*(await trustedNodes.GENERATION_TIME()))// at this time you'd be able to withdraw 4 rewards
             expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(2*initialReward)
         })
         it('displays the correct amount when time of withdrawal is limiting factor', async () => {
@@ -220,7 +220,7 @@ describe('TrustedNodes', () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)// voted twice
             expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
             // console.log((await trustedNodes.termEnd()).toNumber())
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.generationTime()))// at this time you'd be able to withdraw 4 rewards
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.GENERATION_TIME()))// at this time you'd be able to withdraw 4 rewards
             expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(1*initialReward)
         })
     })
@@ -231,7 +231,7 @@ describe('TrustedNodes', () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)// voted twice
             const data = await trustedNodes.connect(alice.address).fullyVested()
             expect(data[0]).to.eq(2*initialReward)
-            expect(data[1]).to.eq((await trustedNodes.termEnd()).toNumber() + 2*(await trustedNodes.generationTime()))
+            expect(data[1]).to.eq((await trustedNodes.termEnd()).toNumber() + 2*(await trustedNodes.GENERATION_TIME()))
         })
     })
 
@@ -243,7 +243,7 @@ describe('TrustedNodes', () => {
         })
         it('allows correct withdrawal in simple case', async () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.generationTime()))// at this time you'd be able to withdraw 4 rewards
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.GENERATION_TIME()))// at this time you'd be able to withdraw 4 rewards
             
             await expect (
                 trustedNodes.connect(alice).withdraw()
@@ -253,7 +253,7 @@ describe('TrustedNodes', () => {
         })
         it('allows correct withdrawal when voting record is limiting factor', async () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 5*(await trustedNodes.generationTime()))
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 5*(await trustedNodes.GENERATION_TIME()))
 
             await trustedNodes.connect(alice).withdraw()
             expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
@@ -261,7 +261,7 @@ describe('TrustedNodes', () => {
         it('allows correct withdrawal when withdrawal time is limiting factor', async () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.generationTime()))
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.GENERATION_TIME()))
             
             await trustedNodes.connect(alice).withdraw()
             expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
@@ -269,7 +269,7 @@ describe('TrustedNodes', () => {
         it('withdrawing immediately again does not bypass withdrawal time restrictions', async () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
-            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.generationTime()))
+            await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.GENERATION_TIME()))
            
             await trustedNodes.connect(alice).withdraw()
             expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
