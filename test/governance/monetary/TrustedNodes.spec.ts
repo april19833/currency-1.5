@@ -213,8 +213,9 @@ describe('TrustedNodes', () => {
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
 
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          4 * (await trustedNodes.GENERATION_TIME())
+        (
+          await trustedNodes.termEnd()
+        ).add((await trustedNodes.GENERATION_TIME()).mul(4))
       ) // at this time you'd be able to withdraw 4 rewards
       expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(
         2 * initialReward
@@ -232,8 +233,7 @@ describe('TrustedNodes', () => {
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
 
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          1 * (await trustedNodes.GENERATION_TIME())
+        (await trustedNodes.termEnd()).add(await trustedNodes.GENERATION_TIME())
       ) // at this time you'd be able to withdraw 4 rewards
       expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(
         1 * initialReward
@@ -252,8 +252,9 @@ describe('TrustedNodes', () => {
       const data = await trustedNodes.connect(alice.address).fullyVested()
       expect(data[0]).to.eq(2 * initialReward)
       expect(data[1]).to.eq(
-        (await trustedNodes.termEnd()).toNumber() +
-          2 * (await trustedNodes.GENERATION_TIME())
+        (await trustedNodes.termEnd()).add(
+          (await trustedNodes.GENERATION_TIME()).mul(2)
+        )
       )
     })
   })
@@ -269,8 +270,7 @@ describe('TrustedNodes', () => {
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          1 * (await trustedNodes.GENERATION_TIME())
+        (await trustedNodes.termEnd()).add(await trustedNodes.GENERATION_TIME())
       ) // at this time you'd be able to withdraw 4 rewards
 
       await expect(trustedNodes.connect(alice).withdraw())
@@ -283,8 +283,9 @@ describe('TrustedNodes', () => {
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          5 * (await trustedNodes.GENERATION_TIME())
+        (
+          await trustedNodes.termEnd()
+        ).add((await trustedNodes.GENERATION_TIME()).mul(5))
       )
 
       await trustedNodes.connect(alice).withdraw()
@@ -298,8 +299,7 @@ describe('TrustedNodes', () => {
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          1 * (await trustedNodes.GENERATION_TIME())
+        (await trustedNodes.termEnd()).add(await trustedNodes.GENERATION_TIME())
       )
 
       await trustedNodes.connect(alice).withdraw()
@@ -313,8 +313,7 @@ describe('TrustedNodes', () => {
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
       await time.increaseTo(
-        (await trustedNodes.termEnd()).toNumber() +
-          1 * (await trustedNodes.GENERATION_TIME())
+        (await trustedNodes.termEnd()).add(await trustedNodes.GENERATION_TIME())
       )
 
       await trustedNodes.connect(alice).withdraw()
