@@ -27,6 +27,8 @@ const PROPOSE_STAGE = 0
 const COMMIT_STAGE = 1
 const REVEAL_STAGE = 2
 
+const PLACEHOLDER_ADDRESS = '0x1111111111111111111111111111111111111111'
+
 describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -53,13 +55,18 @@ describe('CurrencyGovernance', () => {
       await smock.mock<TrustedNodes__factory>('TrustedNodes')
     ).deploy(
       Fake__Policy.address,
+      PLACEHOLDER_ADDRESS,
+      PLACEHOLDER_ADDRESS,
+      1000 * DAY,
+      1,
       [bob.address, charlie.address, dave.address],
-      0
     )
 
     CurrencyGovernance = await (
       await smock.mock<CurrencyGovernance__factory>('CurrencyGovernance')
-    ).deploy(Fake__Policy.address, TrustedNodes.address, alice.address)
+    ).deploy(Fake__Policy.address, TrustedNodes.address)
+
+    await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(CurrencyGovernance.address)
   })
 
   describe('trustee role', async () => {
