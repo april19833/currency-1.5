@@ -83,9 +83,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // used to denote the winning proposal when the vote is finalized
     mapping(uint256 => address) public winner;
 
-    // address that can pause currency governance
-    address public pauser;
-
     // setting the trusted nodes address to a bad address stops governance
     error NonZeroTrustedNodesAddr();
 
