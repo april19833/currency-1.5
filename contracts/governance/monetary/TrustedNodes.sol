@@ -116,10 +116,10 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _currencyGovernance the new currencyGovernance role holder
      */
     function updateCurrencyGovernance(
-        address _currencyGovernance
+        CurrencyGovernance _currencyGovernance
     ) public onlyPolicy {
-        currencyGovernance = CurrencyGovernance(_currencyGovernance);
-        emit CurrencyGovernanceChanged(_currencyGovernance);
+        currencyGovernance = _currencyGovernance;
+        emit CurrencyGovernanceChanged(address(_currencyGovernance));
     }
 
     /** Grant trust to a node.
@@ -165,8 +165,10 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _who address whose vote is being recorded
      */
     function recordVote(address _who) external onlyCurrencyGovernance {
-        votingRecord[_who]++;
-        emit VoteRecorded(_who, votingRecord[_who]);
+        if (getTime() < termEnd) {
+            votingRecord[_who]++;
+            emit VoteRecorded(_who, votingRecord[_who]);
+        }
     }
 
     /** Return the number of entries in trustedNodes array.
@@ -191,7 +193,10 @@ contract TrustedNodes is Policed, TimeUtils {
         lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
         votingRecord[msg.sender] -= numWithdrawals;
 
-        ECOx(ecoX).transfer(msg.sender, toWithdraw);
+        require(
+            ecoX.transfer(msg.sender, toWithdraw),
+            'Transfer failed'
+        );
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
@@ -235,6 +240,9 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param recipient the address to receive the ECOx
      */
     function sweep(address recipient) public onlyPolicy {
-        ECOx(ecoX).transfer(recipient, ECOx(ecoX).balanceOf(address(this)));
+        require(
+            ecoX.transfer(recipient, ecoX.balanceOf(address(this))),
+            'Transfer failed'
+        );
     }
 }

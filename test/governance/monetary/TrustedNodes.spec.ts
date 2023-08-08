@@ -1,13 +1,13 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { Contract, constants, providers, ethers } from 'ethers'
-import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
+import { Contract, constants } from 'ethers'
+import { smock, FakeContract, MockContract, MockContractFactory } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { expect } from 'chai'
 
 import { getABI } from '../../utils/testUtils'
-import { TrustedNodes, TrustedNodes__factory} from '../../../typechain-types'
+import { TrustedNodes, TrustedNodes__factory, Policy, ECOx, ECOx__factory, CurrencyGovernance} from '../../../typechain-types'
 
 describe('TrustedNodes', () => {
     let policyImpersonator: SignerWithAddress
@@ -18,37 +18,38 @@ describe('TrustedNodes', () => {
     let charlie: SignerWithAddress
     let dave: SignerWithAddress
 
-    let provider: providers.Provider
-
     let trustedNodesABI = getABI('artifacts/contracts/governance/monetary/TrustedNodes.sol/TrustedNodes.json')
-    let ECOxABI = getABI('artifacts/contracts/test/MockToken.sol/MockToken.json')
 
     let initialReward: number = 100
     let initialTermLength: number = 3600*24
 
     before(async() => {
         ;[policyImpersonator, currencyGovernanceImpersonator, alice, bob, charlie, dave] = await ethers.getSigners()
-        provider = ethers.getDefaultProvider()
     })
 
-    let policy: FakeContract
-    let currencyGovernance: FakeContract
+    let policy: FakeContract<Policy>
+    let currencyGovernance: FakeContract<CurrencyGovernance>
 
     let trustedNodesFactory = new TrustedNodes__factory(trustedNodesABI.abi, trustedNodesABI.bytecode)
     let trustedNodes: TrustedNodes
-    let ecoX: MockContract<Contract>
+    let ecoX: MockContract<ECOx>
 
     beforeEach(async() => {
-        policy = await smock.fake<Contract>(
+        policy = await smock.fake<Policy>(
             'Policy',
             { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
         )
-        currencyGovernance = await smock.fake<Contract>(
+        currencyGovernance = await smock.fake<CurrencyGovernance>(
             'CurrencyGovernance',
             { address: currencyGovernanceImpersonator.address}
         )
-        let ecoXFactory = await smock.mock('ECOx')
-        ecoX = await ecoXFactory.deploy(policy.address, policy.address, 1000, policy.address, policyImpersonator.address)
+        let ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock('ECOx')
+        ecoX = await ecoXFactory.deploy(
+            policy.address, policy.address,
+            1000,
+            policy.address,
+            policyImpersonator.address
+        )
 
         trustedNodes = await trustedNodesFactory.connect(policyImpersonator).deploy(policy.address, currencyGovernance.address, ecoX.address, initialTermLength, initialReward, [alice.address, bob.address])
 
