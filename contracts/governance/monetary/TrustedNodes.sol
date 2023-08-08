@@ -111,8 +111,8 @@ contract TrustedNodes is Policed, TimeUtils {
         termLength = _termLength;
         termEnd = getTime() + termLength;
         voteReward = _voteReward;
-        uint256 numTrustees = _initialTrustees.length;
-        for (uint256 i = 0; i < numTrustees; i++) {
+        uint256 _numTrustees = _initialTrustees.length;
+        for (uint256 i = 0; i < _numTrustees; i++) {
             _trust(_initialTrustees[i]);
         }
     }

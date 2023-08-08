@@ -101,6 +101,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle);
 
+    /**
+     * emits when the trustedNodes contract is changed
+     * @param newTrustedNodes denotes the new trustedNodes contract address
+     * @param oldTrustedNodes denotes the old trustedNodes contract address
+     */
+    event NewTrustedNodes(TrustedNodes newTrustedNodes, TrustedNodes oldTrustedNodes);
+
     // emitted when a proposal is submitted to track the values
     event ProposalCreation(
         address indexed trusteeAddress,
@@ -139,6 +146,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    // for functions related to proposing monetary policy
     modifier duringProposePhase() {
         if ((getTime() - governanceStartTime) % CYCLE_LENGTH >= PROPOSAL_TIME) {
             revert WrongStage();
@@ -146,6 +154,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    // for functions related to committing votes
     modifier duringVotePhase() {
         uint256 governanceTime = (getTime() - governanceStartTime) %
             CYCLE_LENGTH;
@@ -159,6 +168,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    // for functions related to revealing votes
     modifier duringRevealPhase() {
         if (
             (getTime() - governanceStartTime) % CYCLE_LENGTH <
@@ -169,6 +179,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    // for finalizing the outcome of a vote
     modifier cycleComplete(uint256 cycle) {
         uint256 completedCycles = (getTime() - governanceStartTime) /
             CYCLE_LENGTH;
@@ -179,12 +190,21 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    /** constructor
+     * @param _policy the owning policy address for the contract
+     * @param _trustedNodes the contract to manage what addresses are trustees
+     */
     constructor(Policy _policy, TrustedNodes _trustedNodes) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
         governanceStartTime = getTime();
     }
 
+    /** setter function for trustedNodes var
+     * only available to the owning policy contract
+     * @param _trustedNodes the value to set the new trustedNodes address to, cannot be zero
+     */
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
+        emit NewTrustedNodes(_trustedNodes, trustedNodes);
         _setTrustedNodes(_trustedNodes);
     }
 
@@ -195,6 +215,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         trustedNodes = _trustedNodes;
     }
 
+    /** getter for timing data
+     * calculates and returns the current cycle and the current stage
+     * @return TimingData type of { uint256 cycle, Stage stage }
+     */
     function getCurrentStage() public view returns (TimingData memory) {
         uint256 timeDifference = getTime() - governanceStartTime;
         uint256 completedCycles = timeDifference / CYCLE_LENGTH;
@@ -209,10 +233,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
         }
     }
 
+    /** getter for just the current cycle
+     * calculates and returns, used internally
+     * @return cycle the index for the currently used governance recording mappings
+     */
     function getCurrentCycle() public view returns (uint256) {
         return (getTime() - governanceStartTime) / CYCLE_LENGTH;
     }
 
+    /** propose a monetary policy
+     * this function allows trustees to submit a potential monetary policy
+     * if there is already a proposed monetary policy by the trustee, this overwrites it
+     * \\param these will be done later when I change this whole function
+     */
     function propose(
         uint256 _numberOfRecipients,
         uint256 _randomInflationReward,
@@ -252,6 +285,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
         );
     }
 
+    /** retract a monetary policy
+     * this function allows trustees to retract their existing proposal, deleting its data
+     * reverts if no proposal exists to unpropose
+     * cannot be used after propose phase ends
+     */
     function unpropose() external duringProposePhase {
         uint256 _cycle = getCurrentCycle();
         require(
@@ -262,11 +300,23 @@ contract CurrencyGovernance is Policed, TimeUtils {
         emit ProposalRetraction(msg.sender);
     }
 
+    /** submit a vote commitment
+     * this function allows trustees to submit a commit hash of their vote
+     * commitment is salted so that it is a blind vote process
+     * calling additional times overwrites previous commitments
+     * @param _commitment the hash commit to check against when revealing
+     */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
         commitments[getCurrentCycle()][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
+    /** reveal a committed vote
+     * this function allows trustees to reveal their previously committed votes once the reveal phase is entered
+     * in revealing the vote, votes are tallied, a running tally of each proposal's votes is kept in storage during this phase
+     * @param _seed the salt for the commit hash to make the vote secret
+     * @param _votes the array of Vote objects { address proposal, uint256 ranking } that follows our modified Borda scheme. The votes need to be arranged in ascending order of address and ranked via the integers 1 to the number of proposals ranked.
+     */
     function reveal(
         bytes32 _seed,
         Vote[] calldata _votes
@@ -351,6 +401,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         emit VoteReveal(msg.sender, _votes);
     }
 
+    /** write the result of a cycle's votes to the timelock for execution
+     * this function begins the process of executing the outcome of the vote by finalizing the outcome of voting in a completed cycle
+     * @param _cycle the cycle to finalize
+     */
     function compute(uint256 _cycle) external cycleComplete(_cycle) {
         // need a marker of computation complete
 
