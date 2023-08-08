@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat'
 import { constants } from 'ethers'
+import { expect } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { expect } from 'chai'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
@@ -42,7 +42,7 @@ describe('CurrencyGovernance', () => {
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
-  let CurrencyGovernance: MockContract<CurrencyGovernance>
+  let CurrencyGovernance: CurrencyGovernance
   let Fake__Policy: FakeContract<Policy>
   beforeEach(async () => {
     // Get a new mock L1 messenger
@@ -59,14 +59,16 @@ describe('CurrencyGovernance', () => {
       PLACEHOLDER_ADDRESS,
       1000 * DAY,
       1,
-      [bob.address, charlie.address, dave.address],
+      [bob.address, charlie.address, dave.address]
     )
 
-    CurrencyGovernance = await (
-      await smock.mock<CurrencyGovernance__factory>('CurrencyGovernance')
-    ).deploy(Fake__Policy.address, TrustedNodes.address)
+    CurrencyGovernance = await new CurrencyGovernance__factory()
+      .connect(policyImpersonater)
+      .deploy(Fake__Policy.address, TrustedNodes.address)
 
-    await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(CurrencyGovernance.address)
+    await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(
+      CurrencyGovernance.address
+    )
   })
 
   describe('trustee role', async () => {
@@ -109,14 +111,12 @@ describe('CurrencyGovernance', () => {
 
   describe('time calculations', () => {
     const initialCycle = 0
-    let StageTestCG: MockContract<StageTestCurrencyGovernance>
+    let StageTestCG: StageTestCurrencyGovernance
 
     beforeEach(async () => {
-      StageTestCG = await (
-        await smock.mock<StageTestCurrencyGovernance__factory>(
-          'StageTestCurrencyGovernance'
-        )
-      ).deploy()
+      StageTestCG = await new StageTestCurrencyGovernance__factory()
+        .connect(policyImpersonater)
+        .deploy()
     })
 
     async function checkStageModifiers(stage: Number) {

@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
 import { constants } from 'ethers'
+import { expect } from 'chai'
 import {
   smock,
   FakeContract,
@@ -10,9 +11,6 @@ import {
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
-import { expect } from 'chai'
-
-import { getABI } from '../../utils/testUtils'
 import {
   TrustedNodes,
   TrustedNodes__factory,
@@ -31,10 +29,6 @@ describe('TrustedNodes', () => {
   let charlie: SignerWithAddress
   let dave: SignerWithAddress
 
-  const trustedNodesABI = getABI(
-    'artifacts/contracts/governance/monetary/TrustedNodes.sol/TrustedNodes.json'
-  )
-
   const initialReward: number = 100
   const initialTermLength: number = 3600 * 24
 
@@ -52,10 +46,6 @@ describe('TrustedNodes', () => {
   let policy: FakeContract<Policy>
   let currencyGovernance: FakeContract<CurrencyGovernance>
 
-  const trustedNodesFactory = new TrustedNodes__factory(
-    trustedNodesABI.abi,
-    trustedNodesABI.bytecode
-  )
   let trustedNodes: TrustedNodes
   let ecoX: MockContract<ECOx>
 
@@ -79,6 +69,7 @@ describe('TrustedNodes', () => {
       policyImpersonator.address
     )
 
+    const trustedNodesFactory = new TrustedNodes__factory()
     trustedNodes = await trustedNodesFactory
       .connect(policyImpersonator)
       .deploy(
@@ -130,9 +121,7 @@ describe('TrustedNodes', () => {
     it("doesn't allow non-currencyGovernance role to record a vote", async () => {
       await expect(
         trustedNodes.connect(alice).recordVote(alice.address)
-      ).to.be.revertedWith(
-        ERRORS.TrustedNodes.CG_ONLY
-      )
+      ).to.be.revertedWith(ERRORS.TrustedNodes.CG_ONLY)
     })
   })
 

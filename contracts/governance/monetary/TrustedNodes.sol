@@ -84,7 +84,7 @@ contract TrustedNodes is Policed, TimeUtils {
     event CurrencyGovernanceChanged(address newRoleHolder);
 
     modifier onlyCurrencyGovernance() {
-        if(msg.sender != address(currencyGovernance)) {
+        if (msg.sender != address(currencyGovernance)) {
             revert GovernanceOnlyFunction();
         }
         _;
@@ -150,7 +150,7 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _node The node to start trusting
      */
     function _trust(address _node) internal {
-        if(isTrusted(_node)) {
+        if (isTrusted(_node)) {
             revert NodeAlreadyTrusted(trusteeNumbers[_node]);
         }
         trustees.push(_node);
@@ -163,7 +163,7 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _node The trustee to be removed
      */
     function distrust(address _node) external onlyPolicy {
-        if(!isTrusted(_node)) {
+        if (!isTrusted(_node)) {
             revert DistrustNotTrusted();
         }
 
@@ -206,16 +206,14 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     function withdraw() public {
         uint256 numWithdrawals = calculateWithdrawal(msg.sender);
-        if(numWithdrawals == 0) {
+        if (numWithdrawals == 0) {
             revert WithdrawNoTokens();
         }
         uint256 toWithdraw = numWithdrawals * voteReward;
         lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
         votingRecord[msg.sender] -= numWithdrawals;
 
-        if(
-            !ecoX.transfer(msg.sender, toWithdraw)
-        ) {
+        if (!ecoX.transfer(msg.sender, toWithdraw)) {
             revert ECOx.TransferFailed();
         }
         emit VotingRewardRedemption(msg.sender, toWithdraw);
@@ -261,9 +259,7 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param recipient the address to receive the ECOx
      */
     function sweep(address recipient) public onlyPolicy {
-        if(
-            !ecoX.transfer(recipient, ecoX.balanceOf(address(this)))
-        ) {
+        if (!ecoX.transfer(recipient, ecoX.balanceOf(address(this)))) {
             revert ECOx.TransferFailed();
         }
     }
