@@ -28,7 +28,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     // struct for the array of submitted votes
     struct Vote {
-        // the proposal being voted for
+        // the address of the trustee who submitted the proposal being voted for
         // proposals must be scored in ascending order of address to be accepted
         address proposal;
         // the score of this proposal within the ballot, min recorded score is one
