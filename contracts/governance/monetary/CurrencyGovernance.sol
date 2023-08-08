@@ -161,7 +161,11 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         }
     }
 
-    constructor(Policy _policy, TrustedNodes _trustedNodes, address _initialPauser) Policed(_policy) {
+    constructor(
+        Policy _policy,
+        TrustedNodes _trustedNodes,
+        address _initialPauser
+    ) Policed(_policy) {
         trustedNodes = _trustedNodes;
         pauser = _initialPauser;
         emit PauserAssignment(_initialPauser);
@@ -178,9 +182,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
-        if(
-            address(_trustedNodes) == address(0)
-        ) {
+        if (address(_trustedNodes) == address(0)) {
             revert NonZeroTrustedNodesAddr();
         }
         trustedNodes = _trustedNodes;
@@ -232,19 +234,17 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         emit ProposalRetraction(msg.sender);
     }
 
-    function commit(bytes32 _commitment)
-        external
-        onlyTrusted
-        atStage(Stage.Commit)
-    {
+    function commit(
+        bytes32 _commitment
+    ) external onlyTrusted atStage(Stage.Commit) {
         commitments[currentCycle][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
-    function reveal(bytes32 _seed, Vote[] calldata _votes)
-        external
-        atStage(Stage.Reveal)
-    {
+    function reveal(
+        bytes32 _seed,
+        Vote[] calldata _votes
+    ) external atStage(Stage.Reveal) {
         uint256 numVotes = _votes.length;
         require(numVotes > 0, "Invalid vote, cannot vote empty");
         require(

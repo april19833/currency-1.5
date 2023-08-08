@@ -9,7 +9,6 @@ import "./Policy.sol";
  * A policed contract is any contract managed by a policy.
  */
 abstract contract Policed is ForwardTarget {
-
     /** The address of the root policy instance overseeing this instance.
      *
      * This address can be used for ERC1820 lookup of other components, ERC1820
@@ -20,7 +19,7 @@ abstract contract Policed is ForwardTarget {
     // If the policy address is set to zero, the contract is unrecoverably ungovernable
     error NonZeroPolicyAddr();
 
-    /** 
+    /**
      * emits when the policy contract is changed
      * @param newPolicy denotes the new policy contract address
      * @param oldPolicy denotes the new policy contract address
@@ -48,9 +47,7 @@ abstract contract Policed is ForwardTarget {
     }
 
     function _setPolicy(Policy _policy) private {
-        if(
-            address(_policy) == address(0)
-        ) {
+        if (address(_policy) == address(0)) {
             revert NonZeroPolicyAddr();
         }
         policy = _policy;

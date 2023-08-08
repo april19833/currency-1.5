@@ -6,11 +6,9 @@ pragma solidity ^0.8.0;
 
 library StringPacker {
     // takes a string of 31 or less characters and converts it to bytes32
-    function pack(string memory unpacked)
-        internal
-        pure
-        returns (bytes32 packed)
-    {
+    function pack(
+        string memory unpacked
+    ) internal pure returns (bytes32 packed) {
         // do not use this function in a lossy way, it will not work
         // only strings with 31 or less characters are stored in memory packed with their length value
         require(bytes(unpacked).length < 32);
@@ -23,11 +21,9 @@ library StringPacker {
     }
 
     // takes a bytes32 packed in the format above and unpacks it into a string
-    function unpack(bytes32 packed)
-        internal
-        pure
-        returns (string memory unpacked)
-    {
+    function unpack(
+        bytes32 packed
+    ) internal pure returns (string memory unpacked) {
         // get the high byte which stores the length of the string when unpacked
         uint256 len = uint256(packed >> 248);
         // ensure that the length of the unpacked string doesn't read beyond the input value

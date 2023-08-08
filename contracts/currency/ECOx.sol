@@ -42,12 +42,9 @@ contract ECOx is ERC20Pausable, Policed {
         ecoToken = _ecoAddr;
     }
 
-    function initialize(address _self)
-        public
-        virtual
-        override
-        onlyConstruction
-    {
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
         _mint(distributor, initialSupply);
@@ -59,21 +56,19 @@ contract ECOx is ERC20Pausable, Policed {
         return computeValue(_ecoXValue, _ecoSupply);
     }
 
-    function valueAt(uint256 _ecoXValue, uint256 _blockNumber)
-        public
-        view
-        returns (uint256)
-    {
+    function valueAt(
+        uint256 _ecoXValue,
+        uint256 _blockNumber
+    ) public view returns (uint256) {
         uint256 _ecoSupplyAt = ecoToken.totalSupplyAt(_blockNumber);
 
         return computeValue(_ecoXValue, _ecoSupplyAt);
     }
 
-    function computeValue(uint256 _ecoXValue, uint256 _ecoSupply)
-        internal
-        view
-        returns (uint256)
-    {
+    function computeValue(
+        uint256 _ecoXValue,
+        uint256 _ecoSupply
+    ) internal view returns (uint256) {
         uint256 _preciseRatio = safeLeftShift(_ecoXValue, PRECISION_BITS) /
             initialSupply;
 
@@ -82,11 +77,10 @@ contract ECOx is ERC20Pausable, Policed {
             PRECISION_BITS;
     }
 
-    function safeLeftShift(uint256 value, uint8 shift)
-        internal
-        pure
-        returns (uint256)
-    {
+    function safeLeftShift(
+        uint256 value,
+        uint8 shift
+    ) internal pure returns (uint256) {
         uint256 _result = value << shift;
         require(
             _result >> shift == value,
@@ -102,11 +96,10 @@ contract ECOx is ERC20Pausable, Policed {
      * the global "maxExpArray" maps each "precision" to "((maximumExponent + 1) << (MAX_PRECISION - precision)) - 1".
      * the maximum permitted value for "x" is therefore given by "maxExpArray[precision] >> (MAX_PRECISION - precision)".
      */
-    function generalExp(uint256 _x, uint8 _precision)
-        internal
-        pure
-        returns (uint256)
-    {
+    function generalExp(
+        uint256 _x,
+        uint8 _precision
+    ) internal pure returns (uint256) {
         uint256 xi = _x;
         uint256 res = 0;
 

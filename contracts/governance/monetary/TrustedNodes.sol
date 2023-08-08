@@ -4,101 +4,122 @@ pragma solidity ^0.8.0;
 import "../../policy/Policed.sol";
 import "../../currency/ECOx.sol";
 import "../../utils/TimeUtils.sol";
-
-// temp trusted nodes until merging
+import "./CurrencyGovernance.sol";
 
 /** @title TrustedNodes
  *
- * A registry of trusted nodes. Trusted nodes are able to vote during
- * inflation/deflation votes, and can only be added or removed using policy
- * proposals.
+ * A registry of trusted nodes. Trusted nodes (trustees) are able to vote
+ * on monetary policy and can only be added or removed using community
+ * governance.
  *
  */
 contract TrustedNodes is Policed, TimeUtils {
-    uint256 public constant GENERATIONS_PER_YEAR = 26;
+    uint256 public constant GENERATION_TIME = 14 days;
 
-    uint256 public yearEnd;
+    uint256 public immutable termEnd;
 
-    uint256 public yearStartGen;
+    uint256 public immutable termLength;
 
-    address public hoard;
+    /** address with the currencyGovernance role */
+    CurrencyGovernance public currencyGovernance;
 
-    /** Tracks the current trustee cohort
-     * each trustee election cycle corresponds to a new trustee cohort.
+    ECOx public immutable ecoX;
+
+    mapping(address => uint256) public trusteeNumbers;
+
+    address[] public trustees;
+
+    /** voting record of each trustee
      */
-
-    struct Cohort {
-        /** The list of trusted nodes in the cohort*/
-        address[] trustedNodes;
-        /** @dev address of trusted node to index in trustedNodes */
-        mapping(address => uint256) trusteeNumbers;
-    }
-
-    /** cohort number */
-    uint256 public cohort;
-
-    /** cohort number to cohort */
-    mapping(uint256 => Cohort) internal cohorts;
-
-    /** Represents the number of votes for which the trustee can claim rewards.
-    Increments each time the trustee votes, set to zero upon redemption */
     mapping(address => uint256) public votingRecord;
 
-    // last year's voting record
-    mapping(address => uint256) public lastYearVotingRecord;
+    /** timestamp of last withdrawal
+     */
+    mapping(address => uint256) private lastWithdrawals;
 
-    // completely vested
-    mapping(address => uint256) public fullyVestedRewards;
-
-    /** reward earned per completed and revealed vote */
-    uint256 public voteReward;
-
-    // unallocated rewards to be sent to hoard upon the end of the year term
-    uint256 public unallocatedRewardsCount;
+    /** reward earned per completed and revealed vote
+     */
+    uint256 public immutable voteReward;
 
     /** Event emitted when a node added to a list of trusted nodes.
+     * @param trustee the trustee being added
      */
-    event TrustedNodeAddition(address indexed node, uint256 cohort);
+    event TrustedNodeAddition(address indexed trustee);
 
     /** Event emitted when a node removed from a list of trusted nodes
+     * @param trustee the trustee being removed
      */
-    event TrustedNodeRemoval(address indexed node, uint256 cohort);
+    event TrustedNodeRemoval(address indexed trustee);
 
-    /** Event emitted when voting rewards are redeemed */
+    /** Event emitted when a node removed from a list of trusted nodes
+     * @param trustee the trustee whose vote was recorded
+     * @param newVotingRecord the new voting record for the trustee
+     */
+    event VoteRecorded(address indexed trustee, uint256 newVotingRecord);
+
+    /** Event emitted when voting rewards are redeemed
+     * @param recipient the address redeeming the rewards
+     * @param amount the amount being redeemed
+     */
     event VotingRewardRedemption(address indexed recipient, uint256 amount);
 
-    // Event emitted on annualUpdate and newCohort to request funding to the contract
-    event FundingRequest(uint256 amount);
+    /** Event emitted when the currencyGovernance role changes
+     * @param newRoleHolder the new holder of the currencyGovernance role
+     */
+    event CurrencyGovernanceChanged(address newRoleHolder);
 
-    // information for the new trustee rewards term
-    event RewardsTrackingUpdate(
-        uint256 nextUpdateTimestamp,
-        uint256 newRewardsCount
-    );
+    modifier onlyCurrencyGovernance() {
+        require(
+            msg.sender == address(currencyGovernance),
+            "only the currencyGovernance holder may call this method"
+        );
+        _;
+    }
 
-    /** Creates a new trusted node registry, populated with some initial nodes.
+    /** Creates a new trusted node registry, populated with some initial nodes
+     * @param _policy the address of the root policy contract
+     * @param _currencyGovernance the address of the currencyGovernance contract
+     * @param _EcoX the address of the EcoX contract
+     * @param _termLength the length of the trustee term
+     * @param _voteReward the reward awarded to a trustee for each successfully revealed vote
+     * @param _initialTrustees the initial cohort of trustees
      */
     constructor(
         Policy _policy,
-        address[] memory _initialTrustedNodes,
-        uint256 _voteReward
+        CurrencyGovernance _currencyGovernance,
+        ECOx _EcoX,
+        uint256 _termLength,
+        uint256 _voteReward,
+        address[] memory _initialTrustees
     ) Policed(_policy) {
+        currencyGovernance = _currencyGovernance;
+        ecoX = _EcoX;
+        termLength = _termLength;
+        termEnd = getTime() + termLength;
         voteReward = _voteReward;
-        uint256 trusteeCount = _initialTrustedNodes.length;
-        hoard = address(_policy);
-
-        for (uint256 i = 0; i < trusteeCount; ++i) {
-            address node = _initialTrustedNodes[i];
-            _trust(node);
+        uint256 numTrustees = _initialTrustees.length;
+        for (uint256 i = 0; i < numTrustees; i++) {
+            _trust(_initialTrustees[i]);
         }
     }
 
-    function getTrustedNodesFromCohort(uint256 _cohort)
-        public
-        view
-        returns (address[] memory)
-    {
-        return cohorts[_cohort].trustedNodes;
+    /** Fetches the date of a trustee's last withdrawal
+     * @param trustee the trustee whose last withdrawal date is being fetched
+     */
+    function getLastWithdrawal(
+        address trustee
+    ) internal view returns (uint256 time) {
+        return termEnd + lastWithdrawals[trustee];
+    }
+
+    /** Changes the holder currencyGovernance role
+     * @param _currencyGovernance the new currencyGovernance role holder
+     */
+    function updateCurrencyGovernance(
+        CurrencyGovernance _currencyGovernance
+    ) public onlyPolicy {
+        currencyGovernance = _currencyGovernance;
+        emit CurrencyGovernanceChanged(address(_currencyGovernance));
     }
 
     /** Grant trust to a node.
@@ -111,72 +132,114 @@ contract TrustedNodes is Policed, TimeUtils {
         _trust(_node);
     }
 
-    /** Stop trusting a node.
-     *
+    /** Helper for trust
+     * @param _node The node to start trusting
+     */
+    function _trust(address _node) internal {
+        require(!isTrusted(_node), "Node already trusted");
+        trustees.push(_node);
+        trusteeNumbers[_node] = trustees.length;
+        emit TrustedNodeAddition(_node);
+    }
+
+    /** Removes a trustee from the set
      * Node to distrust swaped to be a last element in the trustedNodes, then deleted
-     *
-     * @param _node The node to stop trusting.
+     * @param _node The trustee to be removed
      */
     function distrust(address _node) external onlyPolicy {
-        Cohort storage currentCohort = cohorts[cohort];
-        uint256 trusteeNumber = currentCohort.trusteeNumbers[_node];
-        require(trusteeNumber > 0, "Node already not trusted");
+        require(isTrusted(_node), "Node already not trusted");
 
-        uint256 lastIndex = currentCohort.trustedNodes.length - 1;
-
-        delete currentCohort.trusteeNumbers[_node];
-
-        uint256 trusteeIndex = trusteeNumber - 1;
+        uint256 lastIndex = trustees.length - 1;
+        uint256 trusteeIndex = trusteeNumbers[_node] - 1;
         if (trusteeIndex != lastIndex) {
-            address lastNode = currentCohort.trustedNodes[lastIndex];
-
-            currentCohort.trustedNodes[trusteeIndex] = lastNode;
-            currentCohort.trusteeNumbers[lastNode] = trusteeNumber;
+            address lastNode = trustees[lastIndex];
+            trustees[trusteeIndex] = lastNode;
+            trusteeNumbers[lastNode] = trusteeIndex + 1;
         }
-
-        currentCohort.trustedNodes.pop();
-        emit TrustedNodeRemoval(_node, cohort);
+        delete trusteeNumbers[_node];
+        trustees.pop();
+        emit TrustedNodeRemoval(_node);
     }
 
     /** Incements the counter when the trustee reveals their vote
-     * only callable by the CurrencyGovernance contract
+     * @param _who address whose vote is being recorded
      */
-    function recordVote(address _who) external {
-        votingRecord[_who]++;
-
-        if (unallocatedRewardsCount > 0) {
-            unallocatedRewardsCount--;
+    function recordVote(address _who) external onlyCurrencyGovernance {
+        if (getTime() < termEnd) {
+            votingRecord[_who]++;
+            emit VoteRecorded(_who, votingRecord[_who]);
         }
     }
 
     /** Return the number of entries in trustedNodes array.
      */
     function numTrustees() external view returns (uint256) {
-        return cohorts[cohort].trustedNodes.length;
-    }
-
-    /** Helper function for adding a node to the trusted set.
-     *
-     * @param _node The node to add to the trusted set.
-     */
-    function _trust(address _node) private {
-        uint256 _cohort = cohort;
-        Cohort storage currentCohort = cohorts[_cohort];
-        require(
-            currentCohort.trusteeNumbers[_node] == 0,
-            "Node is already trusted"
-        );
-        // trustee number of new node is len(trustedNodes) + 1, since there can't be a trustee with trusteeNumber = 0
-        currentCohort.trusteeNumbers[_node] =
-            currentCohort.trustedNodes.length +
-            1;
-        currentCohort.trustedNodes.push(_node);
-        emit TrustedNodeAddition(_node, _cohort);
+        return trustees.length;
     }
 
     /** Checks if a node address is trusted in the current cohort
+     * @param _node the address whose trustee status we want to check
      */
     function isTrusted(address _node) public view returns (bool) {
-        return cohorts[cohort].trusteeNumbers[_node] > 0;
+        return trusteeNumbers[_node] > 0;
+    }
+
+    /** withdraws everything that can be withdrawn
+     */
+    function withdraw() public {
+        uint256 numWithdrawals = calculateWithdrawal(msg.sender);
+        require(numWithdrawals > 0, "You have not vested any tokens");
+        uint256 toWithdraw = numWithdrawals * voteReward;
+        lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
+        votingRecord[msg.sender] -= numWithdrawals;
+
+        require(ecoX.transfer(msg.sender, toWithdraw), "Transfer failed");
+        emit VotingRewardRedemption(msg.sender, toWithdraw);
+    }
+
+    /** returns the amount of tokens that are currently withdrawable
+     */
+    function currentlyWithdrawable() public view returns (uint256 amount) {
+        return voteReward * calculateWithdrawal(msg.sender);
+    }
+
+    /** helper for withdraw
+     */
+    function calculateWithdrawal(
+        address withdrawer
+    ) internal view returns (uint256 amount) {
+        uint256 timeNow = getTime();
+        if (timeNow < termEnd) {
+            return 0;
+        }
+
+        uint256 lastWithdrawal = getLastWithdrawal(withdrawer);
+        uint256 limit = (timeNow - lastWithdrawal) / GENERATION_TIME;
+        uint256 numWithdrawals = limit > votingRecord[withdrawer]
+            ? votingRecord[withdrawer]
+            : limit;
+        return numWithdrawals;
+    }
+
+    /** returns the number of tokens the sender is currently entitled to
+     * which they will be able to withdraw upon vesting
+     */
+    function fullyVested()
+        public
+        view
+        returns (uint256 amount, uint256 timestamp)
+    {
+        uint256 record = votingRecord[msg.sender];
+        return (record * voteReward, termEnd + record * GENERATION_TIME);
+    }
+
+    /** drains all the ECOx in TrustedNodes to a recipient address
+     * @param recipient the address to receive the ECOx
+     */
+    function sweep(address recipient) public onlyPolicy {
+        require(
+            ecoX.transfer(recipient, ecoX.balanceOf(address(this))),
+            "Transfer failed"
+        );
     }
 }

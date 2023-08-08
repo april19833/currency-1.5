@@ -79,10 +79,9 @@ abstract contract DelegatePermit is EIP712 {
      *
      * _Available since v4.1._
      */
-    function _useDelegationNonce(address owner)
-        private
-        returns (uint256 current)
-    {
+    function _useDelegationNonce(
+        address owner
+    ) private returns (uint256 current) {
         Counters.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();

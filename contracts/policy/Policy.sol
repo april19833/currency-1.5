@@ -74,10 +74,10 @@ contract Policy is ForwardTarget, ERC1820Client {
      *
      * @param _delegate The contract code to delegate execution to.
      */
-    function internalCommand(address _delegate, bytes32 _authKey)
-        public
-        onlySetter(_authKey)
-    {
+    function internalCommand(
+        address _delegate,
+        bytes32 _authKey
+    ) public onlySetter(_authKey) {
         // solhint-disable-next-line avoid-low-level-calls
         (bool _success, ) = _delegate.delegatecall(
             abi.encodeWithSignature("enacted(address)", _delegate)

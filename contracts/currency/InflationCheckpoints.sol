@@ -9,10 +9,7 @@ import "../policy/Policed.sol";
  * are lazy-evaluated, but are effectively all atomically snapshotted when
  * the generation changes.
  */
-abstract contract InflationCheckpoints is
-    VoteCheckpoints,
-    Policed
-{
+abstract contract InflationCheckpoints is VoteCheckpoints, Policed {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
     Checkpoint[] internal _linearInflationCheckpoints;
@@ -48,12 +45,9 @@ abstract contract InflationCheckpoints is
         );
     }
 
-    function initialize(address _self)
-        public
-        virtual
-        override
-        onlyConstruction
-    {
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
         super.initialize(_self);
         _writeCheckpoint(
             _linearInflationCheckpoints,
@@ -76,11 +70,9 @@ abstract contract InflationCheckpoints is
         return gonsAmount;
     }
 
-    function getPastLinearInflation(uint256 blockNumber)
-        public
-        view
-        returns (uint256)
-    {
+    function getPastLinearInflation(
+        uint256 blockNumber
+    ) public view returns (uint256) {
         require(
             blockNumber <= block.number,
             "InflationCheckpoints: cannot check future block"
@@ -110,12 +102,9 @@ abstract contract InflationCheckpoints is
 
     /** Returns the total (inflation corrected) token supply at a specified block number
      */
-    function totalSupplyAt(uint256 _blockNumber)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function totalSupplyAt(
+        uint256 _blockNumber
+    ) public view override returns (uint256) {
         uint256 _linearInflation = getPastLinearInflation(_blockNumber);
 
         return getPastTotalSupply(_blockNumber) / _linearInflation;
@@ -132,12 +121,10 @@ abstract contract InflationCheckpoints is
      *                        of. Must be less than or equal to the present
      *                        block number.
      */
-    function getPastVotes(address _owner, uint256 _blockNumber)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function getPastVotes(
+        address _owner,
+        uint256 _blockNumber
+    ) public view override returns (uint256) {
         uint256 _linearInflation = getPastLinearInflation(_blockNumber);
 
         return getPastVotingGons(_owner, _blockNumber) / _linearInflation;
