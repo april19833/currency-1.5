@@ -41,6 +41,21 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     uint256 public immutable voteReward;
 
+    // error for functions gated only to the currency governance contract
+    error GovernanceOnlyFunction();
+
+    /** Redundant node trusting error
+     * error for when an already trusted node tries to be trusted again
+     * @param trusteeNumber the existing trustee number for the address
+     */
+    error NodeAlreadyTrusted(uint256 trusteeNumber);
+
+    // error for when distrust is called but the address is already not trusted
+    error DistrustNotTrusted();
+
+    // error for when withdraw is called but no tokens have been earned to withdraw
+    error WithdrawNoTokens();
+
     /** Event emitted when a node added to a list of trusted nodes.
      * @param trustee the trustee being added
      */
@@ -69,10 +84,9 @@ contract TrustedNodes is Policed, TimeUtils {
     event CurrencyGovernanceChanged(address newRoleHolder);
 
     modifier onlyCurrencyGovernance() {
-        require(
-            msg.sender == address(currencyGovernance),
-            "only the currencyGovernance holder may call this method"
-        );
+        if(msg.sender != address(currencyGovernance)) {
+            revert GovernanceOnlyFunction();
+        }
         _;
     }
 
@@ -136,7 +150,9 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _node The node to start trusting
      */
     function _trust(address _node) internal {
-        require(!isTrusted(_node), "Node already trusted");
+        if(isTrusted(_node)) {
+            revert NodeAlreadyTrusted(trusteeNumbers[_node]);
+        }
         trustees.push(_node);
         trusteeNumbers[_node] = trustees.length;
         emit TrustedNodeAddition(_node);
@@ -147,7 +163,9 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _node The trustee to be removed
      */
     function distrust(address _node) external onlyPolicy {
-        require(isTrusted(_node), "Node already not trusted");
+        if(!isTrusted(_node)) {
+            revert DistrustNotTrusted();
+        }
 
         uint256 lastIndex = trustees.length - 1;
         uint256 trusteeIndex = trusteeNumbers[_node] - 1;
@@ -188,12 +206,18 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     function withdraw() public {
         uint256 numWithdrawals = calculateWithdrawal(msg.sender);
-        require(numWithdrawals > 0, "You have not vested any tokens");
+        if(numWithdrawals == 0) {
+            revert WithdrawNoTokens();
+        }
         uint256 toWithdraw = numWithdrawals * voteReward;
         lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
         votingRecord[msg.sender] -= numWithdrawals;
 
-        require(ecoX.transfer(msg.sender, toWithdraw), "Transfer failed");
+        if(
+            !ecoX.transfer(msg.sender, toWithdraw)
+        ) {
+            revert ECOx.TransferFailed();
+        }
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
@@ -237,9 +261,10 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param recipient the address to receive the ECOx
      */
     function sweep(address recipient) public onlyPolicy {
-        require(
-            ecoX.transfer(recipient, ecoX.balanceOf(address(this))),
-            "Transfer failed"
-        );
+        if(
+            !ecoX.transfer(recipient, ecoX.balanceOf(address(this)))
+        ) {
+            revert ECOx.TransferFailed();
+        }
     }
 }

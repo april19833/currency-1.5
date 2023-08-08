@@ -9,6 +9,7 @@ import {
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { ERRORS } from '../../utils/errors'
 import { expect } from 'chai'
 
 import { getABI } from '../../utils/testUtils'
@@ -113,24 +114,24 @@ describe('TrustedNodes', () => {
     it("doesn't allow non-policy address to trust, distrust, change the currencyGovernance role, or sweep funds", async () => {
       await expect(
         trustedNodes.connect(alice).trust(charlie.address)
-      ).to.be.revertedWith('Only the policy contract may call this method')
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       await expect(
         trustedNodes.connect(alice).distrust(bob.address)
-      ).to.be.revertedWith('Only the policy contract may call this method')
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       await expect(
         trustedNodes
           .connect(alice)
           .updateCurrencyGovernance(constants.AddressZero)
-      ).to.be.revertedWith('Only the policy contract may call this method')
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       await expect(
         trustedNodes.connect(alice).sweep(alice.address)
-      ).to.be.revertedWith('Only the policy contract may call this method')
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     })
     it("doesn't allow non-currencyGovernance role to record a vote", async () => {
       await expect(
         trustedNodes.connect(alice).recordVote(alice.address)
       ).to.be.revertedWith(
-        'only the currencyGovernance holder may call this method'
+        ERRORS.TrustedNodes.CG_ONLY
       )
     })
   })
@@ -150,7 +151,7 @@ describe('TrustedNodes', () => {
     it('doesnt allow trusting already trusted addresses', async () => {
       await expect(
         trustedNodes.connect(policyImpersonator).trust(alice.address)
-      ).to.be.revertedWith('Node already trusted')
+      ).to.be.revertedWith(ERRORS.TrustedNodes.DUPLICATE_TRUST)
     })
   })
 
@@ -173,7 +174,7 @@ describe('TrustedNodes', () => {
     it('doesnt allow distrusting already not trusted addresses', async () => {
       await expect(
         trustedNodes.connect(policyImpersonator).distrust(charlie.address)
-      ).to.be.revertedWith('Node already not trusted')
+      ).to.be.revertedWith(ERRORS.TrustedNodes.DUPLICATE_DISTRUST)
     })
   })
 
@@ -271,7 +272,7 @@ describe('TrustedNodes', () => {
   describe('withdraw', async () => {
     it('reverts when withdrawing 0', async () => {
       await expect(trustedNodes.connect(alice).withdraw()).to.be.revertedWith(
-        'You have not vested any tokens'
+        ERRORS.TrustedNodes.EMPTY_WITHDRAW
       )
     })
     it('allows correct withdrawal in simple case', async () => {
@@ -331,7 +332,7 @@ describe('TrustedNodes', () => {
       expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
       // another one
       await expect(trustedNodes.connect(alice).withdraw()).to.be.revertedWith(
-        'You have not vested any tokens'
+        ERRORS.TrustedNodes.EMPTY_WITHDRAW
       )
     })
   })
