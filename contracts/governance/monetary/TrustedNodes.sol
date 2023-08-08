@@ -193,10 +193,7 @@ contract TrustedNodes is Policed, TimeUtils {
         lastWithdrawals[msg.sender] += numWithdrawals * GENERATION_TIME;
         votingRecord[msg.sender] -= numWithdrawals;
 
-        require(
-            ecoX.transfer(msg.sender, toWithdraw),
-            'Transfer failed'
-        );
+        require(ecoX.transfer(msg.sender, toWithdraw), "Transfer failed");
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
@@ -242,7 +239,7 @@ contract TrustedNodes is Policed, TimeUtils {
     function sweep(address recipient) public onlyPolicy {
         require(
             ecoX.transfer(recipient, ecoX.balanceOf(address(this))),
-            'Transfer failed'
+            "Transfer failed"
         );
     }
 }
