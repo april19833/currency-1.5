@@ -111,7 +111,7 @@ contract TrustedNodes is Policed, TimeUtils {
     ) internal view returns (uint256 time) {
         return termEnd + lastWithdrawals[trustee];
     }
-    
+
     /** Changes the holder currencyGovernance role
      * @param _currencyGovernance the new currencyGovernance role holder
      */
@@ -183,7 +183,7 @@ contract TrustedNodes is Policed, TimeUtils {
     }
 
     /** withdraws everything that can be withdrawn
-    */
+     */
     function withdraw() public {
         uint256 numWithdrawals = calculateWithdrawal(msg.sender);
         require(numWithdrawals > 0, "You have not vested any tokens");
@@ -221,7 +221,7 @@ contract TrustedNodes is Policed, TimeUtils {
 
     /** returns the number of tokens the sender is currently entitled to
      * which they will be able to withdraw upon vesting
-     */ 
+     */
     function fullyVested()
         public
         view

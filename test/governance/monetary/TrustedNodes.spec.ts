@@ -1,20 +1,13 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { Signer, Contract, constants, BigNumber, providers, ethers } from 'ethers'
+import { Contract, constants, providers, ethers } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { helpers, time } from '@nomicfoundation/hardhat-network-helpers'
-import { almost } from 'chai-almost'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { expect } from 'chai'
-import {
-  TEST,
-} from '../../utils/constants'
-import { ERROR_STRINGS } from '../../utils/errors'
+
 import { getABI } from '../../utils/testUtils'
-import { TrustedNodes, CurrencyGovernance, ECOx, TrustedNodes__factory, MockToken, MockToken__factory, CurrencyGovernance__factory, Policed__factory} from '../../../typechain-types'
-import { currency } from '../../../typechain-types/contracts'
-import { EthersEvent } from 'alchemy-sdk/dist/src/internal/ethers-event'
-import { TypeFormatFlags } from 'typescript'
+import { TrustedNodes, TrustedNodes__factory} from '../../../typechain-types'
 
 describe('TrustedNodes', () => {
     let policyImpersonator: SignerWithAddress
@@ -58,7 +51,6 @@ describe('TrustedNodes', () => {
         ecoX = await ecoXFactory.deploy(policy.address, policy.address, 1000, policy.address, policyImpersonator.address)
 
         trustedNodes = await trustedNodesFactory.connect(policyImpersonator).deploy(policy.address, currencyGovernance.address, ecoX.address, initialTermLength, initialReward, [alice.address, bob.address])
-        const tnAddress = trustedNodes.address
 
         await ecoX.mint(trustedNodes.address, 1000)
     })
@@ -173,7 +165,7 @@ describe('TrustedNodes', () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)// voted twice
             expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
-            // console.log((await trustedNodes.termEnd()).toNumber())
+
             await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 4*(await trustedNodes.GENERATION_TIME()))// at this time you'd be able to withdraw 4 rewards
             expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(2*initialReward)
         })
@@ -183,7 +175,7 @@ describe('TrustedNodes', () => {
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)
             await trustedNodes.connect(currencyGovernanceImpersonator).recordVote(alice.address)// voted twice
             expect(await trustedNodes.votingRecord(alice.address)).to.eq(2)
-            // console.log((await trustedNodes.termEnd()).toNumber())
+            
             await time.increaseTo((await trustedNodes.termEnd()).toNumber() + 1*(await trustedNodes.GENERATION_TIME()))// at this time you'd be able to withdraw 4 rewards
             expect(await trustedNodes.connect(alice).currentlyWithdrawable()).to.eq(1*initialReward)
         })
