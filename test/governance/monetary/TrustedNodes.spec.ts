@@ -11,7 +11,7 @@ import {
 } from '../../utils/constants'
 import { ERROR_STRINGS } from '../../utils/errors'
 import { getABI } from '../../utils/testUtils'
-import { TrustedNodes, CurrencyGovernance, ECOx, TrustedNodes__factory, MockToken, MockToken__factory, CurrencyGovernance__factory} from '../../../typechain-types'
+import { TrustedNodes, CurrencyGovernance, ECOx, TrustedNodes__factory, MockToken, MockToken__factory, CurrencyGovernance__factory, Policed__factory} from '../../../typechain-types'
 import { currency } from '../../../typechain-types/contracts'
 import { EthersEvent } from 'alchemy-sdk/dist/src/internal/ethers-event'
 import { TypeFormatFlags } from 'typescript'
@@ -41,11 +41,9 @@ describe('TrustedNodes', () => {
     let policy: FakeContract
     let currencyGovernance: FakeContract
 
-    let trustedNodesFactory = new ethers.ContractFactory(trustedNodesABI.abi, trustedNodesABI.bytecode)
-    let ecoXFactory = new ethers.ContractFactory(ECOxABI.abi, ECOxABI.bytecode)
+    let trustedNodesFactory = new TrustedNodes__factory(trustedNodesABI.abi, trustedNodesABI.bytecode)
     let trustedNodes: TrustedNodes
-    // let currencyGovernance: MockContract<Contract>
-    let ecoX: MockToken
+    let ecoX: MockContract<Contract>
 
     beforeEach(async() => {
         policy = await smock.fake<Contract>(
@@ -56,47 +54,13 @@ describe('TrustedNodes', () => {
             'CurrencyGovernance',
             { address: currencyGovernanceImpersonator.address}
         )
-        // currencyGovernance = await(
-        //     await smock.mock('CurrencyGovernance')
-        //     ).deploy(
-        //         policy.address,
-        //         constants.AddressZero, 
-        //         constants.AddressZero
-        // )
-        ecoX = MockToken__factory.connect(
-            (await ecoXFactory.connect(policyImpersonator)
-                .deploy(
-                    'ECOx',
-                    'ECOX'
-                )
-            ).address,
-            policyImpersonator
-        )
-        trustedNodes = TrustedNodes__factory.connect(
-            (await trustedNodesFactory.connect(policyImpersonator)
-                .deploy(
-                    policy.address,
-                    currencyGovernance.address,
-                    ecoX.address,
-                    initialTermLength,
-                    initialReward,
-                    [alice.address, bob.address]
-                )
-            ).address,
-            policyImpersonator
-        )
+        let ecoXFactory = await smock.mock('ECOx')
+        ecoX = await ecoXFactory.deploy(policy.address, policy.address, 1000, policy.address, policyImpersonator.address)
+
+        trustedNodes = await trustedNodesFactory.connect(policyImpersonator).deploy(policy.address, currencyGovernance.address, ecoX.address, initialTermLength, initialReward, [alice.address, bob.address])
+        const tnAddress = trustedNodes.address
 
         await ecoX.mint(trustedNodes.address, 1000)
-        // ecoX = await(
-        //     await 
-        //         smock.mock('ECOx')
-        //     ).deploy(
-        //         fake__Policy.address,
-        //         await alice.getAddress(),
-        //         await alice.getAddress(),
-        //         await alice.getAddress(), // the eco address, but doesnt matter
-        //         await alice.getAddress()
-        //     )
     })
 
     describe('constructor', async () => {
@@ -286,7 +250,4 @@ describe('TrustedNodes', () => {
             expect(await ecoX.balanceOf(alice.address)).to.eq(1000)
         })
     })
-    
-
-
 })

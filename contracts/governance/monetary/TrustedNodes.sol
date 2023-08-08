@@ -6,13 +6,11 @@ import "../../currency/ECOx.sol";
 import "../../utils/TimeUtils.sol";
 import "./CurrencyGovernance.sol";
 
-// temp trusted nodes until merging
-
 /** @title TrustedNodes
  *
- * A registry of trusted nodes. Trusted nodes are able to vote during
- * inflation/deflation votes, and can only be added or removed using policy
- * proposals.
+ * A registry of trusted nodes. Trusted nodes (trustees) are able to vote
+ * on monetary policy and can only be added or removed using community
+ * governance.
  *
  */
 contract TrustedNodes is Policed, TimeUtils {
@@ -31,15 +29,16 @@ contract TrustedNodes is Policed, TimeUtils {
 
     address[] public trustees;
 
-    /** Represents the number of votes for which the trustee can claim rewards.
-     * Increments each time the trustee votes, decremented on withdrawal
+    /** voting record of each trustee
      */
     mapping(address => uint256) public votingRecord;
 
-    /** timestamp of last withdrawal */
-    mapping(address => uint256) lastWithdrawals;
+    /** timestamp of last withdrawal
+     */
+    mapping(address => uint256) private lastWithdrawals;
 
-    /** reward earned per completed and revealed vote */
+    /** reward earned per completed and revealed vote
+     */
     uint256 public immutable voteReward;
 
     /** Event emitted when a node added to a list of trusted nodes.
@@ -77,7 +76,7 @@ contract TrustedNodes is Policed, TimeUtils {
         _;
     }
 
-    /** Creates a new trusted node registry, populated with some initial nodes.
+    /** Creates a new trusted node registry, populated with some initial nodes
      * @param _policy the address of the root policy contract
      * @param _currencyGovernance the address of the currencyGovernance contract
      * @param _EcoX the address of the EcoX contract
@@ -104,12 +103,18 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
+    /** Fetches the date of a trustee's last withdrawal
+     * @param trustee the trustee whose last withdrawal date is being fetched
+     */
     function getLastWithdrawal(
         address trustee
     ) internal view returns (uint256 time) {
         return termEnd + lastWithdrawals[trustee];
     }
-
+    
+    /** Changes the holder currencyGovernance role
+     * @param _currencyGovernance the new currencyGovernance role holder
+     */
     function updateCurrencyGovernance(
         address _currencyGovernance
     ) public onlyPolicy {
@@ -127,8 +132,8 @@ contract TrustedNodes is Policed, TimeUtils {
         _trust(_node);
     }
 
-    /** helper for trust
-     * @param _node The node to start trusting.
+    /** Helper for trust
+     * @param _node The node to start trusting
      */
     function _trust(address _node) internal {
         require(!isTrusted(_node), "Node already trusted");
@@ -137,11 +142,9 @@ contract TrustedNodes is Policed, TimeUtils {
         emit TrustedNodeAddition(_node);
     }
 
-    /** Stop trusting a node.
-     *
+    /** Removes a trustee from the set
      * Node to distrust swaped to be a last element in the trustedNodes, then deleted
-     *
-     * @param _node The node to stop trusting.
+     * @param _node The trustee to be removed
      */
     function distrust(address _node) external onlyPolicy {
         require(isTrusted(_node), "Node already not trusted");
@@ -159,7 +162,7 @@ contract TrustedNodes is Policed, TimeUtils {
     }
 
     /** Incements the counter when the trustee reveals their vote
-     * only callable by the CurrencyGovernance contract
+     * @param _who address whose vote is being recorded
      */
     function recordVote(address _who) external onlyCurrencyGovernance {
         votingRecord[_who]++;
@@ -172,13 +175,15 @@ contract TrustedNodes is Policed, TimeUtils {
         return trustees.length;
     }
 
-    // /** Checks if a node address is trusted in the current cohort
-    //  */
+    /** Checks if a node address is trusted in the current cohort
+     * @param _node the address whose trustee status we want to check
+     */
     function isTrusted(address _node) public view returns (bool) {
         return trusteeNumbers[_node] > 0;
     }
 
-    // withdraws everything that can be withdrawn
+    /** withdraws everything that can be withdrawn
+    */
     function withdraw() public {
         uint256 numWithdrawals = calculateWithdrawal(msg.sender);
         require(numWithdrawals > 0, "You have not vested any tokens");
@@ -190,10 +195,14 @@ contract TrustedNodes is Policed, TimeUtils {
         emit VotingRewardRedemption(msg.sender, toWithdraw);
     }
 
+    /** returns the amount of tokens that are currently withdrawable
+     */
     function currentlyWithdrawable() public view returns (uint256 amount) {
         return voteReward * calculateWithdrawal(msg.sender);
     }
 
+    /** helper for withdraw
+     */
     function calculateWithdrawal(
         address withdrawer
     ) internal view returns (uint256 amount) {
@@ -210,6 +219,9 @@ contract TrustedNodes is Policed, TimeUtils {
         return numWithdrawals;
     }
 
+    /** returns the number of tokens the sender is currently entitled to
+     * which they will be able to withdraw upon vesting
+     */ 
     function fullyVested()
         public
         view
@@ -219,6 +231,9 @@ contract TrustedNodes is Policed, TimeUtils {
         return (record * voteReward, termEnd + record * GENERATION_TIME);
     }
 
+    /** drains all the ECOx in TrustedNodes to a recipient address
+     * @param recipient the address to receive the ECOx
+     */
     function sweep(address recipient) public onlyPolicy {
         ECOx(ecoX).transfer(recipient, ECOx(ecoX).balanceOf(address(this)));
     }
