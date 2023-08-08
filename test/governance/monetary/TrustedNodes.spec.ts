@@ -19,6 +19,7 @@ import {
   ECOx__factory,
   CurrencyGovernance,
 } from '../../../typechain-types'
+import { DAY } from '../../utils/constants'
 
 describe('TrustedNodes', () => {
   let policyImpersonator: SignerWithAddress
@@ -30,7 +31,7 @@ describe('TrustedNodes', () => {
   let dave: SignerWithAddress
 
   const initialReward: number = 100
-  const initialTermLength: number = 3600 * 24
+  const initialTermLength: number = 1 * DAY
 
   before(async () => {
     ;[
