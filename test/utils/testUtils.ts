@@ -5,9 +5,7 @@
 import * as fs from 'fs'
 
 function getABI(path: string) {
-    return JSON.parse(fs.readFileSync(path, 'utf8'))
+  return JSON.parse(fs.readFileSync(path, 'utf8'))
 }
 
-export{
-    getABI
-}
+export { getABI }
