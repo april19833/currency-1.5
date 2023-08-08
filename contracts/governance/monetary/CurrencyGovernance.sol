@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/security/Pausable.sol";
 import "./TrustedNodes.sol";
 
 /** @title Trustee monetary policy decision process
@@ -9,7 +8,7 @@ import "./TrustedNodes.sol";
  * This contract oversees the voting on the currency monetary levers.
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
-contract CurrencyGovernance is Policed, Pausable, TimeUtils {
+contract CurrencyGovernance is Policed, TimeUtils {
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
         // random inflation recipients
@@ -93,9 +92,6 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // For if a non-trustee address tries to access trustee role gated functionality
     error TrusteeOnlyFunction();
 
-    // For if a non-pauser address tries to access pauser role gated functionality
-    error PauserOnlyFunction();
-
     // For when governance calls are made before or after their time windows for their stage
     error WrongStage();
 
@@ -135,24 +131,11 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
      */
     event VoteResult(address indexed winner);
 
-    /**
-     * @notice event indicating the pauser was updated
-     * @param pauser The new pauser
-     */
-    event PauserAssignment(address indexed pauser);
-
     /** Restrict access to trusted nodes only.
      */
     modifier onlyTrusted() {
         if (!trustedNodes.isTrusted(msg.sender)) {
             revert TrusteeOnlyFunction();
-        }
-        _;
-    }
-
-    modifier onlyPauser() {
-        if (msg.sender != pauser) {
-            revert PauserOnlyFunction();
         }
         _;
     }
@@ -195,13 +178,10 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
 
     constructor(
         Policy _policy,
-        TrustedNodes _trustedNodes,
-        address _initialPauser
+        TrustedNodes _trustedNodes
     ) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
-        pauser = _initialPauser;
         governanceStartTime = getTime();
-        emit PauserAssignment(_initialPauser);
     }
 
     function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
@@ -374,12 +354,7 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     function compute(uint256 _cycle) external cycleComplete(_cycle) {
-        // if paused then the default policy automatically wins
-        if (!paused()) {
-            winner[_cycle] = leader;
-        }
-        // need a marker of computation complete that doesn't depend on if the vote is paused or not
-        // probably pausing can be removed in general
+        // need a marker of computation complete
 
         emit VoteResult(winner[_cycle]);
     }
@@ -398,40 +373,10 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     //     votingEnds = proposalEnds + VOTING_TIME;
     //     revealEnds = votingEnds + REVEAL_TIME;
 
-    //     // should not emit an event
-    //     pauser = CurrencyGovernance(_self).pauser();
-
     //     MonetaryPolicy storage p = proposals[currentCycle][address(0)];
     //     p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
     //     // sets the default votes for the default proposal
     //     score[address(0)] = trustedNodes.numTrustees();
     // }
-
-    // pausing likely no longer required
-    /**
-     * @notice set the given address as the pauser
-     * @param _pauser The address that can pause this token
-     * @dev only the roleAdmin can call this function
-     */
-    function setPauser(address _pauser) public onlyPolicy {
-        pauser = _pauser;
-        emit PauserAssignment(_pauser);
-    }
-
-    /**
-     * @notice pauses transfers of this token
-     * @dev only callable by the pauser
-     */
-    function pause() external onlyPauser {
-        _pause();
-    }
-
-    /**
-     * @notice unpauses transfers of this token
-     * @dev only callable by the pauser
-     */
-    function unpause() external onlyPauser {
-        _unpause();
-    }
 }
