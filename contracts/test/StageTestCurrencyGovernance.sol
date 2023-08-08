@@ -16,20 +16,17 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
     {}
 
     function inProposePhase(
-        uint256 _cycle
-    ) public view duringProposePhase(_cycle) returns (bool) {
+    ) public view duringProposePhase() returns (bool) {
         return true;
     }
 
     function inVotePhase(
-        uint256 _cycle
-    ) public view duringVotePhase(_cycle) returns (bool) {
+    ) public view duringVotePhase() returns (bool) {
         return true;
     }
 
     function inRevealPhase(
-        uint256 _cycle
-    ) public view duringRevealPhase(_cycle) returns (bool) {
+    ) public view duringRevealPhase() returns (bool) {
         return true;
     }
 

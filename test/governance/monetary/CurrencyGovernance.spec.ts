@@ -65,12 +65,12 @@ describe('CurrencyGovernance', () => {
 
   describe('trustee role', async () => {
     it('trustees can call onlyTrusted functions', async () => {
-      await CurrencyGovernance.connect(bob).propose(0, 1, 1, 1, 1, 1, '')
+      await CurrencyGovernance.connect(bob).propose(1, 1, 1, 1, 1, '')
     })
 
     it('non-trustees cannot call onlyTrusted functions', async () => {
       await expect(
-        CurrencyGovernance.connect(alice).propose(0, 1, 1, 1, 1, 1, '')
+        CurrencyGovernance.connect(alice).propose(1, 1, 1, 1, 1, '')
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
     })
   })
@@ -113,31 +113,31 @@ describe('CurrencyGovernance', () => {
       ).deploy()
     })
 
-    async function checkStageModifiers(cycle: Number, stage: Number) {
+    async function checkStageModifiers(stage: Number) {
       if (stage === PROPOSE_STAGE) {
-        expect(await StageTestCG.inProposePhase(cycle)).to.be.true
-        await expect(StageTestCG.inVotePhase(cycle)).to.be.revertedWith(
+        expect(await StageTestCG.inProposePhase()).to.be.true
+        await expect(StageTestCG.inVotePhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
-        await expect(StageTestCG.inRevealPhase(cycle)).to.be.revertedWith(
+        await expect(StageTestCG.inRevealPhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
       } else if (stage === COMMIT_STAGE) {
-        await expect(StageTestCG.inProposePhase(cycle)).to.be.revertedWith(
+        await expect(StageTestCG.inProposePhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
-        expect(await StageTestCG.inVotePhase(cycle)).to.be.true
-        await expect(StageTestCG.inRevealPhase(cycle)).to.be.revertedWith(
+        expect(await StageTestCG.inVotePhase()).to.be.true
+        await expect(StageTestCG.inRevealPhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
       } else if (stage === REVEAL_STAGE) {
-        await expect(StageTestCG.inProposePhase(cycle)).to.be.revertedWith(
+        await expect(StageTestCG.inProposePhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
-        await expect(StageTestCG.inVotePhase(cycle)).to.be.revertedWith(
+        await expect(StageTestCG.inVotePhase()).to.be.revertedWith(
           ERRORS.CurrencyGovernance.WRONG_STAGE
         )
-        expect(await StageTestCG.inRevealPhase(cycle)).to.be.true
+        expect(await StageTestCG.inRevealPhase()).to.be.true
       } else {
         throw Error('checkModifiers: bad stage input')
       }
@@ -148,7 +148,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(initialCycle, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
       })
 
       it('check middle of propose stage', async () => {
@@ -156,13 +156,13 @@ describe('CurrencyGovernance', () => {
         const stageInfo1 = await StageTestCG.getCurrentStage()
         expect(stageInfo1.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo1.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(initialCycle, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
 
         await time.increase((PROPOSE_STAGE_LENGTH * 5) / 10)
         const stageInfo2 = await StageTestCG.getCurrentStage()
         expect(stageInfo2.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo2.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(initialCycle, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
       })
 
       it('test near end of propose stage', async () => {
@@ -170,7 +170,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(initialCycle, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
       })
 
       it('test end of propose stage', async () => {
@@ -178,7 +178,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(initialCycle, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
       })
     })
 
@@ -191,7 +191,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
-        await checkStageModifiers(initialCycle, COMMIT_STAGE)
+        await checkStageModifiers(COMMIT_STAGE)
       })
 
       it('test middle of commit stage', async () => {
@@ -199,7 +199,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
-        await checkStageModifiers(initialCycle, COMMIT_STAGE)
+        await checkStageModifiers(COMMIT_STAGE)
       })
 
       it('test near end of commit stage', async () => {
@@ -207,7 +207,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
-        await checkStageModifiers(initialCycle, COMMIT_STAGE)
+        await checkStageModifiers(COMMIT_STAGE)
       })
 
       it('test end of commit stage', async () => {
@@ -215,7 +215,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
-        await checkStageModifiers(initialCycle, COMMIT_STAGE)
+        await checkStageModifiers(COMMIT_STAGE)
       })
     })
 
@@ -228,7 +228,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
-        await checkStageModifiers(initialCycle, REVEAL_STAGE)
+        await checkStageModifiers(REVEAL_STAGE)
       })
 
       it('test middle of reveal stage', async () => {
@@ -236,7 +236,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
-        await checkStageModifiers(initialCycle, REVEAL_STAGE)
+        await checkStageModifiers(REVEAL_STAGE)
       })
 
       it('test near end of reveal stage', async () => {
@@ -244,7 +244,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
-        await checkStageModifiers(initialCycle, REVEAL_STAGE)
+        await checkStageModifiers(REVEAL_STAGE)
       })
 
       it('test end of reveal stage', async () => {
@@ -252,7 +252,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
-        await checkStageModifiers(initialCycle, REVEAL_STAGE)
+        await checkStageModifiers(REVEAL_STAGE)
       })
     })
 
@@ -266,7 +266,7 @@ describe('CurrencyGovernance', () => {
         const stageInfo = await StageTestCG.getCurrentStage()
         expect(stageInfo.currentCycle.eq(completedCycles)).to.be.true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
-        await checkStageModifiers(completedCycles, PROPOSE_STAGE)
+        await checkStageModifiers(PROPOSE_STAGE)
       })
 
       it('test forward incompleteness', async () => {
@@ -293,40 +293,6 @@ describe('CurrencyGovernance', () => {
         expect(await StageTestCG.cycleCompleted(completedCycles - 10)).to.be
           .true
         expect(await StageTestCG.cycleCompleted(0)).to.be.true
-      })
-
-      describe('test stage modifiers in wrong cycle', () => {
-        it('propose phase', async () => {
-          await expect(
-            StageTestCG.inProposePhase(completedCycles - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-          expect(await StageTestCG.inProposePhase(completedCycles)).to.be.true
-          await expect(
-            StageTestCG.inProposePhase(completedCycles + 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-        })
-
-        it('commit phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH)
-          await expect(
-            StageTestCG.inVotePhase(completedCycles - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-          expect(await StageTestCG.inVotePhase(completedCycles)).to.be.true
-          await expect(
-            StageTestCG.inVotePhase(completedCycles + 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-        })
-
-        it('reveal phase', async () => {
-          await time.increase(REVEAL_STAGE_START)
-          await expect(
-            StageTestCG.inRevealPhase(completedCycles - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-          expect(await StageTestCG.inRevealPhase(completedCycles)).to.be.true
-          await expect(
-            StageTestCG.inRevealPhase(completedCycles + 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INACTIVE)
-        })
       })
     })
   })

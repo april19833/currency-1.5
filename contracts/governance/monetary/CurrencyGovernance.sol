@@ -99,14 +99,6 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     // For when governance calls are made before or after their time windows for their stage
     error WrongStage();
 
-    /** Bad cycle request error
-     * for when a cycle is attempted to interacted with before or after its time
-     * found on all stage related functions
-     * @param requestedCycle the cycle submitted by the end user to access
-     * @param currentCycle the current cycle as calculated by the contract
-     */
-    error CycleInactive(uint256 requestedCycle, uint256 currentCycle);
-
     /** Early finazilation error
      * for when a cycle is attempted to be finalized before it finishes
      * @param requestedCycle the cycle submitted by the end user to access
@@ -165,29 +157,15 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         _;
     }
 
-    modifier duringProposePhase(uint256 cycleIndex) {
-        uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
-
-        if (completedCycles != cycleIndex) {
-            revert CycleInactive(cycleIndex, completedCycles);
-        }
-
-        if (governanceTime >= PROPOSAL_TIME) {
+    modifier duringProposePhase() {
+        if ((getTime() - governanceStartTime) % CYCLE_LENGTH >= PROPOSAL_TIME) {
             revert WrongStage();
         }
         _;
     }
 
-    modifier duringVotePhase(uint256 cycleIndex) {
-        uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
-
-        if (completedCycles != cycleIndex) {
-            revert CycleInactive(cycleIndex, completedCycles);
-        }
+    modifier duringVotePhase() {
+        uint256 governanceTime = (getTime() - governanceStartTime) % CYCLE_LENGTH;
 
         if (
             governanceTime < PROPOSAL_TIME ||
@@ -198,16 +176,8 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         _;
     }
 
-    modifier duringRevealPhase(uint256 cycleIndex) {
-        uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
-        uint256 governanceTime = timeDifference % CYCLE_LENGTH;
-
-        if (completedCycles != cycleIndex) {
-            revert CycleInactive(cycleIndex, completedCycles);
-        }
-
-        if (governanceTime < PROPOSAL_TIME + VOTING_TIME) {
+    modifier duringRevealPhase() {
+        if ((getTime() - governanceStartTime) % CYCLE_LENGTH < PROPOSAL_TIME + VOTING_TIME) {
             revert WrongStage();
         }
         _;
@@ -259,15 +229,18 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         }
     }
 
+    function getCurrentCycle() public view returns (uint256) {
+        return (getTime() - governanceStartTime) / CYCLE_LENGTH;
+    }
+
     function propose(
-        uint256 _cycle,
         uint256 _numberOfRecipients,
         uint256 _randomInflationReward,
         uint256 _lockupDuration,
         uint256 _lockupInterest,
         uint256 _inflationMultiplier,
         string calldata _description
-    ) external onlyTrusted duringProposePhase(_cycle) {
+    ) external onlyTrusted duringProposePhase() {
         require(
             _inflationMultiplier > 0,
             "Inflation multiplier cannot be zero"
@@ -277,6 +250,8 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
             uint256(bytes(_description).length) <= MAX_DATA,
             "Description is too long"
         );
+
+        uint256 _cycle = getCurrentCycle();
 
         MonetaryPolicy storage p = proposals[_cycle][msg.sender];
         p.numberOfRecipients = _numberOfRecipients;
@@ -297,7 +272,8 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
         );
     }
 
-    function unpropose(uint256 _cycle) external duringProposePhase(_cycle) {
+    function unpropose() external duringProposePhase() {
+        uint256 _cycle = getCurrentCycle();
         require(
             proposals[_cycle][msg.sender].inflationMultiplier != 0,
             "You do not have a proposal to retract"
@@ -307,18 +283,17 @@ contract CurrencyGovernance is Policed, Pausable, TimeUtils {
     }
 
     function commit(
-        uint256 _cycle,
         bytes32 _commitment
-    ) external onlyTrusted duringVotePhase(_cycle) {
-        commitments[_cycle][msg.sender] = _commitment;
+    ) external onlyTrusted duringVotePhase() {
+        commitments[getCurrentCycle()][msg.sender] = _commitment;
         emit VoteCast(msg.sender);
     }
 
     function reveal(
-        uint256 _cycle,
         bytes32 _seed,
         Vote[] calldata _votes
-    ) external duringRevealPhase(_cycle) {
+    ) external duringRevealPhase() {
+        uint256 _cycle = getCurrentCycle();
         // uint256 numVotes = _votes.length;
         // require(numVotes > 0, "Invalid vote, cannot vote empty");
         // require(

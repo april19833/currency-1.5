@@ -8,8 +8,6 @@ export const ERRORS = {
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroTrustedNodesAddr',
     WRONG_STAGE: 'WrongStage',
     // two args
-    CYCLE_INACTIVE: 'CycleInactive',
-    // two args
     CYCLE_INCOMPLETE: 'CycleIncomplete',
   },
   Policed: {
