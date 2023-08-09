@@ -8,10 +8,7 @@ import "../governance/monetary/CurrencyGovernance.sol";
  */
 contract StageTestCurrencyGovernance is CurrencyGovernance {
     constructor()
-        CurrencyGovernance(
-            Policy(address(0x11)),
-            TrustedNodes(address(0x12))
-        )
+        CurrencyGovernance(Policy(address(0x11)), TrustedNodes(address(0x12)))
     {}
 
     function inProposePhase() public view duringProposePhase returns (bool) {

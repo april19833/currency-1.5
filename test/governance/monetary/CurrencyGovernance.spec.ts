@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { constants, BigNumber } from 'ethers'
+import { constants } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
@@ -32,12 +32,9 @@ describe('CurrencyGovernance', () => {
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let dave: SignerWithAddress
-  let niko: SignerWithAddress
-  let mila: SignerWithAddress
   let policyImpersonater: SignerWithAddress
   before(async () => {
-    ;[policyImpersonater, alice, bob, charlie, dave, niko, mila] =
-      await ethers.getSigners()
+    ;[policyImpersonater, alice, bob, charlie, dave] = await ethers.getSigners()
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
