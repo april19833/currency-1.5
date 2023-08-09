@@ -21,6 +21,10 @@ contract ECOx is ERC20Pausable, Policed {
     // the address of the ECO token contract
     IECO public immutable ecoToken;
 
+    // error for when transfer returns false
+    // used by contracts that import this contract
+    error TransferFailed();
+
     constructor(
         Policy _policy,
         address _distributor,

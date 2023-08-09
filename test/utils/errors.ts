@@ -14,4 +14,11 @@ export const ERRORS = {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
   },
+  TrustedNodes: {
+    CG_ONLY: 'GovernanceOnlyFunction',
+    // one arg
+    DUPLICATE_TRUST: 'NodeAlreadyTrusted',
+    DUPLICATE_DISTRUST: 'DistrustNotTrusted',
+    EMPTY_WITHDRAW: 'WithdrawNoTokens',
+  },
 }
