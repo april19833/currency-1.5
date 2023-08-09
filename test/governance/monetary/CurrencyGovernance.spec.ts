@@ -34,11 +34,6 @@ describe('CurrencyGovernance', () => {
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let dave: SignerWithAddress
-<<<<<<< HEAD
-=======
-  // let niko: SignerWithAddress
-  // let mila: SignerWithAddress
->>>>>>> main
   let policyImpersonater: SignerWithAddress
   before(async () => {
     ;[policyImpersonater, alice, bob, charlie, dave] = await ethers.getSigners()
