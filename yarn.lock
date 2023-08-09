@@ -1128,11 +1128,6 @@
   resolved "https://registry.npmjs.org/@nomiclabs/hardhat-waffle/-/hardhat-waffle-2.0.6.tgz"
   integrity sha512-+Wz0hwmJGSI17B+BhU/qFRZ1l6/xMW82QGXE/Gi+WTmwgJrQefuBs1lIf7hzQ1hLk6hpkvb/zwcNkpVKRYTQYg==
 
-"@openzeppelin/contracts-upgradeable@^4.9.0":
-  version "4.9.3"
-  resolved "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.9.3.tgz"
-  integrity sha512-jjaHAVRMrE4UuZNfDwjlLGDxTHWIOwTJS2ldnc278a0gevfXfPr8hxKEVBGFBE96kl2G3VHDZhUimw/+G3TG2A==
-
 "@openzeppelin/contracts@^4.8.3":
   version "4.9.2"
   resolved "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.9.2.tgz"
@@ -3237,14 +3232,6 @@ cbor@^8.0.0, cbor@^8.1.0:
   dependencies:
     nofilter "^3.1.0"
 
-chai-almost@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/chai-almost/-/chai-almost-1.0.1.tgz"
-  integrity sha512-UrNSx5f2B1/ESrOz0a4iLpDnQvDnK/3O0ZE/KGYQ+NcndKy0VQkMkv8yoGIHNSbjzKBid3EAMdDMA5wb9CxvSA==
-  dependencies:
-    deep-eql "^2.0.2"
-    type-detect "^4.0.3"
-
 chai@^4.3.7:
   version "4.3.7"
   resolved "https://registry.npmjs.org/chai/-/chai-4.3.7.tgz"
@@ -3892,13 +3879,6 @@ decompress-response@^6.0.0:
   integrity sha512-aW35yZM6Bb/4oJlZncMH2LCoZtJXTRxES17vE3hoRiowU2kWHaJKFkSBDnDR+cm9J+9QhXmREyIfv0pji9ejCQ==
   dependencies:
     mimic-response "^3.1.0"
-
-deep-eql@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.npmjs.org/deep-eql/-/deep-eql-2.0.2.tgz"
-  integrity sha512-uts3fF4HnV1bcNx8K5c9NMjXXKtLOf1obUMq04uEuMaF8i1m0SfugbpDMd59cYfodQcMqeUISvL4Pmx5NZ7lcw==
-  dependencies:
-    type-detect "^3.0.0"
 
 deep-eql@^4.1.2:
   version "4.1.3"
@@ -10566,12 +10546,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-detect@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/type-detect/-/type-detect-3.0.0.tgz"
-  integrity sha512-pwZo7l1T0a8wmTMDc4FtXuHseRaqa9nyaUArp4xHaBMUlRzr72PvgF6ouXIIj5rjbVWqo8pZu6vw74jDKg4Dvw==
-
-type-detect@^4.0.0, type-detect@^4.0.3, type-detect@^4.0.5:
+type-detect@^4.0.0, type-detect@^4.0.5:
   version "4.0.8"
   resolved "https://registry.npmjs.org/type-detect/-/type-detect-4.0.8.tgz"
   integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==

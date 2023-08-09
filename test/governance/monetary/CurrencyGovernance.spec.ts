@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat'
 import { constants } from 'ethers'
+import { expect } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { expect } from 'chai'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
@@ -27,18 +27,25 @@ const PROPOSE_STAGE = 0
 const COMMIT_STAGE = 1
 const REVEAL_STAGE = 2
 
+const PLACEHOLDER_ADDRESS = '0x1111111111111111111111111111111111111111'
+
 describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let dave: SignerWithAddress
+<<<<<<< HEAD
+=======
+  // let niko: SignerWithAddress
+  // let mila: SignerWithAddress
+>>>>>>> main
   let policyImpersonater: SignerWithAddress
   before(async () => {
     ;[policyImpersonater, alice, bob, charlie, dave] = await ethers.getSigners()
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
-  let CurrencyGovernance: MockContract<CurrencyGovernance>
+  let CurrencyGovernance: CurrencyGovernance
   let Fake__Policy: FakeContract<Policy>
   beforeEach(async () => {
     // Get a new mock L1 messenger
@@ -51,13 +58,20 @@ describe('CurrencyGovernance', () => {
       await smock.mock<TrustedNodes__factory>('TrustedNodes')
     ).deploy(
       Fake__Policy.address,
-      [bob.address, charlie.address, dave.address],
-      0
+      PLACEHOLDER_ADDRESS,
+      PLACEHOLDER_ADDRESS,
+      1000 * DAY,
+      1,
+      [bob.address, charlie.address, dave.address]
     )
 
-    CurrencyGovernance = await (
-      await smock.mock<CurrencyGovernance__factory>('CurrencyGovernance')
-    ).deploy(Fake__Policy.address, TrustedNodes.address, alice.address)
+    CurrencyGovernance = await new CurrencyGovernance__factory()
+      .connect(policyImpersonater)
+      .deploy(Fake__Policy.address, TrustedNodes.address)
+
+    await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(
+      CurrencyGovernance.address
+    )
   })
 
   describe('trustee role', async () => {
@@ -83,6 +97,12 @@ describe('CurrencyGovernance', () => {
       expect(changedTNAddress === alice.address).to.be.true
     })
 
+    it('emits an event', async () => {
+      expect(await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+        alice.address
+      )).to.emit(CurrencyGovernance, 'NewTrustedNodes').withArgs(TrustedNodes.address, alice.address)
+    })
+
     it('is onlyPolicy gated', async () => {
       await expect(
         CurrencyGovernance.connect(alice).setTrustedNodes(alice.address)
@@ -100,14 +120,12 @@ describe('CurrencyGovernance', () => {
 
   describe('time calculations', () => {
     const initialCycle = 0
-    let StageTestCG: MockContract<StageTestCurrencyGovernance>
+    let StageTestCG: StageTestCurrencyGovernance
 
     beforeEach(async () => {
-      StageTestCG = await (
-        await smock.mock<StageTestCurrencyGovernance__factory>(
-          'StageTestCurrencyGovernance'
-        )
-      ).deploy()
+      StageTestCG = await new StageTestCurrencyGovernance__factory()
+        .connect(policyImpersonater)
+        .deploy()
     })
 
     async function checkStageModifiers(stage: Number) {
