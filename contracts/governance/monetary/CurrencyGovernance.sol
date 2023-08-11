@@ -92,7 +92,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping of cycle to proposal IDs to submitted proposals
     mapping(uint256 => mapping(bytes32 => MonetaryPolicy)) public proposals;
     // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
-    mapping(address => uint256) internal trusteeSupports; // TODO add function that reads if a trustee can support for the current cycle
+    mapping(address => uint256) internal trusteeSupports;
     // mapping of cycle to trustee addresses to their hash commits for voting
     mapping(uint256 => mapping(address => bytes32)) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
@@ -257,6 +257,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function getCurrentCycle() public view returns (uint256) {
         return (getTime() - governanceStartTime) / CYCLE_LENGTH;
+    }
+
+    /** getter for duplicate support checks
+     * the function just pulls to see if the address has supported this generation
+     * doesn't check to see if the address is a trustee
+     * @param _address the address to check. not msg.sender for dapp related purposes
+     */
+    function canSupport(address _address) public view returns (bool) {
+        return trusteeSupports[_address] < getCurrentCycle();
     }
 
     /** propose a monetary policy
