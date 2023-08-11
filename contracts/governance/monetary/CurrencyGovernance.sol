@@ -11,6 +11,10 @@ import "../../policy/Policed.sol";
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
 contract CurrencyGovernance is Policed, TimeUtils {
+    //////////////////////////////////////////////
+    /////////////////// TYPES ////////////////////
+    //////////////////////////////////////////////
+
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
         // reverse lookup parameter
@@ -18,7 +22,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // addresses to call if the proposal succeeds
         address[] targets;
         // the function signatures to call
-        string[] signatures;
+        bytes4[] signatures;
         // the abi encoded data to call
         bytes[] calldatas;
         // the number of trustees supporting the proposal
@@ -70,6 +74,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         Reveal
     }
 
+    //////////////////////////////////////////////
+    //////////////////// VARS ////////////////////
+    //////////////////////////////////////////////
+
     // this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
@@ -87,10 +95,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public constant IDEMPOTENT_INFLATION_MULTIPLIER = 1e18;
 
     // max length of description field
-    uint256 public constant MAX_DATA = 160;
+    uint256 public constant MAX_DESCRIPTION_DATA = 160;
 
-    // mapping of cycle to proposal IDs to submitted proposals
-    mapping(uint256 => mapping(bytes32 => MonetaryPolicy)) public proposals;
+    // max length of the targets array
+    // idk man, gotta have some kind of limit
+    uint256 public constant MAX_TARGETS = 10;
+
+    // mapping of proposal IDs to submitted proposals
+    // proposalId hashes include the _cycle as a parameter
+    mapping(bytes32 => MonetaryPolicy) public proposals;
     // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
     mapping(address => uint256) internal trusteeSupports;
     // mapping of cycle to trustee addresses to their hash commits for voting
@@ -98,10 +111,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
     mapping(uint256 => mapping(address => uint256)) public score;
 
-    // used to track the leading proposal during the vote totalling
-    address public leader;
-    // used to denote the winning proposal when the vote is finalized
+    // used to track the leading proposalId during the vote totalling
+    bytes32 public leader;
+    // used to denote the winning proposalId when the vote is finalized
     mapping(uint256 => address) public winner;
+    // this still doesn't quite work as is
+    // need to prevent calling compute much later to try and grab the current leader
+
+    //////////////////////////////////////////////
+    /////////////////// ERRORS ///////////////////
+    //////////////////////////////////////////////
 
     // setting the trusted nodes address to a bad address stops governance
     error NonZeroTrustedNodesAddr();
@@ -118,6 +137,31 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param currentCycle the current cycle as calculated by the contract
      */
     error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle);
+    
+    /** Description length error
+     * for when a proposal is submitted with too long of a description
+     * @param submittedLength the length of the submitted description, to be compared against MAX_DESCRIPTION_DATA
+     */
+    error ExceedsMaxDescriptionSize(uint256 submittedLength);
+    
+    /** Targets length error
+     * for when a proposal is submitted with too many actions or zero actions
+     * @param submittedLength the length of the submitted targets array, to be compared against MAX_TARGETS and 0
+     */
+    error BadNumTargets(uint256 submittedLength);
+
+    // error for when the 3 arrays submitted for the proposal don't all have the same number of elements
+    error ProposalActionsArrayMismatch();
+
+    // error for when a trustee is already supporting a contract and triest to propose
+    error UnsupportBeforePropose();
+
+    // error for when a proposal is submitted that's a total duplicate of an existing one
+    error DuplicateProposal();
+
+    //////////////////////////////////////////////
+    /////////////////// EVENTS ///////////////////
+    //////////////////////////////////////////////
 
     /**
      * emits when the trustedNodes contract is changed
@@ -126,19 +170,42 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     event NewTrustedNodes(TrustedNodes newTrustedNodes, TrustedNodes oldTrustedNodes);
 
-    // emitted when a proposal is submitted to track the values
+    /** Tracking for proposal creation
+     * emitted when a proposal is submitted to track the values
+     * @param _trusteeAddress the address of the trustee that submitted the proposal
+     * @param _cycle the cycle during which the proposal was submitted
+     * @param id the lookup id for the proposal in the proposals mapping
+     * is created via a hash of _cycle, _targets, _signatures, and _calldatas; see getProposalHash for more details
+     * param _targets the addresses to be called by the proposal
+     * param _signatures the function signatures to call on each of the targets
+     * param _calldatas the calldata to pass to each of the functions called on each target
+     * @param _description a string allowing the trustee to describe the proposal or link to discussions on the proposal
+     */ 
     event ProposalCreation(
-        address indexed trusteeAddress,
-        uint256 _numberOfRecipients,
-        uint256 _randomInflationReward,
-        uint256 _lockupDuration,
-        uint256 _lockupInterest,
-        uint256 _inflationMultiplier,
+        address indexed _trusteeAddress,
+        uint256 indexed _cycle,
+        bytes32 id,
+        // address[] _targets,
+        // bytes4[] _signatures,
+        // bytes[] _calldatas,
         string _description
     );
 
-    // emitted when a trustee retracts their proposal
-    event ProposalRetraction(address indexed trustee);
+    /** Tracking for support actions
+     * emitted when a trustee adds their support for a proposal
+     * @param trustee the address of the trustee supporting
+     * @param proposalId the lookup for the proposal being supported
+     * @param cycle the cycle during which the support action happened
+     */ 
+    event Support(address indexed trustee, bytes32 indexed proposalId, uint256 indexed cycle);
+
+    /** Tracking for unsupport actions
+     * emitted when a trustee retracts their support for a proposal
+     * @param trustee the address of the trustee unsupporting
+     * @param proposalId the lookup for the proposal being unsupported
+     * @param cycle the cycle during which the support action happened
+     */ 
+    event Unsupport(address indexed trustee, bytes32 indexed proposalId, uint256 indexed cycle);
 
     /** Fired when a trustee casts a vote.
      */
@@ -154,6 +221,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * vote outcomes.
      */
     event VoteResult(address indexed winner);
+
+    //////////////////////////////////////////////
+    ////////////////// MODIFIERS /////////////////
+    //////////////////////////////////////////////
 
     /** Restrict access to trusted nodes only.
      */
@@ -208,6 +279,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
+    //////////////////////////////////////////////
+    ///////////////// CONSTRUCTOR ////////////////
+    //////////////////////////////////////////////
+
     /** constructor
      * @param _policy the owning policy address for the contract
      * @param _trustedNodes the contract to manage what addresses are trustees
@@ -216,6 +291,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _setTrustedNodes(_trustedNodes);
         governanceStartTime = getTime();
     }
+
+    //////////////////////////////////////////////
+    ////////////////// FUNCTIONS /////////////////
+    //////////////////////////////////////////////
 
     /** setter function for trustedNodes var
      * only available to the owning policy contract
@@ -274,42 +353,72 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * \\param these will be done later when I change this whole function
      */
     function propose(
-        uint256 _numberOfRecipients,
-        uint256 _randomInflationReward,
-        uint256 _lockupDuration,
-        uint256 _lockupInterest,
-        uint256 _inflationMultiplier,
-        string calldata _description
+        address[] calldata targets,
+        bytes4[] calldata signatures,
+        bytes[] memory calldatas,
+        string calldata description
     ) external onlyTrusted duringProposePhase {
-        require(
-            _inflationMultiplier > 0,
-            "Inflation multiplier cannot be zero"
-        );
-        require(
-            // didn't choose this number for any particular reason
-            uint256(bytes(_description).length) <= MAX_DATA,
-            "Description is too long"
-        );
+        uint256 cycle = getCurrentCycle();
+        if(!canSupport(msg.sender)) {
+            revert UnsupportBeforePropose();
+        }
+        
+        uint256 descriptionLength = bytes(description).length;
+        if(
+            descriptionLength > MAX_DESCRIPTION_DATA
+        ) {
+            revert ExceedsMaxDescriptionSize(descriptionLength);
+        }
 
-        uint256 _cycle = getCurrentCycle();
+        uint256 numTargets = targets.length;
+        if(
+            numTargets > MAX_TARGETS || numTargets <= 0
+        ) {
+            revert BadNumTargets(numTargets);
+        }
+        if(
+            numTargets != signatures.length || numTargets != calldatas.length
+        ) {
+            revert ProposalActionsArrayMismatch();
+        }
 
-        MonetaryPolicy storage p = proposals[_cycle][msg.sender];
-        p.numberOfRecipients = _numberOfRecipients;
-        p.randomInflationReward = _randomInflationReward;
-        p.lockupDuration = _lockupDuration;
-        p.lockupInterest = _lockupInterest;
-        p.inflationMultiplier = _inflationMultiplier;
-        p.description = _description;
+        bytes32 proposalId = getProposalId(cycle, targets, signatures, calldatas);
+
+        MonetaryPolicy storage p = proposals[proposalId];
+
+        // THIS IS NOT A GUARANTEE FOR DUPLICATE PROPOSALS JUST A SAFEGUARD FOR OVERWRITING
+        if(p.support != 0) {
+            revert DuplicateProposal();
+        }
+        p.support = 1;
+        trusteeSupports[msg.sender] = cycle;
+        p.supporters[msg.sender] = true;
+
+        p.id = proposalId;
+        p.targets = targets;
+        p.signatures = signatures;
+        p.calldatas = calldatas;
+        p.description = description;
 
         emit ProposalCreation(
             msg.sender,
-            _numberOfRecipients,
-            _randomInflationReward,
-            _lockupDuration,
-            _lockupInterest,
-            _inflationMultiplier,
-            _description
+            cycle,
+            proposalId,
+            // targets,
+            // signatures,
+            // calldatas,
+            description
         );
+        emit Support(msg.sender, proposalId, cycle);
+    }
+
+    function getProposalId(
+        uint256 _cycle,
+        address[] calldata _targets,
+        bytes4[] calldata _signatures,
+        bytes[] memory _calldatas
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_cycle,keccak256(abi.encode(_targets, _signatures, _calldatas))));
     }
 
     /** retract a monetary policy
@@ -317,15 +426,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * reverts if no proposal exists to unpropose
      * cannot be used after propose phase ends
      */
-    function unpropose() external duringProposePhase {
-        uint256 _cycle = getCurrentCycle();
-        require(
-            proposals[_cycle][msg.sender].inflationMultiplier != 0,
-            "You do not have a proposal to retract"
-        );
-        delete proposals[_cycle][msg.sender];
-        emit ProposalRetraction(msg.sender);
-    }
+    // function unpropose() external duringProposePhase {
+    //     uint256 _cycle = getCurrentCycle();
+    //     require(
+    //         proposals[_cycle][msg.sender].inflationMultiplier != 0,
+    //         "You do not have a proposal to retract"
+    //     );
+    //     delete proposals[_cycle][msg.sender];
+    //     emit ProposalRetraction(msg.sender);
+    // }
 
     /** submit a vote commitment
      * this function allows trustees to submit a commit hash of their vote
