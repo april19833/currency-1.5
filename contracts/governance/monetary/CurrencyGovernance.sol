@@ -13,18 +13,34 @@ import "../../policy/Policed.sol";
 contract CurrencyGovernance is Policed, TimeUtils {
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
-        // random inflation recipients
-        uint256 numberOfRecipients;
-        // amount of weico recieved by each random inflation recipient
-        uint256 randomInflationReward;
-        // duration in seconds
-        uint256 lockupDuration;
-        // lockup interest as a 9 digit fixed point number
-        uint256 lockupInterest;
-        // multiplier for linear inflation as an 18 digit fixed point number
-        uint256 inflationMultiplier;
+        // reverse lookup parameter
+        bytes32 id;
+        // addresses to call if the proposal succeeds
+        address[] targets;
+        // the function signatures to call
+        string[] signatures;
+        // the abi encoded data to call
+        bytes[] calldatas;
+        // the number of trustees supporting the proposal
+        uint256 support;
+        // the mapping of who is supporting (note, this persists past deletion)
+        // this is to avoid double supporting and to confirm and record unspports
+        mapping(address => bool) supporters;
         // to store a link to more information
         string description;
+
+        // // random inflation recipients
+        // uint256 numberOfRecipients;
+        // // amount of weico recieved by each random inflation recipient
+        // uint256 randomInflationReward;
+        // // duration in seconds
+        // uint256 lockupDuration;
+        // // lockup interest as a 9 digit fixed point number
+        // uint256 lockupInterest;
+        // // multiplier for linear inflation as an 18 digit fixed point number
+        // uint256 inflationMultiplier;
+        // // to store a link to more information
+        // string description;
     }
 
     // struct for the array of submitted votes
@@ -73,8 +89,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // max length of description field
     uint256 public constant MAX_DATA = 160;
 
-    // mapping of cycle to proposing trustee addresses to their submitted proposals
-    mapping(uint256 => mapping(address => MonetaryPolicy)) public proposals;
+    // mapping of cycle to proposal IDs to submitted proposals
+    mapping(uint256 => mapping(bytes32 => MonetaryPolicy)) public proposals;
+    // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
+    mapping(address => uint256) internal trusteeSupports; // TODO add function that reads if a trustee can support for the current cycle
     // mapping of cycle to trustee addresses to their hash commits for voting
     mapping(uint256 => mapping(address => bytes32)) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
@@ -406,7 +424,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _cycle the cycle to finalize
      */
     function compute(uint256 _cycle) external cycleComplete(_cycle) {
-        // need a marker of computation complete
+        // the proposal will be denoted as the leader, this could error if there was weeks of activity, this also hits the issue of far back execution so maybe needs to also be a mapping :augh:
+        // the proposal itself can be deleted as a sign of completion (most gas efficient) to show that it's been executed
+        // there can also be a field that forces it to be unexecutable later
 
         emit VoteResult(winner[_cycle]);
     }
