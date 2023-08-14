@@ -153,11 +153,20 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when the 3 arrays submitted for the proposal don't all have the same number of elements
     error ProposalActionsArrayMismatch();
 
-    // error for when a trustee is already supporting a contract and triest to propose
-    error UnsupportBeforePropose();
+    // error for when a trustee is already supporting a policy and tries to propose or support another policy
+    error SupportAlreadyGiven();
+
+    // error for when a trustee is not supporting a policy and tries unsupport
+    error SupportNotGiven();
 
     // error for when a proposal is submitted that's a total duplicate of an existing one
     error DuplicateProposal();
+
+    // error for when a proposal is supported that hasn't actually been proposed
+    error NoSuchProposal();
+
+    // error for when a proposal is supported that has already been supported by the msg.sender
+    error DuplicateSupport();
 
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
@@ -338,15 +347,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         return (getTime() - governanceStartTime) / CYCLE_LENGTH;
     }
 
-    /** getter for duplicate support checks
-     * the function just pulls to see if the address has supported this generation
-     * doesn't check to see if the address is a trustee
-     * @param _address the address to check. not msg.sender for dapp related purposes
-     */
-    function canSupport(address _address) public view returns (bool) {
-        return trusteeSupports[_address] < getCurrentCycle();
-    }
-
     /** propose a monetary policy
      * this function allows trustees to submit a potential monetary policy
      * if there is already a proposed monetary policy by the trustee, this overwrites it
@@ -360,8 +360,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
     ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
         if(!canSupport(msg.sender)) {
-            revert UnsupportBeforePropose();
+            revert SupportAlreadyGiven();
         }
+
+        trusteeSupports[msg.sender] = cycle;
         
         uint256 descriptionLength = bytes(description).length;
         if(
@@ -391,7 +393,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert DuplicateProposal();
         }
         p.support = 1;
-        trusteeSupports[msg.sender] = cycle;
         p.supporters[msg.sender] = true;
 
         p.id = proposalId;
@@ -419,6 +420,69 @@ contract CurrencyGovernance is Policed, TimeUtils {
         bytes[] memory _calldatas
     ) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_cycle,keccak256(abi.encode(_targets, _signatures, _calldatas))));
+    }
+
+    /** getter for duplicate support checks
+     * the function just pulls to see if the address has supported this generation
+     * doesn't check to see if the address is a trustee
+     * @param _address the address to check. not msg.sender for dapp related purposes
+     */
+    function canSupport(address _address) public view returns (bool) {
+        return trusteeSupports[_address] < getCurrentCycle();
+    }
+
+    /** add your support to a monetary policy
+     * this function allows you to increase the support weight to an already submitted proposal
+     * the submitter of a proposal default supports it
+     * support for a proposal is close to equivalent of submitting a duplicate proposal to pad the ranking
+     * need to link to borda count analysis by christian here
+     * @param proposalId the lookup ID for the proposal that's being supported
+     */
+    function support(bytes32 proposalId) external {
+        if(!canSupport(msg.sender)) {
+            revert SupportAlreadyGiven();
+        }
+
+        trusteeSupports[msg.sender] = getCurrentCycle();
+
+        MonetaryPolicy storage p = proposals[proposalId];
+
+        if(p.support == 0) {
+            revert NoSuchProposal();
+        }
+        if(p.supporters[msg.sender]) {
+            revert DuplicateSupport();
+        }
+
+        p.support++;
+        p.supporters[msg.sender] = true;
+    }
+
+    /** removes your support to a monetary policy
+     * this function allows you to reduce the support weight to an already submitted proposal
+     * you must unsupport first if you currently have supported if you want to support or propose another proposal
+     * the last person who unsupports the proposal deletes the proposal
+     * @param proposalId the lookup ID for the proposal that's being unsupported
+     */
+    function unsupport() {
+        MonetaryPolicy storage p = proposals[proposalId];
+        uint256 support = p.support;
+
+        if(support == 0) {
+            revert NoSuchProposal();
+        }
+        if(!p.supporters[msg.sender]) {
+            revert SupportNotGiven();
+        }
+
+        if(support == 1) {
+            p.supporters[msg.sender] = false;
+            delete p;
+        } else {
+            p.support--;
+        }
+        
+        trusteeSupports[msg.sender] = 0;
     }
 
     /** retract a monetary policy
