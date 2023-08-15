@@ -416,6 +416,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
         emit Support(msg.sender, proposalId, cycle);
     }
 
+    /** getter for duplicate support checks
+     * the function just pulls to see if the address has supported this generation
+     * doesn't check to see if the address is a trustee
+     * @param _address the address to check. not msg.sender for dapp related purposes
+     */
+    function canSupport(address _address) public view returns (bool) {
+        return trusteeSupports[_address] < getCurrentCycle();
+    }
+
     function getProposalId(
         uint256 _cycle,
         address[] calldata _targets,
@@ -425,13 +434,20 @@ contract CurrencyGovernance is Policed, TimeUtils {
         return keccak256(abi.encodePacked(_cycle,keccak256(abi.encode(_targets, _signatures, _calldatas))));
     }
 
-    /** getter for duplicate support checks
-     * the function just pulls to see if the address has supported this generation
-     * doesn't check to see if the address is a trustee
-     * @param _address the address to check. not msg.sender for dapp related purposes
-     */
-    function canSupport(address _address) public view returns (bool) {
-        return trusteeSupports[_address] < getCurrentCycle();
+    function getProposalTargets(bytes32 proposalId) external view returns (address[] memory){
+        return proposals[proposalId].targets;
+    }
+
+    function getProposalSignatures(bytes32 proposalId) external view returns (bytes4[] memory){
+        return proposals[proposalId].signatures;
+    }
+
+    function getProposalCalldatas(bytes32 proposalId) external view returns (bytes[] memory){
+        return proposals[proposalId].calldatas;
+    }
+
+    function getProposalSupporter(bytes32 proposalId, address supporter) external view returns (bool){
+        return proposals[proposalId].supporters[supporter];
     }
 
     /** add your support to a monetary policy
