@@ -340,6 +340,23 @@ describe.only('CurrencyGovernance', () => {
 
       it('propose changes state correctly', async () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+
+        const cycle = await CurrencyGovernance.getCurrentCycle()
+        const proposalId = getProposalId(cycle.toNumber(), targets, functions, calldatas)
+
+        const proposal = await CurrencyGovernance.proposals(proposalId)
+        expect(proposal.id).to.eq(proposalId)
+        expect(proposal.support.toNumber()).to.eq(1)
+        expect(proposal.description).to.eq(description)
+
+        const _targets = await CurrencyGovernance.getProposalTargets(proposalId)
+        expect(_targets).to.eql(targets)
+
+        const _functions = await CurrencyGovernance.getProposalSignatures(proposalId)
+        expect(_functions).to.eql(functions)
+
+        const _calldatas = await CurrencyGovernance.getProposalCalldatas(proposalId)
+        expect(_calldatas).to.eql(calldatas)
       })
     })
   })
