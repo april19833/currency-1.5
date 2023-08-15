@@ -26,6 +26,7 @@ const CYCLE_LENGTH =
 const PROPOSE_STAGE = 0
 const COMMIT_STAGE = 1
 const REVEAL_STAGE = 2
+const initialCycle = 1000
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
@@ -129,7 +130,6 @@ describe.only('CurrencyGovernance', () => {
   })
 
   describe('time calculations', () => {
-    const initialCycle = 1000
     let StageTestCG: StageTestCurrencyGovernance
 
     beforeEach(async () => {
@@ -324,11 +324,9 @@ describe.only('CurrencyGovernance', () => {
 
   describe('proposal stage', () => {
     describe('getProposalId', () => {
-      const cycle = 1001
-
       it('matches .ts implementation', async () => {
-        const solHash = await CurrencyGovernance.getProposalId(cycle, targets, functions, calldatas)
-        const tsHash = getProposalId(cycle, targets, functions, calldatas)
+        const solHash = await CurrencyGovernance.getProposalId(initialCycle, targets, functions, calldatas)
+        const tsHash = getProposalId(initialCycle, targets, functions, calldatas)
         expect(tsHash).to.eq(solHash)
       })
     })
@@ -338,7 +336,7 @@ describe.only('CurrencyGovernance', () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
       })
 
-      it.only('propose changes state correctly', async () => {
+      it('propose changes state correctly', async () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
 
         const cycle = await CurrencyGovernance.getCurrentCycle()
@@ -363,6 +361,27 @@ describe.only('CurrencyGovernance', () => {
 
         const bobSupport = await CurrencyGovernance.getProposalSupporter(proposalId, bob.address)
         expect(bobSupport).to.be.true
+      })
+
+      it('emits an ProposalCreation event', async () => {
+        await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description))
+          .to.emit(CurrencyGovernance, 'ProposalCreation')
+          .withArgs(
+            bob.address,
+            initialCycle,
+            getProposalId(initialCycle, targets, functions, calldatas),
+            description,
+          )
+      })
+
+      it('emits an Support event', async () => {
+        await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description))
+          .to.emit(CurrencyGovernance, 'Support')
+          .withArgs(
+            bob.address,
+            getProposalId(initialCycle, targets, functions, calldatas),
+            initialCycle,
+          )
       })
     })
   })
