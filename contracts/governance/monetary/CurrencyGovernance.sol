@@ -92,6 +92,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public constant CYCLE_LENGTH =
         PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 
+    // start with cycle 1000 to avoid underflow and initial value issues
+    uint256 public constant START_CYCLE = 1000;
+
     uint256 public constant IDEMPOTENT_INFLATION_MULTIPLIER = 1e18;
 
     // max length of description field
@@ -279,7 +282,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // for finalizing the outcome of a vote
     modifier cycleComplete(uint256 cycle) {
-        uint256 completedCycles = (getTime() - governanceStartTime) /
+        uint256 completedCycles = START_CYCLE + (getTime() - governanceStartTime) /
             CYCLE_LENGTH;
 
         if (completedCycles <= cycle) {
@@ -327,7 +330,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function getCurrentStage() public view returns (TimingData memory) {
         uint256 timeDifference = getTime() - governanceStartTime;
-        uint256 completedCycles = timeDifference / CYCLE_LENGTH;
+        uint256 completedCycles = START_CYCLE + timeDifference / CYCLE_LENGTH;
         uint256 governanceTime = timeDifference % CYCLE_LENGTH;
 
         if (governanceTime < PROPOSAL_TIME) {
@@ -344,7 +347,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @return cycle the index for the currently used governance recording mappings
      */
     function getCurrentCycle() public view returns (uint256) {
-        return (getTime() - governanceStartTime) / CYCLE_LENGTH;
+        return START_CYCLE + (getTime() - governanceStartTime) / CYCLE_LENGTH;
     }
 
     /** propose a monetary policy
