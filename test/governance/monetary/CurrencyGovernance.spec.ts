@@ -338,7 +338,7 @@ describe.only('CurrencyGovernance', () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
       })
 
-      it('propose changes state correctly', async () => {
+      it.only('propose changes state correctly', async () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
 
         const cycle = await CurrencyGovernance.getCurrentCycle()
@@ -357,6 +357,12 @@ describe.only('CurrencyGovernance', () => {
 
         const _calldatas = await CurrencyGovernance.getProposalCalldatas(proposalId)
         expect(_calldatas).to.eql(calldatas)
+
+        const aliceSupport = await CurrencyGovernance.getProposalSupporter(proposalId, alice.address)
+        expect(aliceSupport).to.be.false
+
+        const bobSupport = await CurrencyGovernance.getProposalSupporter(proposalId, bob.address)
+        expect(bobSupport).to.be.true
       })
     })
   })
