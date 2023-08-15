@@ -27,9 +27,16 @@ const PROPOSE_STAGE = 0
 const COMMIT_STAGE = 1
 const REVEAL_STAGE = 2
 
-const PLACEHOLDER_ADDRESS = '0x1111111111111111111111111111111111111111'
+const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
+const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 
-describe('CurrencyGovernance', () => {
+// just some valid info to submit with
+const targets = [PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS2]
+const functions = ['0x1234abcd', '0xabcd1234']
+const calldatas = ['0x', '0x1234567890abcdef']
+const description = 'here\'s a description for the proposal'
+
+describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -55,8 +62,8 @@ describe('CurrencyGovernance', () => {
       await smock.mock<TrustedNodes__factory>('TrustedNodes')
     ).deploy(
       Fake__Policy.address,
-      PLACEHOLDER_ADDRESS,
-      PLACEHOLDER_ADDRESS,
+      PLACEHOLDER_ADDRESS1,
+      PLACEHOLDER_ADDRESS2,
       1000 * DAY,
       1,
       [bob.address, charlie.address, dave.address]
@@ -71,19 +78,19 @@ describe('CurrencyGovernance', () => {
     )
   })
 
-  describe('trustee role', async () => {
+  describe('trustee role', () => {
     it('trustees can call onlyTrusted functions', async () => {
-      await CurrencyGovernance.connect(bob).propose(1, 1, 1, 1, 1, '')
+      await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
     })
 
     it('non-trustees cannot call onlyTrusted functions', async () => {
       await expect(
-        CurrencyGovernance.connect(alice).propose(1, 1, 1, 1, 1, '')
+        CurrencyGovernance.connect(alice).propose(targets, functions, calldatas, description)
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
     })
   })
 
-  describe('trusted nodes role', async () => {
+  describe('trusted nodes role', () => {
     it('can be changed by the policy', async () => {
       const initialTNAddress = await CurrencyGovernance.trustedNodes()
       await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
@@ -116,7 +123,7 @@ describe('CurrencyGovernance', () => {
   })
 
   describe('time calculations', () => {
-    const initialCycle = 0
+    const initialCycle = 1000
     let StageTestCG: StageTestCurrencyGovernance
 
     beforeEach(async () => {
@@ -276,35 +283,44 @@ describe('CurrencyGovernance', () => {
 
       it('test end of cycle', async () => {
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(completedCycles)).to.be.true
+        expect(stageInfo.currentCycle.eq(initialCycle + completedCycles)).to.be.true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
 
       it('test forward incompleteness', async () => {
         await expect(
-          StageTestCG.cycleCompleted(completedCycles)
+          StageTestCG.cycleCompleted(initialCycle + completedCycles)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         await expect(
-          StageTestCG.cycleCompleted(completedCycles + 1)
+          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         await expect(
-          StageTestCG.cycleCompleted(completedCycles + 2)
+          StageTestCG.cycleCompleted(initialCycle + completedCycles + 2)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         await expect(
-          StageTestCG.cycleCompleted(completedCycles + 10)
+          StageTestCG.cycleCompleted(initialCycle + completedCycles + 10)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         await expect(
-          StageTestCG.cycleCompleted(completedCycles + 1000)
+          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1000)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
       })
 
       it('test past completeness', async () => {
-        expect(await StageTestCG.cycleCompleted(completedCycles - 1)).to.be.true
-        expect(await StageTestCG.cycleCompleted(completedCycles - 2)).to.be.true
-        expect(await StageTestCG.cycleCompleted(completedCycles - 10)).to.be
+        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 1)).to.be.true
+        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 2)).to.be.true
+        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 10)).to.be
           .true
         expect(await StageTestCG.cycleCompleted(0)).to.be.true
+      })
+    })
+  })
+
+  describe('proposal stage', () => {
+
+    describe('propose', () => {
+      it('can propose', async () => {
+        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
       })
     })
   })
