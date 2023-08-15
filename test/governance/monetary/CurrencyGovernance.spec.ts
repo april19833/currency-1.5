@@ -36,6 +36,12 @@ const functions = ['0x1234abcd', '0xabcd1234']
 const calldatas = ['0x', '0x1234567890abcdef']
 const description = 'here\'s a description for the proposal'
 
+const getProposalId = (cycle: number, targets: string[], functions: string[], calldatas: string[]) => {
+  const packing = ethers.utils.defaultAbiCoder.encode(['address[]', 'bytes4[]', 'bytes[]'], [targets, functions, calldatas])
+  const intermediateHash = ethers.utils.keccak256(packing)
+  return ethers.utils.solidityKeccak256(['uint256', 'bytes32'], [cycle, intermediateHash])
+}
+
 describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -317,9 +323,22 @@ describe.only('CurrencyGovernance', () => {
   })
 
   describe('proposal stage', () => {
+    describe('getProposalId', () => {
+      const cycle = 1001
+
+      it('matches .ts implementation', async () => {
+        const solHash = await CurrencyGovernance.getProposalId(cycle, targets, functions, calldatas)
+        const tsHash = getProposalId(cycle, targets, functions, calldatas)
+        expect(tsHash).to.eq(solHash)
+      })
+    })
 
     describe('propose', () => {
       it('can propose', async () => {
+        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+      })
+
+      it('propose changes state correctly', async () => {
         await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
       })
     })
