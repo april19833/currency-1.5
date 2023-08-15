@@ -438,7 +438,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * need to link to borda count analysis by christian here
      * @param proposalId the lookup ID for the proposal that's being supported
      */
-    function support(bytes32 proposalId) external {
+    function supportProposal(bytes32 proposalId) external {
         if(!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
@@ -464,7 +464,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the last person who unsupports the proposal deletes the proposal
      * @param proposalId the lookup ID for the proposal that's being unsupported
      */
-    function unsupport() {
+    function unsupportProposal(bytes32 proposalId) external {
         MonetaryPolicy storage p = proposals[proposalId];
         uint256 support = p.support;
 
@@ -477,11 +477,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         if(support == 1) {
             p.supporters[msg.sender] = false;
-            delete p;
+            delete proposals[proposalId];
         } else {
             p.support--;
         }
-        
+
         trusteeSupports[msg.sender] = 0;
     }
 
