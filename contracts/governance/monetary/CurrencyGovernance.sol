@@ -108,7 +108,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // proposalId hashes include the _cycle as a parameter
     mapping(bytes32 => MonetaryPolicy) public proposals;
     // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
-    mapping(address => uint256) internal trusteeSupports;
+    mapping(address => uint256) public trusteeSupports;
     // mapping of cycle to trustee addresses to their hash commits for voting
     mapping(uint256 => mapping(address => bytes32)) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
