@@ -35,15 +35,26 @@ const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 const targets = [PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS2]
 const functions = ['0x1234abcd', '0xabcd1234']
 const calldatas = ['0x', '0x1234567890abcdef']
-const description = 'here\'s a description for the proposal'
+const description = "here's a description for the proposal"
 
-const getProposalId = (cycle: number, targets: string[], functions: string[], calldatas: string[]) => {
-  const packing = ethers.utils.defaultAbiCoder.encode(['address[]', 'bytes4[]', 'bytes[]'], [targets, functions, calldatas])
+const getProposalId = (
+  cycle: number,
+  targets: string[],
+  functions: string[],
+  calldatas: string[]
+) => {
+  const packing = ethers.utils.defaultAbiCoder.encode(
+    ['address[]', 'bytes4[]', 'bytes[]'],
+    [targets, functions, calldatas]
+  )
   const intermediateHash = ethers.utils.keccak256(packing)
-  return ethers.utils.solidityKeccak256(['uint256', 'bytes32'], [cycle, intermediateHash])
+  return ethers.utils.solidityKeccak256(
+    ['uint256', 'bytes32'],
+    [cycle, intermediateHash]
+  )
 }
 
-describe.only('CurrencyGovernance', () => {
+describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -87,12 +98,22 @@ describe.only('CurrencyGovernance', () => {
 
   describe('trustee role', () => {
     it('trustees can call onlyTrusted functions', async () => {
-      await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+      await CurrencyGovernance.connect(bob).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
     })
 
     it('non-trustees cannot call onlyTrusted functions', async () => {
       await expect(
-        CurrencyGovernance.connect(alice).propose(targets, functions, calldatas, description)
+        CurrencyGovernance.connect(alice).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
     })
   })
@@ -109,9 +130,13 @@ describe.only('CurrencyGovernance', () => {
     })
 
     it('emits an event', async () => {
-      expect(await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
-        alice.address
-      )).to.emit(CurrencyGovernance, 'NewTrustedNodes').withArgs(TrustedNodes.address, alice.address)
+      expect(
+        await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+          alice.address
+        )
+      )
+        .to.emit(CurrencyGovernance, 'NewTrustedNodes')
+        .withArgs(TrustedNodes.address, alice.address)
     })
 
     it('is onlyPolicy gated', async () => {
@@ -289,7 +314,8 @@ describe.only('CurrencyGovernance', () => {
 
       it('test end of cycle', async () => {
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle + completedCycles)).to.be.true
+        expect(stageInfo.currentCycle.eq(initialCycle + completedCycles)).to.be
+          .true
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
@@ -313,10 +339,15 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it('test past completeness', async () => {
-        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 1)).to.be.true
-        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 2)).to.be.true
-        expect(await StageTestCG.cycleCompleted(initialCycle + completedCycles - 10)).to.be
-          .true
+        expect(
+          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 1)
+        ).to.be.true
+        expect(
+          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 2)
+        ).to.be.true
+        expect(
+          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 10)
+        ).to.be.true
         expect(await StageTestCG.cycleCompleted(0)).to.be.true
       })
     })
@@ -325,21 +356,46 @@ describe.only('CurrencyGovernance', () => {
   describe('proposal stage', () => {
     describe('getProposalId', () => {
       it('matches .ts implementation', async () => {
-        const solHash = await CurrencyGovernance.getProposalId(initialCycle, targets, functions, calldatas)
-        const tsHash = getProposalId(initialCycle, targets, functions, calldatas)
+        const solHash = await CurrencyGovernance.getProposalId(
+          initialCycle,
+          targets,
+          functions,
+          calldatas
+        )
+        const tsHash = getProposalId(
+          initialCycle,
+          targets,
+          functions,
+          calldatas
+        )
         expect(tsHash).to.eq(solHash)
       })
     })
 
     describe('propose', () => {
       it('can propose', async () => {
-        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+        await CurrencyGovernance.connect(bob).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
       })
 
       it('propose changes state correctly', async () => {
-        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+        await CurrencyGovernance.connect(bob).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
 
-        const proposalId = getProposalId(initialCycle, targets, functions, calldatas)
+        const proposalId = getProposalId(
+          initialCycle,
+          targets,
+          functions,
+          calldatas
+        )
 
         const proposal = await CurrencyGovernance.proposals(proposalId)
         expect(proposal.id).to.eq(proposalId)
@@ -349,123 +405,294 @@ describe.only('CurrencyGovernance', () => {
         const _targets = await CurrencyGovernance.getProposalTargets(proposalId)
         expect(_targets).to.eql(targets)
 
-        const _functions = await CurrencyGovernance.getProposalSignatures(proposalId)
+        const _functions = await CurrencyGovernance.getProposalSignatures(
+          proposalId
+        )
         expect(_functions).to.eql(functions)
 
-        const _calldatas = await CurrencyGovernance.getProposalCalldatas(proposalId)
+        const _calldatas = await CurrencyGovernance.getProposalCalldatas(
+          proposalId
+        )
         expect(_calldatas).to.eql(calldatas)
 
-        const aliceSupport = await CurrencyGovernance.getProposalSupporter(proposalId, alice.address)
+        const aliceSupport = await CurrencyGovernance.getProposalSupporter(
+          proposalId,
+          alice.address
+        )
         expect(aliceSupport).to.be.false
 
-        const bobSupport = await CurrencyGovernance.getProposalSupporter(proposalId, bob.address)
+        const bobSupport = await CurrencyGovernance.getProposalSupporter(
+          proposalId,
+          bob.address
+        )
         expect(bobSupport).to.be.true
 
-        const bobSupportGuard = await CurrencyGovernance.trusteeSupports(bob.address)
+        const bobSupportGuard = await CurrencyGovernance.trusteeSupports(
+          bob.address
+        )
         expect(bobSupportGuard).to.eq(initialCycle)
       })
 
       it('emits an ProposalCreation event', async () => {
-        await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description))
+        await expect(
+          CurrencyGovernance.connect(bob).propose(
+            targets,
+            functions,
+            calldatas,
+            description
+          )
+        )
           .to.emit(CurrencyGovernance, 'ProposalCreation')
           .withArgs(
             bob.address,
             initialCycle,
             getProposalId(initialCycle, targets, functions, calldatas),
-            description,
+            description
           )
       })
 
       it('emits an Support event', async () => {
-        await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description))
+        await expect(
+          CurrencyGovernance.connect(bob).propose(
+            targets,
+            functions,
+            calldatas,
+            description
+          )
+        )
           .to.emit(CurrencyGovernance, 'Support')
           .withArgs(
             bob.address,
             getProposalId(initialCycle, targets, functions, calldatas),
-            initialCycle,
+            initialCycle
           )
       })
 
       describe('reverts', () => {
         it('must be a trustee', async () => {
-          await expect(CurrencyGovernance.connect(alice).propose(targets, functions, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+          await expect(
+            CurrencyGovernance.connect(alice).propose(
+              targets,
+              functions,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
         })
 
         it('cannot propose if already supporting', async () => {
-          await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
+          await CurrencyGovernance.connect(bob).propose(
+            targets,
+            functions,
+            calldatas,
+            description
+          )
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
         })
 
         it('description must be below the max', async () => {
           const tooLongDescription = '7x23=it'.repeat(23)
           const maximalDescription = 'goodsize'.repeat(20)
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, tooLongDescription))
-            .to.be.revertedWith(`${ERRORS.CurrencyGovernance.DESCRIPTION_TOO_LONG}(161)`)
-          await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, maximalDescription)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              calldatas,
+              tooLongDescription
+            )
+          ).to.be.revertedWith(
+            `${ERRORS.CurrencyGovernance.DESCRIPTION_TOO_LONG}(161)`
+          )
+          await CurrencyGovernance.connect(bob).propose(
+            targets,
+            functions,
+            calldatas,
+            maximalDescription
+          )
         })
 
         it('target array length', async () => {
-          const tooLongTargets = [PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS1]
+          const tooLongTargets = [
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+            PLACEHOLDER_ADDRESS1,
+          ]
           const tooShortTargets: string[] = []
 
-          await expect(CurrencyGovernance.connect(bob).propose(tooLongTargets, functions, calldatas, description))
-            .to.be.revertedWith(`${ERRORS.CurrencyGovernance.TARGETS_TOO_LONG_OR_ZERO}(11)`)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              tooLongTargets,
+              functions,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(
+            `${ERRORS.CurrencyGovernance.TARGETS_TOO_LONG_OR_ZERO}(11)`
+          )
 
-          await expect(CurrencyGovernance.connect(bob).propose(tooShortTargets, functions, calldatas, description))
-            .to.be.revertedWith(`${ERRORS.CurrencyGovernance.TARGETS_TOO_LONG_OR_ZERO}(0)`)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              tooShortTargets,
+              functions,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(
+            `${ERRORS.CurrencyGovernance.TARGETS_TOO_LONG_OR_ZERO}(0)`
+          )
         })
 
         it('array mismatches', async () => {
           const tooLongSignatures1 = ['0x12341234', '0x12341234', '0x12341234']
-          const tooLongSignatures2 = ['0x12341234', '0x12341234', '0x12341234', '0x12341234', '0x12341234']
+          const tooLongSignatures2 = [
+            '0x12341234',
+            '0x12341234',
+            '0x12341234',
+            '0x12341234',
+            '0x12341234',
+          ]
           const tooShortSignatures1 = ['0x12341234']
           const tooShortSignatures2: string[] = []
-          const tooLongCalldata1 = ['0x123412123134', '0x144423131234', '0x2341313131311234']
-          const tooLongCalldata2 = ['0x13', '0x23411234', '0x2123341234', '0x1234', '0x1234121334']
+          const tooLongCalldata1 = [
+            '0x123412123134',
+            '0x144423131234',
+            '0x2341313131311234',
+          ]
+          const tooLongCalldata2 = [
+            '0x13',
+            '0x23411234',
+            '0x2123341234',
+            '0x1234',
+            '0x1234121334',
+          ]
           const tooShortCalldata1 = ['0x12341234123123']
           const tooShortCalldata2: string[] = []
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, tooLongSignatures1, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              tooLongSignatures1,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, tooLongSignatures2, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              tooLongSignatures2,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, tooShortSignatures1, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              tooShortSignatures1,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, tooShortSignatures2, calldatas, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              tooShortSignatures2,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, tooLongCalldata1, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              tooLongCalldata1,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, tooLongCalldata2, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              tooLongCalldata2,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, tooShortCalldata1, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              tooShortCalldata1,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
 
-          await expect(CurrencyGovernance.connect(bob).propose(targets, functions, tooShortCalldata2, description))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              tooShortCalldata2,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ARRAYS_BAD_LENGTH)
         })
 
         it('another trustee trying to submit the same proposal', async () => {
-          const secondDescription = 'I\'m another description'
-          await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+          const secondDescription = "I'm another description"
+          await CurrencyGovernance.connect(bob).propose(
+            targets,
+            functions,
+            calldatas,
+            description
+          )
 
-          await expect(CurrencyGovernance.connect(charlie).propose(targets, functions, calldatas, secondDescription))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_ALREADY_EXISTS)
+          await expect(
+            CurrencyGovernance.connect(charlie).propose(
+              targets,
+              functions,
+              calldatas,
+              secondDescription
+            )
+          ).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.PROPOSALID_ALREADY_EXISTS
+          )
         })
       })
     })
-    
+
     describe('supportProposal', () => {
-      const proposalId = getProposalId(initialCycle, targets, functions, calldatas)
+      const proposalId = getProposalId(
+        initialCycle,
+        targets,
+        functions,
+        calldatas
+      )
       beforeEach(async () => {
-        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+        await CurrencyGovernance.connect(bob).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
       })
 
       it('can support', async () => {
@@ -473,57 +700,90 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it('support modifies state correctly', async () => {
-        const charlieSupportGuardBefore = await CurrencyGovernance.trusteeSupports(charlie.address)
+        const charlieSupportGuardBefore =
+          await CurrencyGovernance.trusteeSupports(charlie.address)
         expect(charlieSupportGuardBefore.toNumber()).to.eq(0)
-        const proposalSupportBefore = (await CurrencyGovernance.proposals(proposalId)).support
+        const proposalSupportBefore = (
+          await CurrencyGovernance.proposals(proposalId)
+        ).support
         expect(proposalSupportBefore.toNumber()).to.eq(1)
-        const proposalSupportersBefore = await CurrencyGovernance.getProposalSupporter(proposalId, charlie.address)
+        const proposalSupportersBefore =
+          await CurrencyGovernance.getProposalSupporter(
+            proposalId,
+            charlie.address
+          )
         expect(proposalSupportersBefore).to.be.false
 
         await CurrencyGovernance.connect(charlie).supportProposal(proposalId)
 
-        const charlieSupportGuardAfter = await CurrencyGovernance.trusteeSupports(charlie.address)
+        const charlieSupportGuardAfter =
+          await CurrencyGovernance.trusteeSupports(charlie.address)
         expect(charlieSupportGuardAfter.toNumber()).to.eq(initialCycle)
-        const proposalSupportAfter = (await CurrencyGovernance.proposals(proposalId)).support
+        const proposalSupportAfter = (
+          await CurrencyGovernance.proposals(proposalId)
+        ).support
         expect(proposalSupportAfter.toNumber()).to.eq(2)
-        const proposalSupportersAfter = await CurrencyGovernance.getProposalSupporter(proposalId, charlie.address)
+        const proposalSupportersAfter =
+          await CurrencyGovernance.getProposalSupporter(
+            proposalId,
+            charlie.address
+          )
         expect(proposalSupportersAfter).to.be.true
       })
 
       it('support emits an event', async () => {
-        await expect(CurrencyGovernance.connect(charlie).supportProposal(proposalId))
+        await expect(
+          CurrencyGovernance.connect(charlie).supportProposal(proposalId)
+        )
           .to.emit(CurrencyGovernance, 'Support')
           .withArgs(charlie.address, proposalId, initialCycle)
       })
 
       describe('reverts', () => {
         it('trustee only', async () => {
-          await expect(CurrencyGovernance.connect(alice).supportProposal(proposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+          await expect(
+            CurrencyGovernance.connect(alice).supportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
         })
 
         it('support if already supporting', async () => {
-          await expect(CurrencyGovernance.connect(bob).supportProposal(proposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
+          await expect(
+            CurrencyGovernance.connect(bob).supportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
           await CurrencyGovernance.connect(charlie).supportProposal(proposalId)
-          await expect(CurrencyGovernance.connect(charlie).supportProposal(proposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
+          await expect(
+            CurrencyGovernance.connect(charlie).supportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
         })
 
         it('supporting a non-proposal', async () => {
-          const badProposalId = getProposalId(0,[],[],[])
-          await expect(CurrencyGovernance.connect(charlie).supportProposal(badProposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
-          await expect(CurrencyGovernance.connect(charlie).supportProposal(ethers.utils.hexZeroPad('0x', 32)))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
+          const badProposalId = getProposalId(0, [], [], [])
+          await expect(
+            CurrencyGovernance.connect(charlie).supportProposal(badProposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
+          await expect(
+            CurrencyGovernance.connect(charlie).supportProposal(
+              ethers.utils.hexZeroPad('0x', 32)
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
         })
       })
     })
 
     describe('unsupportProposal', () => {
-      const proposalId = getProposalId(initialCycle, targets, functions, calldatas)
+      const proposalId = getProposalId(
+        initialCycle,
+        targets,
+        functions,
+        calldatas
+      )
       beforeEach(async () => {
-        await CurrencyGovernance.connect(bob).propose(targets, functions, calldatas, description)
+        await CurrencyGovernance.connect(bob).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
         await CurrencyGovernance.connect(charlie).supportProposal(proposalId)
       })
 
@@ -536,20 +796,34 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it('unsupport modifies state correctly', async () => {
-        const charlieSupportGuardBefore = await CurrencyGovernance.trusteeSupports(charlie.address)
+        const charlieSupportGuardBefore =
+          await CurrencyGovernance.trusteeSupports(charlie.address)
         expect(charlieSupportGuardBefore.toNumber()).to.eq(initialCycle)
-        const proposalSupportBefore = (await CurrencyGovernance.proposals(proposalId)).support
+        const proposalSupportBefore = (
+          await CurrencyGovernance.proposals(proposalId)
+        ).support
         expect(proposalSupportBefore.toNumber()).to.eq(2)
-        const proposalSupportersBefore = await CurrencyGovernance.getProposalSupporter(proposalId, charlie.address)
+        const proposalSupportersBefore =
+          await CurrencyGovernance.getProposalSupporter(
+            proposalId,
+            charlie.address
+          )
         expect(proposalSupportersBefore).to.be.true
 
         await CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
 
-        const charlieSupportGuardAfter = await CurrencyGovernance.trusteeSupports(charlie.address)
+        const charlieSupportGuardAfter =
+          await CurrencyGovernance.trusteeSupports(charlie.address)
         expect(charlieSupportGuardAfter.toNumber()).to.eq(0)
-        const proposalSupportAfter = (await CurrencyGovernance.proposals(proposalId)).support
+        const proposalSupportAfter = (
+          await CurrencyGovernance.proposals(proposalId)
+        ).support
         expect(proposalSupportAfter.toNumber()).to.eq(1)
-        const proposalSupportersAfter = await CurrencyGovernance.getProposalSupporter(proposalId, charlie.address)
+        const proposalSupportersAfter =
+          await CurrencyGovernance.getProposalSupporter(
+            proposalId,
+            charlie.address
+          )
         expect(proposalSupportersAfter).to.be.false
       })
 
@@ -565,58 +839,88 @@ describe.only('CurrencyGovernance', () => {
         const _targets = await CurrencyGovernance.getProposalTargets(proposalId)
         expect(_targets).to.eql([])
 
-        const _functions = await CurrencyGovernance.getProposalSignatures(proposalId)
+        const _functions = await CurrencyGovernance.getProposalSignatures(
+          proposalId
+        )
         expect(_functions).to.eql([])
 
-        const _calldatas = await CurrencyGovernance.getProposalCalldatas(proposalId)
+        const _calldatas = await CurrencyGovernance.getProposalCalldatas(
+          proposalId
+        )
         expect(_calldatas).to.eql([])
 
-        const aliceSupport = await CurrencyGovernance.getProposalSupporter(proposalId, alice.address)
+        const aliceSupport = await CurrencyGovernance.getProposalSupporter(
+          proposalId,
+          alice.address
+        )
         expect(aliceSupport).to.be.false
 
-        const bobSupport = await CurrencyGovernance.getProposalSupporter(proposalId, bob.address)
+        const bobSupport = await CurrencyGovernance.getProposalSupporter(
+          proposalId,
+          bob.address
+        )
         expect(bobSupport).to.be.false
 
-        const charlieSupport = await CurrencyGovernance.getProposalSupporter(proposalId, charlie.address)
+        const charlieSupport = await CurrencyGovernance.getProposalSupporter(
+          proposalId,
+          charlie.address
+        )
         expect(charlieSupport).to.be.false
       })
 
       it('unsupport deletion allows reproposal', async () => {
         await CurrencyGovernance.connect(bob).unsupportProposal(proposalId)
         await CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
-        await CurrencyGovernance.connect(dave).propose(targets, functions, calldatas, description)
+        await CurrencyGovernance.connect(dave).propose(
+          targets,
+          functions,
+          calldatas,
+          description
+        )
       })
 
       it('emits an Unsupport event', async () => {
-        await expect(CurrencyGovernance.connect(charlie).unsupportProposal(proposalId))
+        await expect(
+          CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
+        )
           .to.emit(CurrencyGovernance, 'Unsupport')
           .withArgs(charlie.address, proposalId, initialCycle)
       })
 
       it('emits a ProposalDeleted event', async () => {
         await CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
-        await expect(CurrencyGovernance.connect(bob).unsupportProposal(proposalId))
+        await expect(
+          CurrencyGovernance.connect(bob).unsupportProposal(proposalId)
+        )
           .to.emit(CurrencyGovernance, 'ProposalDeleted')
           .withArgs(proposalId, initialCycle)
       })
 
       describe('reverts', () => {
         it('trustee only', async () => {
-          await expect(CurrencyGovernance.connect(alice).unsupportProposal(proposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+          await expect(
+            CurrencyGovernance.connect(alice).unsupportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
         })
 
         it('unsupporting a non-proposal', async () => {
-          const badProposalId = getProposalId(0,[],[],[])
-          await expect(CurrencyGovernance.connect(charlie).unsupportProposal(badProposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
-          await expect(CurrencyGovernance.connect(charlie).unsupportProposal(ethers.utils.hexZeroPad('0x', 32)))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
+          const badProposalId = getProposalId(0, [], [], [])
+          await expect(
+            CurrencyGovernance.connect(charlie).unsupportProposal(badProposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
+          await expect(
+            CurrencyGovernance.connect(charlie).unsupportProposal(
+              ethers.utils.hexZeroPad('0x', 32)
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
         })
 
         it('unsupport if not actually supported', async () => {
-          await expect(CurrencyGovernance.connect(dave).unsupportProposal(proposalId))
-            .to.be.revertedWith(ERRORS.CurrencyGovernance.UNSUPPORT_WITH_NO_SUPPORT)
+          await expect(
+            CurrencyGovernance.connect(dave).unsupportProposal(proposalId)
+          ).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.UNSUPPORT_WITH_NO_SUPPORT
+          )
         })
       })
     })

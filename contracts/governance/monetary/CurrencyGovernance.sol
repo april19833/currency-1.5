@@ -140,13 +140,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param currentCycle the current cycle as calculated by the contract
      */
     error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle);
-    
+
     /** Description length error
      * for when a proposal is submitted with too long of a description
      * @param submittedLength the length of the submitted description, to be compared against MAX_DESCRIPTION_DATA
      */
     error ExceedsMaxDescriptionSize(uint256 submittedLength);
-    
+
     /** Targets length error
      * for when a proposal is submitted with too many actions or zero actions
      * @param submittedLength the length of the submitted targets array, to be compared against MAX_TARGETS and 0
@@ -180,7 +180,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param newTrustedNodes denotes the new trustedNodes contract address
      * @param oldTrustedNodes denotes the old trustedNodes contract address
      */
-    event NewTrustedNodes(TrustedNodes newTrustedNodes, TrustedNodes oldTrustedNodes);
+    event NewTrustedNodes(
+        TrustedNodes newTrustedNodes,
+        TrustedNodes oldTrustedNodes
+    );
 
     /** Tracking for proposal creation
      * emitted when a proposal is submitted to track the values
@@ -192,7 +195,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * param _signatures the function signatures to call on each of the targets
      * param _calldatas the calldata to pass to each of the functions called on each target
      * @param _description a string allowing the trustee to describe the proposal or link to discussions on the proposal
-     */ 
+     */
     event ProposalCreation(
         address indexed _trusteeAddress,
         uint256 indexed _cycle,
@@ -208,22 +211,30 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param trustee the address of the trustee supporting
      * @param proposalId the lookup for the proposal being supported
      * @param cycle the cycle during which the support action happened
-     */ 
-    event Support(address indexed trustee, bytes32 indexed proposalId, uint256 indexed cycle);
+     */
+    event Support(
+        address indexed trustee,
+        bytes32 indexed proposalId,
+        uint256 indexed cycle
+    );
 
     /** Tracking for unsupport actions
      * emitted when a trustee retracts their support for a proposal
      * @param trustee the address of the trustee unsupporting
      * @param proposalId the lookup for the proposal being unsupported
      * @param cycle the cycle during which the support action happened
-     */ 
-    event Unsupport(address indexed trustee, bytes32 indexed proposalId, uint256 indexed cycle);
-    
+     */
+    event Unsupport(
+        address indexed trustee,
+        bytes32 indexed proposalId,
+        uint256 indexed cycle
+    );
+
     /** Tracking for removed proposals
      * emitted when the last trustee retracts their support for a proposal
      * @param proposalId the lookup for the proposal being deleted
      * @param cycle the cycle during which the unsupport deletion action happened
-     */ 
+     */
     event ProposalDeleted(bytes32 indexed proposalId, uint256 indexed cycle);
 
     /** Fired when a trustee casts a vote.
@@ -289,7 +300,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // for finalizing the outcome of a vote
     modifier cycleComplete(uint256 cycle) {
-        uint256 completedCycles = START_CYCLE + (getTime() - governanceStartTime) /
+        uint256 completedCycles = START_CYCLE +
+            (getTime() - governanceStartTime) /
             CYCLE_LENGTH;
 
         if (completedCycles <= cycle) {
@@ -369,37 +381,36 @@ contract CurrencyGovernance is Policed, TimeUtils {
         string calldata description
     ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
-        if(!canSupport(msg.sender)) {
+        if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
 
         trusteeSupports[msg.sender] = cycle;
-        
+
         uint256 descriptionLength = bytes(description).length;
-        if(
-            descriptionLength > MAX_DESCRIPTION_DATA
-        ) {
+        if (descriptionLength > MAX_DESCRIPTION_DATA) {
             revert ExceedsMaxDescriptionSize(descriptionLength);
         }
 
         uint256 numTargets = targets.length;
-        if(
-            numTargets > MAX_TARGETS || numTargets <= 0
-        ) {
+        if (numTargets > MAX_TARGETS || numTargets <= 0) {
             revert BadNumTargets(numTargets);
         }
-        if(
-            numTargets != signatures.length || numTargets != calldatas.length
-        ) {
+        if (numTargets != signatures.length || numTargets != calldatas.length) {
             revert ProposalActionsArrayMismatch();
         }
 
-        bytes32 proposalId = getProposalId(cycle, targets, signatures, calldatas);
+        bytes32 proposalId = getProposalId(
+            cycle,
+            targets,
+            signatures,
+            calldatas
+        );
 
         MonetaryPolicy storage p = proposals[proposalId];
 
         // THIS IS NOT A GUARANTEE FOR DUPLICATE PROPOSALS JUST A SAFEGUARD FOR OVERWRITING
-        if(p.support != 0) {
+        if (p.support != 0) {
             revert DuplicateProposal();
         }
         p.support = 1;
@@ -438,22 +449,37 @@ contract CurrencyGovernance is Policed, TimeUtils {
         bytes4[] calldata _signatures,
         bytes[] memory _calldatas
     ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_cycle,keccak256(abi.encode(_targets, _signatures, _calldatas))));
+        return
+            keccak256(
+                abi.encodePacked(
+                    _cycle,
+                    keccak256(abi.encode(_targets, _signatures, _calldatas))
+                )
+            );
     }
 
-    function getProposalTargets(bytes32 proposalId) external view returns (address[] memory){
+    function getProposalTargets(
+        bytes32 proposalId
+    ) external view returns (address[] memory) {
         return proposals[proposalId].targets;
     }
 
-    function getProposalSignatures(bytes32 proposalId) external view returns (bytes4[] memory){
+    function getProposalSignatures(
+        bytes32 proposalId
+    ) external view returns (bytes4[] memory) {
         return proposals[proposalId].signatures;
     }
 
-    function getProposalCalldatas(bytes32 proposalId) external view returns (bytes[] memory){
+    function getProposalCalldatas(
+        bytes32 proposalId
+    ) external view returns (bytes[] memory) {
         return proposals[proposalId].calldatas;
     }
 
-    function getProposalSupporter(bytes32 proposalId, address supporter) external view returns (bool){
+    function getProposalSupporter(
+        bytes32 proposalId,
+        address supporter
+    ) external view returns (bool) {
         return proposals[proposalId].supporters[supporter];
     }
 
@@ -465,7 +491,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param proposalId the lookup ID for the proposal that's being supported
      */
     function supportProposal(bytes32 proposalId) external onlyTrusted {
-        if(!canSupport(msg.sender)) {
+        if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
 
@@ -473,11 +499,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         MonetaryPolicy storage p = proposals[proposalId];
 
-        if(p.support == 0) {
+        if (p.support == 0) {
             revert NoSuchProposal();
         }
         // actually should never trigger since SupportAlreadyGiven would throw first, still feels safe to check
-        if(p.supporters[msg.sender]) {
+        if (p.supporters[msg.sender]) {
             revert DuplicateSupport();
         }
 
@@ -498,16 +524,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
         MonetaryPolicy storage p = proposals[proposalId];
         uint256 support = p.support;
 
-        if(support == 0) {
+        if (support == 0) {
             revert NoSuchProposal();
         }
-        if(!p.supporters[msg.sender]) {
+        if (!p.supporters[msg.sender]) {
             revert SupportNotGiven();
         }
 
         p.supporters[msg.sender] = false;
 
-        if(support == 1) {
+        if (support == 1) {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
