@@ -14,7 +14,7 @@ export const ERRORS = {
     SUPPORTED_SOMETHING_ELSE: 'SupportAlreadyGiven',
     UNSUPPORT_WITH_NO_SUPPORT: 'SupportNotGiven',
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
-    UNSUPPORT_FROM_BAD_PROPOSAL: 'NoSuchProposal',
+    PROPOSALID_INVALID: 'NoSuchProposal',
     SUPPORT_WHEN_ALREADY_SUPPORTING: 'DuplicateSupport',
   },
   Policed: {
