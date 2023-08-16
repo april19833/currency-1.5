@@ -218,6 +218,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param cycle the cycle during which the support action happened
      */ 
     event Unsupport(address indexed trustee, bytes32 indexed proposalId, uint256 indexed cycle);
+    
+    /** Tracking for removed proposals
+     * emitted when the last trustee retracts their support for a proposal
+     * @param proposalId the lookup for the proposal being deleted
+     * @param cycle the cycle during which the unsupport deletion action happened
+     */ 
+    event ProposalDeleted(bytes32 indexed proposalId, uint256 indexed cycle);
 
     /** Fired when a trustee casts a vote.
      */
@@ -469,6 +476,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         if(p.support == 0) {
             revert NoSuchProposal();
         }
+        // actually should never trigger since SupportAlreadyGiven would throw first, still feels safe to check
         if(p.supporters[msg.sender]) {
             revert DuplicateSupport();
         }
@@ -485,6 +493,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param proposalId the lookup ID for the proposal that's being unsupported
      */
     function unsupportProposal(bytes32 proposalId) external onlyTrusted {
+        uint256 cycle = getCurrentCycle();
+
         MonetaryPolicy storage p = proposals[proposalId];
         uint256 support = p.support;
 
@@ -495,15 +505,17 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert SupportNotGiven();
         }
 
+        p.supporters[msg.sender] = false;
+
         if(support == 1) {
-            p.supporters[msg.sender] = false;
             delete proposals[proposalId];
+            emit ProposalDeleted(proposalId, cycle);
         } else {
             p.support--;
         }
 
         trusteeSupports[msg.sender] = 0;
-        emit Unsupport(msg.sender, proposalId, getCurrentCycle());
+        emit Unsupport(msg.sender, proposalId, cycle);
     }
 
     /** retract a monetary policy
