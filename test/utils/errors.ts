@@ -11,7 +11,7 @@ export const ERRORS = {
     DESCRIPTION_TOO_LONG: 'ExceedsMaxDescriptionSize', // one arg: the submitted length
     TARGETS_TOO_LONG_OR_ZERO: 'BadNumTargets', // one arg: the length of the submitted array
     ARRAYS_BAD_LENGTH: 'ProposalActionsArrayMismatch',
-    ALREADY_SUPPORTING: 'SupportAlreadyGiven',
+    SUPPORTED_SOMETHING_ELSE: 'SupportAlreadyGiven',
     UNSUPPORT_WITH_NO_SUPPORT: 'SupportNotGiven',
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
     UNSUPPORT_FROM_BAD_PROPOSAL: 'NoSuchProposal',
