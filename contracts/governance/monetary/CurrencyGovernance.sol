@@ -490,7 +490,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * need to link to borda count analysis by christian here
      * @param proposalId the lookup ID for the proposal that's being supported
      */
-    function supportProposal(bytes32 proposalId) external onlyTrusted duringProposePhase {
+    function supportProposal(
+        bytes32 proposalId
+    ) external onlyTrusted duringProposePhase {
         if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
@@ -518,7 +520,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the last person who unsupports the proposal deletes the proposal
      * @param proposalId the lookup ID for the proposal that's being unsupported
      */
-    function unsupportProposal(bytes32 proposalId) external onlyTrusted duringProposePhase {
+    function unsupportProposal(
+        bytes32 proposalId
+    ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
 
         MonetaryPolicy storage p = proposals[proposalId];
