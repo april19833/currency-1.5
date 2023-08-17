@@ -490,7 +490,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * need to link to borda count analysis by christian here
      * @param proposalId the lookup ID for the proposal that's being supported
      */
-    function supportProposal(bytes32 proposalId) external onlyTrusted {
+    function supportProposal(bytes32 proposalId) external onlyTrusted duringProposePhase {
         if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
@@ -518,7 +518,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the last person who unsupports the proposal deletes the proposal
      * @param proposalId the lookup ID for the proposal that's being unsupported
      */
-    function unsupportProposal(bytes32 proposalId) external onlyTrusted {
+    function unsupportProposal(bytes32 proposalId) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
 
         MonetaryPolicy storage p = proposals[proposalId];
@@ -543,21 +543,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         trusteeSupports[msg.sender] = 0;
         emit Unsupport(msg.sender, proposalId, cycle);
     }
-
-    /** retract a monetary policy
-     * this function allows trustees to retract their existing proposal, deleting its data
-     * reverts if no proposal exists to unpropose
-     * cannot be used after propose phase ends
-     */
-    // function unpropose() external duringProposePhase {
-    //     uint256 _cycle = getCurrentCycle();
-    //     require(
-    //         proposals[_cycle][msg.sender].inflationMultiplier != 0,
-    //         "You do not have a proposal to retract"
-    //     );
-    //     delete proposals[_cycle][msg.sender];
-    //     emit ProposalRetraction(msg.sender);
-    // }
 
     /** submit a vote commitment
      * this function allows trustees to submit a commit hash of their vote

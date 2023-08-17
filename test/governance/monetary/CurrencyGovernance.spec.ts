@@ -480,6 +480,18 @@ describe('CurrencyGovernance', () => {
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
         })
 
+        it('must be during propose phase', async () => {
+          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await expect(
+            CurrencyGovernance.connect(bob).propose(
+              targets,
+              functions,
+              calldatas,
+              description
+            )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+        })
+
         it('cannot propose if already supporting', async () => {
           await CurrencyGovernance.connect(bob).propose(
             targets,
@@ -746,6 +758,13 @@ describe('CurrencyGovernance', () => {
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
         })
 
+        it('only during propose phase', async () => {
+          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await expect(
+            CurrencyGovernance.connect(bob).supportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+        })
+
         it('support if already supporting', async () => {
           await expect(
             CurrencyGovernance.connect(bob).supportProposal(proposalId)
@@ -901,6 +920,13 @@ describe('CurrencyGovernance', () => {
           await expect(
             CurrencyGovernance.connect(alice).unsupportProposal(proposalId)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+        })
+
+        it('only during propose phase', async () => {
+          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await expect(
+            CurrencyGovernance.connect(bob).supportProposal(proposalId)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
         })
 
         it('unsupporting a non-proposal', async () => {
