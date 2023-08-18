@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 
 contract Notifier is Policed{
@@ -27,32 +28,31 @@ contract Notifier is Policed{
 
     modifier onlyLever() {
         if (msg.sender != lever) {
-            revert onlyLever();
+            revert NonLeverCall();
         } 
         _;
     }
 
-    constructor(address _lever, address[] targets, bytes[] datas, uint256[] gasCosts) {
-        lever = _lever;
+    constructor(Policy policy, address _lever, address[] memory targets, bytes[] memory datas, uint256[] memory gasCosts) Policed (policy) {
         uint256 targetsLength = targets.length;
 
-        if (targetsLength != datas.length || targetsLength != gasCosts.length || targetsLength == 0) {
+        if (targetsLength != datas.length || targetsLength != gasCosts.length) {
             revert TransactiondataLengthMismatch(targetsLength, datas.length, gasCosts.length);
         }
+
         for (uint256 i = 0; i < targetsLength; i++) {
-            transactions.push(Transaction{target: targets[i], data: datas[i], gasCost: gasCosts[i]});
+            transactions.push(Transaction({target: targets[i], data: datas[i], gasCost: gasCosts[i]}));
             totalGasCost += gasCosts[i];
         }
-
-        
+        lever = _lever;
     }
 
-    function notify() public onlyLever() {
-        uint256 txCount = transactions.length();
+    function execute() public onlyLever() {
+        uint256 txCount = transactions.length;
 
         for (uint256 i = 0; i < txCount; i++) {
             Transaction storage t = transactions[i];
-            bool success = t.target.call{gas: t.gas}(t.data);
+            (bool success,) = (t.target).call(t.data);
             
             if (!success) {
                 emit TransactionFailed(i, t.target, t.data);
@@ -69,6 +69,7 @@ contract Notifier is Policed{
         onlyPolicy
     {
         transactions.push(Transaction({target: _target, data: _data, gasCost: _gasCost}));
+        totalGasCost += _gasCost;
     }
 
     /**
@@ -89,6 +90,4 @@ contract Notifier is Policed{
 
         transactions.pop();
     }
-
-    
 }

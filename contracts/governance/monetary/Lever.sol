@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 import "./Notifier.sol";
 
@@ -18,7 +19,7 @@ contract Lever is Policed {
 
     event AuthorizationChanged(address agent, bool status);
 
-    event NotifierChanged(address oldNotifier, address newNotifier);
+    event NotifierChanged(Notifier oldNotifier, Notifier newNotifier);
 
     modifier onlyAuthorized() {
         if (!authorized[msg.sender]) {
@@ -27,7 +28,7 @@ contract Lever is Policed {
         _;
     }
 
-    constructor(address _policy, address _notifier) Policed(_policy) {
+    constructor(Policy _policy, Notifier _notifier) Policed(_policy) {
         notifier = _notifier;
     }
     /**
@@ -45,7 +46,7 @@ contract Lever is Policed {
      * @notice Changes the notifier for the lever.
      * @param _notifier The new notifier address
     */
-    function setNotifier(address _notifier) public onlyPolicy {
+    function setNotifier(Notifier _notifier) public onlyPolicy {
         emit NotifierChanged(notifier, _notifier);
         notifier = Notifier(_notifier);
     }

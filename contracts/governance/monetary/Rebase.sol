@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../currency/ECO.sol";
+import "./Notifier.sol";
 import "./Lever.sol";
 
 /** @title Trustee monetary policy decision process
@@ -15,13 +16,13 @@ contract Rebase is Lever {
 
     event Rebased(uint256 newInflation);
 
-    constructor(address policy, address notifier, address _eco) Lever(policy, notifier) {
-        eco = ECO(_eco);
+    constructor(Policy policy, Notifier notifier, ECO _eco) Lever(policy, notifier) {
+        eco = _eco;
     }
 
-    function execute(uint256 _newMultiplier) public onlyCurrencyGovernance {
+    function execute(uint256 _newMultiplier) public onlyAuthorized {
         // unclear how this works on the eco contract as of now, but ill shoot anyway
-        eco.rebase(_newMultiplier);
+        // eco.rebase(_newMultiplier);
         notifier.execute();
 
         emit Rebased(_newMultiplier);
