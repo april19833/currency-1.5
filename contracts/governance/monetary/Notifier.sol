@@ -19,7 +19,7 @@ contract Notifier is Policed{
 
     error NonLeverCall();
 
-    error TargetDataLengthMismatch(uint256 targetCount, uint256 dataCount);
+    error TransactiondataLengthMismatch(uint256 targetCount, uint256 dataCount, uint256 gasCostCount);
 
     error NoTransactionAtIndex(uint256 index);
 
@@ -37,7 +37,7 @@ contract Notifier is Policed{
         uint256 targetsLength = targets.length;
 
         if (targetsLength != datas.length || targetsLength != gasCosts.length || targetsLength == 0) {
-            revert TargetDataLengthMismatch(targetsLength, datas.length);
+            revert TransactiondataLengthMismatch(targetsLength, datas.length, gasCosts.length);
         }
         for (uint256 i = 0; i < targetsLength; i++) {
             transactions.push(Transaction{target: targets[i], data: datas[i], gasCost: gasCosts[i]});
@@ -80,7 +80,7 @@ contract Notifier is Policed{
         if (index < transactions.length) {
             revert NoTransactionAtIndex(index);
         }
-        
+
         totalGasCost -= transactions[index].gasCost;
 
         if (index < transactions.length - 1) {
