@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../utils/TimeUtils.sol";
 import "../../policy/Policed.sol";
 import "./Notifier.sol";
 
@@ -10,12 +9,16 @@ import "./Notifier.sol";
  * This contract oversees the voting on the currency monetary levers.
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
-contract Lever is Policed, TimeUtils {
+contract Lever is Policed {
     mapping (address => bool) public authorized;
 
     Notifier public notifier;
 
     error AuthorizedOnly();
+
+    event AuthorizationChanged(address agent, bool status);
+
+    event NotifierChanged(address oldNotifier, address newNotifier);
 
     modifier onlyAuthorized() {
         if (!authorized[msg.sender]) {
@@ -27,12 +30,23 @@ contract Lever is Policed, TimeUtils {
     constructor(address _policy, address _notifier) Policed(_policy) {
         notifier = _notifier;
     }
-
+    /**
+     * @notice Changes the authorized status of an address.
+     * @param _agent The address whose status is changing
+     * @param _status The new status of _agent
+    */
     function setAuthorized(address _agent, bool _status) public onlyPolicy {
         authorized[_agent] = _status;
+        emit AuthorizationChanged(_agent, _status);
+
     }
 
+    /**
+     * @notice Changes the notifier for the lever.
+     * @param _notifier The new notifier address
+    */
     function setNotifier(address _notifier) public onlyPolicy {
+        emit NotifierChanged(notifier, _notifier);
         notifier = Notifier(_notifier);
     }
 }
