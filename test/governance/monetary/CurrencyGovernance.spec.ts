@@ -36,6 +36,10 @@ const targets = [PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS2]
 const functions = ['0x1234abcd', '0xabcd1234']
 const calldatas = ['0x', '0x1234567890abcdef']
 const description = "here's a description for the proposal"
+const targetsAlt = [PLACEHOLDER_ADDRESS2, PLACEHOLDER_ADDRESS1]
+const functionsAlt = ['0xabeaeacd', '0xabc3d234']
+const calldatasAlt = ['0x1423', '0x123490abcdef']
+const descriptionAlt = "here's another description for the proposal"
 
 const getProposalId = (
   cycle: number,
@@ -52,6 +56,38 @@ const getProposalId = (
     ['uint256', 'bytes32'],
     [cycle, intermediateHash]
   )
+}
+
+interface Vote {
+  proposalId: string
+  score: number
+}
+
+interface CommitHashData {
+  salt: string
+  submitterAddress: string
+  votes: Vote[]
+}
+
+const hash = (data: CommitHashData) => {
+  return ethers.utils.keccak256(
+    ethers.utils.defaultAbiCoder.encode(
+      ['bytes32', 'address', '(bytes32 proposalId, uint256 score)[]'],
+      [data.salt, data.submitterAddress, data.votes]
+    )
+  )
+}
+  
+const getFormattedBallot = (ballot: string[]) => {
+  const ballotObj: Vote[] = ballot.map((proposalId, index, array) => {
+    return { proposalId: proposalId.toLowerCase(), score: array.length - index }
+  })
+  return ballotObj.sort((a, b) => a.proposalId.localeCompare(b.proposalId, 'en'))
+}
+
+const getCommit = (salt: string, submitterAddress: string, ballot: string[]) => {
+  const votes = getFormattedBallot(ballot)
+  return hash({salt, submitterAddress, votes})
 }
 
 describe('CurrencyGovernance', () => {
@@ -481,7 +517,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('must be during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).propose(
               targets,
@@ -759,7 +795,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('only during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).supportProposal(proposalId)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
@@ -923,7 +959,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('only during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).supportProposal(proposalId)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
@@ -948,6 +984,90 @@ describe('CurrencyGovernance', () => {
             ERRORS.CurrencyGovernance.UNSUPPORT_WITH_NO_SUPPORT
           )
         })
+      })
+    })
+  })
+
+  describe('commit stage', () => {
+    const bobProposalId = getProposalId(initialCycle, targets, functions, calldatas)
+    const charlieProposalId = getProposalId(initialCycle, targetsAlt, functionsAlt, calldatasAlt)
+    beforeEach(async () => {
+      await CurrencyGovernance.connect(bob).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
+      await CurrencyGovernance.connect(charlie).propose(
+        targetsAlt,
+        functionsAlt,
+        calldatasAlt,
+        descriptionAlt
+      )
+      await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
+      await time.increase(PROPOSE_STAGE_LENGTH)
+    })
+
+    it('can commit', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await CurrencyGovernance.connect(bob).commit(commitHash)
+    })
+
+    it('commit changes state', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await CurrencyGovernance.connect(bob).commit(commitHash)
+
+      const commitFetched = await CurrencyGovernance.commitments(initialCycle, bob.address)
+      expect(commitFetched).to.be.eq(commitHash)
+    })
+
+    it('commit can be overwritten', async () => {
+      const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot1 = [charlieProposalId, bobProposalId] // accidental wrong ballot
+      const commitHash1 = getCommit(salt1, bob.address, ballot1)
+      await CurrencyGovernance.connect(bob).commit(commitHash1)
+
+      const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot2 = [bobProposalId, charlieProposalId] // correct ballot to overwrite
+      const commitHash2 = getCommit(salt2, bob.address, ballot2)
+      await CurrencyGovernance.connect(bob).commit(commitHash2)
+      const commitFetched = await CurrencyGovernance.commitments(initialCycle, bob.address)
+      expect(commitFetched).to.not.be.eq(commitHash1)
+      expect(commitFetched).to.be.eq(commitHash2)
+    })
+
+    it('emits an event', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await expect(CurrencyGovernance.connect(bob).commit(commitHash))
+        .to.emit(CurrencyGovernance, 'VoteCommitted')
+        .withArgs(bob.address, initialCycle)
+    })
+
+    describe('reverts', () => {
+      it('must be a trustee', async () => {
+        const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot = [bobProposalId, charlieProposalId]
+        const commitHash = getCommit(salt, bob.address, ballot)
+        await expect(
+          CurrencyGovernance.connect(alice).commit(commitHash)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+      })
+
+      it('must be during propose phase', async () => {
+        const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot = [bobProposalId, charlieProposalId]
+        const commitHash = getCommit(salt, bob.address, ballot)
+
+        await time.increase(REVEAL_STAGE_START)
+        await expect(
+          CurrencyGovernance.connect(bob).commit(commitHash)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
       })
     })
   })
