@@ -220,8 +220,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** Fired when a trustee commits their vote.
      * @param trustee the trustee that committed the vote
+     * @param cycle the cycle for the commitment
      */
-    event VoteCommitted(address indexed trustee);
+    event VoteCommitted(address indexed trustee, uint256 indexed cycle);
 
     /** Fired when a vote is revealed, to create a voting history for all participants.
      * Records the voter, as well as all of the parameters of the vote cast.
@@ -539,8 +540,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the structure of the commit is keccak256(abi.encode(_salt, msg.sender, _votes)) where _votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
-        commitments[getCurrentCycle()][msg.sender] = _commitment;
-        emit VoteCommitted(msg.sender);
+        uint256 currentCycle = getCurrentCycle();
+        commitments[currentCycle][msg.sender] = _commitment;
+        emit VoteCommitted(msg.sender, currentCycle);
     }
 
     /** reveal a committed vote
