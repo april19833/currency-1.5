@@ -70,7 +70,7 @@ interface CommitHashData {
 }
 
 const hash = (data: CommitHashData) => {
-  ethers.utils.keccak256(
+  return ethers.utils.keccak256(
     ethers.utils.defaultAbiCoder.encode(
       ['bytes32', 'address', '(bytes32 proposalId, uint256 score)[]'],
       [data.salt, data.submitterAddress, data.votes]
@@ -1008,8 +1008,45 @@ describe('CurrencyGovernance', () => {
       await time.increase(PROPOSE_STAGE_LENGTH)
     })
 
-    it('test', async () => {
-      
+    it('can commit', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await CurrencyGovernance.connect(bob).commit(commitHash)
+    })
+
+    it('commit changes state', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await CurrencyGovernance.connect(bob).commit(commitHash)
+
+      const commitFetched = await CurrencyGovernance.commitments(initialCycle, bob.address)
+      expect(commitFetched).to.be.eq(commitHash)
+    })
+
+    it('commit can be overwritten', async () => {
+      const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot1 = [charlieProposalId, bobProposalId] // accidental wrong ballot
+      const commitHash1 = getCommit(salt1, bob.address, ballot1)
+      await CurrencyGovernance.connect(bob).commit(commitHash1)
+
+      const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot2 = [bobProposalId, charlieProposalId] // correct ballot to overwrite
+      const commitHash2 = getCommit(salt2, bob.address, ballot2)
+      await CurrencyGovernance.connect(bob).commit(commitHash2)
+      const commitFetched = await CurrencyGovernance.commitments(initialCycle, bob.address)
+      expect(commitFetched).to.not.be.eq(commitHash1)
+      expect(commitFetched).to.be.eq(commitHash2)
+    })
+
+    it('emits an event', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, charlieProposalId]
+      const commitHash = getCommit(salt, bob.address, ballot)
+      await expect(CurrencyGovernance.connect(bob).commit(commitHash))
+        .to.emit(CurrencyGovernance, 'VoteCommitted')
+        .withArgs(bob.address, initialCycle)
     })
   })
 })
