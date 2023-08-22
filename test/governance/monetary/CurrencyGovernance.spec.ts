@@ -517,7 +517,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('must be during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).propose(
               targets,
@@ -795,7 +795,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('only during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).supportProposal(proposalId)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
@@ -959,7 +959,7 @@ describe('CurrencyGovernance', () => {
         })
 
         it('only during propose phase', async () => {
-          await time.increase(PROPOSE_STAGE_LENGTH + 1)
+          await time.increase(PROPOSE_STAGE_LENGTH)
           await expect(
             CurrencyGovernance.connect(bob).supportProposal(proposalId)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
@@ -988,7 +988,7 @@ describe('CurrencyGovernance', () => {
     })
   })
 
-  describe.only('commit stage', () => {
+  describe('commit stage', () => {
     const bobProposalId = getProposalId(initialCycle, targets, functions, calldatas)
     const charlieProposalId = getProposalId(initialCycle, targetsAlt, functionsAlt, calldatasAlt)
     beforeEach(async () => {
@@ -1047,6 +1047,28 @@ describe('CurrencyGovernance', () => {
       await expect(CurrencyGovernance.connect(bob).commit(commitHash))
         .to.emit(CurrencyGovernance, 'VoteCommitted')
         .withArgs(bob.address, initialCycle)
+    })
+
+    describe('reverts', () => {
+      it('must be a trustee', async () => {
+        const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot = [bobProposalId, charlieProposalId]
+        const commitHash = getCommit(salt, bob.address, ballot)
+        await expect(
+          CurrencyGovernance.connect(alice).commit(commitHash)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
+      })
+
+      it('must be during propose phase', async () => {
+        const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot = [bobProposalId, charlieProposalId]
+        const commitHash = getCommit(salt, bob.address, ballot)
+
+        await time.increase(REVEAL_STAGE_START)
+        await expect(
+          CurrencyGovernance.connect(bob).commit(commitHash)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+      })
     })
   })
 })
