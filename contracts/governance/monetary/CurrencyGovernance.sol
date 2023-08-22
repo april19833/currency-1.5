@@ -32,26 +32,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
         mapping(address => bool) supporters;
         // to store a link to more information
         string description;
-
-        // // random inflation recipients
-        // uint256 numberOfRecipients;
-        // // amount of weico recieved by each random inflation recipient
-        // uint256 randomInflationReward;
-        // // duration in seconds
-        // uint256 lockupDuration;
-        // // lockup interest as a 9 digit fixed point number
-        // uint256 lockupInterest;
-        // // multiplier for linear inflation as an 18 digit fixed point number
-        // uint256 inflationMultiplier;
-        // // to store a link to more information
-        // string description;
     }
 
     // struct for the array of submitted votes
     struct Vote {
         // the address of the trustee who submitted the proposal being voted for
         // proposals must be scored in ascending order of address to be accepted
-        address proposal;
+        bytes32 proposal;
         // the score of this proposal within the ballot, min recorded score is one
         // to get a score of zero, an item must be unscored
         uint256 score;
@@ -191,18 +178,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _cycle the cycle during which the proposal was submitted
      * @param id the lookup id for the proposal in the proposals mapping
      * is created via a hash of _cycle, _targets, _signatures, and _calldatas; see getProposalHash for more details
-     * param _targets the addresses to be called by the proposal
-     * param _signatures the function signatures to call on each of the targets
-     * param _calldatas the calldata to pass to each of the functions called on each target
      * @param _description a string allowing the trustee to describe the proposal or link to discussions on the proposal
      */
     event ProposalCreation(
         address indexed _trusteeAddress,
         uint256 indexed _cycle,
         bytes32 id,
-        // address[] _targets,
-        // bytes4[] _signatures,
-        // bytes[] _calldatas,
         string _description
     );
 
@@ -237,20 +218,22 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     event ProposalDeleted(bytes32 indexed proposalId, uint256 indexed cycle);
 
-    /** Fired when a trustee casts a vote.
+    /** Fired when a trustee commits their vote.
+     * @param trustee the trustee that committed the vote
      */
-    event VoteCast(address indexed trustee);
+    event VoteCommitted(address indexed trustee);
 
-    /** Fired when a vote is revealed, to create a voting history for all
-     * participants. Records the voter, as well as all of the parameters of
-     * the vote cast.
+    /** Fired when a vote is revealed, to create a voting history for all participants.
+     * Records the voter, as well as all of the parameters of the vote cast.
+     * @param voter the trustee who revealed their vote
+     * @param votes the array of Vote structs that composed the trustee's ballot
      */
     event VoteReveal(address indexed voter, Vote[] votes);
 
-    /** Fired when vote results are computed, creating a permanent record of
-     * vote outcomes.
+    /** Fired when vote results are computed, creating a permanent record of vote outcomes.
+     * @param winner the proposalId for the proposal that won
      */
-    event VoteResult(address indexed winner);
+    event VoteResult(bytes32 indexed winner);
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -553,20 +536,21 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * commitment is salted so that it is a blind vote process
      * calling additional times overwrites previous commitments
      * @param _commitment the hash commit to check against when revealing
+     * the structure of the commit is keccak256(abi.encode(_salt, msg.sender, _votes)) where _votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
         commitments[getCurrentCycle()][msg.sender] = _commitment;
-        emit VoteCast(msg.sender);
+        emit VoteCommitted(msg.sender);
     }
 
     /** reveal a committed vote
      * this function allows trustees to reveal their previously committed votes once the reveal phase is entered
      * in revealing the vote, votes are tallied, a running tally of each proposal's votes is kept in storage during this phase
-     * @param _seed the salt for the commit hash to make the vote secret
-     * @param _votes the array of Vote objects { address proposal, uint256 ranking } that follows our modified Borda scheme. The votes need to be arranged in ascending order of address and ranked via the integers 1 to the number of proposals ranked.
+     * @param _salt the salt for the commit hash to make the vote secret
+     * @param _votes the array of Vote objects { bytes32 proposal, uint256 ranking } that follows our modified Borda scheme. The votes need to be arranged in ascending order of address and ranked via the integers 1 to the number of proposals ranked.
      */
     function reveal(
-        bytes32 _seed,
+        bytes32 _salt,
         Vote[] calldata _votes
     ) external duringRevealPhase {
         uint256 _cycle = getCurrentCycle();
@@ -577,7 +561,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         //     "Invalid vote, no unrevealed commitment exists"
         // );
         // require(
-        //     keccak256(abi.encode(_seed, msg.sender, _votes)) ==
+        //     keccak256(abi.encode(_salt, msg.sender, _votes)) ==
         //         commitments[_cycle][msg.sender],
         //     "Invalid vote, commitment mismatch"
         // );
