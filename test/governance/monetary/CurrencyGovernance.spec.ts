@@ -36,6 +36,10 @@ const targets = [PLACEHOLDER_ADDRESS1, PLACEHOLDER_ADDRESS2]
 const functions = ['0x1234abcd', '0xabcd1234']
 const calldatas = ['0x', '0x1234567890abcdef']
 const description = "here's a description for the proposal"
+const targetsAlt = [PLACEHOLDER_ADDRESS2, PLACEHOLDER_ADDRESS1]
+const functionsAlt = ['0xabeaeacd', '0xabc3d234']
+const calldatasAlt = ['0x1423', '0x123490abcdef']
+const descriptionAlt = "here's another description for the proposal"
 
 const getProposalId = (
   cycle: number,
@@ -52,6 +56,38 @@ const getProposalId = (
     ['uint256', 'bytes32'],
     [cycle, intermediateHash]
   )
+}
+
+interface Vote {
+  proposalId: string
+  score: number
+}
+
+interface CommitHashData {
+  salt: string
+  submitterAddress: string
+  votes: Vote[]
+}
+
+const hash = (data: CommitHashData) => {
+  ethers.utils.keccak256(
+    ethers.utils.defaultAbiCoder.encode(
+      ['bytes32', 'address', '(bytes32 proposalId, uint256 score)[]'],
+      [data.salt, data.submitterAddress, data.votes]
+    )
+  )
+}
+  
+const getFormattedBallot = (ballot: string[]) => {
+  const ballotObj: Vote[] = ballot.map((proposalId, index, array) => {
+    return { proposalId: proposalId.toLowerCase(), score: array.length - index }
+  })
+  return ballotObj.sort((a, b) => a.proposalId.localeCompare(b.proposalId, 'en'))
+}
+
+const getCommit = (salt: string, submitterAddress: string, ballot: string[]) => {
+  const votes = getFormattedBallot(ballot)
+  return hash({salt, submitterAddress, votes})
 }
 
 describe('CurrencyGovernance', () => {
@@ -949,6 +985,31 @@ describe('CurrencyGovernance', () => {
           )
         })
       })
+    })
+  })
+
+  describe.only('commit stage', () => {
+    const bobProposalId = getProposalId(initialCycle, targets, functions, calldatas)
+    const charlieProposalId = getProposalId(initialCycle, targetsAlt, functionsAlt, calldatasAlt)
+    beforeEach(async () => {
+      await CurrencyGovernance.connect(bob).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
+      await CurrencyGovernance.connect(charlie).propose(
+        targetsAlt,
+        functionsAlt,
+        calldatasAlt,
+        descriptionAlt
+      )
+      await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
+      await time.increase(PROPOSE_STAGE_LENGTH)
+    })
+
+    it('test', async () => {
+      
     })
   })
 })
