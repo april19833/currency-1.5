@@ -38,7 +38,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     struct Vote {
         // the address of the trustee who submitted the proposal being voted for
         // proposals must be scored in ascending order of address to be accepted
-        bytes32 proposal;
+        bytes32 proposalId;
         // the score of this proposal within the ballot, min recorded score is one
         // to get a score of zero, an item must be unscored
         uint256 score;
@@ -99,12 +99,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping of cycle to trustee addresses to their hash commits for voting
     mapping(uint256 => mapping(address => bytes32)) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
-    mapping(uint256 => mapping(address => uint256)) public score;
+    mapping(uint256 => mapping(bytes32 => uint256)) public score;
 
     // used to track the leading proposalId during the vote totalling
     bytes32 public leader;
     // used to denote the winning proposalId when the vote is finalized
-    mapping(uint256 => address) public winner;
+    mapping(uint256 => bytes32) public winner;
     // this still doesn't quite work as is
     // need to prevent calling compute much later to try and grab the current leader
 
@@ -585,7 +585,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // for (uint256 i = 0; i < numVotes; ++i) {
         //     Vote memory v = _votes[i];
-        //     address _proposal = v.proposal;
+        //     address _proposal = v.proposalId;
         //     uint256 _score = v.score;
 
         //     require(
