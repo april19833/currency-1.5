@@ -96,8 +96,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
     mapping(bytes32 => MonetaryPolicy) public proposals;
     // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
     mapping(address => uint256) public trusteeSupports;
-    // mapping of cycle to trustee addresses to their hash commits for voting
-    mapping(uint256 => mapping(address => bytes32)) public commitments;
+    // mapping of trustee addresses to their most recent hash commits for voting
+    mapping(address => bytes32) public commitments;
     // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
     mapping(uint256 => mapping(bytes32 => uint256)) public score;
 
@@ -157,6 +157,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // error for when a proposal is supported that has already been supported by the msg.sender
     error DuplicateSupport();
+
+    // error for when a reveal is submitted with no votes
+    error CannotVoteEmpty();
+
+    // error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted
+    error NoCommitFound();
+
+    // error for when the submitted vote doesn't match the stored commit
+    error CommitMismatch();
 
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
@@ -537,12 +546,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * commitment is salted so that it is a blind vote process
      * calling additional times overwrites previous commitments
      * @param _commitment the hash commit to check against when revealing
-     * the structure of the commit is keccak256(abi.encode(_salt, msg.sender, _votes)) where _votes is an array of Vote structs
+     * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
-        uint256 currentCycle = getCurrentCycle();
-        commitments[currentCycle][msg.sender] = _commitment;
-        emit VoteCommitted(msg.sender, currentCycle);
+        commitments[msg.sender] = _commitment;
+        emit VoteCommitted(msg.sender, getCurrentCycle());
     }
 
     /** reveal a committed vote
@@ -556,19 +564,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
         Vote[] calldata _votes
     ) external duringRevealPhase {
         uint256 _cycle = getCurrentCycle();
-        // uint256 numVotes = _votes.length;
-        // require(numVotes > 0, "Invalid vote, cannot vote empty");
-        // require(
-        //     commitments[_cycle][msg.sender] != bytes32(0),
-        //     "Invalid vote, no unrevealed commitment exists"
-        // );
-        // require(
-        //     keccak256(abi.encode(_salt, msg.sender, _votes)) ==
-        //         commitments[_cycle][msg.sender],
-        //     "Invalid vote, commitment mismatch"
-        // );
+        uint256 numVotes = _votes.length;
+        if(numVotes == 0) {
+            revert CannotVoteEmpty();
+        }
+        if(
+            keccak256(abi.encode(_salt, _cycle, msg.sender, _votes)) !=
+                commitments[msg.sender]
+        ) {
+            revert CommitMismatch();
+        }
 
-        // delete commitments[_cycle][msg.sender];
+        // an easy way to prevent double counting votes
+        delete commitments[msg.sender];
 
         // // remove the trustee's default vote
         // // default vote needs to change

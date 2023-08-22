@@ -16,6 +16,8 @@ export const ERRORS = {
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
     PROPOSALID_INVALID: 'NoSuchProposal',
     SUPPORT_WHEN_ALREADY_SUPPORTING: 'DuplicateSupport',
+    EMPTY_VOTES_ARRAY: 'CannotVoteEmpty',
+    COMMIT_REVEAL_MISMATCH: 'CommitMismatch',
   },
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
