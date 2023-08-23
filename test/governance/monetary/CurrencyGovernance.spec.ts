@@ -95,9 +95,13 @@ describe('CurrencyGovernance', () => {
     })
 
     it('emits an event', async () => {
-      expect(await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
-        alice.address
-      )).to.emit(CurrencyGovernance, 'NewTrustedNodes').withArgs(TrustedNodes.address, alice.address)
+      expect(
+        await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+          alice.address
+        )
+      )
+        .to.emit(CurrencyGovernance, 'NewTrustedNodes')
+        .withArgs(TrustedNodes.address, alice.address)
     })
 
     it('is onlyPolicy gated', async () => {

@@ -11,12 +11,15 @@ import "./Lever.sol";
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
 contract Rebase is Lever {
-
     ECO public immutable eco;
 
     event Rebased(uint256 newInflation);
 
-    constructor(Policy policy, Notifier notifier, ECO _eco) Lever(policy, notifier) {
+    constructor(
+        Policy policy,
+        Notifier notifier,
+        ECO _eco
+    ) Lever(policy, notifier) {
         eco = _eco;
     }
 
@@ -27,5 +30,4 @@ contract Rebase is Lever {
 
         emit Rebased(_newMultiplier);
     }
-
 }

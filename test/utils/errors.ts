@@ -21,4 +21,7 @@ export const ERRORS = {
     DUPLICATE_DISTRUST: 'DistrustNotTrusted',
     EMPTY_WITHDRAW: 'WithdrawNoTokens',
   },
+  Lever: {
+    AUTHORIZED_ONLY: 'AuthorizedOnly',
+  },
 }

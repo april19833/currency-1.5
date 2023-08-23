@@ -4,8 +4,7 @@ pragma solidity ^0.8.0;
 import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 
-contract Notifier is Policed{
-
+contract Notifier is Policed {
     struct Transaction {
         address target;
         bytes data;
@@ -20,7 +19,11 @@ contract Notifier is Policed{
 
     error NonLeverCall();
 
-    error TransactiondataLengthMismatch(uint256 targetCount, uint256 dataCount, uint256 gasCostCount);
+    error TransactiondataLengthMismatch(
+        uint256 targetCount,
+        uint256 dataCount,
+        uint256 gasCostCount
+    );
 
     error NoTransactionAtIndex(uint256 index);
 
@@ -29,31 +32,47 @@ contract Notifier is Policed{
     modifier onlyLever() {
         if (msg.sender != lever) {
             revert NonLeverCall();
-        } 
+        }
         _;
     }
 
-    constructor(Policy policy, address _lever, address[] memory targets, bytes[] memory datas, uint256[] memory gasCosts) Policed (policy) {
+    constructor(
+        Policy policy,
+        address _lever,
+        address[] memory targets,
+        bytes[] memory datas,
+        uint256[] memory gasCosts
+    ) Policed(policy) {
         uint256 targetsLength = targets.length;
 
         if (targetsLength != datas.length || targetsLength != gasCosts.length) {
-            revert TransactiondataLengthMismatch(targetsLength, datas.length, gasCosts.length);
+            revert TransactiondataLengthMismatch(
+                targetsLength,
+                datas.length,
+                gasCosts.length
+            );
         }
 
         for (uint256 i = 0; i < targetsLength; i++) {
-            transactions.push(Transaction({target: targets[i], data: datas[i], gasCost: gasCosts[i]}));
+            transactions.push(
+                Transaction({
+                    target: targets[i],
+                    data: datas[i],
+                    gasCost: gasCosts[i]
+                })
+            );
             totalGasCost += gasCosts[i];
         }
         lever = _lever;
     }
 
-    function execute() public onlyLever() {
+    function execute() public onlyLever {
         uint256 txCount = transactions.length;
 
         for (uint256 i = 0; i < txCount; i++) {
             Transaction storage t = transactions[i];
-            (bool success,) = (t.target).call(t.data);
-            
+            (bool success, ) = (t.target).call(t.data);
+
             if (!success) {
                 emit TransactionFailed(i, t.target, t.data);
             }
@@ -64,11 +83,14 @@ contract Notifier is Policed{
         lever = _lever;
     }
 
-    function addTransaction(address _target, bytes memory _data, uint256 _gasCost)
-        external
-        onlyPolicy
-    {
-        transactions.push(Transaction({target: _target, data: _data, gasCost: _gasCost}));
+    function addTransaction(
+        address _target,
+        bytes memory _data,
+        uint256 _gasCost
+    ) external onlyPolicy {
+        transactions.push(
+            Transaction({target: _target, data: _data, gasCost: _gasCost})
+        );
         totalGasCost += _gasCost;
     }
 
