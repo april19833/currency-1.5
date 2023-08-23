@@ -98,12 +98,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
     mapping(address => uint256) public trusteeSupports;
     // mapping of trustee addresses to their most recent hash commits for voting
     mapping(address => bytes32) public commitments;
-    // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
-    mapping(uint256 => mapping(bytes32 => uint256)) public score;
+    // mapping proposalIds to their voting score, accumulated during reveal
+    mapping(bytes32 => uint256) public score;
 
     // used to track the leading proposalId during the vote totalling
     bytes32 public leader;
-    // used to denote the winning proposalId when the vote is finalized
+    // used to denote the winning proposalId for each cycle when the vote is finalized
     mapping(uint256 => bytes32) public winner;
     // this still doesn't quite work as is
     // need to prevent calling compute much later to try and grab the current leader
@@ -578,20 +578,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // an easy way to prevent double counting votes
         delete commitments[msg.sender];
 
-        // // remove the trustee's default vote
-        // // default vote needs to change
-        // // likely changes to default support of the default proposal
-        // score[_cycle][address(0)] -= 1;
+        // record that a trustee voted this cycle
+        // this is used to calculate default votes
+        score[bytes32(_cycle)] += 1;
 
-        // // use memory vars to store and track the changes of the leader
-        // address priorLeader = leader;
-        // address leaderTracker = priorLeader;
-        // uint256 leaderRankTracker = 0;
+        // use memory vars to store and track the changes of the leader
+        bytes32 priorLeader = leader;
+        bytes32 leaderTracker = priorLeader;
+        uint256 leaderRankTracker = 0;
 
-        // /**
-        //  * by setting this to 1, the code can skip checking _score != 0
-        //  */
-        // uint256 scoreDuplicateCheck = 1;
+        /**
+         * by setting this to 1, the code can skip checking _score != 0
+         */
+        uint256 scoreDuplicateCheck = 1;
 
         // for (uint256 i = 0; i < numVotes; ++i) {
         //     Vote memory v = _votes[i];
