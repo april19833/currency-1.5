@@ -73,22 +73,34 @@ interface CommitHashData {
 const hash = (data: CommitHashData) => {
   return ethers.utils.keccak256(
     ethers.utils.defaultAbiCoder.encode(
-      ['bytes32', 'uint256', 'address', '(bytes32 proposalId, uint256 score)[]'],
+      [
+        'bytes32',
+        'uint256',
+        'address',
+        '(bytes32 proposalId, uint256 score)[]',
+      ],
       [data.salt, data.cycle, data.submitterAddress, data.votes]
     )
   )
 }
-  
+
 const getFormattedBallot = (ballot: string[]) => {
   const ballotObj: Vote[] = ballot.map((proposalId, index, array) => {
     return { proposalId: proposalId.toLowerCase(), score: array.length - index }
   })
-  return ballotObj.sort((a, b) => a.proposalId.localeCompare(b.proposalId, 'en'))
+  return ballotObj.sort((a, b) =>
+    a.proposalId.localeCompare(b.proposalId, 'en')
+  )
 }
 
-const getCommit = (salt: string, cycle: number, submitterAddress: string, ballot: string[]) => {
+const getCommit = (
+  salt: string,
+  cycle: number,
+  submitterAddress: string,
+  ballot: string[]
+) => {
   const votes = getFormattedBallot(ballot)
-  return hash({salt, cycle, submitterAddress, votes})
+  return hash({ salt, cycle, submitterAddress, votes })
 }
 
 describe.only('CurrencyGovernance', () => {
@@ -789,7 +801,10 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it('can support the default proposal', async () => {
-        const defaultId = ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle).toHexString(), 32)
+        const defaultId = ethers.utils.hexZeroPad(
+          ethers.BigNumber.from(initialCycle).toHexString(),
+          32
+        )
         await CurrencyGovernance.connect(charlie).supportProposal(defaultId)
       })
 
@@ -831,7 +846,12 @@ describe.only('CurrencyGovernance', () => {
 
         it('supporting a future default proposal', async () => {
           await expect(
-            CurrencyGovernance.connect(charlie).supportProposal(ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle+1).toHexString(), 32))
+            CurrencyGovernance.connect(charlie).supportProposal(
+              ethers.utils.hexZeroPad(
+                ethers.BigNumber.from(initialCycle + 1).toHexString(),
+                32
+              )
+            )
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
         })
       })
@@ -963,13 +983,15 @@ describe.only('CurrencyGovernance', () => {
           .withArgs(proposalId, initialCycle)
       })
 
-      it('doesn\'t emit a ProposalDeleted event for the default proposal', async () => {
-        const defaultId = ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle).toHexString(), 32)
+      it("doesn't emit a ProposalDeleted event for the default proposal", async () => {
+        const defaultId = ethers.utils.hexZeroPad(
+          ethers.BigNumber.from(initialCycle).toHexString(),
+          32
+        )
         await CurrencyGovernance.connect(dave).supportProposal(defaultId)
         await expect(
           CurrencyGovernance.connect(dave).unsupportProposal(defaultId)
-        )
-          .to.not.emit(CurrencyGovernance, 'ProposalDeleted')
+        ).to.not.emit(CurrencyGovernance, 'ProposalDeleted')
       })
 
       describe('reverts', () => {
@@ -1010,8 +1032,18 @@ describe.only('CurrencyGovernance', () => {
   })
 
   describe('commit stage', () => {
-    const bobProposalId = getProposalId(initialCycle, targets, functions, calldatas)
-    const charlieProposalId = getProposalId(initialCycle, targetsAlt, functionsAlt, calldatasAlt)
+    const bobProposalId = getProposalId(
+      initialCycle,
+      targets,
+      functions,
+      calldatas
+    )
+    const charlieProposalId = getProposalId(
+      initialCycle,
+      targetsAlt,
+      functionsAlt,
+      calldatasAlt
+    )
     beforeEach(async () => {
       await CurrencyGovernance.connect(bob).propose(
         targets,
@@ -1074,7 +1106,7 @@ describe.only('CurrencyGovernance', () => {
       // both these cases will be prevented in revealing, not committing
       const randomHash = ethers.utils.randomBytes(32)
       await CurrencyGovernance.connect(bob).commit(randomHash)
-      const zeroBytes = ethers.utils.hexZeroPad('0x',32)
+      const zeroBytes = ethers.utils.hexZeroPad('0x', 32)
       await CurrencyGovernance.connect(charlie).commit(zeroBytes)
     })
 

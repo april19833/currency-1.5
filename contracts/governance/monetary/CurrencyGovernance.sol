@@ -536,7 +536,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         p.supporters[msg.sender] = false;
 
         // deleting the default proposal doesn't do anything, but you don't want to emit the event
-        if (support == 1 && proposalId != bytes32(cycle) ) {
+        if (support == 1 && proposalId != bytes32(cycle)) {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
@@ -571,12 +571,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
     ) external duringRevealPhase {
         uint256 _cycle = getCurrentCycle();
         uint256 numVotes = _votes.length;
-        if(numVotes == 0) {
+        if (numVotes == 0) {
             revert CannotVoteEmpty();
         }
-        if(
+        if (
             keccak256(abi.encode(_salt, _cycle, msg.sender, _votes)) !=
-                commitments[msg.sender]
+            commitments[msg.sender]
         ) {
             revert CommitMismatch();
         }
