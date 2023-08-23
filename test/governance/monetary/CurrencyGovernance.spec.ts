@@ -91,7 +91,7 @@ const getCommit = (salt: string, cycle: number, submitterAddress: string, ballot
   return hash({salt, cycle, submitterAddress, votes})
 }
 
-describe('CurrencyGovernance', () => {
+describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -435,7 +435,7 @@ describe('CurrencyGovernance', () => {
         )
 
         const proposal = await CurrencyGovernance.proposals(proposalId)
-        expect(proposal.id).to.eq(proposalId)
+        expect(proposal.cycle).to.eq(initialCycle)
         expect(proposal.support.toNumber()).to.eq(1)
         expect(proposal.description).to.eq(description)
 
@@ -788,6 +788,11 @@ describe('CurrencyGovernance', () => {
           .withArgs(charlie.address, proposalId, initialCycle)
       })
 
+      it('can support the default proposal', async () => {
+        const defaultId = ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle).toHexString(), 32)
+        await CurrencyGovernance.connect(charlie).supportProposal(defaultId)
+      })
+
       describe('reverts', () => {
         it('trustee only', async () => {
           await expect(
@@ -821,6 +826,12 @@ describe('CurrencyGovernance', () => {
             CurrencyGovernance.connect(charlie).supportProposal(
               ethers.utils.hexZeroPad('0x', 32)
             )
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
+        })
+
+        it('supporting a future default proposal', async () => {
+          await expect(
+            CurrencyGovernance.connect(charlie).supportProposal(ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle+1).toHexString(), 32))
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_INVALID)
         })
       })
@@ -888,7 +899,7 @@ describe('CurrencyGovernance', () => {
         await CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
 
         const proposal = await CurrencyGovernance.proposals(proposalId)
-        expect(proposal.id).to.eq(ethers.utils.hexZeroPad('0x', 32))
+        expect(proposal.cycle.eq(0)).to.be.true
         expect(proposal.support.toNumber()).to.eq(0)
         expect(proposal.description).to.eq('')
 
@@ -952,6 +963,15 @@ describe('CurrencyGovernance', () => {
           .withArgs(proposalId, initialCycle)
       })
 
+      it('doesn\'t emit a ProposalDeleted event for the default proposal', async () => {
+        const defaultId = ethers.utils.hexZeroPad(ethers.BigNumber.from(initialCycle).toHexString(), 32)
+        await CurrencyGovernance.connect(dave).supportProposal(defaultId)
+        await expect(
+          CurrencyGovernance.connect(dave).unsupportProposal(defaultId)
+        )
+          .to.not.emit(CurrencyGovernance, 'ProposalDeleted')
+      })
+
       describe('reverts', () => {
         it('trustee only', async () => {
           await expect(
@@ -989,7 +1009,7 @@ describe('CurrencyGovernance', () => {
     })
   })
 
-  describe.only('commit stage', () => {
+  describe('commit stage', () => {
     const bobProposalId = getProposalId(initialCycle, targets, functions, calldatas)
     const charlieProposalId = getProposalId(initialCycle, targetsAlt, functionsAlt, calldatasAlt)
     beforeEach(async () => {

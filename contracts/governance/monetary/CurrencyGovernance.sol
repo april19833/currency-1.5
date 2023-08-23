@@ -17,8 +17,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
-        // reverse lookup parameter
-        bytes32 id;
+        // the cycle that the proposal was submitted during
+        uint256 cycle;
         // addresses to call if the proposal succeeds
         address[] targets;
         // the function signatures to call
@@ -409,7 +409,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         p.support = 1;
         p.supporters[msg.sender] = true;
 
-        p.id = proposalId;
+        p.cycle = cycle;
         p.targets = targets;
         p.signatures = signatures;
         p.calldatas = calldatas;
@@ -490,11 +490,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert SupportAlreadyGiven();
         }
 
-        trusteeSupports[msg.sender] = getCurrentCycle();
+        uint256 cycle = getCurrentCycle();
+
+        trusteeSupports[msg.sender] = cycle;
 
         MonetaryPolicy storage p = proposals[proposalId];
 
-        if (p.support == 0) {
+        // can support the default proposal even though is doesn't get initialized
+        // the support parameter is bumped by 1 for the default proposal when its vote is counted
+        // cannot support future cycle default proposals
+        if (p.support == 0 && proposalId != bytes32(cycle)) {
             revert NoSuchProposal();
         }
         // actually should never trigger since SupportAlreadyGiven would throw first, still feels safe to check
@@ -530,7 +535,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         p.supporters[msg.sender] = false;
 
-        if (support == 1) {
+        // deleting the default proposal doesn't do anything, but you don't want to emit the event
+        if (support == 1 && proposalId != bytes32(cycle) ) {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
@@ -577,10 +583,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // an easy way to prevent double counting votes
         delete commitments[msg.sender];
-
-        // record that a trustee voted this cycle
-        // this is used to calculate default votes
-        score[bytes32(_cycle)] += 1;
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
