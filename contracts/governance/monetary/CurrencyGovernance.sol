@@ -633,6 +633,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
             // so we don't need to check duplicates, just record the amount
             scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support);
             scores[firstProposalId] += firstScore;
+            // can simplify the leader rank tracker check because we know it's the first element
+            if (scores[firstProposalId] > scores[leaderTracker]) {
+                leaderTracker = firstProposalId;
+                leaderRankTracker = firstScore;
+            }
+
             // make sure to skip the first element in the following loop as it has already been handled
             i++;
         }
