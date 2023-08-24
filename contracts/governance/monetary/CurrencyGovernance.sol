@@ -99,7 +99,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping of trustee addresses to their most recent hash commits for voting
     mapping(address => bytes32) public commitments;
     // mapping proposalIds to their voting score, accumulated during reveal
-    mapping(bytes32 => uint256) public score;
+    mapping(bytes32 => uint256) public scores;
 
     // used to track the leading proposalId during the vote totalling
     bytes32 public leader;
@@ -632,7 +632,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
             // so we don't need to check duplicates, just record the amount
             scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support);
-            score[firstProposalId] += firstScore;
+            scores[firstProposalId] += firstScore;
             // make sure to skip the first element in the following loop as it has already been handled
             i++;
         }
@@ -669,11 +669,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
             scoreDuplicateCheck += duplicateCompare;
 
             // now that the scores have been ensured to respect supporting, the previous leader calculation method is still valid
-            score[_proposalId] += _score;
-            if (score[_proposalId] > score[leaderTracker]) {
+            scores[_proposalId] += _score;
+            if (scores[_proposalId] > scores[leaderTracker]) {
                 leaderTracker = _proposalId;
                 leaderRankTracker = _score;
-            } else if (score[_proposalId] == score[leaderTracker]) {
+            } else if (scores[_proposalId] == scores[leaderTracker]) {
                 if (_score > leaderRankTracker) {
                     leaderTracker = _proposalId;
                     leaderRankTracker = _score;
@@ -692,7 +692,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // only changes the leader if the new leader is of greater score
         if (
             leaderTracker != priorLeader &&
-            score[leaderTracker] > score[priorLeader]
+            scores[leaderTracker] > scores[priorLeader]
         ) {
             leader = leaderTracker;
         }
@@ -733,6 +733,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     //     p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
     //     // sets the default votes for the default proposal
-    //     score[address(0)] = trustedNodes.numTrustees();
+    //     scores[address(0)] = trustedNodes.numTrustees();
     // }
 }
