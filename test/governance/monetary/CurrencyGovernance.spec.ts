@@ -1201,7 +1201,7 @@ describe.only('CurrencyGovernance', () => {
       await time.increase(COMMIT_STAGE_LENGTH)
       
       const votes = await getFormattedBallot(ballot)
-      await CurrencyGovernance.connect(bob).reveal(salt, votes)
+      await CurrencyGovernance.connect(bob).reveal(bob.address, salt, votes)
     })
   })
 })

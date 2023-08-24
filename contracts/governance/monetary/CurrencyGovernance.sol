@@ -582,10 +582,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /** reveal a committed vote
      * this function allows trustees to reveal their previously committed votes once the reveal phase is entered
      * in revealing the vote, votes are tallied, a running tally of each proposal's votes is kept in storage during this phase
+     * @param _trustee the trustee's commit to try and reveal
+     * trustees can obviously reveal their own commits, but this allows for a delegated reveal
+     * the commit structure means that only the correct committed vote can ever be revealed, no matter who reveals it
+     * reveals are attributed to this trustee
      * @param _salt the salt for the commit hash to make the vote secret
      * @param _votes the array of Vote objects { bytes32 proposal, uint256 ranking } that follows our modified Borda scheme. The votes need to be arranged in ascending order of address and ranked via the integers 1 to the number of proposals ranked.
      */
     function reveal(
+        address _trustee,
         bytes32 _salt,
         Vote[] calldata _votes
     ) external duringRevealPhase {
@@ -595,14 +600,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert CannotVoteEmpty();
         }
         if (
-            keccak256(abi.encode(_salt, _cycle, msg.sender, _votes)) !=
-            commitments[msg.sender]
+            keccak256(abi.encode(_salt, _cycle, _trustee, _votes)) !=
+            commitments[_trustee]
         ) {
             revert CommitMismatch();
         }
 
         // an easy way to prevent double counting votes
-        delete commitments[msg.sender];
+        delete commitments[_trustee];
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
@@ -693,9 +698,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         }
 
         // record the trustee's vote for compensation purposes
-        trustedNodes.recordVote(msg.sender);
+        trustedNodes.recordVote(_trustee);
 
-        emit VoteReveal(msg.sender, _cycle, _votes);
+        emit VoteReveal(_trustee, _cycle, _votes);
     }
 
     /** write the result of a cycle's votes to the timelock for execution
