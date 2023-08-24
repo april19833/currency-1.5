@@ -624,10 +624,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if(_support > firstScore) {
                 revert InvalidVoteBadScore(firstV);
             }
-            uint256 duplicateCompare = (2**_support - 1) << (firstScore - _support);
             // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
             // so we don't need to check duplicates, just record the amount
-            scoreDuplicateCheck += duplicateCompare;
+            scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support + 1);
             score[firstProposalId] += firstScore;
             // make sure to skip the first element in the following loop as it has already been handled
             i++;
@@ -654,7 +653,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if(_support > _score) {
                 revert InvalidVoteBadScore(v);
             }
-            uint256 duplicateCompare = (2**_support - 1) << (_score - _support);
+            uint256 duplicateCompare = (2**_support - 1) << (_score - _support + 1);
 
             if(
                 scoreDuplicateCheck & duplicateCompare > 0
