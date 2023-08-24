@@ -1132,4 +1132,10 @@ describe.only('CurrencyGovernance', () => {
       })
     })
   })
+
+  describe('reveal stage', () => {
+    beforeEach(async () => {
+      
+    })
+  })
 })
