@@ -610,9 +610,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 leaderRankTracker = 0;
 
         /**
-         * by setting this to 1, the code can skip checking _score != 0
+         * this variable is a bitmap to check that the scores in the ballot are correct
          */
-        uint256 scoreDuplicateCheck = 1;
+        uint256 scoreDuplicateCheck = 0;
 
         uint256 i = 0;
         Vote calldata firstV = _votes[0];
@@ -626,7 +626,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             }
             // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
             // so we don't need to check duplicates, just record the amount
-            scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support + 1);
+            scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support);
             score[firstProposalId] += firstScore;
             // make sure to skip the first element in the following loop as it has already been handled
             i++;
@@ -653,7 +653,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if(_support > _score) {
                 revert InvalidVoteBadScore(v);
             }
-            uint256 duplicateCompare = (2**_support - 1) << (_score - _support + 1);
+            uint256 duplicateCompare = (2**_support - 1) << (_score - _support);
 
             if(
                 scoreDuplicateCheck & duplicateCompare > 0
