@@ -25,7 +25,7 @@ contract Rebase is Lever {
 
     function execute(uint256 _newMultiplier) public onlyAuthorized {
         // unclear how this works on the eco contract as of now, but ill shoot anyway
-        // eco.rebase(_newMultiplier);
+        eco.rebase(_newMultiplier);
         notifier.execute();
 
         emit Rebased(_newMultiplier);

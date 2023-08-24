@@ -8,10 +8,14 @@ import "../governance/monetary/CurrencyGovernance.sol";
 /** @title An ERC20 token interface to the Eco currency system.
  */
 contract ECO is InflationCheckpoints {
+    bool public rebased;
+
     /** Fired when a proposal with a new inflation multiplier is selected and passed.
      * Used to calculate new values for the rebased token.
      */
     event NewInflationMultiplier(uint256 inflationMultiplier);
+
+    address public rebaser;
 
     /* Current generation of the balance store. */
     uint256 public currentGeneration;
@@ -47,5 +51,9 @@ contract ECO is InflationCheckpoints {
         require(msg.sender == _from, "Caller not authorized to burn tokens");
 
         _burn(_from, _value);
+    }
+
+    function rebase(uint256 _inflationMultiplier) public {
+        rebased = true;
     }
 }
