@@ -66,7 +66,7 @@ contract Notifier is Policed {
         lever = _lever;
     }
 
-    function execute() public onlyLever {
+    function notify() public onlyLever {
         uint256 txCount = transactions.length;
 
         for (uint256 i = 0; i < txCount; i++) {
