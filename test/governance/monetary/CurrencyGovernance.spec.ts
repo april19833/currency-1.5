@@ -1053,7 +1053,7 @@ describe.only('CurrencyGovernance', () => {
     })
   })
 
-  describe.only('commit stage', () => {
+  describe('commit stage', () => {
     const bobProposalId = getProposalId(
       initialCycle,
       targets,
@@ -1155,7 +1155,7 @@ describe.only('CurrencyGovernance', () => {
     })
   })
 
-  describe('reveal stage', () => {
+  describe.only('reveal stage', () => {
     const bobProposalId = getProposalId(
       initialCycle,
       targets,
@@ -1172,6 +1172,7 @@ describe.only('CurrencyGovernance', () => {
       ethers.BigNumber.from(initialCycle).toHexString(),
       32
     )
+
     beforeEach(async () => {
       await CurrencyGovernance.connect(bob).propose(
         targets,
@@ -1189,6 +1190,18 @@ describe.only('CurrencyGovernance', () => {
       await CurrencyGovernance.connect(niko).supportProposal(defaultId)
       await CurrencyGovernance.connect(mila).supportProposal(defaultId)
       await time.increase(PROPOSE_STAGE_LENGTH)
+      // commits will be done in the individual tests for setting different ballots
+    })
+
+    it('can vote and reveal', async () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      const ballot = [bobProposalId, defaultId, charlieProposalId]
+      const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+      await CurrencyGovernance.connect(bob).commit(commitHash)
+      await time.increase(COMMIT_STAGE_LENGTH)
+      
+      const votes = await getFormattedBallot(ballot)
+      await CurrencyGovernance.connect(bob).reveal(salt, votes)
     })
   })
 })
