@@ -1098,7 +1098,7 @@ describe.only('CurrencyGovernance', () => {
       const ballot = [bobProposalId, charlieProposalId]
       const commitHash = getCommit(salt, initialCycle, bob.address, ballot)
       await expect(CurrencyGovernance.connect(bob).commit(commitHash))
-        .to.emit(CurrencyGovernance, 'VoteCommitted')
+        .to.emit(CurrencyGovernance, 'VoteCommit')
         .withArgs(bob.address, initialCycle)
     })
 
@@ -1135,7 +1135,7 @@ describe.only('CurrencyGovernance', () => {
 
   describe('reveal stage', () => {
     beforeEach(async () => {
-      
+
     })
   })
 })

@@ -250,7 +250,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param trustee the trustee that committed the vote
      * @param cycle the cycle for the commitment
      */
-    event VoteCommitted(address indexed trustee, uint256 indexed cycle);
+    event VoteCommit(address indexed trustee, uint256 indexed cycle);
 
     /** Fired when a vote is revealed, to create a voting history for all participants.
      * Records the voter, as well as all of the parameters of the vote cast.
@@ -576,7 +576,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
         commitments[msg.sender] = _commitment;
-        emit VoteCommitted(msg.sender, getCurrentCycle());
+        emit VoteCommit(msg.sender, getCurrentCycle());
     }
 
     /** reveal a committed vote
