@@ -103,13 +103,13 @@ describe.only('CurrencyGovernance', () => {
   const getFormattedBallot = async (_ballot: string[]) => {
     const ballot = _ballot.slice().reverse() // sort ballot from least voted to most voted
     const cycle = (await CurrencyGovernance.getCurrentCycle()).toHexString()
-    const defaultId = ethers.utils.hexZeroPad(cycle, 32)
+    const defaultProposalId = ethers.utils.hexZeroPad(cycle, 32)
 
     const supports = (await Promise.all(ballot.map( (proposalId) => {
       return CurrencyGovernance.proposals(proposalId)
     }))).map((proposal, index) => {
       let support
-      if (ballot[index] == defaultId) {
+      if (ballot[index] == defaultProposalId) {
         support = proposal.support.toNumber() + 1
       } else {
         support = proposal.support.toNumber()
@@ -823,11 +823,11 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it('can support the default proposal', async () => {
-        const defaultId = ethers.utils.hexZeroPad(
+        const defaultProposalId = ethers.utils.hexZeroPad(
           ethers.BigNumber.from(initialCycle).toHexString(),
           32
         )
-        await CurrencyGovernance.connect(charlie).supportProposal(defaultId)
+        await CurrencyGovernance.connect(charlie).supportProposal(defaultProposalId)
       })
 
       describe('reverts', () => {
@@ -1006,13 +1006,13 @@ describe.only('CurrencyGovernance', () => {
       })
 
       it("doesn't emit a ProposalDeleted event for the default proposal", async () => {
-        const defaultId = ethers.utils.hexZeroPad(
+        const defaultProposalId = ethers.utils.hexZeroPad(
           ethers.BigNumber.from(initialCycle).toHexString(),
           32
         )
-        await CurrencyGovernance.connect(dave).supportProposal(defaultId)
+        await CurrencyGovernance.connect(dave).supportProposal(defaultProposalId)
         await expect(
-          CurrencyGovernance.connect(dave).unsupportProposal(defaultId)
+          CurrencyGovernance.connect(dave).unsupportProposal(defaultProposalId)
         ).to.not.emit(CurrencyGovernance, 'ProposalDeleted')
       })
 
@@ -1168,7 +1168,7 @@ describe.only('CurrencyGovernance', () => {
       functionsAlt,
       calldatasAlt
     )
-    const defaultId = ethers.utils.hexZeroPad(
+    const defaultProposalId = ethers.utils.hexZeroPad(
       ethers.BigNumber.from(initialCycle).toHexString(),
       32
     )
@@ -1187,21 +1187,211 @@ describe.only('CurrencyGovernance', () => {
         descriptionAlt
       )
       await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
-      await CurrencyGovernance.connect(niko).supportProposal(defaultId)
-      await CurrencyGovernance.connect(mila).supportProposal(defaultId)
+      await CurrencyGovernance.connect(niko).supportProposal(defaultProposalId)
       await time.increase(PROPOSE_STAGE_LENGTH)
       // commits will be done in the individual tests for setting different ballots
     })
 
-    it('can vote and reveal', async () => {
+    describe('happy path voting', () => {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
-      const ballot = [bobProposalId, defaultId, charlieProposalId]
-      const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
-      await CurrencyGovernance.connect(bob).commit(commitHash)
-      await time.increase(COMMIT_STAGE_LENGTH)
-      
-      const votes = await getFormattedBallot(ballot)
-      await CurrencyGovernance.connect(bob).reveal(bob.address, salt, votes)
+      // creates scores of charlie:5, default:3, bob:1
+      const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+      let votes: Vote[]
+
+
+      beforeEach(async () => {
+        votes = await getFormattedBallot(ballot)
+        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+      })
+        
+      it('can reveal', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.connect(charlie).reveal(charlie.address, salt, votes)
+      })
+        
+      it('anyone with the salt and votes can reveal', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.connect(alice).reveal(charlie.address, salt, votes)
+      })
+
+      it('reveal emits an event', async () => {
+        // hardhat withArgs for chai is bugged to not use deep equals
+        // you can use this parameterization of the vote object
+        // const eventVotes = votes.map((vote) => {const intermediate = [vote.proposalId, ethers.BigNumber.from(vote.score)]; intermediate['proposalId'] = vote.proposalId; intermediate['score'] = ethers.BigNumber.from(vote.score); return intermediate})
+        // and then go to this line and change the `.equal` to `.eql` (a deep equals comparison)
+        // at assertArgsArraysEqual (node_modules/@ethereum-waffle/chai/dist/cjs/matchers/emit.js:48:57)
+        // and the uncommented code will work
+        // until hardhat fixes this we will not be able to test this (tracked here https://github.com/NomicFoundation/hardhat/issues/3833)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(CurrencyGovernance.connect(charlie).reveal(charlie.address, salt, votes))
+          .to.emit(CurrencyGovernance, 'VoteReveal')
+          // .withArgs(charlie.address, initialCycle, eventVotes)
+      })
+        
+      it('reveal correctly changes state', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        votes.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(charlieProposalId)
+      })
+
+      it('second reveal can change the leader to the default proposal', async () => {
+        // adds votes of default: 5, bob:4, charlie:2
+        // total scores after both votes is default:8, charlie:7, bob:5
+        const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot2 = [defaultProposalId, bobProposalId, charlieProposalId]
+        const votes2 = await getFormattedBallot(ballot2)
+        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        await CurrencyGovernance.connect(niko).commit(commitHash2)
+
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        await CurrencyGovernance.reveal(niko.address, salt2, votes2)
+
+        votes.sort((a, b) => {return b.score - a.score})
+        votes2.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score + votes2[1].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(defaultProposalId)
+      })
+
+      it('second reveal that ties score, doesn\'t change the leader', async () => {
+        // adds votes of bob: 5, default:4, charlie:2
+        // total scores after first two votes is charlie:7, default:7, bob:6
+        // this ties leaders and charlie prevails
+        const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot2 = [bobProposalId, defaultProposalId, charlieProposalId]
+        const votes2 = await getFormattedBallot(ballot2)
+        const commitHash2 = await getCommit(salt2, initialCycle, bob.address, ballot2)
+        await CurrencyGovernance.connect(bob).commit(commitHash2)
+        // adds votes of bob: 3, charlie:2
+        // total scores after all votes is charlie:9, bob:9, default:6
+        // bob's vote wins the internal score calculation as his vote is higher in the vote that ties
+        // however scores are equal after the voting so charlie remains the leader
+        const salt3 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot3 = [bobProposalId, charlieProposalId]
+        const votes3 = await getFormattedBallot(ballot3)
+        const commitHash3 = await getCommit(salt3, initialCycle, mila.address, ballot3)
+        await CurrencyGovernance.connect(mila).commit(commitHash3)
+
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        await CurrencyGovernance.reveal(bob.address, salt2, votes2)
+        await CurrencyGovernance.reveal(mila.address, salt3, votes3)
+
+        votes.sort((a, b) => {return b.score - a.score})
+        votes2.sort((a, b) => {return b.score - a.score})
+        votes3.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score + votes3[1].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score + votes2[1].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score + votes2[0].score + votes3[0].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(charlieProposalId)
+      })
+
+      it('ties with the default proposal work as expected', async () => {
+        // adds votes of default: 5, charlie:3, bob:1
+        // total scores after both votes is charlie:8, default:8, bob:2
+        // however charlie was leader first, so he previals
+        const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot2 = [defaultProposalId, charlieProposalId, bobProposalId]
+        const votes2 = await getFormattedBallot(ballot2)
+        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        await CurrencyGovernance.connect(niko).commit(commitHash2)
+
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        await CurrencyGovernance.reveal(niko.address, salt2, votes2)
+
+        votes.sort((a, b) => {return b.score - a.score})
+        votes2.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score + votes2[1].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score + votes2[2].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(charlieProposalId)
+      })
+
+      it('order of reveals matter in case of a tie', async () => {
+        // same as previous test
+        // adds votes of default: 5, charlie:3, bob:1
+        // total scores after both votes is charlie:8, default:8, bob:2
+        // by revealing niko's vote first, the default proposal wins instead
+        const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot2 = [defaultProposalId, charlieProposalId, bobProposalId]
+        const votes2 = await getFormattedBallot(ballot2)
+        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        await CurrencyGovernance.connect(niko).commit(commitHash2)
+
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(niko.address, salt2, votes2)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+
+        votes.sort((a, b) => {return b.score - a.score})
+        votes2.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score + votes2[1].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score + votes2[2].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(defaultProposalId)
+      })
+
+      it('reveal that creates a tie where the ballot order complicates things is handeled correctly', async () => {
+        // adds votes of bob: 5, default:4, charlie:2
+        // total scores after first two votes is charlie:7, default:7, bob:6
+        // however, even if this vote reveals first, charlie still wins
+        // it doesn't matter that default was a higher subleader on the previous vote
+        // because the vote that ties has charlie getting a higher score than the default and neither were leader before, charlie wins
+        const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot2 = [bobProposalId, defaultProposalId, charlieProposalId]
+        const votes2 = await getFormattedBallot(ballot2)
+        const commitHash2 = await getCommit(salt2, initialCycle, bob.address, ballot2)
+        await CurrencyGovernance.connect(bob).commit(commitHash2)
+
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await CurrencyGovernance.reveal(bob.address, salt2, votes2)
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+
+        votes.sort((a, b) => {return b.score - a.score})
+        votes2.sort((a, b) => {return b.score - a.score})
+        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score)
+        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        expect(defaultProposalScore).to.eq(votes[1].score + votes2[1].score)
+        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        expect(bobProposalScore).to.eq(votes[2].score + votes2[0].score)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(charlieProposalId)
+      })
     })
+    
   })
 })
