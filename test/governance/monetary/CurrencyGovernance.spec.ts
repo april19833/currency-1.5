@@ -1120,7 +1120,7 @@ describe.only('CurrencyGovernance', () => {
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
       })
 
-      it('must be during propose phase', async () => {
+      it('must be during commit phase', async () => {
         const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot = [bobProposalId, charlieProposalId]
         const commitHash = getCommit(salt, initialCycle, bob.address, ballot)
