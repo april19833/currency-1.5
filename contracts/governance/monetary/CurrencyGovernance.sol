@@ -258,7 +258,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param cycle the cycle when the vote was cast and counted
      * @param votes the array of Vote structs that composed the trustee's ballot
      */
-    event VoteReveal(address indexed voter, uint256 indexed cycle, Vote[] votes);
+    event VoteReveal(
+        address indexed voter,
+        uint256 indexed cycle,
+        Vote[] votes
+    );
 
     /** Fired when vote results are computed, creating a permanent record of vote outcomes.
      * @param winner the proposalId for the proposal that won
@@ -626,12 +630,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
         if (firstProposalId == bytes32(_cycle)) {
             uint256 firstScore = firstV.score;
             uint256 _support = proposals[firstProposalId].support + 1; // default proposal has one more support than recorded in storage
-            if(_support > firstScore) {
+            if (_support > firstScore) {
                 revert InvalidVoteBadScore(firstV);
             }
             // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
             // so we don't need to check duplicates, just record the amount
-            scoreDuplicateCheck += (2**_support - 1) << (firstScore - _support);
+            scoreDuplicateCheck +=
+                (2 ** _support - 1) <<
+                (firstScore - _support);
             scores[firstProposalId] += firstScore;
             // can simplify the leader rank tracker check because we know it's the first element
             if (scores[firstProposalId] >= scores[leaderTracker]) {
@@ -649,26 +655,21 @@ contract CurrencyGovernance is Policed, TimeUtils {
             uint256 _score = v.score;
             MonetaryPolicy storage p = proposals[_proposalId];
 
-            if(
-                p.cycle != _cycle
-            ) {
+            if (p.cycle != _cycle) {
                 revert InvalidVoteBadProposalId(v);
             }
-            if(
-                i != 0 && _votes[i - 1].proposalId >= _proposalId
-            ) {
+            if (i != 0 && _votes[i - 1].proposalId >= _proposalId) {
                 revert InvalidVoteBadProposalOrder(_votes[i - 1], v);
             }
 
             uint256 _support = p.support;
-            if(_support > _score) {
+            if (_support > _score) {
                 revert InvalidVoteBadScore(v);
             }
-            uint256 duplicateCompare = (2**_support - 1) << (_score - _support);
+            uint256 duplicateCompare = (2 ** _support - 1) <<
+                (_score - _support);
 
-            if(
-                scoreDuplicateCheck & duplicateCompare > 0
-            ) {
+            if (scoreDuplicateCheck & duplicateCompare > 0) {
                 revert InvalidVoteBadScore(v);
             }
 
@@ -690,10 +691,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // this check afterward is very important to understand
         // it makes sure that the votes have been sequentially increasing and have been respecting the support values of each proposal
         // the only way this check succeeds is if scoreDuplicate check is of the form 1111111111etc in its binary representation after all the votes from the ballot are in
-        if(scoreDuplicateCheck & (scoreDuplicateCheck + 1) > 0) {
+        if (scoreDuplicateCheck & (scoreDuplicateCheck + 1) > 0) {
             revert InvalidVotesOutOfBounds();
         }
-
 
         // only changes the leader if the new leader is of greater score
         if (

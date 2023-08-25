@@ -84,7 +84,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe.only('CurrencyGovernance', () => {
+describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -93,7 +93,8 @@ describe.only('CurrencyGovernance', () => {
   let mila: SignerWithAddress
   let policyImpersonater: SignerWithAddress
   before(async () => {
-    ;[policyImpersonater, alice, bob, charlie, dave, niko, mila] = await ethers.getSigners()
+    ;[policyImpersonater, alice, bob, charlie, dave, niko, mila] =
+      await ethers.getSigners()
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
@@ -105,11 +106,15 @@ describe.only('CurrencyGovernance', () => {
     const cycle = (await CurrencyGovernance.getCurrentCycle()).toHexString()
     const defaultProposalId = ethers.utils.hexZeroPad(cycle, 32)
 
-    const supports = (await Promise.all(ballot.map( (proposalId) => {
-      return CurrencyGovernance.proposals(proposalId)
-    }))).map((proposal, index) => {
+    const supports = (
+      await Promise.all(
+        ballot.map((proposalId) => {
+          return CurrencyGovernance.proposals(proposalId)
+        })
+      )
+    ).map((proposal, index) => {
       let support
-      if (ballot[index] == defaultProposalId) {
+      if (ballot[index] === defaultProposalId) {
         support = proposal.support.toNumber() + 1
       } else {
         support = proposal.support.toNumber()
@@ -121,7 +126,8 @@ describe.only('CurrencyGovernance', () => {
     const ballotObj: Vote[] = ballot.map((proposalId, index) => {
       scoreAcc += supports[index]
       return {
-        proposalId: proposalId.toLowerCase(), score: scoreAcc
+        proposalId: proposalId.toLowerCase(),
+        score: scoreAcc,
       }
     })
 
@@ -129,7 +135,7 @@ describe.only('CurrencyGovernance', () => {
       a.proposalId.localeCompare(b.proposalId, 'en')
     )
   }
-  
+
   const getCommit = async (
     salt: string,
     cycle: number,
@@ -827,7 +833,9 @@ describe.only('CurrencyGovernance', () => {
           ethers.BigNumber.from(initialCycle).toHexString(),
           32
         )
-        await CurrencyGovernance.connect(charlie).supportProposal(defaultProposalId)
+        await CurrencyGovernance.connect(charlie).supportProposal(
+          defaultProposalId
+        )
       })
 
       describe('reverts', () => {
@@ -1010,7 +1018,9 @@ describe.only('CurrencyGovernance', () => {
           ethers.BigNumber.from(initialCycle).toHexString(),
           32
         )
-        await CurrencyGovernance.connect(dave).supportProposal(defaultProposalId)
+        await CurrencyGovernance.connect(dave).supportProposal(
+          defaultProposalId
+        )
         await expect(
           CurrencyGovernance.connect(dave).unsupportProposal(defaultProposalId)
         ).to.not.emit(CurrencyGovernance, 'ProposalDeleted')
@@ -1086,14 +1096,24 @@ describe.only('CurrencyGovernance', () => {
     it('can commit', async () => {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
       const ballot = [bobProposalId, charlieProposalId]
-      const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+      const commitHash = await getCommit(
+        salt,
+        initialCycle,
+        bob.address,
+        ballot
+      )
       await CurrencyGovernance.connect(bob).commit(commitHash)
     })
 
     it('commit changes state', async () => {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
       const ballot = [bobProposalId, charlieProposalId]
-      const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+      const commitHash = await getCommit(
+        salt,
+        initialCycle,
+        bob.address,
+        ballot
+      )
       await CurrencyGovernance.connect(bob).commit(commitHash)
 
       const commitFetched = await CurrencyGovernance.commitments(bob.address)
@@ -1103,12 +1123,22 @@ describe.only('CurrencyGovernance', () => {
     it('commit can be overwritten', async () => {
       const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
       const ballot1 = [charlieProposalId, bobProposalId] // accidental wrong ballot
-      const commitHash1 = await getCommit(salt1, initialCycle, bob.address, ballot1)
+      const commitHash1 = await getCommit(
+        salt1,
+        initialCycle,
+        bob.address,
+        ballot1
+      )
       await CurrencyGovernance.connect(bob).commit(commitHash1)
 
       const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
       const ballot2 = [bobProposalId, charlieProposalId] // correct ballot to overwrite
-      const commitHash2 = await getCommit(salt2, initialCycle, bob.address, ballot2)
+      const commitHash2 = await getCommit(
+        salt2,
+        initialCycle,
+        bob.address,
+        ballot2
+      )
       await CurrencyGovernance.connect(bob).commit(commitHash2)
       const commitFetched = await CurrencyGovernance.commitments(bob.address)
       expect(commitFetched).to.not.be.eq(commitHash1)
@@ -1118,7 +1148,12 @@ describe.only('CurrencyGovernance', () => {
     it('emits an event', async () => {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
       const ballot = [bobProposalId, charlieProposalId]
-      const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+      const commitHash = await getCommit(
+        salt,
+        initialCycle,
+        bob.address,
+        ballot
+      )
       await expect(CurrencyGovernance.connect(bob).commit(commitHash))
         .to.emit(CurrencyGovernance, 'VoteCommit')
         .withArgs(bob.address, initialCycle)
@@ -1136,7 +1171,12 @@ describe.only('CurrencyGovernance', () => {
       it('must be a trustee', async () => {
         const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot = [bobProposalId, charlieProposalId]
-        const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          bob.address,
+          ballot
+        )
         await expect(
           CurrencyGovernance.connect(alice).commit(commitHash)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.TRUSTEE_ONLY)
@@ -1145,7 +1185,12 @@ describe.only('CurrencyGovernance', () => {
       it('must be during commit phase', async () => {
         const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot = [bobProposalId, charlieProposalId]
-        const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          bob.address,
+          ballot
+        )
 
         await time.increase(REVEAL_STAGE_START)
         await expect(
@@ -1155,7 +1200,7 @@ describe.only('CurrencyGovernance', () => {
     })
   })
 
-  describe.only('reveal stage', () => {
+  describe('reveal stage', () => {
     const bobProposalId = getProposalId(
       initialCycle,
       targets,
@@ -1198,21 +1243,33 @@ describe.only('CurrencyGovernance', () => {
       const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
       let votes: Vote[]
 
-
       beforeEach(async () => {
         votes = await getFormattedBallot(ballot)
-        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          charlie.address,
+          ballot
+        )
         await CurrencyGovernance.connect(charlie).commit(commitHash)
       })
-        
+
       it('can reveal', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
-        await CurrencyGovernance.connect(charlie).reveal(charlie.address, salt, votes)
+        await CurrencyGovernance.connect(charlie).reveal(
+          charlie.address,
+          salt,
+          votes
+        )
       })
-        
+
       it('anyone with the salt and votes can reveal', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
-        await CurrencyGovernance.connect(alice).reveal(charlie.address, salt, votes)
+        await CurrencyGovernance.connect(alice).reveal(
+          charlie.address,
+          salt,
+          votes
+        )
       })
 
       it('reveal emits an event', async () => {
@@ -1224,24 +1281,39 @@ describe.only('CurrencyGovernance', () => {
         // and the uncommented code will work
         // until hardhat fixes this we will not be able to test this (tracked here https://github.com/NomicFoundation/hardhat/issues/3833)
         await time.increase(COMMIT_STAGE_LENGTH)
-        await expect(CurrencyGovernance.connect(charlie).reveal(charlie.address, salt, votes))
-          .to.emit(CurrencyGovernance, 'VoteReveal')
-          // .withArgs(charlie.address, initialCycle, eventVotes)
+        await expect(
+          CurrencyGovernance.connect(charlie).reveal(
+            charlie.address,
+            salt,
+            votes
+          )
+        ).to.emit(CurrencyGovernance, 'VoteReveal')
+        // .withArgs(charlie.address, initialCycle, eventVotes)
       })
-        
+
       it('reveal correctly changes state', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
         await CurrencyGovernance.reveal(charlie.address, salt, votes)
-        votes.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
         expect(charlieProposalScore).to.eq(votes[0].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score)
 
         // charlie's commit is deleted
-        const charlieCommit = await CurrencyGovernance.commitments(charlie.address)
+        const charlieCommit = await CurrencyGovernance.commitments(
+          charlie.address
+        )
         expect(charlieCommit).to.eq(ethers.utils.hexZeroPad('0x', 32))
 
         const leader = await CurrencyGovernance.leader()
@@ -1254,34 +1326,54 @@ describe.only('CurrencyGovernance', () => {
         const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot2 = [defaultProposalId, bobProposalId, charlieProposalId]
         const votes2 = await getFormattedBallot(ballot2)
-        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        const commitHash2 = await getCommit(
+          salt2,
+          initialCycle,
+          niko.address,
+          ballot2
+        )
         await CurrencyGovernance.connect(niko).commit(commitHash2)
 
         await time.increase(COMMIT_STAGE_LENGTH)
         await CurrencyGovernance.reveal(charlie.address, salt, votes)
         await CurrencyGovernance.reveal(niko.address, salt2, votes2)
 
-        votes.sort((a, b) => {return b.score - a.score})
-        votes2.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes2.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
         expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score + votes2[1].score)
 
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(defaultProposalId)
       })
 
-      it('second reveal that ties score, doesn\'t change the leader', async () => {
+      it("second reveal that ties score, doesn't change the leader", async () => {
         // adds votes of bob: 5, default:4, charlie:2
         // total scores after first two votes is charlie:7, default:7, bob:6
         // this ties leaders and charlie prevails
         const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot2 = [bobProposalId, defaultProposalId, charlieProposalId]
         const votes2 = await getFormattedBallot(ballot2)
-        const commitHash2 = await getCommit(salt2, initialCycle, bob.address, ballot2)
+        const commitHash2 = await getCommit(
+          salt2,
+          initialCycle,
+          bob.address,
+          ballot2
+        )
         await CurrencyGovernance.connect(bob).commit(commitHash2)
         // adds votes of bob: 3, charlie:2
         // total scores after all votes is charlie:9, bob:9, default:6
@@ -1290,7 +1382,12 @@ describe.only('CurrencyGovernance', () => {
         const salt3 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot3 = [bobProposalId, charlieProposalId]
         const votes3 = await getFormattedBallot(ballot3)
-        const commitHash3 = await getCommit(salt3, initialCycle, mila.address, ballot3)
+        const commitHash3 = await getCommit(
+          salt3,
+          initialCycle,
+          mila.address,
+          ballot3
+        )
         await CurrencyGovernance.connect(mila).commit(commitHash3)
 
         await time.increase(COMMIT_STAGE_LENGTH)
@@ -1298,15 +1395,31 @@ describe.only('CurrencyGovernance', () => {
         await CurrencyGovernance.reveal(bob.address, salt2, votes2)
         await CurrencyGovernance.reveal(mila.address, salt3, votes3)
 
-        votes.sort((a, b) => {return b.score - a.score})
-        votes2.sort((a, b) => {return b.score - a.score})
-        votes3.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
-        expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score + votes3[1].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes2.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes3.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
+        expect(charlieProposalScore).to.eq(
+          votes[0].score + votes2[2].score + votes3[1].score
+        )
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score + votes2[1].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
-        expect(bobProposalScore).to.eq(votes[2].score + votes2[0].score + votes3[0].score)
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
+        expect(bobProposalScore).to.eq(
+          votes[2].score + votes2[0].score + votes3[0].score
+        )
 
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(charlieProposalId)
@@ -1319,20 +1432,35 @@ describe.only('CurrencyGovernance', () => {
         const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot2 = [defaultProposalId, charlieProposalId, bobProposalId]
         const votes2 = await getFormattedBallot(ballot2)
-        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        const commitHash2 = await getCommit(
+          salt2,
+          initialCycle,
+          niko.address,
+          ballot2
+        )
         await CurrencyGovernance.connect(niko).commit(commitHash2)
 
         await time.increase(COMMIT_STAGE_LENGTH)
         await CurrencyGovernance.reveal(charlie.address, salt, votes)
         await CurrencyGovernance.reveal(niko.address, salt2, votes2)
 
-        votes.sort((a, b) => {return b.score - a.score})
-        votes2.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes2.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
         expect(charlieProposalScore).to.eq(votes[0].score + votes2[1].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score + votes2[2].score)
 
         const leader = await CurrencyGovernance.leader()
@@ -1347,20 +1475,35 @@ describe.only('CurrencyGovernance', () => {
         const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot2 = [defaultProposalId, charlieProposalId, bobProposalId]
         const votes2 = await getFormattedBallot(ballot2)
-        const commitHash2 = await getCommit(salt2, initialCycle, niko.address, ballot2)
+        const commitHash2 = await getCommit(
+          salt2,
+          initialCycle,
+          niko.address,
+          ballot2
+        )
         await CurrencyGovernance.connect(niko).commit(commitHash2)
 
         await time.increase(COMMIT_STAGE_LENGTH)
         await CurrencyGovernance.reveal(niko.address, salt2, votes2)
         await CurrencyGovernance.reveal(charlie.address, salt, votes)
 
-        votes.sort((a, b) => {return b.score - a.score})
-        votes2.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes2.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
         expect(charlieProposalScore).to.eq(votes[0].score + votes2[1].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score + votes2[0].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score + votes2[2].score)
 
         const leader = await CurrencyGovernance.leader()
@@ -1376,34 +1519,54 @@ describe.only('CurrencyGovernance', () => {
         const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
         const ballot2 = [bobProposalId, defaultProposalId, charlieProposalId]
         const votes2 = await getFormattedBallot(ballot2)
-        const commitHash2 = await getCommit(salt2, initialCycle, bob.address, ballot2)
+        const commitHash2 = await getCommit(
+          salt2,
+          initialCycle,
+          bob.address,
+          ballot2
+        )
         await CurrencyGovernance.connect(bob).commit(commitHash2)
 
         await time.increase(COMMIT_STAGE_LENGTH)
         await CurrencyGovernance.reveal(bob.address, salt2, votes2)
         await CurrencyGovernance.reveal(charlie.address, salt, votes)
 
-        votes.sort((a, b) => {return b.score - a.score})
-        votes2.sort((a, b) => {return b.score - a.score})
-        const charlieProposalScore = (await CurrencyGovernance.scores(charlieProposalId)).toNumber()
+        votes.sort((a, b) => {
+          return b.score - a.score
+        })
+        votes2.sort((a, b) => {
+          return b.score - a.score
+        })
+        const charlieProposalScore = (
+          await CurrencyGovernance.scores(charlieProposalId)
+        ).toNumber()
         expect(charlieProposalScore).to.eq(votes[0].score + votes2[2].score)
-        const defaultProposalScore = (await CurrencyGovernance.scores(defaultProposalId)).toNumber()
+        const defaultProposalScore = (
+          await CurrencyGovernance.scores(defaultProposalId)
+        ).toNumber()
         expect(defaultProposalScore).to.eq(votes[1].score + votes2[1].score)
-        const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
+        const bobProposalScore = (
+          await CurrencyGovernance.scores(bobProposalId)
+        ).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score + votes2[0].score)
 
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(charlieProposalId)
       })
     })
-    
-    describe.only('reverts', () => {
+
+    describe('reverts', () => {
       const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
 
       it('only during propose phase', async () => {
         const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
         const votes = await getFormattedBallot(ballot)
-        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          charlie.address,
+          ballot
+        )
         await CurrencyGovernance.connect(charlie).commit(commitHash)
         await time.increase(COMMIT_STAGE_LENGTH + REVEAL_STAGE_LENGTH)
         await expect(
@@ -1411,10 +1574,15 @@ describe.only('CurrencyGovernance', () => {
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
       })
 
-      it('can\'t vote empty', async () => {
+      it("can't vote empty", async () => {
         const ballot: string[] = []
         const votes = await getFormattedBallot(ballot)
-        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          charlie.address,
+          ballot
+        )
         await CurrencyGovernance.connect(charlie).commit(commitHash)
         await time.increase(COMMIT_STAGE_LENGTH)
         await expect(
@@ -1426,7 +1594,12 @@ describe.only('CurrencyGovernance', () => {
         it('wrong salt', async () => {
           const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
           const votes = await getFormattedBallot(ballot)
-          const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+          const commitHash = await getCommit(
+            salt,
+            initialCycle,
+            charlie.address,
+            ballot
+          )
           await CurrencyGovernance.connect(charlie).commit(commitHash)
           await time.increase(COMMIT_STAGE_LENGTH)
 
@@ -1439,7 +1612,12 @@ describe.only('CurrencyGovernance', () => {
         it('wrong cycle', async () => {
           const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
           const votes = await getFormattedBallot(ballot)
-          const commitHash = await getCommit(salt, initialCycle+1, charlie.address, ballot)
+          const commitHash = await getCommit(
+            salt,
+            initialCycle + 1,
+            charlie.address,
+            ballot
+          )
           await CurrencyGovernance.connect(charlie).commit(commitHash)
           await time.increase(COMMIT_STAGE_LENGTH)
 
@@ -1451,7 +1629,12 @@ describe.only('CurrencyGovernance', () => {
         it('wrong trustee', async () => {
           const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
           const votes = await getFormattedBallot(ballot)
-          const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+          const commitHash = await getCommit(
+            salt,
+            initialCycle,
+            bob.address,
+            ballot
+          )
           await CurrencyGovernance.connect(charlie).commit(commitHash)
           await time.increase(COMMIT_STAGE_LENGTH)
 
@@ -1462,11 +1645,20 @@ describe.only('CurrencyGovernance', () => {
 
         it('wrong votes', async () => {
           const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
-          const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+          const commitHash = await getCommit(
+            salt,
+            initialCycle,
+            charlie.address,
+            ballot
+          )
           await CurrencyGovernance.connect(charlie).commit(commitHash)
           await time.increase(COMMIT_STAGE_LENGTH)
 
-          const badVotes = await getFormattedBallot([charlieProposalId, bobProposalId, defaultProposalId])
+          const badVotes = await getFormattedBallot([
+            charlieProposalId,
+            bobProposalId,
+            defaultProposalId,
+          ])
           await expect(
             CurrencyGovernance.reveal(charlie.address, salt, badVotes)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
@@ -1488,7 +1680,12 @@ describe.only('CurrencyGovernance', () => {
       it('attempting to vote twice', async () => {
         const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
         const votes = await getFormattedBallot(ballot)
-        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle,
+          charlie.address,
+          ballot
+        )
         await CurrencyGovernance.connect(charlie).commit(commitHash)
         await time.increase(COMMIT_STAGE_LENGTH)
 
@@ -1499,7 +1696,243 @@ describe.only('CurrencyGovernance', () => {
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
       })
 
-      
+      it('default proposal score underflow', async () => {
+        const ballot = [charlieProposalId, bobProposalId, defaultProposalId]
+        const votes = await getFormattedBallot(ballot)
+
+        // this modification to the ballot looks close to correct, but it treats the default proposal as having one less support
+        // this causes the revert to underflow and kills this ballot cheat
+        votes.forEach((vote) => {
+          vote.score -= 1
+        })
+
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+      })
+
+      it('normal proposal score underflow', async () => {
+        const ballot = [defaultProposalId, bobProposalId, charlieProposalId]
+        const votes = await getFormattedBallot(ballot)
+
+        // this modification to the ballot looks close to correct, but it treats the charlie proposal as having one less support
+        // this causes the revert to underflow and kills this ballot cheat
+        votes.forEach((vote) => {
+          vote.score -= 1
+        })
+
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+      })
+
+      it('bad proposalId in vote', async () => {
+        // go to the next cycle's commit stage and commit a vote that's based on last cycle's votes
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        const commitHash = await getCommit(
+          salt,
+          initialCycle + 1,
+          charlie.address,
+          ballot
+        )
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(CYCLE_LENGTH + COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_PROPOSALID_IN_VOTE)
+      })
+
+      it('non-proposalId in vote', async () => {
+        // have one of the ballot items be a non-sense Id
+        const badId = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        votes[0].proposalId = badId
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_PROPOSALID_IN_VOTE)
+      })
+
+      it('bad default vote sorting', async () => {
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        votes.sort((a, b) => b.score - a.score)
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_PROPOSALID_IN_VOTE)
+        // we get this error instead of the ordering error because the default vote doesn't actually have the cycle param filled out
+        // it uses it's special Id value to be processed correctly instead
+      })
+
+      it('bad vote sorting', async () => {
+        const ballot = [defaultProposalId, charlieProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        // the default vote is always first so we switch the 2nd and 3rd elements
+        const temp = votes[1]
+        votes[1] = votes[2]
+        votes[2] = temp
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_MISORDERED)
+      })
+
+      it('cheating with duplicates', async () => {
+        // here we cheat by including bob multiple times
+        const ballot = [
+          defaultProposalId,
+          charlieProposalId,
+          bobProposalId,
+          bobProposalId,
+        ]
+        const votes = await getFormattedBallot(ballot)
+        // here we cheat in a slightly different way by doing bob then charlie then bob again
+        // with the knowledge that bob's proposalId is the lower hex value
+        expect(ethers.BigNumber.from(bobProposalId).lt(charlieProposalId)).to.be
+          .true
+        const sneakyVotes = votes.slice()
+        sneakyVotes[2] = votes[3]
+        sneakyVotes[3] = votes[2]
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        const sneakyCommitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: dave.address,
+          votes: sneakyVotes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await CurrencyGovernance.connect(dave).commit(sneakyCommitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_MISORDERED)
+        await expect(
+          CurrencyGovernance.reveal(dave.address, salt, sneakyVotes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.PROPOSALID_MISORDERED)
+      })
+
+      it('cheating with duplicated scores', async () => {
+        // here we cheat by setting the scores of votes to overlapping values
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        votes[1].score = votes[0].score // sets the two scores to be equal
+        // here we cheat in a slightly different way by doing bob then charlie then bob again
+        // with the knowledge that bob's proposalId is the lower hex value
+        const sneakyVotes = votes.slice()
+        sneakyVotes[0].score = 3 // sets the default proposal to overlap with charlie's vote but not be the exact same value
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes,
+        })
+        const sneakyCommitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: dave.address,
+          votes: sneakyVotes,
+        })
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await CurrencyGovernance.connect(dave).commit(sneakyCommitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+        await expect(
+          CurrencyGovernance.reveal(dave.address, salt, sneakyVotes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+      })
+
+      it('cheating with out of bound scores', async () => {
+        // here we cheat by setting the scores to be out of bounds
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        votes[1].score = 5
+        votes[2].score = 20
+        // here we only leave a small gap between the top two and bob's
+        const sneakyVotes = votes.slice()
+        sneakyVotes[2].score++
+        sneakyVotes[0].score++
+        // here we only leave a small gap at the bottom
+        // this doesn't actually gain the attacker but is still disallowed
+        const sneakyVotes2 = votes.slice()
+        sneakyVotes2.forEach((v) => {
+          v.score++
+        })
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: bob.address,
+          votes,
+        })
+        const sneakyCommitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes: sneakyVotes,
+        })
+        const sneakyCommitHash2 = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: dave.address,
+          votes: sneakyVotes2,
+        })
+        await CurrencyGovernance.connect(bob).commit(commitHash)
+        await CurrencyGovernance.connect(charlie).commit(sneakyCommitHash)
+        await CurrencyGovernance.connect(dave).commit(sneakyCommitHash2)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.FINAL_SCORES_INVALID)
+        await expect(
+          CurrencyGovernance.reveal(dave.address, salt, sneakyVotes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.FINAL_SCORES_INVALID)
+      })
     })
   })
 })
