@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants, errors } from 'ethers'
+import { constants } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -19,14 +19,13 @@ import {
   DummyDownstream,
   DummyDownstream__factory,
   ECO,
-  ECO__factory
+  ECO__factory,
 } from '../../../typechain-types'
-import { TypePredicateKind } from 'typescript'
 
 describe('notifier', () => {
   let policyImpersonator: SignerWithAddress
 
-  let currencyGovernanceImpersonator: SignerWithAddress
+  const notifierFactory = new Notifier__factory()
 
   let notifier: Notifier
 
@@ -40,11 +39,8 @@ describe('notifier', () => {
 
   let alice: SignerWithAddress
 
-  let gasCost: number
-
   before(async () => {
-    ;[policyImpersonator, currencyGovernanceImpersonator, alice] =
-      await ethers.getSigners()
+    ;[policyImpersonator, alice] = await ethers.getSigners()
   })
 
   beforeEach(async () => {
@@ -62,31 +58,59 @@ describe('notifier', () => {
       1000, // initial supply
       policy.address // initial pauser
     )
-    const downstreamFactory: MockContractFactory<DummyDownstream__factory> = await smock.mock('DummyDownstream')
-    downstream = await downstreamFactory.deploy();
-    gasCost = (downstream.callThatSucceeds()).gas
-    const rebaseFactory: MockContractFactory<Rebase__factory> = await smock.mock('Rebase')
+    const downstreamFactory: MockContractFactory<DummyDownstream__factory> =
+      await smock.mock('DummyDownstream')
+    downstream = await downstreamFactory.deploy()
+    const rebaseFactory: MockContractFactory<Rebase__factory> =
+      await smock.mock('Rebase')
     rebase = await rebaseFactory
       .connect(policyImpersonator)
       .deploy(policy.address, constants.AddressZero, eco.address)
-    const notifierFactory = new Notifier__factory()
-    notifier = await notifierFactory
-      .connect(policyImpersonator)
-      .deploy(
+    notifier = await notifierFactory.connect(policyImpersonator).deploy(
       policy.address,
-      rebase.address, //lever
-      [downstream.address], //targets
+      rebase.address, // lever
+      [downstream.address], // targets
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
-      [await downstream.estimateGas.callThatSucceeds()] //gasCosts
+      [12341234] // gasCosts
     )
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
   })
+  describe('construction', async () => {
+    it('constructs', async () => {
+      expect(await notifier.lever()).to.eq(rebase.address)
+      expect((await notifier.transactions(0)).target).to.eq(downstream.address)
+      expect((await notifier.transactions(0)).data).to.eq(
+        downstream.interface.encodeFunctionData('callThatSucceeds')
+      )
+      expect((await notifier.transactions(0)).gasCost).to.eq(12341234)
 
-  it('constructs', async () => {
-    expect(await notifier.lever()).to.eq(rebase.address)
-    expect((await notifier.transactions(0)).target).to.eq(downstream.address)
-    expect((await notifier.transactions(0)).data).to.eq(downstream.interface.encodeFunctionData('callThatSucceeds'))
-    expect((await notifier.transactions(0)).gasCost).to.eq(await downstream.estimateGas.callThatSucceeds())
+      expect(await notifier.totalGasCost()).to.eq(12341234)
+    })
+
+    it('checks for transaction data length mismatch', async () => {
+      await expect(
+        notifierFactory
+          .connect(policyImpersonator)
+          .deploy(
+            policy.address,
+            rebase.address,
+            [downstream.address],
+            [],
+            [12341234]
+          )
+      ).to.be.revertedWith(ERRORS.Notifier.TRANSACTION_DATA_LENGTH_MISMATCH)
+      await expect(
+        notifierFactory
+          .connect(policyImpersonator)
+          .deploy(
+            policy.address,
+            rebase.address,
+            [downstream.address],
+            [downstream.interface.encodeFunctionData('callThatSucceeds')],
+            []
+          )
+      ).to.be.revertedWith(ERRORS.Notifier.TRANSACTION_DATA_LENGTH_MISMATCH)
+    })
   })
 
   it('does not let non-policy addresses change the lever or add/remove txes', async () => {
@@ -94,33 +118,99 @@ describe('notifier', () => {
       notifier.connect(alice).changeLever(constants.AddressZero)
     ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     await expect(
-      notifier.connect(alice).addTransaction(downstream.address, downstream.interface.encodeFunctionData('callThatFails'), 123123)
+      notifier
+        .connect(alice)
+        .addTransaction(
+          downstream.address,
+          downstream.interface.encodeFunctionData('callThatFails'),
+          123123
+        )
     ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     await expect(
       notifier.connect(alice).removeTransaction(0)
     ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
   })
 
-  // it('only lets authorized call execute', async () => {
-  //   expect(await eco.rebased()).to.be.false
-  //   const newMultiplier = 12345678
-  //   expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
-  //     .be.false
-  //   await expect(
-  //     rebase.connect(alice).execute(newMultiplier)
-  //   ).to.be.revertedWith(ERRORS.Lever.AUTHORIZED_ONLY)
+  it('changes lever', async () => {
+    expect(await notifier.lever()).to.not.eq(alice.address)
+    await notifier.connect(policyImpersonator).changeLever(alice.address)
+    expect(await notifier.lever()).to.eq(alice.address)
+  })
 
-  //   await rebase.setAuthorized(currencyGovernanceImpersonator.address, true)
-  //   expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
-  //     .be.true
+  it('adds a transaction', async () => {
+    await expect(notifier.transactions(1)).to.be.reverted
+    await notifier
+      .connect(policyImpersonator)
+      .addTransaction(
+        downstream.address,
+        downstream.interface.encodeFunctionData('callThatFails'),
+        43214321
+      )
+    const newtx = await notifier.transactions(1)
+    expect(newtx.target).to.eq(downstream.address)
+    expect(newtx.data).to.eq(
+      downstream.interface.encodeFunctionData('callThatFails')
+    )
+    expect(newtx.gasCost).to.eq(43214321)
 
-  //   // still need to test this with the actual rebase functionality
-  //   await expect(
-  //     rebase.connect(currencyGovernanceImpersonator).execute(newMultiplier)
-  //   )
-  //     .to.emit(rebase, 'Rebased')
-  //     .withArgs(newMultiplier)
+    expect(await notifier.totalGasCost()).to.eq(55555555)
+  })
 
-  //   expect(await eco.rebased()).to.be.true
-  // })
+  describe('removing a transaction', async () => {
+    it('removes a transaction', async () => {
+      await expect(notifier.transactions(0)).to.not.be.reverted
+      await notifier.connect(policyImpersonator).removeTransaction(0)
+
+      await expect(notifier.transactions(0)).to.be.reverted
+
+      expect(await notifier.totalGasCost()).to.eq(0)
+    })
+
+    it('reverts on attempt to remove tx from index where no tx exists', async () => {
+      await expect(
+        notifier.connect(policyImpersonator).removeTransaction(1)
+      ).to.be.revertedWith(ERRORS.Notifier.NO_TRANSACTION_AT_INDEX)
+    })
+  })
+
+  describe('notifying', async () => {
+    it('notifies successfully on execute call to lever', async () => {
+      const target = DummyDownstream__factory.connect(
+        (await notifier.transactions(0)).target,
+        alice
+      )
+      await rebase
+        .connect(policyImpersonator)
+        .setAuthorized(alice.address, true)
+
+      expect(await target.notified()).to.be.false
+      await rebase.connect(alice).execute(123123)
+      expect(await target.notified()).to.be.true
+    })
+
+    it('doesnt impede lever call if notifier tx fails', async () => {
+      await notifier
+        .connect(policyImpersonator)
+        .addTransaction(
+          downstream.address,
+          downstream.interface.encodeFunctionData('callThatFails'),
+          123123
+        )
+      await rebase
+        .connect(policyImpersonator)
+        .setAuthorized(alice.address, true)
+
+      expect(await eco.rebased()).to.be.false
+      expect(await downstream.pigsFly()).to.be.false
+      await expect(rebase.connect(alice).execute(123123))
+        .to.emit(notifier, 'TransactionFailed')
+        .withArgs(
+          1,
+          downstream.address,
+          downstream.interface.encodeFunctionData('callThatFails')
+        )
+      expect(await eco.rebased()).to.be.true
+      expect(await downstream.pigsFly()).to.be.false
+    })
+  })
 })

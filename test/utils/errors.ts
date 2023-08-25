@@ -27,6 +27,6 @@ export const ERRORS = {
   Notifier: {
     NON_LEVER_CALL: 'NonLeverCall',
     TRANSACTION_DATA_LENGTH_MISMATCH: 'TransactionDataLengthMismatch',
-    NO_TRANSACTION_AT_INDEX: 'NoTransactionAtIndex'
-  }
+    NO_TRANSACTION_AT_INDEX: 'NoTransactionAtIndex',
+  },
 }

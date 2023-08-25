@@ -19,7 +19,7 @@ contract Notifier is Policed {
 
     error NonLeverCall();
 
-    error TransactiondataLengthMismatch(
+    error TransactionDataLengthMismatch(
         uint256 targetCount,
         uint256 dataCount,
         uint256 gasCostCount
@@ -46,7 +46,7 @@ contract Notifier is Policed {
         uint256 targetsLength = targets.length;
 
         if (targetsLength != datas.length || targetsLength != gasCosts.length) {
-            revert TransactiondataLengthMismatch(
+            revert TransactionDataLengthMismatch(
                 targetsLength,
                 datas.length,
                 gasCosts.length
@@ -99,8 +99,7 @@ contract Notifier is Policed {
      *              Transaction ordering may have changed since adding.
      */
     function removeTransaction(uint256 index) external onlyPolicy {
-        require(index < transactions.length, "index out of bounds");
-        if (index < transactions.length) {
+        if (index >= transactions.length) {
             revert NoTransactionAtIndex(index);
         }
 
