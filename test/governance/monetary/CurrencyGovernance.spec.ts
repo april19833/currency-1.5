@@ -1240,6 +1240,10 @@ describe.only('CurrencyGovernance', () => {
         const bobProposalScore = (await CurrencyGovernance.scores(bobProposalId)).toNumber()
         expect(bobProposalScore).to.eq(votes[2].score)
 
+        // charlie's commit is deleted
+        const charlieCommit = await CurrencyGovernance.commitments(charlie.address)
+        expect(charlieCommit).to.eq(ethers.utils.hexZeroPad('0x', 32))
+
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(charlieProposalId)
       })
@@ -1393,5 +1397,109 @@ describe.only('CurrencyGovernance', () => {
       })
     })
     
+    describe.only('reverts', () => {
+      const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+
+      it('only during propose phase', async () => {
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH + REVEAL_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+      })
+
+      it('can\'t vote empty', async () => {
+        const ballot: string[] = []
+        const votes = await getFormattedBallot(ballot)
+        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.EMPTY_VOTES_ARRAY)
+      })
+
+      describe('commit mismatch', () => {
+        it('wrong salt', async () => {
+          const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+          const votes = await getFormattedBallot(ballot)
+          const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+          await CurrencyGovernance.connect(charlie).commit(commitHash)
+          await time.increase(COMMIT_STAGE_LENGTH)
+
+          const badSalt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+          await expect(
+            CurrencyGovernance.reveal(charlie.address, badSalt, votes)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+        })
+
+        it('wrong cycle', async () => {
+          const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+          const votes = await getFormattedBallot(ballot)
+          const commitHash = await getCommit(salt, initialCycle+1, charlie.address, ballot)
+          await CurrencyGovernance.connect(charlie).commit(commitHash)
+          await time.increase(COMMIT_STAGE_LENGTH)
+
+          await expect(
+            CurrencyGovernance.reveal(charlie.address, salt, votes)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+        })
+
+        it('wrong trustee', async () => {
+          const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+          const votes = await getFormattedBallot(ballot)
+          const commitHash = await getCommit(salt, initialCycle, bob.address, ballot)
+          await CurrencyGovernance.connect(charlie).commit(commitHash)
+          await time.increase(COMMIT_STAGE_LENGTH)
+
+          await expect(
+            CurrencyGovernance.reveal(charlie.address, salt, votes)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+        })
+
+        it('wrong votes', async () => {
+          const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+          const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+          await CurrencyGovernance.connect(charlie).commit(commitHash)
+          await time.increase(COMMIT_STAGE_LENGTH)
+
+          const badVotes = await getFormattedBallot([charlieProposalId, bobProposalId, defaultProposalId])
+          await expect(
+            CurrencyGovernance.reveal(charlie.address, salt, badVotes)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+        })
+
+        it('total garbage', async () => {
+          const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+          const votes = await getFormattedBallot(ballot)
+          const commitHash = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+          await CurrencyGovernance.connect(charlie).commit(commitHash)
+          await time.increase(COMMIT_STAGE_LENGTH)
+
+          await expect(
+            CurrencyGovernance.reveal(charlie.address, salt, votes)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+        })
+      })
+
+      it('attempting to vote twice', async () => {
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        const commitHash = await getCommit(salt, initialCycle, charlie.address, ballot)
+        await CurrencyGovernance.connect(charlie).commit(commitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+
+        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        // commit mismatch on re-vote because the commit is deleted the first time
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.COMMIT_REVEAL_MISMATCH)
+      })
+
+      
+    })
   })
 })
