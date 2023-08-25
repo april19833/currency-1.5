@@ -15,8 +15,6 @@ contract ECO is InflationCheckpoints {
      */
     event NewInflationMultiplier(uint256 inflationMultiplier);
 
-    address public rebaser;
-
     /* Current generation of the balance store. */
     uint256 public currentGeneration;
 
