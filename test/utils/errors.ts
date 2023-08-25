@@ -20,7 +20,7 @@ export const ERRORS = {
     COMMIT_REVEAL_MISMATCH: 'CommitMismatch',
     BAD_PROPOSALID_IN_VOTE: 'InvalidVoteBadProposalId', // one arg: the vote with the invalid proposalId
     PROPOSALID_MISORDERED: 'InvalidVoteBadProposalOrder', // two args: the vote before the reverting vote and the vote with out of order proposalId
-    SCORE_OVERLAPS: 'InvalidVoteBadScore', // one arg: the vote with the score that duplicates or overlaps poorly with the support of another score, including underflow
+    BAD_SCORE: 'InvalidVoteBadScore', // one arg: the vote with the score that duplicates or overlaps poorly with the support of another score, including underflow
     FINAL_SCORES_INVALID: 'InvalidVotesOutOfBounds',
   },
   Policed: {
