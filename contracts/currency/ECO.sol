@@ -10,6 +10,8 @@ import "../governance/monetary/CurrencyGovernance.sol";
 contract ECO is InflationCheckpoints {
     bool public rebased;
 
+    uint256 public inflationMultiplier;
+
     /** Fired when a proposal with a new inflation multiplier is selected and passed.
      * Used to calculate new values for the rebased token.
      */
@@ -53,5 +55,9 @@ contract ECO is InflationCheckpoints {
 
     function rebase(uint256 _inflationMultiplier) public {
         rebased = true;
+    }
+
+    function getInflationMultiplier() public returns (uint256 _inflationMultiplier) {
+        return inflationMultiplier;
     }
 }
