@@ -106,12 +106,10 @@ describe('Rebase', () => {
       rebase.connect(currencyGovernanceImpersonator).execute(lowMultiplier)
     ).to.be.revertedWith(ERRORS.Rebase.BAD_INFLATION_MULTIPLIER)
 
-    const highMultiplier = "10000000000000000000"
+    const highMultiplier = '10000000000000000000'
 
     await expect(
       rebase.connect(currencyGovernanceImpersonator).execute(highMultiplier)
     ).to.be.revertedWith(ERRORS.Rebase.BAD_INFLATION_MULTIPLIER)
-
   })
-
 })

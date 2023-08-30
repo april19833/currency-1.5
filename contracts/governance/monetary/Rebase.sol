@@ -30,7 +30,10 @@ contract Rebase is Lever {
     }
 
     function execute(uint256 _newMultiplier) public onlyAuthorized {
-        if (_newMultiplier <= INFLATION_FLOOR || _newMultiplier >= INFLATION_CEILING) {
+        if (
+            _newMultiplier <= INFLATION_FLOOR ||
+            _newMultiplier >= INFLATION_CEILING
+        ) {
             revert BadInflationMultiplier(_newMultiplier);
         }
         // unclear how this works on the eco contract as of now, but ill shoot anyway

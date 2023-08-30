@@ -30,6 +30,6 @@ export const ERRORS = {
     NO_TRANSACTION_AT_INDEX: 'NoTransactionAtIndex',
   },
   Rebase: {
-    BAD_INFLATION_MULTIPLIER: 'BadInflationMultiplier'
+    BAD_INFLATION_MULTIPLIER: 'BadInflationMultiplier',
   },
 }
