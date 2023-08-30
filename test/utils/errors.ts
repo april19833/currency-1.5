@@ -29,4 +29,7 @@ export const ERRORS = {
     TRANSACTION_DATA_LENGTH_MISMATCH: 'TransactionDataLengthMismatch',
     NO_TRANSACTION_AT_INDEX: 'NoTransactionAtIndex',
   },
+  Rebase: {
+    BAD_INFLATION_MULTIPLIER: 'BadInflationMultiplier'
+  },
 }

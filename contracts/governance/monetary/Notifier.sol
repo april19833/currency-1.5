@@ -70,7 +70,7 @@ contract Notifier is Policed {
         uint256 txCount = transactions.length;
 
         for (uint256 i = 0; i < txCount; i++) {
-            Transaction storage t = transactions[i];
+            Transaction memory t = transactions[i];
             (bool success, ) = (t.target).call(t.data);
 
             if (!success) {
