@@ -29,4 +29,10 @@ export const ERRORS = {
     TRANSACTION_DATA_LENGTH_MISMATCH: 'TransactionDataLengthMismatch',
     NO_TRANSACTION_AT_INDEX: 'NoTransactionAtIndex',
   },
+  Lockups: {
+    EARLY_WITHDRAW_FOR: 'EarlyWithdrawFor',
+    LATE_DEPOSIT: 'LateDeposit',
+    BAD_RATE: 'BadRate',
+    BAD_DURATION:'BadDuration'
+  }
 }
