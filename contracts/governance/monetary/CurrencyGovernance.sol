@@ -17,8 +17,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // data structure for monetary policy proposals
     struct MonetaryPolicy {
-        // reverse lookup parameter
-        bytes32 id;
+        // the cycle that the proposal was submitted during
+        uint256 cycle;
         // addresses to call if the proposal succeeds
         address[] targets;
         // the function signatures to call
@@ -96,14 +96,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
     mapping(bytes32 => MonetaryPolicy) public proposals;
     // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
     mapping(address => uint256) public trusteeSupports;
-    // mapping of cycle to trustee addresses to their hash commits for voting
-    mapping(uint256 => mapping(address => bytes32)) public commitments;
-    // mapping of cycle to proposals (indexed by the submitting trustee) to their voting score, accumulated during reveal
-    mapping(uint256 => mapping(bytes32 => uint256)) public score;
+    // mapping of trustee addresses to their most recent hash commits for voting
+    mapping(address => bytes32) public commitments;
+    // mapping proposalIds to their voting score, accumulated during reveal
+    mapping(bytes32 => uint256) public scores;
 
     // used to track the leading proposalId during the vote totalling
     bytes32 public leader;
-    // used to denote the winning proposalId when the vote is finalized
+    // used to denote the winning proposalId for each cycle when the vote is finalized
     mapping(uint256 => bytes32) public winner;
     // this still doesn't quite work as is
     // need to prevent calling compute much later to try and grab the current leader
@@ -157,6 +157,34 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     // error for when a proposal is supported that has already been supported by the msg.sender
     error DuplicateSupport();
+
+    // error for when a reveal is submitted with no votes
+    error CannotVoteEmpty();
+
+    // error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted
+    error NoCommitFound();
+
+    // error for when the submitted vote doesn't match the stored commit
+    error CommitMismatch();
+
+    /** error for when a proposalId in a trustee's vote is not one from the current cycle or is completely invalid
+     * @param vote the vote containing the invalid proposalId
+     */
+    error InvalidVoteBadProposalId(Vote vote);
+
+    /** error for when the proposalIds in a trustee's vote are not strictly increasing
+     * @param prevVote the vote before the invalid vote
+     * @param vote the vote with the non-increasing proposalId
+     */
+    error InvalidVoteBadProposalOrder(Vote prevVote, Vote vote);
+
+    /** error for when a score in a trustee's vote is either duplicate or doesn't respect support weightings
+     * @param vote the vote containing the invalid score
+     */
+    error InvalidVoteBadScore(Vote vote);
+
+    // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
+    error InvalidVotesOutOfBounds();
 
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
@@ -222,14 +250,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param trustee the trustee that committed the vote
      * @param cycle the cycle for the commitment
      */
-    event VoteCommitted(address indexed trustee, uint256 indexed cycle);
+    event VoteCommit(address indexed trustee, uint256 indexed cycle);
 
     /** Fired when a vote is revealed, to create a voting history for all participants.
      * Records the voter, as well as all of the parameters of the vote cast.
      * @param voter the trustee who revealed their vote
+     * @param cycle the cycle when the vote was cast and counted
      * @param votes the array of Vote structs that composed the trustee's ballot
      */
-    event VoteReveal(address indexed voter, Vote[] votes);
+    event VoteReveal(
+        address indexed voter,
+        uint256 indexed cycle,
+        Vote[] votes
+    );
 
     /** Fired when vote results are computed, creating a permanent record of vote outcomes.
      * @param winner the proposalId for the proposal that won
@@ -400,7 +433,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         p.support = 1;
         p.supporters[msg.sender] = true;
 
-        p.id = proposalId;
+        p.cycle = cycle;
         p.targets = targets;
         p.signatures = signatures;
         p.calldatas = calldatas;
@@ -481,11 +514,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert SupportAlreadyGiven();
         }
 
-        trusteeSupports[msg.sender] = getCurrentCycle();
+        uint256 cycle = getCurrentCycle();
+
+        trusteeSupports[msg.sender] = cycle;
 
         MonetaryPolicy storage p = proposals[proposalId];
 
-        if (p.support == 0) {
+        // can support the default proposal even though is doesn't get initialized
+        // the support parameter is bumped by 1 for the default proposal when its vote is counted
+        // cannot support future cycle default proposals
+        if (p.support == 0 && proposalId != bytes32(cycle)) {
             revert NoSuchProposal();
         }
         // actually should never trigger since SupportAlreadyGiven would throw first, still feels safe to check
@@ -521,7 +559,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         p.supporters[msg.sender] = false;
 
-        if (support == 1) {
+        // deleting the default proposal doesn't do anything, but you don't want to emit the event
+        if (support == 1 && proposalId != bytes32(cycle)) {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
@@ -537,102 +576,137 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * commitment is salted so that it is a blind vote process
      * calling additional times overwrites previous commitments
      * @param _commitment the hash commit to check against when revealing
-     * the structure of the commit is keccak256(abi.encode(_salt, msg.sender, _votes)) where _votes is an array of Vote structs
+     * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
-        uint256 currentCycle = getCurrentCycle();
-        commitments[currentCycle][msg.sender] = _commitment;
-        emit VoteCommitted(msg.sender, currentCycle);
+        commitments[msg.sender] = _commitment;
+        emit VoteCommit(msg.sender, getCurrentCycle());
     }
 
     /** reveal a committed vote
      * this function allows trustees to reveal their previously committed votes once the reveal phase is entered
      * in revealing the vote, votes are tallied, a running tally of each proposal's votes is kept in storage during this phase
+     * @param _trustee the trustee's commit to try and reveal
+     * trustees can obviously reveal their own commits, but this allows for a delegated reveal
+     * the commit structure means that only the correct committed vote can ever be revealed, no matter who reveals it
+     * reveals are attributed to this trustee
      * @param _salt the salt for the commit hash to make the vote secret
      * @param _votes the array of Vote objects { bytes32 proposal, uint256 ranking } that follows our modified Borda scheme. The votes need to be arranged in ascending order of address and ranked via the integers 1 to the number of proposals ranked.
      */
     function reveal(
+        address _trustee,
         bytes32 _salt,
         Vote[] calldata _votes
     ) external duringRevealPhase {
         uint256 _cycle = getCurrentCycle();
-        // uint256 numVotes = _votes.length;
-        // require(numVotes > 0, "Invalid vote, cannot vote empty");
-        // require(
-        //     commitments[_cycle][msg.sender] != bytes32(0),
-        //     "Invalid vote, no unrevealed commitment exists"
-        // );
-        // require(
-        //     keccak256(abi.encode(_salt, msg.sender, _votes)) ==
-        //         commitments[_cycle][msg.sender],
-        //     "Invalid vote, commitment mismatch"
-        // );
+        uint256 numVotes = _votes.length;
+        if (numVotes == 0) {
+            revert CannotVoteEmpty();
+        }
+        if (
+            keccak256(abi.encode(_salt, _cycle, _trustee, _votes)) !=
+            commitments[_trustee]
+        ) {
+            revert CommitMismatch();
+        }
 
-        // delete commitments[_cycle][msg.sender];
+        // an easy way to prevent double counting votes
+        delete commitments[_trustee];
 
-        // // remove the trustee's default vote
-        // // default vote needs to change
-        // // likely changes to default support of the default proposal
-        // score[_cycle][address(0)] -= 1;
+        // use memory vars to store and track the changes of the leader
+        bytes32 priorLeader = leader;
+        bytes32 leaderTracker = priorLeader;
+        uint256 leaderRankTracker = 0;
 
-        // // use memory vars to store and track the changes of the leader
-        // address priorLeader = leader;
-        // address leaderTracker = priorLeader;
-        // uint256 leaderRankTracker = 0;
+        /**
+         * this variable is a bitmap to check that the scores in the ballot are correct
+         */
+        uint256 scoreDuplicateCheck = 0;
 
-        // /**
-        //  * by setting this to 1, the code can skip checking _score != 0
-        //  */
-        // uint256 scoreDuplicateCheck = 1;
+        uint256 i = 0;
+        Vote calldata firstV = _votes[0];
+        bytes32 firstProposalId = firstV.proposalId;
+        // the default proposal will be first every time as its identifier has so many leading zeros that the likelyhood of a proposalId having more leading zeros is astronomically small
+        if (firstProposalId == bytes32(_cycle)) {
+            uint256 firstScore = firstV.score;
+            uint256 _support = proposals[firstProposalId].support + 1; // default proposal has one more support than recorded in storage
+            if (_support > firstScore) {
+                revert InvalidVoteBadScore(firstV);
+            }
+            // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
+            // so we don't need to check duplicates, just record the amount
+            scoreDuplicateCheck +=
+                (2 ** _support - 1) <<
+                (firstScore - _support);
+            scores[firstProposalId] += firstScore;
+            // can simplify the leader rank tracker check because we know it's the first element
+            if (scores[firstProposalId] >= scores[leaderTracker]) {
+                leaderTracker = firstProposalId;
+                leaderRankTracker = firstScore;
+            }
 
-        // for (uint256 i = 0; i < numVotes; ++i) {
-        //     Vote memory v = _votes[i];
-        //     address _proposal = v.proposalId;
-        //     uint256 _score = v.score;
+            // make sure to skip the first element in the following loop as it has already been handled
+            i++;
+        }
 
-        //     require(
-        //         proposals[_cycle][_proposal].inflationMultiplier > 0,
-        //         "Invalid vote, missing proposal"
-        //     );
-        //     require(
-        //         i == 0 || _votes[i - 1].proposal < _proposal,
-        //         "Invalid vote, proposals not in increasing order"
-        //     );
-        //     require(
-        //         _score <= numVotes,
-        //         "Invalid vote, proposal score out of bounds"
-        //     );
-        //     require(
-        //         scoreDuplicateCheck & (1 << _score) == 0,
-        //         "Invalid vote, duplicate score"
-        //     );
+        for (; i < numVotes; ++i) {
+            Vote calldata v = _votes[i];
+            bytes32 _proposalId = v.proposalId;
+            uint256 _score = v.score;
+            MonetaryPolicy storage p = proposals[_proposalId];
 
-        //     scoreDuplicateCheck += 1 << _score;
+            if (p.cycle != _cycle) {
+                revert InvalidVoteBadProposalId(v);
+            }
+            if (i != 0 && _votes[i - 1].proposalId >= _proposalId) {
+                revert InvalidVoteBadProposalOrder(_votes[i - 1], v);
+            }
 
-        //     score[_cycle][_proposal] += _score;
-        //     if (score[_cycle][_proposal] > score[_cycle][leaderTracker]) {
-        //         leaderTracker = _proposal;
-        //         leaderRankTracker = _score;
-        //     } else if (score[_cycle][_proposal] == score[_cycle][leaderTracker]) {
-        //         if (_score > leaderRankTracker) {
-        //             leaderTracker = _proposal;
-        //             leaderRankTracker = _score;
-        //         }
-        //     }
-        // }
+            uint256 _support = p.support;
+            if (_support > _score) {
+                revert InvalidVoteBadScore(v);
+            }
+            uint256 duplicateCompare = (2 ** _support - 1) <<
+                (_score - _support);
 
-        // // only changes the leader if the new leader is of greater score
-        // if (
-        //     leaderTracker != priorLeader &&
-        //     score[_cycle][leaderTracker] > score[_cycle][priorLeader]
-        // ) {
-        //     leader = leaderTracker;
-        // }
+            if (scoreDuplicateCheck & duplicateCompare > 0) {
+                revert InvalidVoteBadScore(v);
+            }
 
-        // // record the trustee's vote for compensation purposes
-        // trustedNodes.recordVote(msg.sender);
+            scoreDuplicateCheck += duplicateCompare;
 
-        emit VoteReveal(msg.sender, _votes);
+            // now that the scores have been ensured to respect supporting, the previous leader calculation method is still valid
+            scores[_proposalId] += _score;
+            if (scores[_proposalId] > scores[leaderTracker]) {
+                leaderTracker = _proposalId;
+                leaderRankTracker = _score;
+            } else if (scores[_proposalId] == scores[leaderTracker]) {
+                if (_score > leaderRankTracker) {
+                    leaderTracker = _proposalId;
+                    leaderRankTracker = _score;
+                }
+            }
+        }
+
+        // this check afterward is very important to understand
+        // it makes sure that the votes have been sequentially increasing and have been respecting the support values of each proposal
+        // the only way this check succeeds is if scoreDuplicate check is of the form 1111111111etc in its binary representation after all the votes from the ballot are in
+        if (scoreDuplicateCheck & (scoreDuplicateCheck + 1) > 0) {
+            revert InvalidVotesOutOfBounds();
+        }
+
+        // only changes the leader if the new leader is of greater score
+        if (
+            leaderTracker != priorLeader &&
+            scores[leaderTracker] > scores[priorLeader]
+        ) {
+            leader = leaderTracker;
+        }
+
+        // record the trustee's vote for compensation purposes
+        trustedNodes.recordVote(_trustee);
+
+        emit VoteReveal(_trustee, _cycle, _votes);
     }
 
     /** write the result of a cycle's votes to the timelock for execution
@@ -665,6 +739,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     //     p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
 
     //     // sets the default votes for the default proposal
-    //     score[address(0)] = trustedNodes.numTrustees();
+    //     scores[address(0)] = trustedNodes.numTrustees();
     // }
 }

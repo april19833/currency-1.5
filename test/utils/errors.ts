@@ -16,6 +16,12 @@ export const ERRORS = {
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
     PROPOSALID_INVALID: 'NoSuchProposal',
     SUPPORT_WHEN_ALREADY_SUPPORTING: 'DuplicateSupport',
+    EMPTY_VOTES_ARRAY: 'CannotVoteEmpty',
+    COMMIT_REVEAL_MISMATCH: 'CommitMismatch',
+    BAD_PROPOSALID_IN_VOTE: 'InvalidVoteBadProposalId', // one arg: the vote with the invalid proposalId
+    PROPOSALID_MISORDERED: 'InvalidVoteBadProposalOrder', // two args: the vote before the reverting vote and the vote with out of order proposalId
+    BAD_SCORE: 'InvalidVoteBadScore', // one arg: the vote with the score that duplicates or overlaps poorly with the support of another score, including underflow
+    FINAL_SCORES_INVALID: 'InvalidVotesOutOfBounds',
   },
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
