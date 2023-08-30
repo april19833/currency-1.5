@@ -13,7 +13,10 @@ import {
   CurrencyGovernance,
   StageTestCurrencyGovernance__factory,
   StageTestCurrencyGovernance,
+  DummyMonetaryPolicyAdapter__factory,
+  DummyMonetaryPolicyAdapter,
   Policy,
+  MonetaryPolicyAdapter,
 } from '../../../typechain-types'
 
 const PROPOSE_STAGE_LENGTH = 10 * DAY
@@ -98,6 +101,7 @@ describe('CurrencyGovernance', () => {
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
+  let Enacter: MockContract<MonetaryPolicyAdapter>
   let CurrencyGovernance: CurrencyGovernance
   let Fake__Policy: FakeContract<Policy>
 
@@ -164,11 +168,22 @@ describe('CurrencyGovernance', () => {
       [bob.address, charlie.address, dave.address, niko.address, mila.address]
     )
 
+    Enacter = await (
+      await smock.mock<DummyMonetaryPolicyAdapter__factory>('DummyMonetaryPolicyAdapter')
+    ).deploy(
+      Fake__Policy.address,
+      PLACEHOLDER_ADDRESS1,
+    )
+
     CurrencyGovernance = await new CurrencyGovernance__factory()
       .connect(policyImpersonater)
-      .deploy(Fake__Policy.address, TrustedNodes.address)
+      .deploy(Fake__Policy.address, TrustedNodes.address, Enacter.address)
 
     await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(
+      CurrencyGovernance.address
+    )
+
+    await Enacter.connect(policyImpersonater).setCurrencyGovernance(
       CurrencyGovernance.address
     )
   })
@@ -227,7 +242,7 @@ describe('CurrencyGovernance', () => {
         CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
           constants.AddressZero
         )
-      ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ADDRESS)
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_TRUSTEDNODES)
     })
   })
 
