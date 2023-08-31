@@ -57,7 +57,10 @@ contract ECO is InflationCheckpoints {
         rebased = true;
     }
 
-    function getInflationMultiplier() public returns (uint256 _inflationMultiplier) {
+    function getInflationMultiplier()
+        public
+        returns (uint256 _inflationMultiplier)
+    {
         return inflationMultiplier;
     }
 }

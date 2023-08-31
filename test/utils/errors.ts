@@ -33,6 +33,6 @@ export const ERRORS = {
     EARLY_WITHDRAW_FOR: 'EarlyWithdrawFor',
     LATE_DEPOSIT: 'LateDeposit',
     BAD_RATE: 'BadRate',
-    BAD_DURATION:'BadDuration'
-  }
+    BAD_DURATION: 'BadDuration',
+  },
 }

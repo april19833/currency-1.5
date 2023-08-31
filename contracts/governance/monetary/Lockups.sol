@@ -27,15 +27,17 @@ contract Lockups is Lever, TimeUtils {
         // the amount minted will remain the same regardless of changes in linear inflation
         mapping(address => uint256) interest;
     }
-    // ceiling on yield
-    uint256 constant MAX_RATE = 5E17;
-    // floor for lockup duration
-    uint256 constant MIN_DURATION = 3600*24*30;
-    // ceiling for lockup duration
-    uint256 constant MAX_DURATION = 3600*24*365;
-    // base inflation multiplier
-    uint256 constant BASE = 1e18;
-    
+
+    // denominator when multiplying by rate to get yield amount
+    uint256 internal constant BASE = 1e18;
+
+    // ceiling on yield --> 50%
+    uint256 public constant MAX_RATE = 5E17;
+    // floor for lockup duration --> 30 days
+    uint256 public constant MIN_DURATION = 3600 * 24 * 30;
+    // ceiling for lockup duration --> 365 days
+    uint256 public constant MAX_DURATION = 3600 * 24 * 365;
+
     // id of the next lockup created
     uint256 internal nextId;
 
@@ -65,14 +67,18 @@ contract Lockups is Lever, TimeUtils {
      * @param withdrawer: address that called withdrawFor
      * @param recipient: address on whose behalf withdrawFor was called
      */
-    error EarlyWithdrawFor(uint256 lockupId, address withdrawer, address recipient);
+    error EarlyWithdrawFor(
+        uint256 lockupId,
+        address withdrawer,
+        address recipient
+    );
 
     /** attempted deposit after deposit window has closed
      * @param lockupId: ID of lockup to which deposit was attempted
      * @param depositor: address that tried to deposit
      */
     error LateDeposit(uint256 lockupId, address depositor);
-    
+
     /** lockup created
      * @param lockupId: ID of lockup
      * @param duration: duration of lockup
@@ -85,14 +91,22 @@ contract Lockups is Lever, TimeUtils {
      * @param depositor: address whose ECO were deposited
      * @param gonsDepositAmount: amount in gons that was deposited to lockup
      */
-    event LockupDeposit(uint256 lockupId, address depositor, uint256 gonsDepositAmount);
+    event LockupDeposit(
+        uint256 lockupId,
+        address depositor,
+        uint256 gonsDepositAmount
+    );
 
     /** withdrawal made from lockup
      * @param lockupId: ID of lockup
      * @param recipient: address receiving withdrawal
      * @param gonsWithdrawnAmount: amount in gons that was withdrawn
      */
-    event LockupWithdrawal(uint256 lockupId, address recipient, uint256 gonsWithdrawnAmount);
+    event LockupWithdrawal(
+        uint256 lockupId,
+        address recipient,
+        uint256 gonsWithdrawnAmount
+    );
 
     /** constructor
      * @param _policy the owning policy address for the contract
@@ -110,27 +124,29 @@ contract Lockups is Lever, TimeUtils {
         depositWindow = _depositWindow;
         currentInflationMultiplier = eco.getInflationMultiplier();
     }
+
     /** Creates a lockup
      * @param _duration the time after lockup window closes that a user has to keep their funds locked up in order to receive yield
      * @param _rate the yield (based on inflationMultiplier at time of lockup creation) a depositor who waits the full duration will earn
      */
-    function createLockup(uint256 _duration, uint256 _rate) public onlyAuthorized {
+    function createLockup(
+        uint256 _duration,
+        uint256 _rate
+    ) public onlyAuthorized {
         if (_rate > MAX_RATE) {
             revert BadRate();
         }
         if (_duration > MAX_DURATION || _duration < MIN_DURATION) {
             revert BadDuration();
         }
-        uint256 timeNow = getTime();
 
         Lockup storage lockup = lockups[nextId];
         lockup.rate = _rate;
-        lockup.depositWindowEnd = timeNow + depositWindow;
+        lockup.depositWindowEnd = getTime() + depositWindow;
         lockup.end = lockup.depositWindowEnd + _duration;
 
         emit LockupCreation(nextId, _duration, _rate);
         nextId += 1;
-
     }
 
     /** User deposits on their own behalf. Requires that the user has approved this contract
@@ -141,27 +157,34 @@ contract Lockups is Lever, TimeUtils {
     function deposit(uint256 _lockupId, uint256 _amount) public {
         _deposit(_lockupId, msg.sender, _amount);
     }
-        
+
     /** User deposits on someone else's behalf. Requires that the beneficiary has approved this contract
      * to transfer _amount of their eco.
      * @param _lockupId ID of the lockup being deposited to
-     * @param _beneficiary the person whose eco is being deposited  
+     * @param _beneficiary the person whose eco is being deposited
      * @param _amount the amount being deposited
      */
-    function depositFor(uint256 _lockupId, address _beneficiary, uint256 _amount) public {
+    function depositFor(
+        uint256 _lockupId,
+        address _beneficiary,
+        uint256 _amount
+    ) public {
         _deposit(_lockupId, _beneficiary, _amount);
     }
 
-
-    function _deposit(uint256 _lockupId, address beneficiary, uint256 _amount) internal {
+    function _deposit(
+        uint256 _lockupId,
+        address beneficiary,
+        uint256 _amount
+    ) internal {
         Lockup storage lockup = lockups[_lockupId];
-        if(getTime() >= lockup.depositWindowEnd) {
+        if (getTime() >= lockup.depositWindowEnd) {
             revert LateDeposit(_lockupId, msg.sender);
         }
-        lockup.interest[msg.sender] += _amount * lockup.rate;
+        lockup.interest[msg.sender] += (_amount * lockup.rate) / BASE;
         uint256 gonsAmount = _amount * currentInflationMultiplier;
         lockup.gonsBalances[msg.sender] += gonsAmount;
-        
+
         eco.transferFrom(msg.sender, address(this), _amount);
         eco.delegateAmount(eco.getPrimaryDelegate(beneficiary), _amount);
         emit LockupDeposit(_lockupId, beneficiary, gonsAmount);
@@ -185,10 +208,14 @@ contract Lockups is Lever, TimeUtils {
 
     function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
-        uint256 amount = lockup.gonsBalances[_recipient] / currentInflationMultiplier;
+        uint256 amount = lockup.gonsBalances[_recipient] /
+            currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
 
-        eco.undelegateAmountFromAddress(eco.getPrimaryDelegate(_recipient), amount);
+        eco.undelegateAmountFromAddress(
+            eco.getPrimaryDelegate(_recipient),
+            amount
+        );
         if (getTime() < lockup.end) {
             if (msg.sender != _recipient) {
                 revert EarlyWithdrawFor(_lockupId, msg.sender, _recipient);
@@ -202,17 +229,25 @@ contract Lockups is Lever, TimeUtils {
         }
         lockup.gonsBalances[_recipient] = 0;
         lockup.interest[_recipient] = 0;
-        
+
         eco.transfer(_recipient, amount);
-        emit LockupWithdrawal(_lockupId, _recipient, amount / currentInflationMultiplier);
+        emit LockupWithdrawal(
+            _lockupId,
+            _recipient,
+            amount / currentInflationMultiplier
+        );
     }
 
     /** getter function for inflation-adjusted deposits
      * @param _lockupId the ID of the lockup
      * @param _who address whose balance is being fetched
      */
-    function getBalance(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount) {
-        return lockups[_lockupId].gonsBalances[_who] / currentInflationMultiplier;
+    function getBalance(
+        uint256 _lockupId,
+        address _who
+    ) public view returns (uint256 ecoAmount) {
+        return
+            lockups[_lockupId].gonsBalances[_who] / currentInflationMultiplier;
     }
 
     /** sweep accumulated penalty eco to a destination address
@@ -227,5 +262,4 @@ contract Lockups is Lever, TimeUtils {
     function updateInflationMultiplier() public {
         currentInflationMultiplier = eco.getInflationMultiplier();
     }
-
 }
