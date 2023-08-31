@@ -13,6 +13,12 @@ import "./Lever.sol";
 contract Rebase is Lever {
     ECO public immutable eco;
 
+    uint256 constant INFLATION_FLOOR = 0;
+
+    uint256 constant INFLATION_CEILING = 1E19;
+
+    error BadInflationMultiplier(uint256 rate);
+
     event Rebased(uint256 newInflation);
 
     constructor(
@@ -24,6 +30,12 @@ contract Rebase is Lever {
     }
 
     function execute(uint256 _newMultiplier) public onlyAuthorized {
+        if (
+            _newMultiplier <= INFLATION_FLOOR ||
+            _newMultiplier >= INFLATION_CEILING
+        ) {
+            revert BadInflationMultiplier(_newMultiplier);
+        }
         // unclear how this works on the eco contract as of now, but ill shoot anyway
         eco.rebase(_newMultiplier);
         notifier.notify();
