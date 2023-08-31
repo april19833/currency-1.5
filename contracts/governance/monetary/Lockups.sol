@@ -116,10 +116,10 @@ contract Lockups is Lever, TimeUtils {
      */
     function createLockup(uint256 _duration, uint256 _rate) public onlyAuthorized {
         if (_rate > MAX_RATE) {
-            revert BadRate(_rate);
+            revert BadRate();
         }
         if (_duration > MAX_DURATION || _duration < MIN_DURATION) {
-            revert BadDuration(_duration);
+            revert BadDuration();
         }
         uint256 timeNow = getTime();
 
@@ -211,7 +211,7 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId the ID of the lockup
      * @param _who address whose balance is being fetched
      */
-    function getBalance(uint256 _lockupId, address _who) public pure returns (uint256 ecoAmount) {
+    function getBalance(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount) {
         return lockups[_lockupId].gonsBalances[_who] / currentInflationMultiplier;
     }
 
