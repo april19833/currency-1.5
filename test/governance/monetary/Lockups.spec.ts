@@ -18,6 +18,7 @@ import {
   ECO__factory,
   Lockups__factory,
 } from '../../../typechain-types'
+import { execPath } from 'process'
 
 describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
@@ -77,6 +78,13 @@ describe('Lockups', () => {
       depositWindow
     )
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
+
+    await eco.mint(alice.address, 10000)
+    await eco.mint(bob.address, 10000)
+    await eco.connect(charlie).enableDelegationTo()
+    await eco.connect(dave).enableDelegationTo()
+    await eco.connect(alice).delegate(charlie.address)
+    await eco.connect(bob).delegate(dave.address)
   })
 
   it('constructs', async () => {
@@ -140,13 +148,33 @@ describe('Lockups', () => {
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
-      // approve the eco for deposit
+      await eco.connect(alice).approve(lockups.address, 10000)
+      await eco.connect(alice).approve(lockups.address, 10000)
+      // const aliceAddress = alice.address
+      // const bobAddress = bob.address
+      // await eco.setVariables({
+      //   '_primaryDelegates': {
+      //     aliceAddress: charlie.address,
+      //     bobAddress: dave.address,
+      //   }
+      // })
     })
     it('does not allow late deposit', async () => {
       await time.increase(Number(await lockups.depositWindow()) / 2 + 1)
       await expect(lockups.connect(bob).deposit(1, 1000)).to.be.revertedWith(
         ERRORS.Lockups.LATE_DEPOSIT
       )
+    })
+    it('does single deposit correctly', async () => {
+      expect(await eco.getPrimaryDelegate(alice.address)).to.eq(charlie.address)
+      const gons = (await lockups.currentInflationMultiplier()).mul(10000)
+      await expect(
+        lockups.connect(alice).deposit(0, 10000)
+      )
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, 10000)
+      // expect(await lockups.lockups(0).gonsBalances[alice.address]).to.eq(gons)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(10000)
     })
   })
 })
