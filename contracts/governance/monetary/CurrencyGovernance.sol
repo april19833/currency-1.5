@@ -192,8 +192,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
     error InvalidVotesOutOfBounds();
 
-    // error for when compute is called, but the cycle it's called for does not match the proposal that's the current leader
-    error ComputeCycleNotCurrent();
+    // error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
+    error EnactCycleNotCurrent();
 
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
@@ -767,10 +767,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         if (
             _winner.cycle != _cycle
         ) {
-            revert ComputeCycleNotCurrent();
+            revert EnactCycleNotCurrent();
         }
 
-        enacter.enact(_winner.targets, _winner.signatures, _winner.calldatas);
+        enacter.enact(_leader, _winner.targets, _winner.signatures, _winner.calldatas);
 
         emit VoteResult(_cycle, _leader);
     }

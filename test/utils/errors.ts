@@ -23,7 +23,7 @@ export const ERRORS = {
     PROPOSALID_MISORDERED: 'InvalidVoteBadProposalOrder', // two args: the vote before the reverting vote and the vote with out of order proposalId
     BAD_SCORE: 'InvalidVoteBadScore', // one arg: the vote with the score that duplicates or overlaps poorly with the support of another score, including underflow
     FINAL_SCORES_INVALID: 'InvalidVotesOutOfBounds',
-    OUTDATED_COMPUTE: 'ComputeCycleNotCurrent',
+    OUTDATED_ENACT: 'EnactCycleNotCurrent',
   },
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
