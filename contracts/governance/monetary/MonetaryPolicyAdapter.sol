@@ -28,6 +28,14 @@ contract MonetaryPolicyAdapter is Policed {
      */
     event NewCurrencyGovernance(CurrencyGovernance newCurrencyGovernance, CurrencyGovernance oldCurrencyGovernance);
 
+    /**
+     * emits when enaction happens to keep record of enaction
+     * @param proposalId the proposal lookup that got successfully enacted
+     * @param currencyGovernance the CurrencyGovernance contract where you can look up the proposal calldata
+     * @param successes the return success values from each of the calls to the targets in order
+     */
+    event SuccessfulMonetaryPolicy(bytes32 proposalId, address currencyGovernance, bool[] successes);
+
     /** Restrict method access to the root policy instance only.
      */
     modifier onlyCurrencyGovernance() {
@@ -58,6 +66,7 @@ contract MonetaryPolicyAdapter is Policed {
     }
 
     function enact(
+        bytes32 proposalId,
         address[] calldata targets,
         bytes4[] calldata signatures,
         bytes[] memory calldatas
