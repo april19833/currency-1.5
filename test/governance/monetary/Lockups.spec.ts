@@ -18,7 +18,6 @@ import {
   ECO__factory,
   Lockups__factory,
 } from '../../../typechain-types'
-import { execPath } from 'process'
 
 describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
@@ -45,13 +44,7 @@ describe('Lockups', () => {
   const goodRate = '100000000000000000'
 
   before(async () => {
-    ;[
-      policyImpersonator,
-      alice,
-      bob,
-      charlie,
-      dave,
-    ] = await ethers.getSigners()
+    ;[policyImpersonator, alice, bob, charlie, dave] = await ethers.getSigners()
   })
 
   beforeEach(async () => {
@@ -149,7 +142,7 @@ describe('Lockups', () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
       await eco.connect(alice).approve(lockups.address, 10000)
-      await eco.connect(alice).approve(lockups.address, 10000)
+      await eco.connect(bob).approve(lockups.address, 10000)
       // const aliceAddress = alice.address
       // const bobAddress = bob.address
       // await eco.setVariables({
@@ -165,16 +158,84 @@ describe('Lockups', () => {
         ERRORS.Lockups.LATE_DEPOSIT
       )
     })
-    it('does single deposit correctly', async () => {
+    it('does single deposit properly', async () => {
+      const depositAmount = await eco.balanceOf(alice.address)
+      const gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      const interest = depositAmount.mul(goodRate).div('1000000000000000000')
       expect(await eco.getPrimaryDelegate(alice.address)).to.eq(charlie.address)
-      const gons = (await lockups.currentInflationMultiplier()).mul(10000)
-      await expect(
-        lockups.connect(alice).deposit(0, 10000)
-      )
+      expect(await eco.balanceOf(alice.address)).to.eq(10000)
+      expect(await eco.balanceOf(lockups.address)).to.eq(0)
+      await expect(lockups.connect(alice).deposit(0, 10000))
         .to.emit(eco, 'DelegatedVotes')
         .withArgs(lockups.address, charlie.address, 10000)
-      // expect(await lockups.lockups(0).gonsBalances[alice.address]).to.eq(gons)
-      expect(await lockups.getBalance(0, alice.address)).to.eq(10000)
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
+      expect(await lockups.getYield(0, alice.address)).to.eq(interest)
+      expect(await eco.balanceOf(alice.address)).to.eq(0)
+      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
+    })
+
+    it('does additional deposits in the same window properly', async () => {
+      const depositAmount = await eco.balanceOf(alice.address)
+      const gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      const interest = depositAmount.mul(goodRate).div('1000000000000000000')
+      await expect(lockups.connect(alice).deposit(0, 4000))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, 4000)
+      await expect(lockups.connect(alice).deposit(0, 6000))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, 6000)
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
+      expect(await lockups.getYield(0, alice.address)).to.eq(interest)
+      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
+    })
+    it('works as expected when two users deposit to the same lockup', async () => {
+      const depositAmount = await eco.balanceOf(alice.address)
+      const gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      const interest = depositAmount.mul(goodRate).div('1000000000000000000')
+      await expect(lockups.connect(alice).deposit(0, 10000))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, 10000)
+      await expect(lockups.connect(bob).deposit(0, 10000))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, dave.address, 10000)
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
+      expect(await lockups.getYield(0, alice.address)).to.eq(interest)
+      expect(await lockups.getGonsBalance(0, bob.address)).to.eq(gons)
+      expect(await lockups.getBalance(0, bob.address)).to.eq(depositAmount)
+      expect(await lockups.getYield(0, bob.address)).to.eq(interest)
+      expect(await eco.balanceOf(lockups.address)).to.eq(20000)
+    })
+    it('works as expected when one users deposit to two different lockups', async () => {
+      const otherRate = String(Number(goodRate) * 2)
+      await lockups.connect(alice).createLockup(goodDuration, otherRate)
+      const d0 = 4000
+      const d1 = 6000
+      await expect(lockups.connect(alice).deposit(0, d0))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, d0)
+      await expect(lockups.connect(alice).deposit(1, d1))
+        .to.emit(eco, 'DelegatedVotes')
+        .withArgs(lockups.address, charlie.address, d1)
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(
+        (await lockups.currentInflationMultiplier()).mul(d0)
+      )
+      expect(await lockups.getBalance(0, alice.address)).to.eq(d0)
+      expect(await lockups.getYield(0, alice.address)).to.eq(
+        (d0 * Number(goodRate)) / Number('1000000000000000000')
+      )
+
+      expect(await lockups.getGonsBalance(1, alice.address)).to.eq(
+        (await lockups.currentInflationMultiplier()).mul(d1)
+      )
+      expect(await lockups.getBalance(1, alice.address)).to.eq(d1)
+      expect(await lockups.getYield(1, alice.address)).to.eq(
+        (d1 * Number(otherRate)) / Number('1000000000000000000')
+      )
+
+      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
     })
   })
 })

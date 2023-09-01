@@ -49,5 +49,5 @@ export const ERRORS = {
     LATE_DEPOSIT: 'LateDeposit',
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
-  }
+  },
 }

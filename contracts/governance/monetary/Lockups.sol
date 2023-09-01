@@ -238,6 +238,17 @@ contract Lockups is Lever, TimeUtils {
         );
     }
 
+    /** getter function for gonsBalances
+     * @param _lockupId the ID of the lockup
+     * @param _who address whose gons balance is being fetched
+     */
+    function getGonsBalance(
+        uint256 _lockupId,
+        address _who
+    ) public view returns (uint256 ecoAmount) {
+        return lockups[_lockupId].gonsBalances[_who];
+    }
+
     /** getter function for inflation-adjusted deposits
      * @param _lockupId the ID of the lockup
      * @param _who address whose balance is being fetched
@@ -248,6 +259,17 @@ contract Lockups is Lever, TimeUtils {
     ) public view returns (uint256 ecoAmount) {
         return
             lockups[_lockupId].gonsBalances[_who] / currentInflationMultiplier;
+    }
+
+    /** getter function for yield
+     * @param _lockupId the ID of the lockup
+     * @param _who address whose balance is being fetched
+     */
+    function getYield(
+        uint256 _lockupId,
+        address _who
+    ) public view returns (uint256 ecoAmount) {
+        return lockups[_lockupId].interest[_who];
     }
 
     /** sweep accumulated penalty eco to a destination address
