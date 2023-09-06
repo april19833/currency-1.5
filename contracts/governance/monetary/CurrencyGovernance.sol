@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./TrustedNodes.sol";
+import "./MonetaryPolicyAdapter.sol";
 import "../../utils/TimeUtils.sol";
 import "../../policy/Policed.sol";
 
@@ -68,6 +69,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
+    //
+    MonetaryPolicyAdapter public enacter;
+
     // this variable tracks the start of governance
     // it is use to track the voting cycle and stage
     uint256 public immutable governanceStartTime;
@@ -101,19 +105,21 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping proposalIds to their voting score, accumulated during reveal
     mapping(bytes32 => uint256) public scores;
 
-    // used to track the leading proposalId during the vote totalling
+    /** used to track the leading proposalId during the vote totalling
+     * tracks the winner between reveal phases
+     * is deleted on enact to ensure it can only be enacted once
+     */
     bytes32 public leader;
-    // used to denote the winning proposalId for each cycle when the vote is finalized
-    mapping(uint256 => bytes32) public winner;
-    // this still doesn't quite work as is
-    // need to prevent calling compute much later to try and grab the current leader
 
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    // setting the trusted nodes address to a bad address stops governance
+    // setting the trusted nodes address to the zero address stops governance
     error NonZeroTrustedNodesAddr();
+
+    // setting the enacter address to the zero address stops governance
+    error NonZeroEnacterAddr();
 
     // For if a non-trustee address tries to access trustee role gated functionality
     error TrusteeOnlyFunction();
@@ -186,6 +192,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
     error InvalidVotesOutOfBounds();
 
+    // error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
+    error EnactCycleNotCurrent();
+
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -198,6 +207,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
     event NewTrustedNodes(
         TrustedNodes newTrustedNodes,
         TrustedNodes oldTrustedNodes
+    );
+
+    /**
+     * emits when the enacter contract is changed
+     * @param newEnacter denotes the new enacter contract address
+     * @param oldEnacter denotes the old enacter contract address
+     */
+    event NewEnacter(
+        MonetaryPolicyAdapter newEnacter,
+        MonetaryPolicyAdapter oldEnacter
     );
 
     /** Tracking for proposal creation
@@ -265,9 +284,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
     );
 
     /** Fired when vote results are computed, creating a permanent record of vote outcomes.
+     * @param cycle the cycle for which this is the vote result
      * @param winner the proposalId for the proposal that won
      */
-    event VoteResult(bytes32 indexed winner);
+    event VoteResult(uint256 cycle, bytes32 winner);
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -335,8 +355,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _policy the owning policy address for the contract
      * @param _trustedNodes the contract to manage what addresses are trustees
      */
-    constructor(Policy _policy, TrustedNodes _trustedNodes) Policed(_policy) {
+    constructor(
+        Policy _policy,
+        TrustedNodes _trustedNodes,
+        MonetaryPolicyAdapter _enacter
+    ) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
+        _setEnacter(_enacter);
         governanceStartTime = getTime();
     }
 
@@ -358,6 +383,22 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert NonZeroTrustedNodesAddr();
         }
         trustedNodes = _trustedNodes;
+    }
+
+    /** setter function for enacter var
+     * only available to the owning policy contract
+     * @param _enacter the value to set the new enacter address to, cannot be zero
+     */
+    function setEnacter(MonetaryPolicyAdapter _enacter) public onlyPolicy {
+        emit NewEnacter(_enacter, enacter);
+        _setEnacter(_enacter);
+    }
+
+    function _setEnacter(MonetaryPolicyAdapter _enacter) internal {
+        if (address(_enacter) == address(0)) {
+            revert NonZeroEnacterAddr();
+        }
+        enacter = _enacter;
     }
 
     /** getter for timing data
@@ -709,36 +750,35 @@ contract CurrencyGovernance is Policed, TimeUtils {
         emit VoteReveal(_trustee, _cycle, _votes);
     }
 
-    /** write the result of a cycle's votes to the timelock for execution
-     * this function begins the process of executing the outcome of the vote by finalizing the outcome of voting in a completed cycle
-     * @param _cycle the cycle to finalize
+    /** send the results to the adapter for enaction
+     * @param _cycle cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable
      */
-    function compute(uint256 _cycle) external cycleComplete(_cycle) {
-        // the proposal will be denoted as the leader, this could error if there was weeks of activity, this also hits the issue of far back execution so maybe needs to also be a mapping :augh:
-        // the proposal itself can be deleted as a sign of completion (most gas efficient) to show that it's been executed
-        // there can also be a field that forces it to be unexecutable later
+    function enact(uint256 _cycle) external cycleComplete(_cycle) {
+        bytes32 _leader = leader;
+        // this ensures that this function can only be called once per winning MP
+        // however it doesn't allow compute to be re-called if there's a downstream non-reverting failure
+        // this is by design
+        delete leader;
 
-        emit VoteResult(winner[_cycle]);
+        // the default proposal doesn't do anything
+        if (_leader == bytes32(_cycle)) {
+            emit VoteResult(_cycle, _leader); // included for completionist's sake, will likely never be called
+            return;
+        }
+
+        MonetaryPolicy storage _winner = proposals[_leader];
+
+        if (_winner.cycle != _cycle) {
+            revert EnactCycleNotCurrent();
+        }
+
+        enacter.enact(
+            _leader,
+            _winner.targets,
+            _winner.signatures,
+            _winner.calldatas
+        );
+
+        emit VoteResult(_cycle, _leader);
     }
-
-    // initialization no longer required
-    // /** Initialize the storage context using parameters copied from the
-    //  * original contract (provided as _self).
-    //  *
-    //  * Can only be called once, during proxy initialization.
-    //  *
-    //  * @param _self The original contract address.
-    //  */
-    // function initialize(address _self) public override onlyConstruction {
-    //     super.initialize(_self);
-    //     proposalEnds = getTime() + PROPOSAL_TIME;
-    //     votingEnds = proposalEnds + VOTING_TIME;
-    //     revealEnds = votingEnds + REVEAL_TIME;
-
-    //     MonetaryPolicy storage p = proposals[currentCycle][address(0)];
-    //     p.inflationMultiplier = IDEMPOTENT_INFLATION_MULTIPLIER;
-
-    //     // sets the default votes for the default proposal
-    //     scores[address(0)] = trustedNodes.numTrustees();
-    // }
 }

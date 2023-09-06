@@ -13,6 +13,8 @@ import {
   CurrencyGovernance,
   StageTestCurrencyGovernance__factory,
   StageTestCurrencyGovernance,
+  DummyMonetaryPolicyAdapter__factory,
+  DummyMonetaryPolicyAdapter,
   Policy,
 } from '../../../typechain-types'
 
@@ -98,6 +100,7 @@ describe('CurrencyGovernance', () => {
   })
 
   let TrustedNodes: MockContract<TrustedNodes>
+  let Enacter: MockContract<DummyMonetaryPolicyAdapter>
   let CurrencyGovernance: CurrencyGovernance
   let Fake__Policy: FakeContract<Policy>
 
@@ -164,11 +167,21 @@ describe('CurrencyGovernance', () => {
       [bob.address, charlie.address, dave.address, niko.address, mila.address]
     )
 
+    Enacter = await (
+      await smock.mock<DummyMonetaryPolicyAdapter__factory>(
+        'DummyMonetaryPolicyAdapter'
+      )
+    ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
+
     CurrencyGovernance = await new CurrencyGovernance__factory()
       .connect(policyImpersonater)
-      .deploy(Fake__Policy.address, TrustedNodes.address)
+      .deploy(Fake__Policy.address, TrustedNodes.address, Enacter.address)
 
     await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(
+      CurrencyGovernance.address
+    )
+
+    await Enacter.connect(policyImpersonater).setCurrencyGovernance(
       CurrencyGovernance.address
     )
   })
@@ -227,7 +240,9 @@ describe('CurrencyGovernance', () => {
         CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
           constants.AddressZero
         )
-      ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ADDRESS)
+      ).to.be.revertedWith(
+        ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_TRUSTEDNODES
+      )
     })
   })
 
@@ -1932,6 +1947,206 @@ describe('CurrencyGovernance', () => {
         await expect(
           CurrencyGovernance.reveal(dave.address, salt, sneakyVotes)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.FINAL_SCORES_INVALID)
+      })
+    })
+  })
+
+  describe('execute stage', () => {
+    const charlieProposalId = getProposalId(
+      initialCycle,
+      targets,
+      functions,
+      calldatas
+    )
+    const defaultProposalId = ethers.utils.hexZeroPad(
+      ethers.BigNumber.from(initialCycle).toHexString(),
+      32
+    )
+    const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+    const ballot1 = [charlieProposalId]
+    const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+    const ballot2 = [defaultProposalId]
+
+    let votes1: Vote[]
+    let votes2: Vote[]
+
+    beforeEach(async () => {
+      await CurrencyGovernance.connect(charlie).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
+
+      await CurrencyGovernance.connect(dave).supportProposal(defaultProposalId)
+
+      votes1 = await getFormattedBallot(ballot1)
+      const commitHash1 = await getCommit(
+        salt1,
+        initialCycle,
+        charlie.address,
+        ballot1
+      )
+      votes2 = await getFormattedBallot(ballot2)
+      const commitHash2 = await getCommit(
+        salt2,
+        initialCycle,
+        dave.address,
+        ballot2
+      )
+
+      await time.increase(PROPOSE_STAGE_LENGTH)
+
+      // default will win if they both reveal
+      await CurrencyGovernance.connect(charlie).commit(commitHash1)
+      await CurrencyGovernance.connect(dave).commit(commitHash2)
+
+      await time.increase(COMMIT_STAGE_LENGTH)
+
+      await CurrencyGovernance.reveal(charlie.address, salt1, votes1)
+    })
+
+    describe('real proposal winning', () => {
+      beforeEach(async () => {
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(charlieProposalId)
+      })
+
+      describe('happy path testing', () => {
+        beforeEach(async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+        })
+
+        it('succeeds', async () => {
+          await CurrencyGovernance.enact(initialCycle)
+        })
+
+        it('changes state correctly', async () => {
+          const preEnacted = await Enacter.enacted()
+          expect(preEnacted).to.be.false
+
+          await CurrencyGovernance.enact(initialCycle)
+
+          // dummy contract confirms call went through
+          const enacted = await Enacter.enacted()
+          expect(enacted).to.be.true
+
+          // leader variable cleared
+          const leader = await CurrencyGovernance.leader()
+          expect(leader).to.eq(ethers.utils.hexZeroPad('0x', 32))
+
+          // proposal still exists
+          const charlieProposal = await CurrencyGovernance.proposals(
+            charlieProposalId
+          )
+          expect(charlieProposal.cycle).to.eq(initialCycle)
+          expect(charlieProposal.support.toNumber()).to.eq(1)
+          expect(charlieProposal.description).to.eq(description)
+          const charlieProposalTargets =
+            await CurrencyGovernance.getProposalTargets(charlieProposalId)
+          expect(charlieProposalTargets).to.eql(targets)
+          const charlieProposalSignatures =
+            await CurrencyGovernance.getProposalSignatures(charlieProposalId)
+          expect(charlieProposalSignatures).to.eql(functions)
+          const charlieProposalCalldatas =
+            await CurrencyGovernance.getProposalCalldatas(charlieProposalId)
+          expect(charlieProposalCalldatas).to.eql(calldatas)
+        })
+
+        it('passes data correctly', async () => {
+          await expect(CurrencyGovernance.enact(initialCycle))
+            .to.emit(Enacter, 'EnactionParameterCheck')
+            .withArgs(targets, functions, calldatas)
+        })
+
+        it('emits result event', async () => {
+          await expect(CurrencyGovernance.enact(initialCycle))
+            .to.emit(CurrencyGovernance, 'VoteResult')
+            .withArgs(initialCycle, charlieProposalId)
+        })
+      })
+
+      describe('reverts', () => {
+        it('cannot enact early', async () => {
+          await expect(
+            CurrencyGovernance.enact(initialCycle)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
+        })
+
+        it('cannot enact the future', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+
+          await expect(
+            CurrencyGovernance.enact(initialCycle + 1)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
+        })
+
+        it('cannot enact twice', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+
+          await CurrencyGovernance.enact(initialCycle)
+
+          await expect(
+            CurrencyGovernance.enact(initialCycle)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+        })
+
+        it('can enact late if not overridden', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH * 5)
+
+          await CurrencyGovernance.enact(initialCycle)
+        })
+
+        it('cannot enact for earlier cycle', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+
+          await expect(
+            CurrencyGovernance.enact(initialCycle - 1)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+        })
+
+        it('cannot enact for overwritten', async () => {
+          // enacting at this time simulates being in the reveal phase and trying to enact the previous cycle's proposal but it has already been overridden by vote reveals
+          await expect(
+            CurrencyGovernance.enact(initialCycle - 1)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+        })
+      })
+    })
+
+    describe('default proposal winning', () => {
+      beforeEach(async () => {
+        await CurrencyGovernance.reveal(dave.address, salt2, votes2)
+
+        time.increase(REVEAL_STAGE_LENGTH)
+
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(defaultProposalId)
+      })
+
+      it('enact succeeds', async () => {
+        await CurrencyGovernance.enact(initialCycle)
+      })
+
+      it('emits result event', async () => {
+        await expect(CurrencyGovernance.enact(initialCycle))
+          .to.emit(CurrencyGovernance, 'VoteResult')
+          .withArgs(initialCycle, defaultProposalId)
+      })
+
+      it('changes state correctly', async () => {
+        const preEnacted = await Enacter.enacted()
+        expect(preEnacted).to.be.false
+
+        await CurrencyGovernance.enact(initialCycle)
+
+        // the enacter is never called, its state should not be changed
+        const enacted = await Enacter.enacted()
+        expect(enacted).to.be.false
+
+        // leader variable cleared
+        const leader = await CurrencyGovernance.leader()
+        expect(leader).to.eq(ethers.utils.hexZeroPad('0x', 32))
       })
     })
   })
