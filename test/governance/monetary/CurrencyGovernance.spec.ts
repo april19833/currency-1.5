@@ -2081,6 +2081,16 @@ describe('CurrencyGovernance', () => {
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         })
 
+        it('cannot enact twice', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+
+          await CurrencyGovernance.enact(initialCycle)
+
+          await expect(
+            CurrencyGovernance.enact(initialCycle)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+        })
+
         it('can enact late if not overridden', async () => {
           await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH * 5)
 
