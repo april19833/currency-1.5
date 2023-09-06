@@ -108,7 +108,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /** used to track the leading proposalId during the vote totalling
      * tracks the winner between reveal phases
      * is deleted on enact to ensure it can only be enacted once
-    */
+     */
     bytes32 public leader;
 
     //////////////////////////////////////////////
@@ -355,7 +355,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _policy the owning policy address for the contract
      * @param _trustedNodes the contract to manage what addresses are trustees
      */
-    constructor(Policy _policy, TrustedNodes _trustedNodes, MonetaryPolicyAdapter _enacter) Policed(_policy) {
+    constructor(
+        Policy _policy,
+        TrustedNodes _trustedNodes,
+        MonetaryPolicyAdapter _enacter
+    ) Policed(_policy) {
         _setTrustedNodes(_trustedNodes);
         _setEnacter(_enacter);
         governanceStartTime = getTime();
@@ -764,13 +768,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         MonetaryPolicy storage _winner = proposals[_leader];
 
-        if (
-            _winner.cycle != _cycle
-        ) {
+        if (_winner.cycle != _cycle) {
             revert EnactCycleNotCurrent();
         }
 
-        enacter.enact(_leader, _winner.targets, _winner.signatures, _winner.calldatas);
+        enacter.enact(
+            _leader,
+            _winner.targets,
+            _winner.signatures,
+            _winner.calldatas
+        );
 
         emit VoteResult(_cycle, _leader);
     }

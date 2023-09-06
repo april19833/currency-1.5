@@ -12,7 +12,6 @@ import "./CurrencyGovernance.sol";
  * This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract
  */
 contract MonetaryPolicyAdapter is Policed {
-
     CurrencyGovernance public currencyGovernance;
 
     // If the currencyGovernance address is set to zero, the contract is unrecoverably ungovernable
@@ -26,7 +25,10 @@ contract MonetaryPolicyAdapter is Policed {
      * @param newCurrencyGovernance denotes the new currencyGovernance contract address
      * @param oldCurrencyGovernance denotes the old currencyGovernance contract address
      */
-    event NewCurrencyGovernance(CurrencyGovernance newCurrencyGovernance, CurrencyGovernance oldCurrencyGovernance);
+    event NewCurrencyGovernance(
+        CurrencyGovernance newCurrencyGovernance,
+        CurrencyGovernance oldCurrencyGovernance
+    );
 
     /**
      * emits when enaction happens to keep record of enaction
@@ -34,7 +36,11 @@ contract MonetaryPolicyAdapter is Policed {
      * @param currencyGovernance the CurrencyGovernance contract where you can look up the proposal calldata
      * @param successes the return success values from each of the calls to the targets in order
      */
-    event SuccessfulMonetaryPolicy(bytes32 proposalId, address currencyGovernance, bool[] successes);
+    event SuccessfulMonetaryPolicy(
+        bytes32 proposalId,
+        address currencyGovernance,
+        bool[] successes
+    );
 
     /** Restrict method access to the root policy instance only.
      */
@@ -45,7 +51,10 @@ contract MonetaryPolicyAdapter is Policed {
         _;
     }
 
-    constructor(Policy _policy, CurrencyGovernance _currencyGovernance) Policed(_policy) {
+    constructor(
+        Policy _policy,
+        CurrencyGovernance _currencyGovernance
+    ) Policed(_policy) {
         _setCurrencyGovernance(_currencyGovernance);
     }
 
@@ -53,12 +62,16 @@ contract MonetaryPolicyAdapter is Policed {
      * only available to the owning policy contract
      * @param _currencyGovernance the value to set the new currencyGovernance address to, cannot be zero
      */
-    function setCurrencyGovernance(CurrencyGovernance _currencyGovernance) public onlyPolicy {
+    function setCurrencyGovernance(
+        CurrencyGovernance _currencyGovernance
+    ) public onlyPolicy {
         emit NewCurrencyGovernance(_currencyGovernance, currencyGovernance);
         _setCurrencyGovernance(_currencyGovernance);
     }
 
-    function _setCurrencyGovernance(CurrencyGovernance _currencyGovernance) internal {
+    function _setCurrencyGovernance(
+        CurrencyGovernance _currencyGovernance
+    ) internal {
         if (address(_currencyGovernance) == address(0)) {
             revert NonZeroCurrencyGovernanceAddr();
         }
@@ -70,7 +83,5 @@ contract MonetaryPolicyAdapter is Policed {
         address[] calldata targets,
         bytes4[] calldata signatures,
         bytes[] memory calldatas
-    ) external virtual onlyCurrencyGovernance {
-
-    }
+    ) external virtual onlyCurrencyGovernance {}
 }
