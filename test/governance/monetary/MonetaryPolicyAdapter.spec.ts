@@ -76,7 +76,7 @@ describe.only('MonetaryPolicyAdapter', () => {
     describe('roles', () => {})
 
     describe('dummy lever signatures', () => {
-        it.only('check execute signature', async () => {
+        it('check execute signature', async () => {
             const compiledSig = DummyLeverFactory.interface.getSighash('execute')
             const contractSig = await DummyLever1.executeFunctionSignature()
             expect(executeSig).to.eql(compiledSig).to.eql(contractSig)
@@ -193,7 +193,7 @@ describe.only('MonetaryPolicyAdapter', () => {
         })
 
         // despite including reverts, these are still normal behavior tests as the revert safety is part of the normal functionality
-        describe.only('reverts', () => {
+        describe('reverts', () => {
             it('can enact a policy that reverts', async () => {
                 const targets = [DummyLever1.address]
                 const signatures = [alwaysRevertSig]
@@ -219,7 +219,6 @@ describe.only('MonetaryPolicyAdapter', () => {
                 const targets = [DummyLever1.address]
                 const signatures = [executeSig]
                 // calldata is garbage and doesn't match the function
-                // hardhat dies when trying to get the return type here, but it doesn't revert
                 const calldatas = [PLACEHOLDER_BYTES32_1]
                 await Enacter.connect(cgImpersonater).enact(proposalId, targets, signatures, calldatas)
                 
@@ -266,12 +265,36 @@ describe.only('MonetaryPolicyAdapter', () => {
                     .to.emit(Enacter, 'EnactedMonetaryPolicy')
                     .withArgs(proposalId, Fake__CurrencyGovernance.address, [false, true, false])
             })
+        })
 
-            describe('exploits', () => {
-                it('revert due to out of gas', async () => {
+        describe('exploits', () => {
+            it('revert due to out of gas reverts whole transaction', async () => {
+                const targets = [DummyLever1.address, DummyLever2.address]
+                const signatures = [alwaysPassSig, alwaysPassSig]
+                const calldata1 = PLACEHOLDER_BYTES32_1
+                const calldata2 = PLACEHOLDER_BYTES32_3
+                const calldatas = [calldata1, calldata2]
+                const necessaryGas1 = await Enacter.connect(cgImpersonater).estimateGas.enact(proposalId, targets, signatures, calldatas)
+                await Enacter.connect(cgImpersonater).enact(proposalId, targets, signatures, calldatas, {gasLimit: necessaryGas1})
+                const count1 = await DummyLever1.executeMarker()
+                expect(count1.eq(3)).to.be.true
+                const count2 = await DummyLever2.executeMarker()
+                expect(count2.eq(3)).to.be.true
 
-                }) 
-            })
+                // gas costs go down significantly for second call because count vars are already initialized
+                const necessaryGas2 = await Enacter.connect(cgImpersonater).estimateGas.enact(proposalId, targets, signatures, calldatas)
+                // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
+                try {
+                    await Enacter.connect(cgImpersonater).enact(proposalId, targets, signatures, calldatas, {gasLimit: necessaryGas2.sub(1)})
+                } catch (error) {
+                    expect(String(error).split('\n')[0]).to.eql('TransactionExecutionError: Transaction ran out of gas')
+                }
+                // both low level actions are reverted
+                const count3 = await DummyLever1.executeMarker()
+                expect(count3.eq(3)).to.be.true
+                const count4 = await DummyLever2.executeMarker()
+                expect(count4.eq(3)).to.be.true                
+            }) 
         })
     })
 })
