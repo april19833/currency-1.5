@@ -36,10 +36,16 @@ contract MonetaryPolicyAdapter is Policed {
      * @param currencyGovernance the CurrencyGovernance contract where you can look up the proposal calldata
      * @param successes the return success values from each of the calls to the targets in order
      */
-    event SuccessfulMonetaryPolicy(
+    event EnactedMonetaryPolicy(
         bytes32 proposalId,
-        address currencyGovernance,
+        CurrencyGovernance currencyGovernance,
         bool[] successes
+    );
+
+    event FailedPolicySubcall(
+        address target,
+        uint256 gasLeft,
+        string reason
     );
 
     /** Restrict method access to the root policy instance only.
@@ -83,5 +89,28 @@ contract MonetaryPolicyAdapter is Policed {
         address[] calldata targets,
         bytes4[] calldata signatures,
         bytes[] memory calldatas
-    ) external virtual onlyCurrencyGovernance {}
+    ) external virtual onlyCurrencyGovernance {
+        bool[] memory successes = new bool[](targets.length);
+        // the array lengths have all been vetted already by the proposal-making process
+        // upstream is just trusted
+        for (uint256 i = 0; i < targets.length; i++) {
+            bytes memory callData;
+
+            // use 0 to denote the desire to use the fallback function of the contract
+            if (signatures[i] == bytes4(0)) {
+                callData = calldatas[i];
+            } else {
+                callData = abi.encodePacked(signatures[i], calldatas[i]);
+            }
+
+            (bool success, bytes memory returnData) = targets[i].call(callData);
+
+            if (!success) {
+                emit FailedPolicySubcall(targets[i], gasleft(), string(returnData));
+            }
+            successes[i] = success;
+        }
+
+        emit EnactedMonetaryPolicy(proposalId, currencyGovernance, successes);
+    }
 }
