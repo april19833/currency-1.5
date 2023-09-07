@@ -25,6 +25,7 @@ contract Lockups is Lever, TimeUtils {
         mapping(address => uint256) gonsBalances;
         // interest to be minted to depositors upon timely withdrawal
         // the amount minted will remain the same regardless of changes in linear inflation
+        // multiplying this number by the currentInflationMultiplier yields gons
         mapping(address => uint256) interest;
     }
 
@@ -174,20 +175,20 @@ contract Lockups is Lever, TimeUtils {
 
     function _deposit(
         uint256 _lockupId,
-        address beneficiary,
+        address _beneficiary,
         uint256 _amount
     ) internal {
         Lockup storage lockup = lockups[_lockupId];
         if (getTime() >= lockup.depositWindowEnd) {
-            revert LateDeposit(_lockupId, msg.sender);
+            revert LateDeposit(_lockupId, _beneficiary);
         }
-        lockup.interest[msg.sender] += (_amount * lockup.rate) / BASE;
+        lockup.interest[_beneficiary] += (_amount * lockup.rate) / BASE;
         uint256 gonsAmount = _amount * currentInflationMultiplier;
-        lockup.gonsBalances[msg.sender] += gonsAmount;
+        lockup.gonsBalances[_beneficiary] += gonsAmount;
 
-        eco.transferFrom(msg.sender, address(this), _amount);
-        eco.delegateAmount(eco.getPrimaryDelegate(beneficiary), _amount);
-        emit LockupDeposit(_lockupId, beneficiary, gonsAmount);
+        eco.transferFrom(_beneficiary, address(this), _amount);
+        eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), _amount);
+        emit LockupDeposit(_lockupId, _beneficiary, gonsAmount);
     }
 
     /** User withdraws their own funds. Withdrawing before the lockup has ended will result in a
@@ -208,14 +209,14 @@ contract Lockups is Lever, TimeUtils {
 
     function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
-        uint256 amount = lockup.gonsBalances[_recipient] /
-            currentInflationMultiplier;
+        uint256 amount = lockup.gonsBalances[_recipient] / currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
 
         eco.undelegateAmountFromAddress(
             eco.getPrimaryDelegate(_recipient),
             amount
         );
+
         if (getTime() < lockup.end) {
             if (msg.sender != _recipient) {
                 revert EarlyWithdrawFor(_lockupId, msg.sender, _recipient);
@@ -227,14 +228,15 @@ contract Lockups is Lever, TimeUtils {
             eco.mint(address(this), interest);
             amount += interest;
         }
+
         lockup.gonsBalances[_recipient] = 0;
         lockup.interest[_recipient] = 0;
-
         eco.transfer(_recipient, amount);
+
         emit LockupWithdrawal(
             _lockupId,
             _recipient,
-            amount / currentInflationMultiplier
+            amount * currentInflationMultiplier
         );
     }
 
