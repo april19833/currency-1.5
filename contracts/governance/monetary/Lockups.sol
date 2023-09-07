@@ -209,7 +209,8 @@ contract Lockups is Lever, TimeUtils {
 
     function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
-        uint256 amount = lockup.gonsBalances[_recipient] / currentInflationMultiplier;
+        uint256 amount = lockup.gonsBalances[_recipient] /
+            currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
 
         eco.undelegateAmountFromAddress(
