@@ -40,7 +40,7 @@ const REVERTING_UINT156_1 = 1000
 const REVERTING_UINT156_2 = 1001
 const REVERTING_UINT156_3 = 1001932810298400
 
-describe('MonetaryPolicyAdapter', () => {
+describe.only('MonetaryPolicyAdapter', () => {
   let cgImpersonater: SignerWithAddress
   let policyImpersonater: SignerWithAddress
   let alice: SignerWithAddress
@@ -89,7 +89,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
       })
 
-      it('non-trustees cannot call onlyTrusted functions', async () => {
+      it('non-cg cannot call onlyCurrencyGovernance functions', async () => {
         await expect(
           Enacter.enact(
             proposalId,
@@ -169,7 +169,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(3)).to.be.true
+        expect(count).to.eq(3)
       })
 
       it('can enact a policy that passes empty calldata', async () => {
@@ -184,7 +184,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(5)).to.be.true
+        expect(count).to.eq(5)
       })
 
       it('can enact a policy that passes empty signature', async () => {
@@ -199,7 +199,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(11)).to.be.true
+        expect(count).to.eq(11)
       })
 
       it('can enact the most complicated example calldata', async () => {
@@ -219,7 +219,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(2)).to.be.true
+        expect(count).to.eq(2)
       })
 
       it('can enact a policy that targets multiple levers', async () => {
@@ -247,11 +247,11 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count1 = await DummyLever1.executeMarker()
-        expect(count1.eq(2)).to.be.true
+        expect(count1).to.eq(2)
         const count2 = await DummyLever2.executeMarker()
-        expect(count2.eq(3)).to.be.true
+        expect(count2).to.eq(3)
         const count3 = await DummyLever3.executeMarker()
-        expect(count3.eq(2)).to.be.true
+        expect(count3).to.eq(2)
       })
 
       it('can enact a policy that targets the same lever multiple times', async () => {
@@ -279,11 +279,11 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count1 = await DummyLever1.executeMarker()
-        expect(count1.eq(5)).to.be.true
+        expect(count1).to.eq(5)
         const count2 = await DummyLever2.executeMarker()
-        expect(count2.eq(0)).to.be.true
+        expect(count2).to.eq(0)
         const count3 = await DummyLever3.executeMarker()
-        expect(count3.eq(2)).to.be.true
+        expect(count3).to.eq(2)
       })
 
       it('emits the EnactedMonetaryPolicy event', async () => {
@@ -330,7 +330,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(0)).to.be.true
+        expect(count).to.eq(0)
       })
 
       it('can enact a policy that reverts due to input validation', async () => {
@@ -351,7 +351,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(0)).to.be.true
+        expect(count).to.eq(0)
       })
 
       it('can enact a policy that reverts due to bad input data', async () => {
@@ -367,7 +367,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(0)).to.be.true
+        expect(count).to.eq(0)
       })
 
       it('can enact a policy that reverts due to mistyped data', async () => {
@@ -392,7 +392,7 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count = await DummyLever1.executeMarker()
-        expect(count.eq(0)).to.be.true
+        expect(count).to.eq(0)
       })
 
       it("reverts don't block other txs in the policy", async () => {
@@ -420,11 +420,11 @@ describe('MonetaryPolicyAdapter', () => {
         )
 
         const count1 = await DummyLever1.executeMarker()
-        expect(count1.eq(0)).to.be.true
+        expect(count1).to.eq(0)
         const count2 = await DummyLever2.executeMarker()
-        expect(count2.eq(3)).to.be.true
+        expect(count2).to.eq(3)
         const count3 = await DummyLever3.executeMarker()
-        expect(count3.eq(0)).to.be.true
+        expect(count3).to.eq(0)
       })
 
       it('reverts are reflected in the event', async () => {
@@ -476,9 +476,9 @@ describe('MonetaryPolicyAdapter', () => {
           { gasLimit: necessaryGas1 }
         )
         const count1 = await DummyLever1.executeMarker()
-        expect(count1.eq(3)).to.be.true
+        expect(count1).to.eq(3)
         const count2 = await DummyLever2.executeMarker()
-        expect(count2.eq(3)).to.be.true
+        expect(count2).to.eq(3)
 
         // gas costs go down significantly for second call because count vars are already initialized
         const necessaryGas2 = await Enacter.connect(
@@ -500,9 +500,9 @@ describe('MonetaryPolicyAdapter', () => {
         }
         // both low level actions are reverted
         const count3 = await DummyLever1.executeMarker()
-        expect(count3.eq(3)).to.be.true
+        expect(count3).to.eq(3)
         const count4 = await DummyLever2.executeMarker()
-        expect(count4.eq(3)).to.be.true
+        expect(count4).to.eq(3)
       })
     })
   })
