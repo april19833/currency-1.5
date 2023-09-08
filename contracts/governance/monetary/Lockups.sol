@@ -56,6 +56,7 @@ contract Lockups is Lever, TimeUtils {
     uint256 public currentInflationMultiplier;
 
     // mapping of Lockups, indexed by lockupId
+    // TODO: consider using an array for this after John solidifies gas optimization infra
     mapping(uint256 => Lockup) public lockups;
 
     // sum of early withdraw penalties in gons
