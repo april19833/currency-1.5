@@ -42,7 +42,10 @@ contract MonetaryPolicyAdapter is Policed {
         bool[] successes
     );
 
-    event FailedPolicySubcall(address target, uint256 gasLeft, string reason);
+    /**
+     * emits when a part of enacting a policy reverts
+     */
+    event FailedPolicySubcall(address target, string reason);
 
     /** Restrict method access to the root policy instance only.
      */
@@ -90,21 +93,12 @@ contract MonetaryPolicyAdapter is Policed {
         // the array lengths have all been vetted already by the proposal-making process
         // upstream is just trusted
         for (uint256 i = 0; i < targets.length; i++) {
-            bytes memory callData;
+            (bool success, bytes memory returnData) = targets[i].call(abi.encodePacked(signatures[i], calldatas[i]));
 
-            // use 0 to denote the desire to use the fallback function of the contract
-            if (signatures[i] == bytes4(0)) {
-                callData = calldatas[i];
-            } else {
-                callData = abi.encodePacked(signatures[i], calldatas[i]);
-            }
-
-            (bool success, bytes memory returnData) = targets[i].call(callData);
-
+            // we might not actually need to fail gracefully, lets consider if reverting here is just fine
             if (!success) {
                 emit FailedPolicySubcall(
                     targets[i],
-                    gasleft(),
                     string(returnData)
                 );
             }
