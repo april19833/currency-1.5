@@ -6,10 +6,14 @@ import "./Notifier.sol";
 import "./Lever.sol";
 import "../../utils/TimeUtils.sol";
 
-/** @title Trustee monetary policy decision process
+/** @title Lockups
+ * This provides deposit certificate functionality for the purpose of countering
+ * inflationary effects.
  *
- * This contract oversees the voting on the currency monetary levers.
- * Trustees vote on a policy that is implemented at the conclusion of the cycle
+ * Deposits can be made and interest will be paid out to those who make
+ * deposits. Deposit principal is accessable before the interested period
+ * but for a penalty of not retrieving your gained interest as well as an
+ * additional penalty of that same amount.
  */
 contract Lockups is Lever, TimeUtils {
     // data structure for lockups
@@ -133,7 +137,7 @@ contract Lockups is Lever, TimeUtils {
     function createLockup(
         uint256 _duration,
         uint256 _rate
-    ) public onlyAuthorized {
+    ) external onlyAuthorized {
         if (_rate > MAX_RATE) {
             revert BadRate();
         }
@@ -155,7 +159,7 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId ID of the lockup being deposited to
      * @param _amount the amount being deposited
      */
-    function deposit(uint256 _lockupId, uint256 _amount) public {
+    function deposit(uint256 _lockupId, uint256 _amount) external {
         _deposit(_lockupId, msg.sender, _amount);
     }
 
@@ -169,7 +173,7 @@ contract Lockups is Lever, TimeUtils {
         uint256 _lockupId,
         address _beneficiary,
         uint256 _amount
-    ) public {
+    ) external {
         _deposit(_lockupId, _beneficiary, _amount);
     }
 
@@ -187,7 +191,10 @@ contract Lockups is Lever, TimeUtils {
         lockup.gonsBalances[_beneficiary] += gonsAmount;
 
         eco.transferFrom(_beneficiary, address(this), _amount);
+
+        // TODO: when we patch checkpointing make sure to look into what happens when the primary delegate is switched between deposits
         eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), _amount);
+
         emit LockupDeposit(_lockupId, _beneficiary, gonsAmount);
     }
 
@@ -195,7 +202,7 @@ contract Lockups is Lever, TimeUtils {
      * forfeiture of yield and penalty equal to that yield.
      * @param _lockupId the ID of the lockup being withdrawn from
      */
-    function withdraw(uint256 _lockupId) public {
+    function withdraw(uint256 _lockupId) external {
         _withdraw(_lockupId, msg.sender);
     }
 
@@ -203,7 +210,7 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId the ID of the lockup being withdrawn from
      * @param _recipient address to receive eco
      */
-    function withdrawFor(uint256 _lockupId, address _recipient) public {
+    function withdrawFor(uint256 _lockupId, address _recipient) external {
         _withdraw(_lockupId, _recipient);
     }
 
@@ -278,13 +285,14 @@ contract Lockups is Lever, TimeUtils {
     /** sweep accumulated penalty eco to a destination address
      * @param _destination the address that will receive
      */
-    function sweep(address _destination) public onlyPolicy {
+    function sweep(address _destination) external onlyPolicy {
         eco.transfer(_destination, penalties / currentInflationMultiplier);
         penalties = 0;
     }
 
     // updates currentInflationMultiplier
-    function updateInflationMultiplier() public {
+    // add this to the rebase notifier
+    function updateInflationMultiplier() external {
         currentInflationMultiplier = eco.getInflationMultiplier();
     }
 }
