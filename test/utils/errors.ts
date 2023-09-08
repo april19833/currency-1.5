@@ -50,4 +50,10 @@ export const ERRORS = {
   Rebase: {
     BAD_INFLATION_MULTIPLIER: 'BadInflationMultiplier',
   },
+  Lockups: {
+    EARLY_WITHDRAW_FOR: 'EarlyWithdrawFor',
+    LATE_DEPOSIT: 'LateDeposit',
+    BAD_RATE: 'BadRate',
+    BAD_DURATION: 'BadDuration',
+  },
 }
