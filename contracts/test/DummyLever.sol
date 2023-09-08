@@ -9,10 +9,14 @@ contract DummyLever {
     uint256 public executeMarker;
 
     // convenience data
-    bytes4 public executeFunctionSignature = bytes4(keccak256("execute(uint256,address,bytes32)"));
-    bytes4 public alwaysPassFunctionSignature = bytes4(keccak256("alwaysPass(bytes32)"));
-    bytes4 public datalessPasserFunctionSignature = bytes4(keccak256("datalessPasser()"));
-    bytes4 public alwaysRevertFunctionSignature = bytes4(keccak256("alwaysRevert(bytes32)"));
+    bytes4 public executeFunctionSignature =
+        bytes4(keccak256("execute(uint256,address,bytes32)"));
+    bytes4 public alwaysPassFunctionSignature =
+        bytes4(keccak256("alwaysPass(bytes32)"));
+    bytes4 public datalessPasserFunctionSignature =
+        bytes4(keccak256("datalessPasser()"));
+    bytes4 public alwaysRevertFunctionSignature =
+        bytes4(keccak256("alwaysRevert(bytes32)"));
 
     // event for confirming data is passed correctly
     event ExecuteData(uint256 number, address account, bytes32 data);
@@ -44,4 +48,3 @@ contract DummyLever {
         return data;
     }
 }
-

@@ -42,11 +42,7 @@ contract MonetaryPolicyAdapter is Policed {
         bool[] successes
     );
 
-    event FailedPolicySubcall(
-        address target,
-        uint256 gasLeft,
-        string reason
-    );
+    event FailedPolicySubcall(address target, uint256 gasLeft, string reason);
 
     /** Restrict method access to the root policy instance only.
      */
@@ -106,7 +102,11 @@ contract MonetaryPolicyAdapter is Policed {
             (bool success, bytes memory returnData) = targets[i].call(callData);
 
             if (!success) {
-                emit FailedPolicySubcall(targets[i], gasleft(), string(returnData));
+                emit FailedPolicySubcall(
+                    targets[i],
+                    gasleft(),
+                    string(returnData)
+                );
             }
             successes[i] = success;
         }
