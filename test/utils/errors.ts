@@ -25,6 +25,10 @@ export const ERRORS = {
     FINAL_SCORES_INVALID: 'InvalidVotesOutOfBounds',
     OUTDATED_ENACT: 'EnactCycleNotCurrent',
   },
+  MonetaryPolicyAdapter: {
+    CURRENCYGOVERNANCE_ONLY: 'CurrencyGovernanceOnlyFunction',
+    REQUIRE_NON_ZERO_CURRENCYGOVERNANCE: 'NonZeroCurrencyGovernanceAddr',
+  },
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',

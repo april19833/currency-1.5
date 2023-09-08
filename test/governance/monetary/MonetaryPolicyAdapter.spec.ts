@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { constants } from 'ethers'
 import { expect } from 'chai'
-import { smock, FakeContract, MockContract, MockContractFactory } from '@defi-wonderland/smock'
+import { smock, FakeContract, } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../../utils/errors'
 import {
@@ -33,12 +33,11 @@ const REVERTING_UINT156_2 = 1001
 const REVERTING_UINT156_3 = 1001932810298400
 
 describe.only('MonetaryPolicyAdapter', () => {
-    let alice: SignerWithAddress
-    let bob: SignerWithAddress
     let cgImpersonater: SignerWithAddress
     let policyImpersonater: SignerWithAddress
+    let alice: SignerWithAddress
     before(async () => {
-      ;[cgImpersonater, policyImpersonater, alice, bob] =
+      ;[cgImpersonater, policyImpersonater, alice] =
         await ethers.getSigners()
     })
   
@@ -72,8 +71,47 @@ describe.only('MonetaryPolicyAdapter', () => {
         DummyLever3 = await DummyLeverFactory.connect(policyImpersonater).deploy()
     })
 
-    // TODO
-    describe('roles', () => {})
+    describe.only('roles', () => {
+        describe('CG role', () => {
+            it('currency governance can call onlyCurrencyGovernance functions', async () => {
+                await Enacter.connect(cgImpersonater).enact(
+                    proposalId,
+                    [DummyLever1.address],
+                    [datalessPasserSig],
+                    ['0x']
+                )
+            })
+        
+            it('non-trustees cannot call onlyTrusted functions', async () => {
+              await expect(
+                Enacter.enact(
+                    proposalId,
+                    [DummyLever1.address],
+                    [datalessPasserSig],
+                    ['0x']
+                )
+              ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.CURRENCYGOVERNANCE_ONLY)
+            })
+        })
+
+        describe('CG role setter', () => {
+            it('the policy contract can call the setter', async () => {
+                await Enacter.connect(policyImpersonater).setCurrencyGovernance(alice.address)
+            })
+        
+            it('non-policy cannot call setter', async () => {
+              await expect(
+                Enacter.connect(alice).setCurrencyGovernance(alice.address)
+              ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        
+            it('cannot set to zero', async () => {
+              await expect(
+                Enacter.connect(policyImpersonater).setCurrencyGovernance(constants.AddressZero)
+              ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.REQUIRE_NON_ZERO_CURRENCYGOVERNANCE)
+            })
+        })
+    })
 
     describe('dummy lever signatures', () => {
         it('check execute signature', async () => {
