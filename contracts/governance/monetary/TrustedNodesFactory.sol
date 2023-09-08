@@ -6,7 +6,7 @@ import "./CurrencyGovernance.sol";
 contract TrustedNodesFactory is Policed, TimeUtils {
     ECOx public immutable ecoX;
 
-    CurrencyGovernance public immutable currencyGovernance;
+    CurrencyGovernance public currencyGovernance;
 
     /** Event emitted when a new cohort is deployed
      * @param trustedNodes the address of the deployed cohort
@@ -48,5 +48,14 @@ contract TrustedNodesFactory is Policed, TimeUtils {
         );
         emit NewCohort(trustedNodes);
         return address(trustedNodes);
+    }
+
+    /** Changes the holder currencyGovernance role
+     * @param _currencyGovernance the new currencyGovernance role holder
+     */
+    function updateCurrencyGovernance(
+        CurrencyGovernance _currencyGovernance
+    ) public onlyPolicy {
+        currencyGovernance = _currencyGovernance;
     }
 }

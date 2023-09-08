@@ -106,7 +106,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param newTrustedNodes denotes the new trustedNodes contract address
      * @param oldTrustedNodes denotes the old trustedNodes contract address
      */
-    event NewTrustedNodes(TrustedNodes newTrustedNodes, TrustedNodes oldTrustedNodes);
+    event NewTrustedNodes(
+        TrustedNodes newTrustedNodes,
+        TrustedNodes oldTrustedNodes
+    );
 
     // emitted when a proposal is submitted to track the values
     event ProposalCreation(

@@ -115,5 +115,17 @@ describe('TrustedNodesFactory', () => {
       expect(await newTrustedNodes.trustees(0)).to.eq(initialTrustees[0])
       expect(await newTrustedNodes.trustees(1)).to.eq(initialTrustees[1])
     })
+
+    it('only lets policy update currencyGovernance', async () => {
+      const cg = await trustedNodesFactory.currencyGovernance()
+      await expect(
+        trustedNodesFactory.updateCurrencyGovernance(bob.address)
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+      await trustedNodesFactory
+        .connect(policyImpersonator)
+        .updateCurrencyGovernance(bob.address)
+      expect(await trustedNodesFactory.currencyGovernance()).to.eq(bob.address)
+      expect(await trustedNodesFactory.currencyGovernance()).to.not.eq(cg)
+    })
   })
 })
