@@ -93,14 +93,13 @@ contract MonetaryPolicyAdapter is Policed {
         // the array lengths have all been vetted already by the proposal-making process
         // upstream is just trusted
         for (uint256 i = 0; i < targets.length; i++) {
-            (bool success, bytes memory returnData) = targets[i].call(abi.encodePacked(signatures[i], calldatas[i]));
+            (bool success, bytes memory returnData) = targets[i].call(
+                abi.encodePacked(signatures[i], calldatas[i])
+            );
 
             // we might not actually need to fail gracefully, lets consider if reverting here is just fine
             if (!success) {
-                emit FailedPolicySubcall(
-                    targets[i],
-                    string(returnData)
-                );
+                emit FailedPolicySubcall(targets[i], string(returnData));
             }
             successes[i] = success;
         }

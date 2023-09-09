@@ -43,7 +43,7 @@ const REVERTING_UINT156_1 = 1000
 const REVERTING_UINT156_2 = 1001
 const REVERTING_UINT156_3 = 1001932810298400
 
-describe.only('MonetaryPolicyAdapter', () => {
+describe('MonetaryPolicyAdapter', () => {
   let cgImpersonater: SignerWithAddress
   let policyImpersonater: SignerWithAddress
   let alice: SignerWithAddress
@@ -508,7 +508,7 @@ describe.only('MonetaryPolicyAdapter', () => {
         expect(count4).to.eq(3)
       })
 
-      it.only('revert due to out of gas still safe at 350k+ gas', async () => {
+      it('revert due to out of gas still safe at 350k+ gas', async () => {
         const targets = [DummyLever1.address, DummyLever2.address]
         const signatures = [alwaysPassSig, veryExpensiveSig]
         const calldata1 = PLACEHOLDER_BYTES32_1
@@ -535,7 +535,7 @@ describe.only('MonetaryPolicyAdapter', () => {
           cgImpersonater
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
         // console.log(necessaryGas2)
-        
+
         // gas estimation is less reliable at this level of expense so if we undercut by less, it's actually just enough gas for everything to succeed
         try {
           await Enacter.connect(cgImpersonater).enact(
@@ -546,7 +546,7 @@ describe.only('MonetaryPolicyAdapter', () => {
             { gasLimit: necessaryGas2.sub(1000) }
           )
         } catch (error) {
-        // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
+          // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
           expect(String(error).split('\n')[0]).to.eql(
             'TransactionExecutionError: Transaction ran out of gas'
           )
