@@ -288,7 +288,7 @@ describe('CurrencyGovernance', () => {
     describe('propose stage', () => {
       it('starts in propose stage', async () => {
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
@@ -296,13 +296,13 @@ describe('CurrencyGovernance', () => {
       it('check middle of propose stage', async () => {
         await time.increase((PROPOSE_STAGE_LENGTH * 2) / 10)
         const stageInfo1 = await StageTestCG.getCurrentStage()
-        expect(stageInfo1.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo1.currentCycle).to.eq(initialCycle)
         expect(stageInfo1.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
 
         await time.increase((PROPOSE_STAGE_LENGTH * 5) / 10)
         const stageInfo2 = await StageTestCG.getCurrentStage()
-        expect(stageInfo2.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo2.currentCycle).to.eq(initialCycle)
         expect(stageInfo2.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
@@ -310,7 +310,7 @@ describe('CurrencyGovernance', () => {
       it('test near end of propose stage', async () => {
         await time.increase(PROPOSE_STAGE_LENGTH - 1000)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
@@ -318,7 +318,7 @@ describe('CurrencyGovernance', () => {
       it('test end of propose stage', async () => {
         await time.increase(PROPOSE_STAGE_LENGTH - 1)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
@@ -331,7 +331,7 @@ describe('CurrencyGovernance', () => {
 
       it('enters in commit stage', async () => {
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
         await checkStageModifiers(COMMIT_STAGE)
       })
@@ -339,7 +339,7 @@ describe('CurrencyGovernance', () => {
       it('test middle of commit stage', async () => {
         await time.increase((COMMIT_STAGE_LENGTH * 3) / 5)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
         await checkStageModifiers(COMMIT_STAGE)
       })
@@ -347,7 +347,7 @@ describe('CurrencyGovernance', () => {
       it('test near end of commit stage', async () => {
         await time.increase(COMMIT_STAGE_LENGTH - 1000)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
         await checkStageModifiers(COMMIT_STAGE)
       })
@@ -355,7 +355,7 @@ describe('CurrencyGovernance', () => {
       it('test end of commit stage', async () => {
         await time.increase(COMMIT_STAGE_LENGTH - 1)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(COMMIT_STAGE)
         await checkStageModifiers(COMMIT_STAGE)
       })
@@ -368,7 +368,7 @@ describe('CurrencyGovernance', () => {
 
       it('enters in reveal stage', async () => {
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
         await checkStageModifiers(REVEAL_STAGE)
       })
@@ -376,7 +376,7 @@ describe('CurrencyGovernance', () => {
       it('test middle of reveal stage', async () => {
         await time.increase((REVEAL_STAGE_LENGTH * 1) / 5)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
         await checkStageModifiers(REVEAL_STAGE)
       })
@@ -384,7 +384,7 @@ describe('CurrencyGovernance', () => {
       it('test near end of reveal stage', async () => {
         await time.increase(REVEAL_STAGE_LENGTH - 1000)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
         await checkStageModifiers(REVEAL_STAGE)
       })
@@ -392,7 +392,7 @@ describe('CurrencyGovernance', () => {
       it('test end of reveal stage', async () => {
         await time.increase(REVEAL_STAGE_LENGTH - 1)
         const stageInfo = await StageTestCG.getCurrentStage()
-        expect(stageInfo.currentCycle.eq(initialCycle)).to.be.true
+        expect(stageInfo.currentCycle).to.eq(initialCycle)
         expect(stageInfo.currentStage).to.equal(REVEAL_STAGE)
         await checkStageModifiers(REVEAL_STAGE)
       })
@@ -964,7 +964,7 @@ describe('CurrencyGovernance', () => {
         await CurrencyGovernance.connect(charlie).unsupportProposal(proposalId)
 
         const proposal = await CurrencyGovernance.proposals(proposalId)
-        expect(proposal.cycle.eq(0)).to.be.true
+        expect(proposal.cycle).to.eq(0)
         expect(proposal.support.toNumber()).to.eq(0)
         expect(proposal.description).to.eq('')
 
