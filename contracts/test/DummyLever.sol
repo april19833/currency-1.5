@@ -17,6 +17,8 @@ contract DummyLever {
         bytes4(keccak256("datalessPasser()"));
     bytes4 public alwaysRevertFunctionSignature =
         bytes4(keccak256("alwaysRevert(bytes32)"));
+    bytes4 public veryExpensiveFunctionSignature =
+        bytes4(keccak256("veryExpensiveFunction()"));
 
     // event for confirming data is passed correctly
     event ExecuteData(uint256 number, address account, bytes32 data);
@@ -41,6 +43,12 @@ contract DummyLever {
     function alwaysRevert(bytes32 data) external {
         executeMarker += 7;
         revert("I'm the reverter");
+    }
+
+    function veryExpensiveFunction() external {
+        for(uint256 i; i<750; i++) {
+            executeMarker++;
+        }
     }
 
     fallback(bytes calldata data) external payable returns (bytes memory) {

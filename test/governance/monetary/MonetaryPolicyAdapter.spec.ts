@@ -25,6 +25,9 @@ const datalessPasserSig = ethers.utils
 const alwaysRevertSig = ethers.utils
   .solidityKeccak256(['string'], ['alwaysRevert(bytes32)'])
   .slice(0, 10)
+const veryExpensiveSig = ethers.utils
+  .solidityKeccak256(['string'], ['veryExpensiveFunction()'])
+  .slice(0, 10)
 
 // proposalId doesn't matter but we want to check that it's passed through correctly
 const proposalId = ethers.utils.hexlify(ethers.utils.randomBytes(32))
@@ -503,6 +506,56 @@ describe.only('MonetaryPolicyAdapter', () => {
         expect(count3).to.eq(3)
         const count4 = await DummyLever2.executeMarker()
         expect(count4).to.eq(3)
+      })
+
+      it.only('revert due to out of gas still safe at 350k+ gas', async () => {
+        const targets = [DummyLever1.address, DummyLever2.address]
+        const signatures = [alwaysPassSig, veryExpensiveSig]
+        const calldata1 = PLACEHOLDER_BYTES32_1
+        const calldata2 = '0x'
+        const calldatas = [calldata1, calldata2]
+        const necessaryGas1 = await Enacter.connect(
+          cgImpersonater
+        ).estimateGas.enact(proposalId, targets, signatures, calldatas)
+        console.log(necessaryGas1)
+        await Enacter.connect(cgImpersonater).enact(
+          proposalId,
+          targets,
+          signatures,
+          calldatas,
+          { gasLimit: necessaryGas1 }
+        )
+        const count1 = await DummyLever1.executeMarker()
+        expect(count1).to.eq(3)
+        const count2 = await DummyLever2.executeMarker()
+        expect(count2).to.eq(750)
+
+        // gas costs go down significantly for second call because count vars are already initialized
+        const necessaryGas2 = await Enacter.connect(
+          cgImpersonater
+        ).estimateGas.enact(proposalId, targets, signatures, calldatas)
+        console.log(necessaryGas2)
+        
+        // gas estimation is less reliable at this level of expense so if we undercut by less, it's actually just enough gas for everything to succeed
+        try {
+          await Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas,
+            { gasLimit: necessaryGas2.sub(1000) }
+          )
+        } catch (error) {
+        // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
+          expect(String(error).split('\n')[0]).to.eql(
+            'TransactionExecutionError: Transaction ran out of gas'
+          )
+        }
+        // both low level actions are reverted
+        const count3 = await DummyLever1.executeMarker()
+        expect(count3).to.eq(3)
+        const count4 = await DummyLever2.executeMarker()
+        expect(count4).to.eq(750)
       })
     })
   })
