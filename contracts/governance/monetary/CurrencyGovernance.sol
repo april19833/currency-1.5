@@ -484,9 +484,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
             msg.sender,
             cycle,
             proposalId,
-            // targets,
-            // signatures,
-            // calldatas,
             description
         );
         emit Support(msg.sender, proposalId, cycle);
