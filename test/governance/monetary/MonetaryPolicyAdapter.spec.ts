@@ -82,7 +82,7 @@ describe('MonetaryPolicyAdapter', () => {
   })
 
   describe('roles', () => {
-    describe('CG role', () => {
+    describe('onlyCurrencyGovernance', () => {
       it('currency governance can call onlyCurrencyGovernance functions', async () => {
         await Enacter.connect(cgImpersonater).enact(
           proposalId,
@@ -106,11 +106,21 @@ describe('MonetaryPolicyAdapter', () => {
       })
     })
 
-    describe('CG role setter', () => {
+    describe('currencyGovernance role', () => {
       it('the policy contract can call the setter', async () => {
         await Enacter.connect(policyImpersonater).setCurrencyGovernance(
           alice.address
         )
+      })
+
+      it('emits an event', async () => {
+        expect(
+          await Enacter.connect(policyImpersonater).setCurrencyGovernance(
+            alice.address
+          )
+        )
+          .to.emit(Enacter, 'NewCurrencyGovernance')
+          .withArgs(Fake__CurrencyGovernance.address, alice.address)
       })
 
       it('non-policy cannot call setter', async () => {
