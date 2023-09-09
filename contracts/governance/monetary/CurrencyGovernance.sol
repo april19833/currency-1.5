@@ -602,7 +602,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
-            p.support--;
+            --p.support;
         }
 
         trusteeSupports[msg.sender] = 0;
