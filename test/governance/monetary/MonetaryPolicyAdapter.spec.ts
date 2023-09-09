@@ -517,7 +517,7 @@ describe.only('MonetaryPolicyAdapter', () => {
         const necessaryGas1 = await Enacter.connect(
           cgImpersonater
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
-        console.log(necessaryGas1)
+        // console.log(necessaryGas1)
         await Enacter.connect(cgImpersonater).enact(
           proposalId,
           targets,
@@ -534,7 +534,7 @@ describe.only('MonetaryPolicyAdapter', () => {
         const necessaryGas2 = await Enacter.connect(
           cgImpersonater
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
-        console.log(necessaryGas2)
+        // console.log(necessaryGas2)
         
         // gas estimation is less reliable at this level of expense so if we undercut by less, it's actually just enough gas for everything to succeed
         try {
