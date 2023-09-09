@@ -480,12 +480,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         p.calldatas = calldatas;
         p.description = description;
 
-        emit ProposalCreation(
-            msg.sender,
-            cycle,
-            proposalId,
-            description
-        );
+        emit ProposalCreation(msg.sender, cycle, proposalId, description);
         emit Support(msg.sender, proposalId, cycle);
     }
 

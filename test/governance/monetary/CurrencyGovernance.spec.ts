@@ -240,9 +240,7 @@ describe('CurrencyGovernance', () => {
         CurrencyGovernance.connect(policyImpersonater).setEnacter(
           constants.AddressZero
         )
-      ).to.be.revertedWith(
-        ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ENACTER
-      )
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ENACTER)
     })
   })
 
