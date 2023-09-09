@@ -10,7 +10,7 @@ import {
   Policy,
 } from '../../typechain-types'
 
-describe.only('Policed', () => {
+describe('Policed', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let policyImpersonater: SignerWithAddress
