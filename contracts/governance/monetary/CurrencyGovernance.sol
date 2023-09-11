@@ -373,7 +373,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * only available to the owning policy contract
      * @param _trustedNodes the value to set the new trustedNodes address to, cannot be zero
      */
-    function setTrustedNodes(TrustedNodes _trustedNodes) public onlyPolicy {
+    function setTrustedNodes(TrustedNodes _trustedNodes) external onlyPolicy {
         emit NewTrustedNodes(_trustedNodes, trustedNodes);
         _setTrustedNodes(_trustedNodes);
     }
@@ -389,7 +389,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * only available to the owning policy contract
      * @param _enacter the value to set the new enacter address to, cannot be zero
      */
-    function setEnacter(MonetaryPolicyAdapter _enacter) public onlyPolicy {
+    function setEnacter(MonetaryPolicyAdapter _enacter) external onlyPolicy {
         emit NewEnacter(_enacter, enacter);
         _setEnacter(_enacter);
     }
@@ -480,15 +480,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         p.calldatas = calldatas;
         p.description = description;
 
-        emit ProposalCreation(
-            msg.sender,
-            cycle,
-            proposalId,
-            // targets,
-            // signatures,
-            // calldatas,
-            description
-        );
+        emit ProposalCreation(msg.sender, cycle, proposalId, description);
         emit Support(msg.sender, proposalId, cycle);
     }
 
@@ -567,12 +559,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
         if (p.support == 0 && proposalId != bytes32(cycle)) {
             revert NoSuchProposal();
         }
-        // actually should never trigger since SupportAlreadyGiven would throw first, still feels safe to check
-        if (p.supporters[msg.sender]) {
-            revert DuplicateSupport();
-        }
+        // // actually should never trigger since SupportAlreadyGiven would throw first
+        // if (p.supporters[msg.sender]) {
+        //     revert DuplicateSupport();
+        // }
 
-        p.support++;
+        ++p.support;
         p.supporters[msg.sender] = true;
         emit Support(msg.sender, proposalId, getCurrentCycle());
     }
@@ -605,7 +597,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             delete proposals[proposalId];
             emit ProposalDeleted(proposalId, cycle);
         } else {
-            p.support--;
+            --p.support;
         }
 
         trusteeSupports[msg.sender] = 0;

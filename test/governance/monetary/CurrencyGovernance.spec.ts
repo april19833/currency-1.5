@@ -208,6 +208,42 @@ describe('CurrencyGovernance', () => {
     })
   })
 
+  describe('enacter role', () => {
+    it('can be changed by the policy', async () => {
+      const initialEnacterAddress = await CurrencyGovernance.enacter()
+      await CurrencyGovernance.connect(policyImpersonater).setEnacter(
+        alice.address
+      )
+      const changedEnacterAddress = await CurrencyGovernance.enacter()
+      expect(changedEnacterAddress !== initialEnacterAddress).to.be.true
+      expect(changedEnacterAddress === alice.address).to.be.true
+    })
+
+    it('emits an event', async () => {
+      expect(
+        await CurrencyGovernance.connect(policyImpersonater).setEnacter(
+          alice.address
+        )
+      )
+        .to.emit(CurrencyGovernance, 'NewEnacter')
+        .withArgs(Enacter.address, alice.address)
+    })
+
+    it('is onlyPolicy gated', async () => {
+      await expect(
+        CurrencyGovernance.connect(alice).setEnacter(alice.address)
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+    })
+
+    it('cannot be set to the zero address', async () => {
+      await expect(
+        CurrencyGovernance.connect(policyImpersonater).setEnacter(
+          constants.AddressZero
+        )
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ENACTER)
+    })
+  })
+
   describe('trusted nodes role', () => {
     it('can be changed by the policy', async () => {
       const initialTNAddress = await CurrencyGovernance.trustedNodes()
