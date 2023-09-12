@@ -8,12 +8,12 @@ import "../governance/monetary/CurrencyGovernance.sol";
 /** @title An ERC20 token interface to the Eco currency system.
  */
 contract ECO is InflationCheckpoints {
-    uint256 public inflationMultiplier;
 
-    /** Fired when a proposal with a new inflation multiplier is selected and passed.
-     * Used to calculate new values for the rebased token.
-     */
-    event NewInflationMultiplier(uint256 inflationMultiplier);
+    //////////////////////////////////////////////
+    //////////////////// VARS ////////////////////
+    //////////////////////////////////////////////
+
+    uint256 public inflationMultiplier;
 
     // the address of the contract for initial distribution
     address public immutable distributor;
@@ -41,6 +41,10 @@ contract ECO is InflationCheckpoints {
     bool public rebased;
     bool public snapshotted;
 
+    //////////////////////////////////////////////
+    /////////////////// ERRORS ///////////////////
+    //////////////////////////////////////////////
+
     // error for when an address tries to mint tokens without permission
     error OnlyMinters();
 
@@ -52,6 +56,60 @@ contract ECO is InflationCheckpoints {
 
     // error for when an address tries to rebase without permission
     error OnlySnapshotters();
+
+    //////////////////////////////////////////////
+    /////////////////// EVENTS ///////////////////
+    //////////////////////////////////////////////
+
+    /**
+     * emits when the minters permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can mint, false for cannot)
+     */
+    event UpdatedMinters(
+        address actor,
+        bool newPermission
+    );
+
+    /**
+     * emits when the burners permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
+     */
+    event UpdatedBurners(
+        address actor,
+        bool newPermission
+    );
+
+    /**
+     * emits when the rebasers permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can rebase, false for cannot)
+     */
+    event UpdatedRebasers(
+        address actor,
+        bool newPermission
+    );
+
+    /**
+     * emits when the snapshotters permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
+     */
+    event UpdatedSnapshotters(
+        address actor,
+        bool newPermission
+    );
+
+    /** Fired when a proposal with a new inflation multiplier is selected and passed.
+     * Used to calculate new values for the rebased token.
+     */
+    event NewInflationMultiplier(uint256 inflationMultiplier);
+
+
+    //////////////////////////////////////////////
+    ////////////////// MODIFIERS /////////////////
+    //////////////////////////////////////////////
 
     /**
      * @dev Modifier for checking if the sender is a minter
@@ -95,6 +153,10 @@ contract ECO is InflationCheckpoints {
         _;
     }
 
+    //////////////////////////////////////////////
+    ///////////////// CONSTRUCTOR ////////////////
+    //////////////////////////////////////////////
+
     constructor(
         Policy _policy,
         address _distributor,
@@ -105,6 +167,10 @@ contract ECO is InflationCheckpoints {
         initialSupply = _initialSupply;
     }
 
+    //////////////////////////////////////////////
+    ///////////////// INITIALIZER ////////////////
+    //////////////////////////////////////////////
+
     function initialize(
         address _self
     ) public virtual override onlyConstruction {
@@ -112,6 +178,10 @@ contract ECO is InflationCheckpoints {
         pauser = ERC20Pausable(_self).pauser();
         _mint(distributor, initialSupply);
     }
+
+    //////////////////////////////////////////////
+    ////////////////// FUNCTIONS /////////////////
+    //////////////////////////////////////////////
 
     function mint(address _to, uint256 _value) external onlyMinterRole {
         _mint(_to, _value);
@@ -140,6 +210,7 @@ contract ECO is InflationCheckpoints {
         onlyPolicy
     {
         minters[_key] = _value;
+        emit UpdatedMinters(_key, _value);
     }
 
     /**
@@ -153,6 +224,8 @@ contract ECO is InflationCheckpoints {
         onlyPolicy
     {
         burners[_key] = _value;
+        emit UpdatedBurners(_key, _value);
+
     }
 
     /**
@@ -166,6 +239,7 @@ contract ECO is InflationCheckpoints {
         onlyPolicy
     {
         rebasers[_key] = _value;
+        emit UpdatedRebasers(_key, _value);
     }
 
     /**
@@ -179,6 +253,7 @@ contract ECO is InflationCheckpoints {
         onlyPolicy
     {
         snapshotters[_key] = _value;
+        emit UpdatedSnapshotters(_key, _value);
     }
 
     function getInflationMultiplier()
