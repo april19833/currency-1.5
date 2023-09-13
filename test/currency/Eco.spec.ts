@@ -19,13 +19,13 @@ const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 eco initially
 
 describe.only('Eco', () => {
-    let alice: SignerWithAddress // distributer
+    let alice: SignerWithAddress // default signer
     let bob: SignerWithAddress // pauser
-    let charlie: SignerWithAddress
-    let dave: SignerWithAddress
+    let charlie: SignerWithAddress 
+    let dave: SignerWithAddress // distributer
     let policyImpersonater: SignerWithAddress
     before(async () => {
-      ;[policyImpersonater, alice, bob, charlie, dave] =
+      ;[alice, bob, charlie, dave, policyImpersonater] =
         await ethers.getSigners()
     })
   
@@ -40,11 +40,11 @@ describe.only('Eco', () => {
             { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
         )
 
-        const ECOfact = new ECO__factory
+        const ECOfact = new ECO__factory(alice)
     
         ECOimpl = await ECOfact
             .connect(policyImpersonater)
-            .deploy(Fake__Policy.address, alice.address, INITIAL_SUPPLY, bob.address)
+            .deploy(Fake__Policy.address, dave.address, INITIAL_SUPPLY, bob.address)
 
 
         const proxy = await new ForwardProxy__factory()
@@ -56,7 +56,181 @@ describe.only('Eco', () => {
         expect(ECOproxy.address === proxy.address).to.be.true;
     })
 
-    it('test', async () => {
-        console.log('test')
+    describe('role permissions', () => {
+        describe('minter role', () => {
+            it('can be added by the policy', async () => {
+              await ECOproxy.connect(policyImpersonater).updateMinters(
+                charlie.address,
+                true,
+              )
+              const charlieMinting = await ECOproxy.minters(charlie.address)
+              expect(charlieMinting).to.be.true
+            })
+
+            it('can be removed by the policy', async () => {
+                await ECOproxy.connect(policyImpersonater).updateMinters(
+                    charlie.address,
+                    true,
+                )
+                await ECOproxy.connect(policyImpersonater).updateMinters(
+                    charlie.address,
+                    false,
+                )
+                const charlieMinting = await ECOproxy.minters(charlie.address)
+                expect(charlieMinting).to.be.false
+            })
+        
+            it('emits an event', async () => {
+              expect(
+                await ECOproxy.connect(policyImpersonater).updateMinters(
+                    charlie.address,
+                    true,
+                )
+              )
+                .to.emit(ECOproxy, 'UpdatedMinters')
+                .withArgs(charlie.address, true)
+            })
+        
+            it('is onlyPolicy gated', async () => {
+              await expect(
+                ECOproxy.connect(charlie).updateMinters(
+                    charlie.address,
+                    true,
+                )
+              ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        })
+        
+        describe('burner role', () => {
+            it('can be added by the policy', async () => {
+              await ECOproxy.connect(policyImpersonater).updateBurners(
+                charlie.address,
+                true,
+              )
+              const charlieBurning = await ECOproxy.burners(charlie.address)
+              expect(charlieBurning).to.be.true
+            })
+
+            it('can be removed by the policy', async () => {
+                await ECOproxy.connect(policyImpersonater).updateBurners(
+                    charlie.address,
+                    true,
+                )
+                await ECOproxy.connect(policyImpersonater).updateBurners(
+                    charlie.address,
+                    false,
+                )
+                const charlieBurning = await ECOproxy.burners(charlie.address)
+                expect(charlieBurning).to.be.false
+            })
+        
+            it('emits an event', async () => {
+              expect(
+                await ECOproxy.connect(policyImpersonater).updateBurners(
+                    charlie.address,
+                    true,
+                )
+              )
+                .to.emit(ECOproxy, 'UpdatedBurners')
+                .withArgs(charlie.address, true)
+            })
+        
+            it('is onlyPolicy gated', async () => {
+              await expect(
+                ECOproxy.connect(charlie).updateBurners(
+                    charlie.address,
+                    true,
+                )
+              ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        })
+
+        describe('rebaser role', () => {
+            it('can be added by the policy', async () => {
+              await ECOproxy.connect(policyImpersonater).updateRebasers(
+                charlie.address,
+                true,
+              )
+              const charlieRebasing = await ECOproxy.rebasers(charlie.address)
+              expect(charlieRebasing).to.be.true
+            })
+
+            it('can be removed by the policy', async () => {
+                await ECOproxy.connect(policyImpersonater).updateRebasers(
+                    charlie.address,
+                    true,
+                )
+                await ECOproxy.connect(policyImpersonater).updateRebasers(
+                    charlie.address,
+                    false,
+                )
+                const charlieRebasing = await ECOproxy.rebasers(charlie.address)
+                expect(charlieRebasing).to.be.false
+            })
+        
+            it('emits an event', async () => {
+              expect(
+                await ECOproxy.connect(policyImpersonater).updateRebasers(
+                    charlie.address,
+                    true,
+                )
+              )
+                .to.emit(ECOproxy, 'UpdatedRebasers')
+                .withArgs(charlie.address, true)
+            })
+        
+            it('is onlyPolicy gated', async () => {
+              await expect(
+                ECOproxy.connect(charlie).updateRebasers(
+                    charlie.address,
+                    true,
+                )
+              ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        })
+
+        describe('snapshotter role', () => {
+            it('can be added by the policy', async () => {
+              await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+                charlie.address,
+                true,
+              )
+              const charlieSnapshotting = await ECOproxy.snapshotters(charlie.address)
+              expect(charlieSnapshotting).to.be.true
+            })
+
+            it('can be removed by the policy', async () => {
+                await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+                    charlie.address,
+                    true,
+                )
+                await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+                    charlie.address,
+                    false,
+                )
+                const charlieSnapshotting = await ECOproxy.snapshotters(charlie.address)
+                expect(charlieSnapshotting).to.be.false
+            })
+        
+            it('emits an event', async () => {
+              expect(
+                await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+                    charlie.address,
+                    true,
+                )
+              )
+                .to.emit(ECOproxy, 'UpdatedSnapshotters')
+                .withArgs(charlie.address, true)
+            })
+        
+            it('is onlyPolicy gated', async () => {
+              await expect(
+                ECOproxy.connect(charlie).updateSnapshotters(
+                    charlie.address,
+                    true,
+                )
+              ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        })
     })
 })
