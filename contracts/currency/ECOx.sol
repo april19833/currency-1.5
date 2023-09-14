@@ -10,23 +10,117 @@ import "./ERC20Pausable.sol";
  * Contains the conversion mechanism for turning ECOx into ECO.
  */
 contract ECOx is ERC20Pausable, Policed {
-    // bits of precision used in the exponentiation approximation
-    uint8 public constant PRECISION_BITS = 100;
+    //////////////////////////////////////////////
+    //////////////////// VARS ////////////////////
+    //////////////////////////////////////////////
 
-    uint256 public immutable initialSupply;
+    /**
+     * @dev address of ECOxStaking contract
+     */
+    address public ecoXStaking;
 
-    // the address of the contract for initial distribution
+    /**
+     * @dev address of ECOxExchange contract
+     */
+    address public ecoXExchange;
+
+    // /**
+    //  * @dev the address of the ECO token contract
+    //  */
+    // IECO public immutable ecoToken;
+
+    /**
+     * @dev the address of the contract for initial distribution
+     */
     address public immutable distributor;
 
-    // the address of the ECO token contract
-    IECO public immutable ecoToken;
+    /**
+     * @dev supply of ECOx at time of deployment
+     */
+    uint256 public immutable initialSupply;
 
-    // error for when transfer returns false
-    // used by contracts that import this contract
+    /**
+     * @dev Mapping storing contracts able to mint tokens
+     */
+    mapping(address => bool) public minters;
+
+    /**
+     * @dev Mapping storing contracts able to burn tokens
+     */
+    mapping(address => bool) public burners;
+    /**
+     * @dev bits of precision used in the exponentiation approximation
+     */
+    uint8 public constant PRECISION_BITS = 100;
+
+    //////////////////////////////////////////////
+    /////////////////// ERRORS ///////////////////
+    //////////////////////////////////////////////
+
+    /**
+     * @dev error for when an address tries to mint tokens without permission
+     */
+    error OnlyMinters();
+
+    /**
+     * @dev error for when an address tries to vurn tokens without permission
+     */
+    error OnlyBurners();
+
+    /**
+     * @dev error for when transfer returns false
+     * used by contracts that import this contract
+     */
     error TransferFailed();
+
+    //////////////////////////////////////////////
+    /////////////////// EVENTS ///////////////////
+    //////////////////////////////////////////////
+
+    /**
+     * emits when the minters permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can mint, false for cannot)
+     */
+    event UpdatedMinters(address actor, bool newPermission);
+
+    /**
+     * emits when the burners permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
+     */
+    event UpdatedBurners(address actor, bool newPermission);
+
+    //////////////////////////////////////////////
+    ////////////////// MODIFIERS /////////////////
+    //////////////////////////////////////////////
+
+    /**
+     * @dev Modifier for checking if the sender is a minter
+     */
+    modifier onlyMinterRole() {
+        if (!minters[msg.sender]) {
+            revert OnlyMinters();
+        }
+        _;
+    }
+
+    /**
+     * @dev Modifier for checking if the sender is allowed to burn
+     * both burners and the message sender can burn
+     * @param _from the address burning tokens
+     */
+    modifier onlyBurnerRoleOrSelf(address _from) {
+        if (_from != msg.sender && !burners[msg.sender]) {
+            revert OnlyBurners();
+        }
+        _;
+    }
 
     constructor(
         Policy _policy,
+        address _ecoXStaking,
+        address _ecoXExchange,
         address _distributor,
         uint256 _initialSupply,
         IECO _ecoAddr,
@@ -36,37 +130,76 @@ contract ECOx is ERC20Pausable, Policed {
         Policed(_policy)
     {
         require(_initialSupply > 0, "initial supply not properly set");
-        require(
-            address(_ecoAddr) != address(0),
-            "Do not set the ECO address as the zero address"
-        );
+        // require(
+        //     address(_ecoAddr) != address(0),
+        //     "Do not set the ECO address as the zero address"
+        // );
 
         initialSupply = _initialSupply;
         distributor = _distributor;
-        ecoToken = _ecoAddr;
+        // ecoToken = _ecoAddr;
     }
 
     function initialize(
         address _self
     ) public virtual override onlyConstruction {
         super.initialize(_self);
+        policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
         _mint(distributor, initialSupply);
     }
 
-    function ecoValueOf(uint256 _ecoXValue) public view returns (uint256) {
-        uint256 _ecoSupply = ecoToken.totalSupply();
+    // function ecoValueOf(uint256 _ecoXValue) public view returns (uint256) {
+    //     uint256 _ecoSupply = ecoToken.totalSupply();
 
-        return computeValue(_ecoXValue, _ecoSupply);
+    //     return computeValue(_ecoXValue, _ecoSupply);
+    // }
+
+    // function valueAt(
+    //     uint256 _ecoXValue,
+    //     uint256 _blockNumber
+    // ) public view returns (uint256) {
+    //     uint256 _ecoSupplyAt = ecoToken.totalSupplyAt(_blockNumber);
+
+    //     return computeValue(_ecoXValue, _ecoSupplyAt);
+    // }
+
+    /**
+     * @dev change the ECOxStaking address
+     * @param _newRoleHolder the new ECOxStaking address
+     */
+    function updateECOxStaking(address _newRoleHolder) public onlyPolicy {
+        ecoXStaking = _newRoleHolder;
     }
 
-    function valueAt(
-        uint256 _ecoXValue,
-        uint256 _blockNumber
-    ) public view returns (uint256) {
-        uint256 _ecoSupplyAt = ecoToken.totalSupplyAt(_blockNumber);
+    /**
+     * @dev change the ECOxExchange address
+     * @param _newRoleHolder the new ECOxExchange address
+     */
+    function updateECOxExchange(address _newRoleHolder) public onlyPolicy {
+        ecoXExchange = _newRoleHolder;
+    }
 
-        return computeValue(_ecoXValue, _ecoSupplyAt);
+    /**
+     * @dev change the minting permissions for an address
+     * only callable by tokenRoleAdmin
+     * @param _key the address to change permissions for
+     * @param _value the new permission. true = can mint, false = cannot mint
+     */
+    function updateMinters(address _key, bool _value) public onlyPolicy {
+        minters[_key] = _value;
+        emit UpdatedMinters(_key, _value);
+    }
+
+    /**
+     * @dev change the burning permissions for an address
+     * only callable by tokenRoleAdmin
+     * @param _key the address to change permissions for
+     * @param _value the new permission. true = can burn, false = cannot burn
+     */
+    function updateBurners(address _key, bool _value) public onlyPolicy {
+        burners[_key] = _value;
+        emit UpdatedBurners(_key, _value);
     }
 
     function computeValue(
@@ -175,15 +308,22 @@ contract ECOx is ERC20Pausable, Policed {
         return res / 0x688589cc0e9505e2f2fee5580000000 + _x; // divide by 33! and then add x^1 / 1! + x^0 / 0!
     }
 
-    function exchange(uint256 _ecoXValue) external {
-        uint256 eco = ecoValueOf(_ecoXValue);
+    // function exchange(uint256 _ecoXValue) external {
+    //     uint256 eco = ecoValueOf(_ecoXValue);
 
-        _burn(msg.sender, _ecoXValue);
+    //     _burn(msg.sender, _ecoXValue);
 
-        ecoToken.mint(msg.sender, eco);
+    //     ecoToken.mint(msg.sender, eco);
+    // }
+
+    function burn(
+        address _from,
+        uint256 _value
+    ) external onlyBurnerRoleOrSelf(_from) {
+        _burn(_from, _value);
     }
 
-    function mint(address _to, uint256 _value) external {
+    function mint(address _to, uint256 _value) external onlyMinterRole {
         _mint(_to, _value);
     }
 }
