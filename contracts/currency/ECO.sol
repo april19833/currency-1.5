@@ -13,11 +13,17 @@ contract ECO is InflationCheckpoints {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
 
+    // gonna be moved to inflation checkpoints
     uint256 public inflationMultiplier;
 
-    // the address of the contract for initial distribution
+    /**
+     * the address of the contract for initial distribution
+     */
     address public immutable distributor;
 
+    /**
+     * the initial amount of tokens distributed
+     */
     uint256 public immutable initialSupply;
 
     /**
@@ -45,16 +51,24 @@ contract ECO is InflationCheckpoints {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    // error for when an address tries to mint tokens without permission
+    /**
+     * error for when an address tries to mint tokens without permission
+     */
     error OnlyMinters();
 
-    // error for when an address tries to burn tokens without permission
+    /**
+     * error for when an address tries to burn tokens without permission
+     */
     error OnlyBurners();
 
-    // error for when an address tries to rebase without permission
+    /**
+     * error for when an address tries to rebase without permission
+     */
     error OnlyRebasers();
 
-    // error for when an address tries to rebase without permission
+    /**
+     * error for when an address tries to snapshot without permission
+     */
     error OnlySnapshotters();
 
     //////////////////////////////////////////////
