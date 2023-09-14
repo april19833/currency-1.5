@@ -1,10 +1,7 @@
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
 import { expect } from 'chai'
-import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
+import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
-import { DAY } from '../utils/constants'
 import { ERRORS } from '../utils/errors'
 import {
     ECO,
@@ -229,6 +226,90 @@ describe.only('Eco', () => {
                     true,
                 )
               ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+            })
+        })
+    })
+
+    describe('transfers', () => {
+        before(async () => {
+            expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
+        })
+
+        describe('mint', () => {
+            beforeEach(async () => {
+                await ECOproxy.connect(policyImpersonater).updateMinters(charlie.address, true);
+            })
+
+            describe('reverts', () => {
+                it('when the recipient is the zero address', async () => {
+                    await expect(
+                        ECOproxy.connect(charlie).mint(ethers.constants.AddressZero, INITIAL_SUPPLY)
+                    ).to.be.revertedWith(ERRORS.ERC20.BAD_MINT_TARGET)
+                })
+
+                it('when the sender is not a minter', async () => {
+                    await expect(
+                        ECOproxy.connect(bob).mint(bob.address, INITIAL_SUPPLY)
+                    ).to.be.revertedWith(
+                        ERRORS.ECO.BAD_MINTER,
+                    )
+                })
+            })
+        
+            describe('happy path', () => {
+                it('can mint', async () => {
+                    await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
+                })
+
+                it('changes state correctly', async () => {
+                    await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
+            
+                    expect(await ECOproxy.balanceOf(bob.address)).to.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.totalSupply()).to.eq((ethers.BigNumber.from(INITIAL_SUPPLY)).mul(2))
+                })
+            
+                it('emits a Transfer event', async () => {
+                    await expect(ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY))
+                        .to.emit(ECOproxy, 'Transfer')
+                        .withArgs(ethers.constants.AddressZero, bob.address, INITIAL_SUPPLY)
+                })
+            })
+        })
+
+        describe('burn', () => {
+            describe('reverts', () => {
+                it('when the sender doesn\'t have enough balance', async () => {
+                    await expect(
+                        ECOproxy.connect(bob).burn(bob.address, INITIAL_SUPPLY)
+                    ).to.be.revertedWith(ERRORS.ERC20.BURN_BAD_AMOUNT)
+                })
+
+                it('when the sender is not the burning address', async () => {
+                    await expect(
+                        ECOproxy.connect(bob).burn(dave.address, INITIAL_SUPPLY)
+                    ).to.be.revertedWith(
+                        ERRORS.ECO.BAD_BURNER,
+                    )
+                })
+            })
+        
+            describe('happy path', () => {
+                it('can burn', async () => {
+                    await ECOproxy.connect(dave).burn(dave.address, INITIAL_SUPPLY)
+                })
+
+                it('changes state correctly', async () => {
+                    await ECOproxy.connect(dave).burn(dave.address, INITIAL_SUPPLY)
+            
+                    expect(await ECOproxy.balanceOf(dave.address)).to.eq(0)
+                    expect(await ECOproxy.totalSupply()).to.eq(0)
+                })
+            
+                it('emits a Transfer event', async () => {
+                    await expect(ECOproxy.connect(dave).burn(dave.address, INITIAL_SUPPLY))
+                        .to.emit(ECOproxy, 'Transfer')
+                        .withArgs(dave.address, ethers.constants.AddressZero, INITIAL_SUPPLY)
+                })
             })
         })
     })

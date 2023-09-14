@@ -56,4 +56,14 @@ export const ERRORS = {
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
   },
+  ECO: {
+    BAD_MINTER: 'OnlyMinters',
+    BAD_BURNER: 'OnlyBurners',
+    BAD_REBASER: 'OnlyRebasers',
+    BAD_SNAPSHOTTER: 'OnlySnapshotters',
+  },
+  ERC20: {
+    BURN_BAD_AMOUNT: 'ERC20: burn amount exceeds balance',
+    BAD_MINT_TARGET: 'ERC20: mint to the zero address',
+  }
 }
