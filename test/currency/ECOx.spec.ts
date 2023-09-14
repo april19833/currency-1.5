@@ -161,11 +161,16 @@ describe('EcoX', () => {
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       })
       it('swaps out the addresses if called by policy', async () => {
-        expect(await EcoXProxy.ecoXStaking()).to.not.eq(charlie.address)
+        const oldStaking = await EcoXProxy.ecoXStaking()
+        expect(oldStaking).to.not.eq(charlie.address)
 
-        await EcoXProxy.connect(policyImpersonater).updateECOxStaking(
-          charlie.address
+        await expect(
+          EcoXProxy.connect(policyImpersonater).updateECOxStaking(
+            charlie.address
+          )
         )
+          .to.emit(EcoXProxy, 'UpdatedECOxStaking')
+          .withArgs(oldStaking, charlie.address)
 
         expect(await EcoXProxy.ecoXStaking()).to.eq(charlie.address)
       })
@@ -178,11 +183,16 @@ describe('EcoX', () => {
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       })
       it('swaps out the addresses if called by policy', async () => {
-        expect(await EcoXProxy.ecoXExchange()).to.not.eq(charlie.address)
+        const oldExchange = await EcoXProxy.ecoXExchange()
+        expect(oldExchange).to.not.eq(charlie.address)
 
-        await EcoXProxy.connect(policyImpersonater).updateECOxExchange(
-          charlie.address
+        await expect(
+          EcoXProxy.connect(policyImpersonater).updateECOxExchange(
+            charlie.address
+          )
         )
+          .to.emit(EcoXProxy, 'UpdatedECOxExchange')
+          .withArgs(oldExchange, charlie.address)
 
         expect(await EcoXProxy.ecoXExchange()).to.eq(charlie.address)
       })

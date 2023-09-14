@@ -63,7 +63,7 @@ contract ECOx is ERC20Pausable, Policed {
     error OnlyMinters();
 
     /**
-     * @dev error for when an address tries to vurn tokens without permission
+     * @dev error for when an address tries to burn tokens without permission
      */
     error OnlyBurners();
 
@@ -90,6 +90,20 @@ contract ECOx is ERC20Pausable, Policed {
      * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
      */
     event UpdatedBurners(address actor, bool newPermission);
+
+    /**
+     * emits when the ECOxStaking address is changed
+     * @param _old old holder of role
+     * @param _new new holder of role
+     */
+    event UpdatedECOxStaking(address _old, address _new);
+
+    /**
+     * emits when the ECOxExchange address is changed
+     * @param _old old holder of role
+     * @param _new new holder of role
+     */
+    event UpdatedECOxExchange(address _old, address _new);
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -169,6 +183,7 @@ contract ECOx is ERC20Pausable, Policed {
      * @param _newRoleHolder the new ECOxStaking address
      */
     function updateECOxStaking(address _newRoleHolder) public onlyPolicy {
+        emit UpdatedECOxStaking(ecoXExchange, _newRoleHolder);
         ecoXStaking = _newRoleHolder;
     }
 
@@ -177,6 +192,7 @@ contract ECOx is ERC20Pausable, Policed {
      * @param _newRoleHolder the new ECOxExchange address
      */
     function updateECOxExchange(address _newRoleHolder) public onlyPolicy {
+        emit UpdatedECOxExchange(ecoXExchange, _newRoleHolder);
         ecoXExchange = _newRoleHolder;
     }
 
