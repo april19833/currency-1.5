@@ -13,7 +13,7 @@ import {
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 
-const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 eco initially
+const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '000'.repeat(7)) // 1000 eco initially
 
 describe.only('Eco', () => {
     let alice: SignerWithAddress // default signer
@@ -230,8 +230,8 @@ describe.only('Eco', () => {
         })
     })
 
-    describe('transfers', () => {
-        before(async () => {
+    describe('mint/burn', () => {
+        beforeEach(async () => {
             expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
         })
 
@@ -265,7 +265,7 @@ describe.only('Eco', () => {
                     await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
             
                     expect(await ECOproxy.balanceOf(bob.address)).to.eq(INITIAL_SUPPLY)
-                    expect(await ECOproxy.totalSupply()).to.eq((ethers.BigNumber.from(INITIAL_SUPPLY)).mul(2))
+                    expect(await ECOproxy.totalSupply()).to.eq(INITIAL_SUPPLY.mul(2))
                 })
             
                 it('emits a Transfer event', async () => {
@@ -277,6 +277,10 @@ describe.only('Eco', () => {
         })
 
         describe('burn', () => {
+            beforeEach(async () => {
+                await ECOproxy.connect(policyImpersonater).updateBurners(charlie.address, true);
+            })
+
             describe('reverts', () => {
                 it('when the sender doesn\'t have enough balance', async () => {
                     await expect(
@@ -294,12 +298,16 @@ describe.only('Eco', () => {
             })
         
             describe('happy path', () => {
-                it('can burn', async () => {
+                it('can burn self', async () => {
                     await ECOproxy.connect(dave).burn(dave.address, INITIAL_SUPPLY)
                 })
 
+                it('can burn others if burner', async () => {
+                    await ECOproxy.connect(charlie).burn(dave.address, INITIAL_SUPPLY)
+                })
+
                 it('changes state correctly', async () => {
-                    await ECOproxy.connect(dave).burn(dave.address, INITIAL_SUPPLY)
+                    await ECOproxy.connect(charlie).burn(dave.address, INITIAL_SUPPLY)
             
                     expect(await ECOproxy.balanceOf(dave.address)).to.eq(0)
                     expect(await ECOproxy.totalSupply()).to.eq(0)
