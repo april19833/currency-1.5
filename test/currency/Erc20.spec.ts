@@ -151,6 +151,7 @@ describe.only('Erc20', () => {
                 expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY.sub(allowance))
                 expect(await ECOproxy.balanceOf(bob.address)).to.eq(allowance)
                 expect(await ECOproxy.totalSupply()).to.eq(INITIAL_SUPPLY)
+                expect(await ECOproxy.allowance(dave.address,charlie.address)).to.eq(0)
             })
         
             it('emits a Transfer event', async () => {
