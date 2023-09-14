@@ -54,6 +54,36 @@ describe.only('Erc20', () => {
     expect(ECOproxy.address === proxy.address).to.be.true
   })
 
+  describe('balanceOf', () => {
+    it('returns balance', async () => {
+        expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
+    })
+
+    it('doesn\'t care if address has never had tokens', async () => {
+        expect(await ECOproxy.balanceOf(PLACEHOLDER_ADDRESS1)).to.eq(0)
+    })
+  })
+
+  describe('totalSupply', () => {
+    it('fetches total supply', async () => {
+        expect(await ECOproxy.totalSupply()).to.eq(INITIAL_SUPPLY)
+    })
+  })
+
+  describe('metadata', () => {
+    it('has the standard 18 decimals', async () => {
+      expect(await ECOproxy.decimals()).to.be.equal(18)
+    })
+
+    it('has the right name', async () => {
+        expect(await ECOproxy.name()).to.be.equal('ECO')
+    })
+
+    it('has the right symbol', async () => {
+        expect(await ECOproxy.symbol()).to.be.equal('ECO')
+    })
+  })
+
   describe('transfer', () => {
     beforeEach(async () => {
       expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
@@ -102,6 +132,137 @@ describe.only('Erc20', () => {
           .to.emit(ECOproxy, 'Transfer')
           .withArgs(dave.address, charlie.address, INITIAL_SUPPLY)
       })
+    })
+  })
+
+  describe('approvals and allowances', () => {
+    const approvalAmount = INITIAL_SUPPLY.div(5)
+
+    beforeEach(async () => {
+      expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
+    })
+
+    describe('approve', () => {
+        describe('happy path', () => {
+            it('can approve', async () => {
+                await ECOproxy.connect(dave).approve(charlie.address, approvalAmount)
+            })
+
+            it('approval not gated by balance', async () => {
+                await ECOproxy.connect(dave).approve(charlie.address, INITIAL_SUPPLY.mul(10))
+                expect(await ECOproxy.balanceOf(bob.address)).to.eq(0)
+                await ECOproxy.connect(bob).approve(charlie.address, approvalAmount)
+            })
+
+            it('changes state correctly', async () => {
+                await ECOproxy.connect(bob).approve(charlie.address, approvalAmount)
+
+                expect(await ECOproxy.allowance(bob.address, charlie.address)).to.eq(approvalAmount)
+            })
+
+            it('subsequent approvals override', async () => {
+                const newApprovalAmount = approvalAmount.mul(2)
+
+                await ECOproxy.connect(bob).approve(charlie.address, approvalAmount)
+
+                await ECOproxy.connect(bob).approve(charlie.address, newApprovalAmount)
+                expect(await ECOproxy.allowance(bob.address, charlie.address)).to.eq(newApprovalAmount)
+            })
+
+            it('emits an Approval event', async () => {
+                await expect(ECOproxy.connect(bob).approve(charlie.address, approvalAmount))
+                    .to.emit(ECOproxy, 'Approval')
+                    .withArgs(bob.address, charlie.address, approvalAmount)
+            })
+        })
+
+        describe('reverts', () => {
+            it('when the spender is the zero address', async () => {
+                await expect(
+                    ECOproxy.connect(bob).approve(
+                      ethers.constants.AddressZero,
+                      approvalAmount
+                    )
+                ).to.be.revertedWith(ERRORS.ERC20.APPROVE_NO_ZERO_ADDRESS)
+            })
+        })
+    })
+
+    describe('increaseAllowance', () => {
+        const increaseAmount = INITIAL_SUPPLY.div(10)
+
+        beforeEach(async () => {
+            await ECOproxy.connect(dave).approve(charlie.address, approvalAmount)
+        })
+
+        describe('happy path', () => {
+            it('can increase', async () => {
+                await ECOproxy.connect(dave).increaseAllowance(charlie.address,increaseAmount)
+            })
+            
+            it('changes state', async () => {
+                await ECOproxy.connect(dave).increaseAllowance(charlie.address,increaseAmount)
+
+                expect(await ECOproxy.allowance(dave.address,charlie.address)).to.eq(increaseAmount.add(approvalAmount))
+            })
+            
+            it('does not need existing allowance to increase', async () => {
+                await ECOproxy.connect(dave).increaseAllowance(bob.address,increaseAmount)
+
+                expect(await ECOproxy.allowance(dave.address,bob.address)).to.eq(increaseAmount)
+            })
+
+            it('emits an Approval event', async () => {
+                await expect(ECOproxy.connect(dave).increaseAllowance(charlie.address, increaseAmount))
+                    .to.emit(ECOproxy, 'Approval')
+                    .withArgs(dave.address, charlie.address, increaseAmount.add(approvalAmount))
+            })
+        })
+
+        // no reverts
+    })
+
+    describe('decreaseAllowance', () => {
+        const decreaseAmount = approvalAmount.div(2)
+
+        beforeEach(async () => {
+            await ECOproxy.connect(dave).approve(charlie.address, approvalAmount)
+        })
+
+        describe('happy path', () => {
+            it('can decrease', async () => {
+                await ECOproxy.connect(dave).decreaseAllowance(charlie.address,decreaseAmount)
+            })
+            
+            it('changes state', async () => {
+                await ECOproxy.connect(dave).decreaseAllowance(charlie.address,decreaseAmount)
+
+                expect(await ECOproxy.allowance(dave.address,charlie.address)).to.eq(approvalAmount.sub(decreaseAmount))
+            })
+
+            it('can decrease to zero', async () => {
+                await ECOproxy.connect(dave).decreaseAllowance(charlie.address,approvalAmount)
+
+                expect(await ECOproxy.allowance(dave.address,charlie.address)).to.eq(0)
+            })
+
+            it('emits an Approval event', async () => {
+                await expect(ECOproxy.connect(dave).decreaseAllowance(charlie.address, decreaseAmount))
+                    .to.emit(ECOproxy, 'Approval')
+                    .withArgs(dave.address, charlie.address, approvalAmount.sub(decreaseAmount))
+            })
+        })
+
+        describe('reverts', () => {
+            it('when decreasing more than existing', async () => {
+                await expect(
+                    ECOproxy.connect(dave).decreaseAllowance(
+                      charlie.address,
+                      approvalAmount.add(1)
+                    )
+                ).to.be.revertedWith(ERRORS.ERC20.DECREASEALLOWANCE_UNDERFLOW)
+            })
+        })
     })
   })
 
@@ -191,7 +352,7 @@ describe.only('Erc20', () => {
         expect(await ECOproxy.allowance(dave.address, charlie.address)).to.eq(0)
       })
 
-      it('emits a Transfer event', async () => {
+      it('emits a Transfer and Approval event', async () => {
         await expect(
           ECOproxy.connect(charlie).transferFrom(
             dave.address,
@@ -201,6 +362,8 @@ describe.only('Erc20', () => {
         )
           .to.emit(ECOproxy, 'Transfer')
           .withArgs(dave.address, bob.address, allowance)
+          .to.emit(ECOproxy, 'Approval')
+          .withArgs(dave.address, charlie.address, 0)
       })
     })
   })

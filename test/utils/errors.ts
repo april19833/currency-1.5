@@ -68,5 +68,7 @@ export const ERRORS = {
     TRANSFER_BAD_AMOUNT: 'ERC20: transfer amount exceeds balance',
     TRANSFER_NO_ZERO_ADDRESS: 'ERC20: transfer to the zero address',
     TRANSFERFROM_BAD_ALLOWANCE: 'ERC20: transfer amount exceeds allowance',
+    APPROVE_NO_ZERO_ADDRESS: 'ERC20: approve to the zero address',
+    DECREASEALLOWANCE_UNDERFLOW: 'ERC20: decreased allowance below zero',
   },
 }
