@@ -34,7 +34,6 @@ describe.only('Eco', () => {
     let Fake__Policy: FakeContract<Policy>
   
     beforeEach(async () => {
-        // Get a new mock L1 messenger
         Fake__Policy = await smock.fake<Policy>(
             'Policy',
             { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
