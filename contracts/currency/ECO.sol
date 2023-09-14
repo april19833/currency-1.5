@@ -8,7 +8,6 @@ import "../governance/monetary/CurrencyGovernance.sol";
 /** @title An ERC20 token interface to the Eco currency system.
  */
 contract ECO is InflationCheckpoints {
-
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
@@ -80,46 +79,33 @@ contract ECO is InflationCheckpoints {
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can mint, false for cannot)
      */
-    event UpdatedMinters(
-        address actor,
-        bool newPermission
-    );
+    event UpdatedMinters(address actor, bool newPermission);
 
     /**
      * emits when the burners permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
      */
-    event UpdatedBurners(
-        address actor,
-        bool newPermission
-    );
+    event UpdatedBurners(address actor, bool newPermission);
 
     /**
      * emits when the rebasers permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can rebase, false for cannot)
      */
-    event UpdatedRebasers(
-        address actor,
-        bool newPermission
-    );
+    event UpdatedRebasers(address actor, bool newPermission);
 
     /**
      * emits when the snapshotters permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
      */
-    event UpdatedSnapshotters(
-        address actor,
-        bool newPermission
-    );
+    event UpdatedSnapshotters(address actor, bool newPermission);
 
     /** Fired when a proposal with a new inflation multiplier is selected and passed.
      * Used to calculate new values for the rebased token.
      */
     event NewInflationMultiplier(uint256 inflationMultiplier);
-
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -129,7 +115,7 @@ contract ECO is InflationCheckpoints {
      * @dev Modifier for checking if the sender is a minter
      */
     modifier onlyMinterRole() {
-        if(!minters[msg.sender]) {
+        if (!minters[msg.sender]) {
             revert OnlyMinters();
         }
         _;
@@ -141,7 +127,7 @@ contract ECO is InflationCheckpoints {
      * @param _from the address burning tokens
      */
     modifier onlyBurnerRoleOrSelf(address _from) {
-        if(_from != msg.sender && !burners[msg.sender]) {
+        if (_from != msg.sender && !burners[msg.sender]) {
             revert OnlyBurners();
         }
         _;
@@ -151,7 +137,7 @@ contract ECO is InflationCheckpoints {
      * @dev Modifier for checking if the sender is a rebaser
      */
     modifier onlyRebaserRole() {
-        if(!rebasers[msg.sender]) {
+        if (!rebasers[msg.sender]) {
             revert OnlyRebasers();
         }
         _;
@@ -161,7 +147,7 @@ contract ECO is InflationCheckpoints {
      * @dev Modifier for checking if the sender is a rebaser
      */
     modifier onlySnapshotterRole() {
-        if(!snapshotters[msg.sender]) {
+        if (!snapshotters[msg.sender]) {
             revert OnlySnapshotters();
         }
         _;
@@ -202,7 +188,10 @@ contract ECO is InflationCheckpoints {
         _mint(_to, _value);
     }
 
-    function burn(address _from, uint256 _value) external onlyBurnerRoleOrSelf(_from) {
+    function burn(
+        address _from,
+        uint256 _value
+    ) external onlyBurnerRoleOrSelf(_from) {
         _burn(_from, _value);
     }
 
@@ -220,10 +209,7 @@ contract ECO is InflationCheckpoints {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can mint, false = cannot mint
      */
-    function updateMinters(address _key, bool _value)
-        public
-        onlyPolicy
-    {
+    function updateMinters(address _key, bool _value) public onlyPolicy {
         minters[_key] = _value;
         emit UpdatedMinters(_key, _value);
     }
@@ -234,13 +220,9 @@ contract ECO is InflationCheckpoints {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can burn, false = cannot burn
      */
-    function updateBurners(address _key, bool _value)
-        public
-        onlyPolicy
-    {
+    function updateBurners(address _key, bool _value) public onlyPolicy {
         burners[_key] = _value;
         emit UpdatedBurners(_key, _value);
-
     }
 
     /**
@@ -249,10 +231,7 @@ contract ECO is InflationCheckpoints {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can rebase, false = cannot rebase
      */
-    function updateRebasers(address _key, bool _value)
-        public
-        onlyPolicy
-    {
+    function updateRebasers(address _key, bool _value) public onlyPolicy {
         rebasers[_key] = _value;
         emit UpdatedRebasers(_key, _value);
     }
@@ -263,10 +242,7 @@ contract ECO is InflationCheckpoints {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can snapshot, false = cannot snapshot
      */
-    function updateSnapshotters(address _key, bool _value)
-        public
-        onlyPolicy
-    {
+    function updateSnapshotters(address _key, bool _value) public onlyPolicy {
         snapshotters[_key] = _value;
         emit UpdatedSnapshotters(_key, _value);
     }
