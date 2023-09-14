@@ -65,5 +65,8 @@ export const ERRORS = {
   ERC20: {
     BURN_BAD_AMOUNT: 'ERC20: burn amount exceeds balance',
     BAD_MINT_TARGET: 'ERC20: mint to the zero address',
-  }
+    TRANSFER_BAD_AMOUNT: 'ERC20: transfer amount exceeds balance',
+    TRANSFER_NO_ZERO_ADDRESS: 'ERC20: transfer to the zero address',
+    TRANSFERFROM_BAD_ALLOWANCE: 'ERC20: transfer amount exceeds allowance',
+  },
 }
