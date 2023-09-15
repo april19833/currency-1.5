@@ -17,7 +17,7 @@ import {
   Policy,
 } from '../../typechain-types'
 
-const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 eco initially
+const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
