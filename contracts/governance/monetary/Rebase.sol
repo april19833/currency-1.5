@@ -5,10 +5,10 @@ import "../../currency/ECO.sol";
 import "./Notifier.sol";
 import "./Lever.sol";
 
-/** @title Trustee monetary policy decision process
+/** @title Rebase lever
  *
- * This contract oversees the voting on the currency monetary levers.
- * Trustees vote on a policy that is implemented at the conclusion of the cycle
+ * This contract is a monetary policy lever that rebases the eco currency in accordance with
+ * the decision made by the slate of trustees.
  */
 contract Rebase is Lever {
     ECO public immutable eco;

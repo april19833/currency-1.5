@@ -5,10 +5,9 @@ import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 import "./Notifier.sol";
 
-/** @title Trustee monetary policy decision process
+/** @title Monetary policy lever
  *
- * This contract oversees the voting on the currency monetary levers.
- * Trustees vote on a policy that is implemented at the conclusion of the cycle
+ * This contract is a generic monetary policy lever and is inherited by all lever implementations.
  */
 contract Lever is Policed {
     mapping(address => bool) public authorized;
