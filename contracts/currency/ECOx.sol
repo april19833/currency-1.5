@@ -127,6 +127,7 @@ contract ECOx is ERC20Pausable, Policed {
         ecoXStaking = _ecoXStaking;
         ecoXExchange = _ecoXExchange;
     }
+
     /**
      * unlikely this will need to be used again since the proxy has already been initialized.
      */

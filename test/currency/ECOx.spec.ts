@@ -1,11 +1,6 @@
 import { ethers } from 'hardhat'
 import { expect } from 'chai'
-import {
-  smock,
-  FakeContract,
-  MockContract,
-  MockContractFactory,
-} from '@defi-wonderland/smock'
+import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
 import {
@@ -15,16 +10,13 @@ import {
   Policy,
 } from '../../typechain-types'
 
-const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
-
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
-  let dave: SignerWithAddress // distributer
   let policyImpersonater: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonater] = await ethers.getSigners()
+    ;[alice, bob, charlie, policyImpersonater] = await ethers.getSigners()
   })
 
   let EcoXImpl: ECOx
