@@ -105,6 +105,11 @@ contract ECOx is ERC20Pausable, Policed {
      */
     event UpdatedECOxExchange(address _old, address _new);
 
+    /**
+     * emits when ECOx is paused
+     */
+    event ECOxPaused();
+
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
     //////////////////////////////////////////////
@@ -216,6 +221,15 @@ contract ECOx is ERC20Pausable, Policed {
     function updateBurners(address _key, bool _value) public onlyPolicy {
         burners[_key] = _value;
         emit UpdatedBurners(_key, _value);
+    }
+
+    /**
+     * @notice pauses transfers of this token
+     * @dev only callable by the pauser
+     */
+    function pause() external override onlyPauser {
+        emit ECOxPaused();
+        _pause();
     }
 
     function computeValue(

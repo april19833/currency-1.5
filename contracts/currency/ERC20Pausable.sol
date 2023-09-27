@@ -65,7 +65,7 @@ contract ERC20Pausable is ERC20, Pausable {
      * @notice pauses transfers of this token
      * @dev only callable by the pauser
      */
-    function pause() external onlyPauser {
+    function pause() external virtual onlyPauser {
         _pause();
     }
 
