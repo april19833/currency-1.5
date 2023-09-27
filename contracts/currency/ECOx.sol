@@ -7,7 +7,6 @@ import "./ERC20Pausable.sol";
 
 /** @title An ERC20 token interface for ECOx
  *
- * Contains the conversion mechanism for turning ECOx into ECO.
  */
 contract ECOx is ERC20Pausable, Policed {
     //////////////////////////////////////////////
@@ -36,7 +35,7 @@ contract ECOx is ERC20Pausable, Policed {
     /**
      * @dev bits of precision used in the exponentiation approximation
      */
-    uint8 public constant PRECISION_BITS = 100;
+    // uint8 public constant PRECISION_BITS = 100;
 
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
