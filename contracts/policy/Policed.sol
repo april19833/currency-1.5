@@ -9,6 +9,11 @@ import "./Policy.sol";
  * A policed contract is any contract managed by a policy.
  */
 abstract contract Policed is ForwardTarget {
+    /**
+     * need a filler slot to upgrade properly
+     */
+    address internal filler;
+
     /** The address of the root policy instance overseeing this instance.
      *
      * This address can be used for ERC1820 lookup of other components, ERC1820
