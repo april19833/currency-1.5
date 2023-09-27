@@ -1,22 +1,30 @@
-import { signTypedData, SignTypedDataVersion, TypedMessage, MessageTypes } from '@metamask/eth-sig-util'
+import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import { ethers } from 'hardhat'
 import { BigNumberish, Wallet } from 'ethers'
 import { ECO, ERC20 } from '../../typechain-types'
 
 interface PermitMessageDataDTO {
-    name: string,
-    address: string,
-    chainId: string,
-    signer: string,
-    consumer: string,
-    value?: BigNumberish,
-    nonce: BigNumberish,
-    deadline: number,
+  name: string
+  address: string
+  chainId: string
+  signer: string
+  consumer: string
+  value?: BigNumberish
+  nonce: BigNumberish
+  deadline: number
 }
 
 export function createPermitMessageData(data: PermitMessageDataDTO) {
-  const { name, address, chainId, signer: owner, consumer: spender, value, nonce, deadline } =
-    data
+  const {
+    name,
+    address,
+    chainId,
+    signer: owner,
+    consumer: spender,
+    value,
+    nonce,
+    deadline,
+  } = data
 
   const message = {
     owner,
@@ -107,77 +115,76 @@ export async function permit(
   })
   const { v, r, s } = ethers.utils.splitSignature(sig)
 
-  return token.permit(
-    owner.address,
-    spender.address,
-    amount,
-    deadline,
-    v,
-    r,
-    s
-  )
+  return token.permit(owner.address, spender.address, amount, deadline, v, r, s)
 }
 
 export function createDelegatePermitMessageData(data: PermitMessageDataDTO) {
-    const { name, address, chainId, signer: delegator, consumer: delegatee, nonce, deadline } =
-      data
+  const {
+    name,
+    address,
+    chainId,
+    signer: delegator,
+    consumer: delegatee,
+    nonce,
+    deadline,
+  } = data
 
-    const message = {
-      delegator,
-      delegatee,
-      nonce,
-      deadline,
-    }
-
-    return {
-      types: {
-        EIP712Domain: [
-          {
-            name: 'name',
-            type: 'string',
-          },
-          {
-            name: 'version',
-            type: 'string',
-          },
-          {
-            name: 'chainId',
-            type: 'uint256',
-          },
-          {
-            name: 'verifyingContract',
-            type: 'address',
-          },
-        ],
-        Delegate: [
-          {
-            name: 'delegator',
-            type: 'address',
-          },
-          {
-            name: 'delegatee',
-            type: 'address',
-          },
-          {
-            name: 'nonce',
-            type: 'uint256',
-          },
-          {
-            name: 'deadline',
-            type: 'uint256',
-          },
-        ],
-      },
-      primaryType: 'Delegate',
-      domain: {
-        name,
-        version: '1',
-        chainId,
-        verifyingContract: address,
-      },
-      message,
-    }
+  const message = {
+    delegator,
+    delegatee,
+    nonce,
+    deadline,
   }
+
+  return {
+    types: {
+      EIP712Domain: [
+        {
+          name: 'name',
+          type: 'string',
+        },
+        {
+          name: 'version',
+          type: 'string',
+        },
+        {
+          name: 'chainId',
+          type: 'uint256',
+        },
+        {
+          name: 'verifyingContract',
+          type: 'address',
+        },
+      ],
+      Delegate: [
+        {
+          name: 'delegator',
+          type: 'address',
+        },
+        {
+          name: 'delegatee',
+          type: 'address',
+        },
+        {
+          name: 'nonce',
+          type: 'uint256',
+        },
+        {
+          name: 'deadline',
+          type: 'uint256',
+        },
+      ],
+    },
+    primaryType: 'Delegate',
+    domain: {
+      name,
+      version: '1',
+      chainId,
+      verifyingContract: address,
+    },
+    message,
+  }
+}
 
 export async function delegateBySig(
   token: ECO,
@@ -189,13 +196,11 @@ export async function delegateBySig(
     deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000),
     nonce = '0',
     signer = delegator,
-  },
+  }
 ) {
   // console.log(delegator.getAddress())
   const nonceToUse =
-    nonce === undefined
-      ? await token.delegationNonce(delegator.address)
-      : nonce
+    nonce === undefined ? await token.delegationNonce(delegator.address) : nonce
 
   const delegationData = createDelegatePermitMessageData({
     name: await token.name(),
@@ -215,15 +220,7 @@ export async function delegateBySig(
 
   return token
     .connect(sender)
-    .delegateBySig(
-      delegator.address,
-      delegatee.address,
-      deadline,
-      v,
-      r,
-      s,
-      {
-        gasLimit: 1000000,
-      }
-    )
+    .delegateBySig(delegator.address, delegatee.address, deadline, v, r, s, {
+      gasLimit: 1000000,
+    })
 }

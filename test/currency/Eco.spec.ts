@@ -17,7 +17,7 @@ const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 
 const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '000'.repeat(7)) // 1000 eco initially
 
-describe.only('Eco', () => {
+describe('Eco', () => {
   let alice: SignerWithAddress // default signer
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
@@ -326,282 +326,276 @@ describe.only('Eco', () => {
     })
   })
 
-  describe.only('permit', () => {
+  describe('permit', () => {
     const permitSpender = ethers.Wallet.createRandom()
-      const owner = ethers.Wallet.createRandom()
-      let chainId: number
+    const owner = ethers.Wallet.createRandom()
+    let chainId: number
 
-      before(async () => {
-        ;({ chainId } = await ethers.provider.getNetwork())
+    before(async () => {
+      ;({ chainId } = await ethers.provider.getNetwork())
+    })
+
+    context('when the source address has enough balance', async () => {
+      const amount = ethers.utils.parseEther('1').mul(1000)
+
+      it('fails if signed from non-owner', async () => {
+        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const nonce = await ECOproxy.nonces(owner.address)
+
+        const permitData = createPermitMessageData({
+          name: await ECOproxy.name(),
+          address: ECOproxy.address,
+          signer: owner.address,
+          consumer: permitSpender.address,
+          value: amount.toString(),
+          nonce: nonce.toString(),
+          chainId: chainId.toString(),
+          deadline,
+        })
+        const sig = signTypedData({
+          privateKey: Buffer.from(
+            owner._signingKey().privateKey.slice(2),
+            'hex'
+          ),
+          data: permitData,
+          version: SignTypedDataVersion.V4,
+        })
+        const { v, r, s } = ethers.utils.splitSignature(sig)
+
+        await expect(
+          ECOproxy.permit(
+            await permitSpender.getAddress(),
+            owner.address,
+            amount,
+            deadline,
+            v,
+            r,
+            s
+          )
+        ).to.be.revertedWith('ERC20Permit: invalid signature')
       })
 
-      context('when the source address has enough balance', async () => {
-        const amount = ethers.utils.parseEther('1').mul(1000)
+      it('fails with invalid nonce', async () => {
+        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const nonce = await ECOproxy.nonces(owner.address)
 
-        it('fails if signed from non-owner', async () => {
-          const deadline = Math.floor(
-            new Date().getTime() / 1000 + 86400 * 3000
-          )
-          const nonce = await ECOproxy.nonces(owner.address)
-
-          const permitData = createPermitMessageData({
-            name: await ECOproxy.name(),
-            address: ECOproxy.address,
-            signer: owner.address,
-            consumer: permitSpender.address,
-            value: amount.toString(),
-            nonce: nonce.toString(),
-            chainId: chainId.toString(),
-            deadline,
-          })
-          const sig = signTypedData({
-            privateKey: Buffer.from(
-              owner._signingKey().privateKey.slice(2),
-              'hex'
-            ),
-            data: permitData,
-            version: SignTypedDataVersion.V4,
-          })
-          const { v, r, s } = ethers.utils.splitSignature(sig)
-
-          await expect(
-            ECOproxy.permit(
-              await permitSpender.getAddress(),
-              owner.address,
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
-          ).to.be.revertedWith('ERC20Permit: invalid signature')
+        const permitData = createPermitMessageData({
+          name: await ECOproxy.name(),
+          address: ECOproxy.address,
+          signer: owner.address,
+          consumer: permitSpender.address,
+          value: amount.toString(),
+          nonce: nonce.add(1).toString(),
+          chainId: chainId.toString(),
+          deadline,
         })
-
-        it('fails with invalid nonce', async () => {
-          const deadline = Math.floor(
-            new Date().getTime() / 1000 + 86400 * 3000
-          )
-          const nonce = await ECOproxy.nonces(owner.address)
-
-          const permitData = createPermitMessageData({
-            name: await ECOproxy.name(),
-            address: ECOproxy.address,
-            signer: owner.address,
-            consumer: permitSpender.address,
-            value: amount.toString(),
-            nonce: nonce.add(1).toString(),
-            chainId: chainId.toString(),
-            deadline,
-          })
-          const sig = signTypedData({
-            privateKey: Buffer.from(
-              owner._signingKey().privateKey.slice(2),
-              'hex'
-            ),
-            data: permitData,
-            version: SignTypedDataVersion.V4,
-          })
-          const { v, r, s } = ethers.utils.splitSignature(sig)
-
-          await expect(
-            ECOproxy.permit(
-              owner.address,
-              await permitSpender.getAddress(),
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
-          ).to.be.revertedWith('ERC20Permit: invalid signature')
+        const sig = signTypedData({
+          privateKey: Buffer.from(
+            owner._signingKey().privateKey.slice(2),
+            'hex'
+          ),
+          data: permitData,
+          version: SignTypedDataVersion.V4,
         })
+        const { v, r, s } = ethers.utils.splitSignature(sig)
 
-        it('fails with invalid spender', async () => {
-          const deadline = Math.floor(
-            new Date().getTime() / 1000 + 86400 * 3000
+        await expect(
+          ECOproxy.permit(
+            owner.address,
+            await permitSpender.getAddress(),
+            amount,
+            deadline,
+            v,
+            r,
+            s
           )
-          const nonce = await ECOproxy.nonces(owner.address)
+        ).to.be.revertedWith('ERC20Permit: invalid signature')
+      })
 
-          const permitData = createPermitMessageData({
-            name: await ECOproxy.name(),
-            address: ECOproxy.address,
-            signer: owner.address,
-            consumer: permitSpender.address,
-            value: amount.toString(),
-            nonce: nonce.toString(),
-            chainId: chainId.toString(),
-            deadline,
-          })
-          const sig = signTypedData({
-            privateKey: Buffer.from(
-              owner._signingKey().privateKey.slice(2),
-              'hex'
-            ),
-            data: permitData,
-            version: SignTypedDataVersion.V4,
-          })
-          const { v, r, s } = ethers.utils.splitSignature(sig)
+      it('fails with invalid spender', async () => {
+        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const nonce = await ECOproxy.nonces(owner.address)
 
-          await expect(
-            ECOproxy.permit(
-              owner.address,
-              charlie.address,
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
-          ).to.be.revertedWith('ERC20Permit: invalid signature')
+        const permitData = createPermitMessageData({
+          name: await ECOproxy.name(),
+          address: ECOproxy.address,
+          signer: owner.address,
+          consumer: permitSpender.address,
+          value: amount.toString(),
+          nonce: nonce.toString(),
+          chainId: chainId.toString(),
+          deadline,
         })
-
-        it('fails with invalid deadline', async () => {
-          const deadline = Math.floor(new Date().getTime() / 1000 - 100)
-          const nonce = await ECOproxy.nonces(owner.address)
-
-          const permitData = createPermitMessageData({
-            name: await ECOproxy.name(),
-            address: ECOproxy.address,
-            signer: owner.address,
-            consumer: permitSpender.address,
-            value: amount.toString(),
-            nonce: nonce.toString(),
-            chainId: chainId.toString(),
-            deadline,
-          })
-          const sig = signTypedData({
-            privateKey: Buffer.from(
-              owner._signingKey().privateKey.slice(2),
-              'hex'
-            ),
-            data: permitData,
-            version: SignTypedDataVersion.V4,
-          })
-          const { v, r, s } = ethers.utils.splitSignature(sig)
-
-          await expect(
-            ECOproxy.permit(
-              owner.address,
-              await permitSpender.getAddress(),
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
-          ).to.be.revertedWith('ERC20Permit: expired deadline')
+        const sig = signTypedData({
+          privateKey: Buffer.from(
+            owner._signingKey().privateKey.slice(2),
+            'hex'
+          ),
+          data: permitData,
+          version: SignTypedDataVersion.V4,
         })
+        const { v, r, s } = ethers.utils.splitSignature(sig)
 
-        it('fails with signature reuse', async () => {
-          const deadline = Math.floor(
-            new Date().getTime() / 1000 + 86400 * 3000
+        await expect(
+          ECOproxy.permit(
+            owner.address,
+            charlie.address,
+            amount,
+            deadline,
+            v,
+            r,
+            s
           )
-          const nonce = await ECOproxy.nonces(owner.address)
+        ).to.be.revertedWith('ERC20Permit: invalid signature')
+      })
 
-          const permitData = createPermitMessageData({
-            name: await ECOproxy.name(),
-            address: ECOproxy.address,
-            signer: owner.address,
-            consumer: permitSpender.address,
-            value: amount.toString(),
-            nonce: nonce.toString(),
-            chainId: chainId.toString(),
+      it('fails with invalid deadline', async () => {
+        const deadline = Math.floor(new Date().getTime() / 1000 - 100)
+        const nonce = await ECOproxy.nonces(owner.address)
+
+        const permitData = createPermitMessageData({
+          name: await ECOproxy.name(),
+          address: ECOproxy.address,
+          signer: owner.address,
+          consumer: permitSpender.address,
+          value: amount.toString(),
+          nonce: nonce.toString(),
+          chainId: chainId.toString(),
+          deadline,
+        })
+        const sig = signTypedData({
+          privateKey: Buffer.from(
+            owner._signingKey().privateKey.slice(2),
+            'hex'
+          ),
+          data: permitData,
+          version: SignTypedDataVersion.V4,
+        })
+        const { v, r, s } = ethers.utils.splitSignature(sig)
+
+        await expect(
+          ECOproxy.permit(
+            owner.address,
+            await permitSpender.getAddress(),
+            amount,
             deadline,
-          })
-          const sig = signTypedData({
-            privateKey: Buffer.from(
-              owner._signingKey().privateKey.slice(2),
-              'hex'
-            ),
-            data: permitData,
-            version: SignTypedDataVersion.V4,
-          })
-          const { v, r, s } = ethers.utils.splitSignature(sig)
+            v,
+            r,
+            s
+          )
+        ).to.be.revertedWith('ERC20Permit: expired deadline')
+      })
 
+      it('fails with signature reuse', async () => {
+        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const nonce = await ECOproxy.nonces(owner.address)
+
+        const permitData = createPermitMessageData({
+          name: await ECOproxy.name(),
+          address: ECOproxy.address,
+          signer: owner.address,
+          consumer: permitSpender.address,
+          value: amount.toString(),
+          nonce: nonce.toString(),
+          chainId: chainId.toString(),
+          deadline,
+        })
+        const sig = signTypedData({
+          privateKey: Buffer.from(
+            owner._signingKey().privateKey.slice(2),
+            'hex'
+          ),
+          data: permitData,
+          version: SignTypedDataVersion.V4,
+        })
+        const { v, r, s } = ethers.utils.splitSignature(sig)
+
+        await expect(
+          ECOproxy.permit(
+            owner.address,
+            await permitSpender.getAddress(),
+            amount,
+            deadline,
+            v,
+            r,
+            s
+          )
+        ).to.emit(ECOproxy, 'Approval')
+
+        await expect(
+          ECOproxy.permit(
+            owner.address,
+            await permitSpender.getAddress(),
+            amount,
+            deadline,
+            v,
+            r,
+            s
+          )
+        ).to.be.revertedWith('ERC20Permit: invalid signature')
+      })
+
+      it('emits an Approval event', async () => {
+        await expect(
+          permit(ECOproxy, owner, permitSpender, chainId, amount)
+        ).to.emit(ECOproxy, 'Approval')
+      })
+
+      it('increments the nonce', async () => {
+        const nonce = await ECOproxy.nonces(owner.address)
+        await permit(ECOproxy, owner, permitSpender, chainId, amount)
+        const nonceAfter = await ECOproxy.nonces(owner.address)
+        expect(nonceAfter.sub(nonce).sub(1)).to.equal(0)
+      })
+
+      it('returns proper domain separator', async () => {
+        const domain = {
+          name: await ECOproxy.name(),
+          version: '1',
+          chainId,
+          verifyingContract: ECOproxy.address,
+        }
+        const expectedDomainSeparator =
+          ethers.utils._TypedDataEncoder.hashDomain(domain)
+        expect(await ECOproxy.DOMAIN_SEPARATOR()).to.equal(
+          expectedDomainSeparator
+        )
+      })
+
+      context('when there is no existing allowance', () => {
+        it('sets the allowance', async () => {
           await expect(
-            ECOproxy.permit(
-              owner.address,
-              await permitSpender.getAddress(),
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
+            permit(ECOproxy, owner, permitSpender, chainId, amount)
           ).to.emit(ECOproxy, 'Approval')
+          const allowance = await ECOproxy.allowance(
+            owner.address,
+            await permitSpender.getAddress()
+          )
+          expect(allowance).to.equal(amount)
+        })
+      })
 
-          await expect(
-            ECOproxy.permit(
-              owner.address,
-              await permitSpender.getAddress(),
-              amount,
-              deadline,
-              v,
-              r,
-              s
-            )
-          ).to.be.revertedWith('ERC20Permit: invalid signature')
+      context('when there is a pre-existing allowance', () => {
+        beforeEach(async () => {
+          await permit(ECOproxy, owner, permitSpender, chainId, amount.sub(50))
         })
 
-        it('emits an Approval event', async () => {
+        it('replaces the existing allowance', async () => {
+          await permit(ECOproxy, owner, permitSpender, chainId, amount)
+          const allowance = await ECOproxy.allowance(
+            owner.address,
+            await permitSpender.getAddress()
+          )
+
+          expect(allowance).to.equal(amount)
+        })
+
+        it('emits the Approval event', async () => {
           await expect(
             permit(ECOproxy, owner, permitSpender, chainId, amount)
           ).to.emit(ECOproxy, 'Approval')
         })
-
-        it('increments the nonce', async () => {
-          const nonce = await ECOproxy.nonces(owner.address)
-          await permit(ECOproxy, owner, permitSpender, chainId, amount)
-          const nonceAfter = await ECOproxy.nonces(owner.address)
-          expect(nonceAfter.sub(nonce).sub(1)).to.equal(0)
-        })
-
-        it('returns proper domain separator', async () => {
-          const domain = {
-            name: await ECOproxy.name(),
-            version: '1',
-            chainId,
-            verifyingContract: ECOproxy.address,
-          }
-          const expectedDomainSeparator =
-            ethers.utils._TypedDataEncoder.hashDomain(domain)
-          expect(await ECOproxy.DOMAIN_SEPARATOR()).to.equal(expectedDomainSeparator)
-        })
-
-        context('when there is no existing allowance', () => {
-          it('sets the allowance', async () => {
-            await expect(
-              permit(ECOproxy, owner, permitSpender, chainId, amount)
-            ).to.emit(ECOproxy, 'Approval')
-            const allowance = await ECOproxy.allowance(
-              owner.address,
-              await permitSpender.getAddress()
-            )
-            expect(allowance).to.equal(amount)
-          })
-        })
-
-        context('when there is a pre-existing allowance', () => {
-          beforeEach(async () => {
-            await permit(ECOproxy, owner, permitSpender, chainId, amount.sub(50))
-          })
-
-          it('replaces the existing allowance', async () => {
-            await permit(ECOproxy, owner, permitSpender, chainId, amount)
-            const allowance = await ECOproxy.allowance(
-              owner.address,
-              await permitSpender.getAddress()
-            )
-
-            expect(allowance).to.equal(amount)
-          })
-
-          it('emits the Approval event', async () => {
-            await expect(
-              permit(ECOproxy, owner, permitSpender, chainId, amount)
-            ).to.emit(ECOproxy, 'Approval')
-          })
-        })
+      })
     })
   })
 })
