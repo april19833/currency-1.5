@@ -110,6 +110,11 @@ contract ECOx is ERC20Pausable, Policed {
      */
     event ECOxPaused();
 
+    /**
+     * emits when ECOx is unpaused
+     */
+    event ECOxUnpaused();
+
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
     //////////////////////////////////////////////
@@ -230,6 +235,15 @@ contract ECOx is ERC20Pausable, Policed {
     function pause() external override onlyPauser {
         emit ECOxPaused();
         _pause();
+    }
+
+    /**
+     * @notice unpauses transfers of this token
+     * @dev only callable by the pauser
+     */
+    function unpause() external override onlyPauser {
+        emit ECOxUnpaused();
+        _unpause();
     }
 
     function computeValue(
