@@ -1,34 +1,23 @@
 import { ethers } from 'hardhat'
 import { expect } from 'chai'
-import {
-  smock,
-  FakeContract,
-  MockContract,
-  MockContractFactory,
-} from '@defi-wonderland/smock'
+import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
 import {
-  ECO,
   ECOx,
   ECOx__factory,
-  ECO__factory,
   ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
-
-const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
-  let dave: SignerWithAddress // distributer
   let policyImpersonater: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonater] = await ethers.getSigners()
+    ;[alice, bob, charlie, policyImpersonater] = await ethers.getSigners()
   })
-  let eco: MockContract<ECO>
 
   let ecoXImpl: ECOx
   let ecoXProxy: ECOx
@@ -40,16 +29,6 @@ describe('EcoX', () => {
       { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
     )
 
-    const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
-    )
-    eco = await ecoFactory.deploy(
-      Fake__Policy.address,
-      Fake__Policy.address, // distributor
-      1000, // initial supply
-      Fake__Policy.address // initial pauser
-    )
-
     const EcoXFact = new ECOx__factory(alice)
 
     ecoXImpl = await EcoXFact.connect(policyImpersonater).deploy(
@@ -58,9 +37,6 @@ describe('EcoX', () => {
       Fake__Policy.address, // ecoxexchange
       [alice.address, bob.address], // minters
       [alice.address, bob.address], // burners
-      dave.address, // distributor
-      INITIAL_SUPPLY,
-      eco.address,
       bob.address // pauser
     )
 
@@ -74,7 +50,7 @@ describe('EcoX', () => {
   })
 
   describe('construction + initialization', async () => {
-    
+
   })
 
   describe('role permissions', () => {
