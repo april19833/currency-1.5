@@ -56,6 +56,8 @@ describe('EcoX', () => {
       Fake__Policy.address, // policy
       Fake__Policy.address, // ecoxstaking
       Fake__Policy.address, // ecoxexchange
+      [alice.address, bob.address], // minters
+      [alice.address, bob.address], // burners
       dave.address, // distributor
       INITIAL_SUPPLY,
       eco.address,
@@ -193,13 +195,6 @@ describe('EcoX', () => {
 
   describe('pausable', async () => {
     beforeEach(async () => {
-      await ecoXProxy
-        .connect(policyImpersonater)
-        .updateMinters(bob.address, true)
-      await ecoXProxy
-        .connect(policyImpersonater)
-        .updateBurners(bob.address, true)
-
       expect(await ecoXProxy.paused()).to.be.false
 
       await ecoXProxy.connect(bob).mint(bob.address, 1000)

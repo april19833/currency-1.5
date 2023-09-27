@@ -145,6 +145,8 @@ contract ECOx is ERC20Pausable, Policed {
         Policy _policy,
         address _ecoXStaking,
         address _ecoXExchange,
+        address[] memory _minters,
+        address[] memory _burners,
         address _distributor,
         uint256 _initialSupply,
         IECO _ecoAddr,
@@ -158,6 +160,14 @@ contract ECOx is ERC20Pausable, Policed {
         //     address(_ecoAddr) != address(0),
         //     "Do not set the ECO address as the zero address"
         // );
+        uint256 n = _minters.length;
+        for (uint256 i = 0; i < n; i++) {
+            updateMinters(_minters[i], true);
+        }
+        n = _burners.length;
+        for (uint256 i = 0; i < n; i++) {
+            updateBurners(_burners[i], true);
+        }
 
         initialSupply = _initialSupply;
         distributor = _distributor;
