@@ -73,10 +73,10 @@ export const ERRORS = {
   },
   ERC20PAUSABLE: {
     ONLY_ROLE_ADMIN: 'ERC20Pausable: not admin',
-    ONLY_PAUSER: 'ERC20Pausable: not pauser'
+    ONLY_PAUSER: 'ERC20Pausable: not pauser',
   },
   PAUSABLE: {
     REQUIRE_NOT_PAUSED: 'Pausable: paused',
     REQUIRE_PAUSED: 'Pausable: not paused',
-  }
+  },
 }
