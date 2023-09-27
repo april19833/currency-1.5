@@ -53,6 +53,16 @@ contract ECOx is ERC20Pausable, Policed {
      */
     uint8 public constant PRECISION_BITS = 100;
 
+    /**
+     * @dev minters at time of initialization
+     */
+    address[] public initialMinters;
+
+    /**
+     * @dev burners at time of initialization
+     */
+    address[] public initialBurners;
+
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
@@ -162,11 +172,15 @@ contract ECOx is ERC20Pausable, Policed {
         // );
         uint256 n = _minters.length;
         for (uint256 i = 0; i < n; i++) {
-            updateMinters(_minters[i], true);
+            address minter = _minters[i];
+            updateMinters(minter, true);
+            initialMinters.push(minter);
         }
         n = _burners.length;
         for (uint256 i = 0; i < n; i++) {
-            updateBurners(_burners[i], true);
+            address burner = _burners[i];
+            updateBurners(burner, true);
+            initialBurners.push(burner);
         }
 
         initialSupply = _initialSupply;
@@ -180,7 +194,16 @@ contract ECOx is ERC20Pausable, Policed {
         super.initialize(_self);
         policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
-        _mint(distributor, initialSupply);
+        
+
+        uint256 n = ECOx(_self).numMinters();
+        for (uint256 i = 0; i < n; i++) {
+            updateMinters(ECOx(_self).initialMinters(i), true);
+        }
+        n = ECOx(_self).numBurners();
+        for (uint256 i = 0; i < n; i++) {
+            updateBurners(ECOx(_self).initialBurners(i), true);
+        }
     }
 
     // function ecoValueOf(uint256 _ecoXValue) public view returns (uint256) {
@@ -236,6 +259,20 @@ contract ECOx is ERC20Pausable, Policed {
     function updateBurners(address _key, bool _value) public onlyPolicy {
         burners[_key] = _value;
         emit UpdatedBurners(_key, _value);
+    }
+
+    /**
+     * @dev fetches the length of initialMinters
+     */
+    function numMinters() public returns (uint256){
+        return initialMinters.length;
+    }
+
+    /**
+     * @dev fetches the length of initialBurners
+     */
+    function numBurners() public returns (uint256){
+        return initialBurners.length;
     }
 
     /**

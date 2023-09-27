@@ -73,6 +73,10 @@ describe('EcoX', () => {
     expect(ecoXProxy.address === proxy.address).to.be.true
   })
 
+  describe('construction + initialization', async () => {
+    
+  })
+
   describe('role permissions', () => {
     describe('minter role', () => {
       it('can be added by the policy', async () => {
