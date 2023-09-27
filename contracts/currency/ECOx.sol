@@ -206,7 +206,7 @@ contract ECOx is ERC20Pausable, Policed {
      * @param _newRoleHolder the new ECOxStaking address
      */
     function updateECOxStaking(address _newRoleHolder) public onlyPolicy {
-        emit UpdatedECOxStaking(ecoXExchange, _newRoleHolder);
+        emit UpdatedECOxStaking(ecoXStaking, _newRoleHolder);
         ecoXStaking = _newRoleHolder;
     }
 
