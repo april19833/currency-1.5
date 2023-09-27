@@ -71,4 +71,12 @@ export const ERRORS = {
     APPROVE_NO_ZERO_ADDRESS: 'ERC20: approve to the zero address',
     DECREASEALLOWANCE_UNDERFLOW: 'ERC20: decreased allowance below zero',
   },
+  ERC20PAUSABLE: {
+    ONLY_ROLE_ADMIN: 'ERC20Pausable: not admin',
+    ONLY_PAUSER: 'ERC20Pausable: not pauser'
+  },
+  PAUSABLE: {
+    REQUIRE_NOT_PAUSED: 'Pausable: paused',
+    REQUIRE_PAUSED: 'Pausable: not paused',
+  }
 }
