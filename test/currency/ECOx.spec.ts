@@ -18,7 +18,8 @@ describe('EcoX', () => {
   let fakeStaking: SignerWithAddress
   let fakeExchange: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonater, fakeStaking, fakeExchange] = await ethers.getSigners()
+    ;[alice, bob, charlie, policyImpersonater, fakeStaking, fakeExchange] =
+      await ethers.getSigners()
   })
 
   let ecoXImpl: ECOx

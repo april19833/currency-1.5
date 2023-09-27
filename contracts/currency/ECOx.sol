@@ -175,7 +175,7 @@ contract ECOx is ERC20Pausable, Policed {
         pauser = ERC20Pausable(_self).pauser();
         ecoXStaking = ECOx(_self).ecoXStaking();
         ecoXExchange = ECOx(_self).ecoXExchange();
-        
+
         uint256 n = ECOx(_self).numMinters();
         for (uint256 i = 0; i < n; i++) {
             updateMinters(ECOx(_self).initialMinters(i), true);
@@ -244,14 +244,14 @@ contract ECOx is ERC20Pausable, Policed {
     /**
      * @dev fetches the length of initialMinters
      */
-    function numMinters() public returns (uint256){
+    function numMinters() public returns (uint256) {
         return initialMinters.length;
     }
 
     /**
      * @dev fetches the length of initialBurners
      */
-    function numBurners() public returns (uint256){
+    function numBurners() public returns (uint256) {
         return initialBurners.length;
     }
 
