@@ -9,7 +9,6 @@ import {
   ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
-import { constants } from 'buffer'
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
@@ -51,33 +50,29 @@ describe('EcoX', () => {
   describe('role permissions', () => {
     describe('minter role', () => {
       it('can be added by the policy', async () => {
-        await ecoXProxy.connect(policyImpersonater).updateMinters(
-          charlie.address,
-          true
-        )
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateMinters(charlie.address, true)
         const charlieMinting = await ecoXProxy.minters(charlie.address)
         expect(charlieMinting).to.be.true
       })
 
       it('can be removed by the policy', async () => {
-        await ecoXProxy.connect(policyImpersonater).updateMinters(
-          charlie.address,
-          true
-        )
-        await ecoXProxy.connect(policyImpersonater).updateMinters(
-          charlie.address,
-          false
-        )
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateMinters(charlie.address, true)
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateMinters(charlie.address, false)
         const charlieMinting = await ecoXProxy.minters(charlie.address)
         expect(charlieMinting).to.be.false
       })
 
       it('emits an event', async () => {
         expect(
-          await ecoXProxy.connect(policyImpersonater).updateMinters(
-            charlie.address,
-            true
-          )
+          await ecoXProxy
+            .connect(policyImpersonater)
+            .updateMinters(charlie.address, true)
         )
           .to.emit(ecoXProxy, 'UpdatedMinters')
           .withArgs(charlie.address, true)
@@ -92,33 +87,29 @@ describe('EcoX', () => {
 
     describe('burner role', () => {
       it('can be added by the policy', async () => {
-        await ecoXProxy.connect(policyImpersonater).updateBurners(
-          charlie.address,
-          true
-        )
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateBurners(charlie.address, true)
         const charlieBurning = await ecoXProxy.burners(charlie.address)
         expect(charlieBurning).to.be.true
       })
 
       it('can be removed by the policy', async () => {
-        await ecoXProxy.connect(policyImpersonater).updateBurners(
-          charlie.address,
-          true
-        )
-        await ecoXProxy.connect(policyImpersonater).updateBurners(
-          charlie.address,
-          false
-        )
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateBurners(charlie.address, true)
+        await ecoXProxy
+          .connect(policyImpersonater)
+          .updateBurners(charlie.address, false)
         const charlieBurning = await ecoXProxy.burners(charlie.address)
         expect(charlieBurning).to.be.false
       })
 
       it('emits an event', async () => {
         expect(
-          await ecoXProxy.connect(policyImpersonater).updateBurners(
-            charlie.address,
-            true
-          )
+          await ecoXProxy
+            .connect(policyImpersonater)
+            .updateBurners(charlie.address, true)
         )
           .to.emit(ecoXProxy, 'UpdatedBurners')
           .withArgs(charlie.address, true)
@@ -142,9 +133,9 @@ describe('EcoX', () => {
         expect(oldStaking).to.not.eq(charlie.address)
 
         await expect(
-          ecoXProxy.connect(policyImpersonater).updateECOxStaking(
-            charlie.address
-          )
+          ecoXProxy
+            .connect(policyImpersonater)
+            .updateECOxStaking(charlie.address)
         )
           .to.emit(ecoXProxy, 'UpdatedECOxStaking')
           .withArgs(oldStaking, charlie.address)
@@ -164,9 +155,9 @@ describe('EcoX', () => {
         expect(oldExchange).to.not.eq(charlie.address)
 
         await expect(
-          ecoXProxy.connect(policyImpersonater).updateECOxExchange(
-            charlie.address
-          )
+          ecoXProxy
+            .connect(policyImpersonater)
+            .updateECOxExchange(charlie.address)
         )
           .to.emit(ecoXProxy, 'UpdatedECOxExchange')
           .withArgs(oldExchange, charlie.address)
@@ -177,18 +168,28 @@ describe('EcoX', () => {
   })
   describe('mint', async () => {
     it('mints', async () => {
-      await ecoXProxy.connect(policyImpersonater).updateMinters(bob.address, true)
-      await expect(ecoXProxy.connect(bob).mint(bob.address, 100)).to.emit(ecoXProxy, 'Transfer').withArgs(ethers.constants.AddressZero, bob.address, 100)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await expect(ecoXProxy.connect(bob).mint(bob.address, 100))
+        .to.emit(ecoXProxy, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, bob.address, 100)
     })
   })
   describe('burn', async () => {
     it('burns', async () => {
-      await ecoXProxy.connect(policyImpersonater).updateMinters(bob.address, true)
-      await ecoXProxy.connect(policyImpersonater).updateBurners(bob.address, true)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateBurners(bob.address, true)
 
       await ecoXProxy.connect(bob).mint(bob.address, 100)
       // ow
-      await expect(ecoXProxy.connect(bob).burn(bob.address, 100)).to.emit(ecoXProxy, 'Transfer').withArgs(bob.address, ethers.constants.AddressZero, 100)
+      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+        .to.emit(ecoXProxy, 'Transfer')
+        .withArgs(bob.address, ethers.constants.AddressZero, 100)
     })
   })
 })

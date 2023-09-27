@@ -13,7 +13,6 @@ import {
 import { createPermitMessageData, permit } from '../utils/permit'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
-const PLACEHOLDER_ADDRESS2 = '0x2222222222222222222222222222222222222222'
 
 const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '000'.repeat(7)) // 1000 eco initially
 
