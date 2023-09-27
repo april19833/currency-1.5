@@ -12,9 +12,6 @@ contract ECO is InflationCheckpoints {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
 
-    // gonna be moved to inflation checkpoints
-    uint256 public inflationMultiplier;
-
     /**
      * the address of the contract for initial distribution
      */
@@ -196,7 +193,11 @@ contract ECO is InflationCheckpoints {
     }
 
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
-        rebased = true;
+        _writeCheckpoint(
+            _linearInflationCheckpoints,
+            _replace,
+            _inflationMultiplier
+        );
     }
 
     function snapshot() public onlySnapshotterRole {
@@ -245,12 +246,5 @@ contract ECO is InflationCheckpoints {
     function updateSnapshotters(address _key, bool _value) public onlyPolicy {
         snapshotters[_key] = _value;
         emit UpdatedSnapshotters(_key, _value);
-    }
-
-    function getInflationMultiplier()
-        public
-        returns (uint256 _inflationMultiplier)
-    {
-        return inflationMultiplier;
     }
 }
