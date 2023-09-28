@@ -109,7 +109,10 @@ contract ECO is InflationCheckpoints {
      * @param adjustinginflationMultiplier the multiplier that has just been applied to the tokens
      * @param cumulativeInflationMultiplier the total multiplier that is used to convert to and from gons
      */
-    event NewInflationMultiplier(uint256 adjustinginflationMultiplier, uint256 cumulativeInflationMultiplier);
+    event NewInflationMultiplier(
+        uint256 adjustinginflationMultiplier,
+        uint256 cumulativeInflationMultiplier
+    );
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -204,7 +207,8 @@ contract ECO is InflationCheckpoints {
             revert BadRebaseValue();
         }
 
-        uint256 newInflationMult = (_inflationMultiplier * getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
+        uint256 newInflationMult = (_inflationMultiplier *
+            getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
 
         _writeCheckpoint(
             _linearInflationCheckpoints,

@@ -59,16 +59,31 @@ describe('Erc20', () => {
     ECOproxy = ECOfact.attach(proxy.address)
 
     expect(ECOproxy.address === proxy.address).to.be.true
-    
+
     // set a global inflation multiplier for supply
-    await ECOproxy.connect(policyImpersonater).updateRebasers(policyImpersonater.address, true)
+    await ECOproxy.connect(policyImpersonater).updateRebasers(
+      policyImpersonater.address,
+      true
+    )
     await ECOproxy.connect(policyImpersonater).rebase(globalInflationMult)
-    await ECOproxy.connect(policyImpersonater).updateRebasers(policyImpersonater.address, false)
-    
+    await ECOproxy.connect(policyImpersonater).updateRebasers(
+      policyImpersonater.address,
+      false
+    )
+
     // mint initial tokens
-    await ECOproxy.connect(policyImpersonater).updateMinters(policyImpersonater.address, true)
-    await ECOproxy.connect(policyImpersonater).mint(dave.address, INITIAL_SUPPLY)
-    await ECOproxy.connect(policyImpersonater).updateMinters(policyImpersonater.address, false)
+    await ECOproxy.connect(policyImpersonater).updateMinters(
+      policyImpersonater.address,
+      true
+    )
+    await ECOproxy.connect(policyImpersonater).mint(
+      dave.address,
+      INITIAL_SUPPLY
+    )
+    await ECOproxy.connect(policyImpersonater).updateMinters(
+      policyImpersonater.address,
+      false
+    )
     expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
   })
 

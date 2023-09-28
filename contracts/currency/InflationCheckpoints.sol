@@ -70,11 +70,7 @@ abstract contract InflationCheckpoints is VoteCheckpoints, Policed {
         return gonsAmount;
     }
 
-    function getInflationMultiplier()
-        public
-        view
-        returns (uint256)
-    {
+    function getInflationMultiplier() public view returns (uint256) {
         // this function early returns for querying the end value
         return _checkpointsLookup(_linearInflationCheckpoints, block.number);
     }
