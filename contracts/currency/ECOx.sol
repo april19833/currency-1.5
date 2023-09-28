@@ -339,14 +339,24 @@ contract ECOx is ERC20Pausable, Policed {
     //     ecoToken.mint(msg.sender, eco);
     // }
 
+    /**
+     * @dev mints tokens to a given address
+     * @param _to the address receiving tokens
+     * @param _value the amount of tokens being minted
+     */
+    function mint(address _to, uint256 _value) external onlyMinterRole {
+        _mint(_to, _value);
+    }
+
+    /**
+     * @dev burns tokens to a given address
+     * @param _from the address whose tokens are being burned
+     * @param _value the amount of tokens being burned
+     */
     function burn(
         address _from,
         uint256 _value
     ) external onlyBurnerRoleOrSelf(_from) {
         _burn(_from, _value);
-    }
-
-    function mint(address _to, uint256 _value) external onlyMinterRole {
-        _mint(_to, _value);
     }
 }

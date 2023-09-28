@@ -272,4 +272,47 @@ describe('EcoX', () => {
       expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1000)
     })
   })
+
+  describe('mint', async () => {
+    it('reverts when non-minter mints', async () => {
+      await expect(ecoXProxy.connect(bob).mint(bob.address, 100))
+        .to.be.revertedWith(ecoXProxy, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+    })
+    it('mints', async () => {
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await expect(ecoXProxy.connect(bob).mint(bob.address, 100))
+        .to.emit(ecoXProxy, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+    })
+  })
+  describe('burn', async () => {
+    it('reverts when non-burner burns', async () => {
+      await ecoXProxy
+      .connect(policyImpersonater)
+      .updateMinters(bob.address, true)
+      await ecoXProxy.connect(bob).mint(bob.address, 100)
+
+      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+        .to.be.revertedWith(ecoXProxy, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+    })
+    it('burns', async () => {
+      // ow
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateBurners(bob.address, true)
+
+      await ecoXProxy.connect(bob).mint(bob.address, 100)
+
+      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+        .to.emit(ecoXProxy, 'Transfer')
+        .withArgs(bob.address, ethers.constants.AddressZero, 100)
+    })
+  })
 })
