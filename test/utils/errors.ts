@@ -56,6 +56,10 @@ export const ERRORS = {
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
   },
+  ERC20ROLES: {
+    ONLY_MINTERS: 'OnlyMinters',
+    ONLY_BURNERS: 'OnlyBurners',
+  },
   ECO: {
     BAD_MINTER: 'OnlyMinters',
     BAD_BURNER: 'OnlyBurners',

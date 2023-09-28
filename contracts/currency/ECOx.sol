@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import "./IECO.sol";
 import "../policy/Policed.sol";
 import "./ERC20Pausable.sol";
+import "./ERC20Roles.sol";
 
 /** @title An ERC20 token interface for ECOx
  *
  */
-contract ECOx is ERC20Pausable, Policed {
+contract ECOx is ERC20Pausable, ERC20Roles {
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
@@ -23,15 +24,15 @@ contract ECOx is ERC20Pausable, Policed {
      */
     address public ecoXExchange;
 
-    /**
-     * @dev Mapping storing contracts able to mint tokens
-     */
-    mapping(address => bool) public minters;
+    // /**
+    //  * @dev Mapping storing contracts able to mint tokens
+    //  */
+    // mapping(address => bool) public minters;
 
-    /**
-     * @dev Mapping storing contracts able to burn tokens
-     */
-    mapping(address => bool) public burners;
+    // /**
+    //  * @dev Mapping storing contracts able to burn tokens
+    //  */
+    // mapping(address => bool) public burners;
     /**
      * @dev bits of precision used in the exponentiation approximation
      */
@@ -41,15 +42,15 @@ contract ECOx is ERC20Pausable, Policed {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    /**
-     * @dev error for when an address tries to mint tokens without permission
-     */
-    error OnlyMinters();
+    // /**
+    //  * @dev error for when an address tries to mint tokens without permission
+    //  */
+    // error OnlyMinters();
 
-    /**
-     * @dev error for when an address tries to burn tokens without permission
-     */
-    error OnlyBurners();
+    // /**
+    //  * @dev error for when an address tries to burn tokens without permission
+    //  */
+    // error OnlyBurners();
 
     /**
      * @dev error for when transfer returns false
@@ -61,19 +62,19 @@ contract ECOx is ERC20Pausable, Policed {
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
 
-    /**
-     * emits when the minters permissions are changed
-     * @param actor denotes the new address whose permissions are being updated
-     * @param newPermission denotes the new ability of the actor address (true for can mint, false for cannot)
-     */
-    event UpdatedMinters(address actor, bool newPermission);
+    // /**
+    //  * emits when the minters permissions are changed
+    //  * @param actor denotes the new address whose permissions are being updated
+    //  * @param newPermission denotes the new ability of the actor address (true for can mint, false for cannot)
+    //  */
+    // event UpdatedMinters(address actor, bool newPermission);
 
-    /**
-     * emits when the burners permissions are changed
-     * @param actor denotes the new address whose permissions are being updated
-     * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
-     */
-    event UpdatedBurners(address actor, bool newPermission);
+    // /**
+    //  * emits when the burners permissions are changed
+    //  * @param actor denotes the new address whose permissions are being updated
+    //  * @param newPermission denotes the new ability of the actor address (true for can burn, false for cannot)
+    //  */
+    // event UpdatedBurners(address actor, bool newPermission);
 
     /**
      * emits when the ECOxStaking address is changed
@@ -99,31 +100,31 @@ contract ECOx is ERC20Pausable, Policed {
      */
     event ECOxUnpaused();
 
-    //////////////////////////////////////////////
-    ////////////////// MODIFIERS /////////////////
-    //////////////////////////////////////////////
+    // //////////////////////////////////////////////
+    // ////////////////// MODIFIERS /////////////////
+    // //////////////////////////////////////////////
 
-    /**
-     * @dev Modifier for checking if the sender is a minter
-     */
-    modifier onlyMinterRole() {
-        if (!minters[msg.sender]) {
-            revert OnlyMinters();
-        }
-        _;
-    }
+    // /**
+    //  * @dev Modifier for checking if the sender is a minter
+    //  */
+    // modifier onlyMinterRole() {
+    //     if (!minters[msg.sender]) {
+    //         revert OnlyMinters();
+    //     }
+    //     _;
+    // }
 
-    /**
-     * @dev Modifier for checking if the sender is allowed to burn
-     * both burners and the message sender can burn
-     * @param _from the address burning tokens
-     */
-    modifier onlyBurnerRoleOrSelf(address _from) {
-        if (_from != msg.sender && !burners[msg.sender]) {
-            revert OnlyBurners();
-        }
-        _;
-    }
+    // /**
+    //  * @dev Modifier for checking if the sender is allowed to burn
+    //  * both burners and the message sender can burn
+    //  * @param _from the address burning tokens
+    //  */
+    // modifier onlyBurnerRoleOrSelf(address _from) {
+    //     if (_from != msg.sender && !burners[msg.sender]) {
+    //         revert OnlyBurners();
+    //     }
+    //     _;
+    // }
 
     constructor(
         Policy _policy,
@@ -132,7 +133,7 @@ contract ECOx is ERC20Pausable, Policed {
         address _pauser
     )
         ERC20Pausable("ECOx", "ECOx", address(_policy), _pauser)
-        Policed(_policy)
+        ERC20Roles(_policy)
     {
         ecoXStaking = _ecoXStaking;
         ecoXExchange = _ecoXExchange;
@@ -185,27 +186,27 @@ contract ECOx is ERC20Pausable, Policed {
         ecoXExchange = _newRoleHolder;
     }
 
-    /**
-     * @dev change the minting permissions for an address
-     * only callable by tokenRoleAdmin
-     * @param _key the address to change permissions for
-     * @param _value the new permission. true = can mint, false = cannot mint
-     */
-    function updateMinters(address _key, bool _value) public onlyPolicy {
-        minters[_key] = _value;
-        emit UpdatedMinters(_key, _value);
-    }
+    // /**
+    //  * @dev change the minting permissions for an address
+    //  * only callable by tokenRoleAdmin
+    //  * @param _key the address to change permissions for
+    //  * @param _value the new permission. true = can mint, false = cannot mint
+    //  */
+    // function updateMinters(address _key, bool _value) public onlyPolicy {
+    //     minters[_key] = _value;
+    //     emit UpdatedMinters(_key, _value);
+    // }
 
-    /**
-     * @dev change the burning permissions for an address
-     * only callable by tokenRoleAdmin
-     * @param _key the address to change permissions for
-     * @param _value the new permission. true = can burn, false = cannot burn
-     */
-    function updateBurners(address _key, bool _value) public onlyPolicy {
-        burners[_key] = _value;
-        emit UpdatedBurners(_key, _value);
-    }
+    // /**
+    //  * @dev change the burning permissions for an address
+    //  * only callable by tokenRoleAdmin
+    //  * @param _key the address to change permissions for
+    //  * @param _value the new permission. true = can burn, false = cannot burn
+    //  */
+    // function updateBurners(address _key, bool _value) public onlyPolicy {
+    //     burners[_key] = _value;
+    //     emit UpdatedBurners(_key, _value);
+    // }
 
     /**
      * @notice pauses transfers of this token

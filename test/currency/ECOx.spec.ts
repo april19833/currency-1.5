@@ -187,9 +187,13 @@ describe('EcoX', () => {
 
   describe('pausable', async () => {
     beforeEach(async () => {
-      await ecoXProxy.connect(policyImpersonater).updateBurners(bob.address, true)
-      await ecoXProxy.connect(policyImpersonater).updateMinters(bob.address, true)
-      
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateBurners(bob.address, true)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+
       expect(await ecoXProxy.paused()).to.be.false
 
       await ecoXProxy.connect(bob).mint(bob.address, 1000)
@@ -275,9 +279,9 @@ describe('EcoX', () => {
 
   describe('mint', async () => {
     it('reverts when non-minter mints', async () => {
-      await expect(ecoXProxy.connect(bob).mint(bob.address, 100))
-        .to.be.revertedWith(ecoXProxy, 'Transfer')
-        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+      await expect(
+        ecoXProxy.connect(bob).mint(bob.address, 100)
+      ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_MINTERS)
     })
     it('mints', async () => {
       await ecoXProxy
@@ -289,15 +293,15 @@ describe('EcoX', () => {
     })
   })
   describe('burn', async () => {
-    it('reverts when non-burner burns', async () => {
+    it('reverts when non-burner non burns', async () => {
       await ecoXProxy
-      .connect(policyImpersonater)
-      .updateMinters(bob.address, true)
-      await ecoXProxy.connect(bob).mint(bob.address, 100)
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await ecoXProxy.connect(bob).mint(alice.address, 100)
 
-      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
-        .to.be.revertedWith(ecoXProxy, 'Transfer')
-        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+      await expect(
+        ecoXProxy.connect(bob).burn(alice.address, 100)
+      ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_BURNERS)
     })
     it('burns', async () => {
       // ow
