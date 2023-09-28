@@ -61,6 +61,7 @@ export const ERRORS = {
     BAD_BURNER: 'OnlyBurners',
     BAD_REBASER: 'OnlyRebasers',
     BAD_SNAPSHOTTER: 'OnlySnapshotters',
+    REBASE_TO_ZERO: 'BadRebaseValue',
   },
   ERC20: {
     BURN_BAD_AMOUNT: 'ERC20: burn amount exceeds balance',

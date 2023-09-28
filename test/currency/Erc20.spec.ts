@@ -15,7 +15,7 @@ import { BigNumberish } from 'ethers'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
-const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '000'.repeat(7)) // 1000 eco initially
+const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 eco initially
 
 // a test for the ERC-20 specific features of the ECO contract
 describe('Erc20', () => {
