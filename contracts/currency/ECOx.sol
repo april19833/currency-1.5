@@ -37,16 +37,6 @@ contract ECOx is ERC20Pausable, Policed {
      */
     // uint8 public constant PRECISION_BITS = 100;
 
-    /**
-     * @dev minters at time of initialization
-     */
-    address[] public initialMinters;
-
-    /**
-     * @dev burners at time of initialization
-     */
-    address[] public initialBurners;
-
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
@@ -139,26 +129,11 @@ contract ECOx is ERC20Pausable, Policed {
         Policy _policy,
         address _ecoXStaking,
         address _ecoXExchange,
-        address[] memory _minters,
-        address[] memory _burners,
         address _pauser
     )
         ERC20Pausable("ECOx", "ECOx", address(_policy), _pauser)
         Policed(_policy)
     {
-        uint256 n = _minters.length;
-        for (uint256 i = 0; i < n; i++) {
-            address minter = _minters[i];
-            updateMinters(minter, true);
-            initialMinters.push(minter);
-        }
-        n = _burners.length;
-        for (uint256 i = 0; i < n; i++) {
-            address burner = _burners[i];
-            updateBurners(burner, true);
-            initialBurners.push(burner);
-        }
-
         ecoXStaking = _ecoXStaking;
         ecoXExchange = _ecoXExchange;
     }
@@ -175,15 +150,6 @@ contract ECOx is ERC20Pausable, Policed {
         pauser = ERC20Pausable(_self).pauser();
         ecoXStaking = ECOx(_self).ecoXStaking();
         ecoXExchange = ECOx(_self).ecoXExchange();
-
-        uint256 n = ECOx(_self).numMinters();
-        for (uint256 i = 0; i < n; i++) {
-            updateMinters(ECOx(_self).initialMinters(i), true);
-        }
-        n = ECOx(_self).numBurners();
-        for (uint256 i = 0; i < n; i++) {
-            updateBurners(ECOx(_self).initialBurners(i), true);
-        }
     }
 
     // function ecoValueOf(uint256 _ecoXValue) public view returns (uint256) {
@@ -239,20 +205,6 @@ contract ECOx is ERC20Pausable, Policed {
     function updateBurners(address _key, bool _value) public onlyPolicy {
         burners[_key] = _value;
         emit UpdatedBurners(_key, _value);
-    }
-
-    /**
-     * @dev fetches the length of initialMinters
-     */
-    function numMinters() public returns (uint256) {
-        return initialMinters.length;
-    }
-
-    /**
-     * @dev fetches the length of initialBurners
-     */
-    function numBurners() public returns (uint256) {
-        return initialBurners.length;
     }
 
     /**

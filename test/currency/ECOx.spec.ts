@@ -38,8 +38,6 @@ describe('EcoX', () => {
       Fake__Policy.address, // policy
       fakeStaking.address, // ecoxstaking
       fakeExchange.address, // ecoxexchange
-      [alice.address, bob.address], // minters
-      [bob.address, alice.address], // burners
       bob.address // pauser
     )
 
@@ -57,30 +55,12 @@ describe('EcoX', () => {
       expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
       expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
       expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
-
-      expect(await ecoXImpl.minters(alice.address)).to.be.true
-      expect(await ecoXImpl.initialMinters(0)).to.eq(alice.address)
-      expect(await ecoXImpl.minters(bob.address)).to.be.true
-      expect(await ecoXImpl.initialMinters(1)).to.eq(bob.address)
-
-      expect(await ecoXImpl.burners(bob.address)).to.be.true
-      expect(await ecoXImpl.initialBurners(0)).to.eq(bob.address)
-      expect(await ecoXImpl.burners(alice.address)).to.be.true
-      expect(await ecoXImpl.initialBurners(1)).to.eq(alice.address)
-
       expect(await ecoXImpl.pauser()).to.eq(bob.address)
     })
     it('initializes', async () => {
       expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
       expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
       expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
-
-      expect(await ecoXImpl.minters(alice.address)).to.be.true
-      expect(await ecoXImpl.minters(bob.address)).to.be.true
-
-      expect(await ecoXImpl.burners(bob.address)).to.be.true
-      expect(await ecoXImpl.burners(alice.address)).to.be.true
-
       expect(await ecoXImpl.pauser()).to.eq(bob.address)
     })
   })
@@ -207,6 +187,9 @@ describe('EcoX', () => {
 
   describe('pausable', async () => {
     beforeEach(async () => {
+      await ecoXProxy.connect(policyImpersonater).updateBurners(bob.address, true)
+      await ecoXProxy.connect(policyImpersonater).updateMinters(bob.address, true)
+      
       expect(await ecoXProxy.paused()).to.be.false
 
       await ecoXProxy.connect(bob).mint(bob.address, 1000)
