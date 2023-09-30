@@ -12,9 +12,6 @@ contract ECO is InflationCheckpoints {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
 
-    // gonna be moved to inflation checkpoints
-    uint256 public inflationMultiplier;
-
     /**
      * the address of the contract for initial distribution
      */
@@ -70,6 +67,11 @@ contract ECO is InflationCheckpoints {
      */
     error OnlySnapshotters();
 
+    /**
+     * error for when a rebase attempts to rebase incorrectly
+     */
+    error BadRebaseValue();
+
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -104,8 +106,13 @@ contract ECO is InflationCheckpoints {
 
     /** Fired when a proposal with a new inflation multiplier is selected and passed.
      * Used to calculate new values for the rebased token.
+     * @param adjustinginflationMultiplier the multiplier that has just been applied to the tokens
+     * @param cumulativeInflationMultiplier the total multiplier that is used to convert to and from gons
      */
-    event NewInflationMultiplier(uint256 inflationMultiplier);
+    event NewInflationMultiplier(
+        uint256 adjustinginflationMultiplier,
+        uint256 cumulativeInflationMultiplier
+    );
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -196,7 +203,20 @@ contract ECO is InflationCheckpoints {
     }
 
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
-        rebased = true;
+        if (_inflationMultiplier == 0) {
+            revert BadRebaseValue();
+        }
+
+        uint256 newInflationMult = (_inflationMultiplier *
+            getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
+
+        _writeCheckpoint(
+            _linearInflationCheckpoints,
+            _replace,
+            newInflationMult
+        );
+
+        emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
     }
 
     function snapshot() public onlySnapshotterRole {
@@ -245,12 +265,5 @@ contract ECO is InflationCheckpoints {
     function updateSnapshotters(address _key, bool _value) public onlyPolicy {
         snapshotters[_key] = _value;
         emit UpdatedSnapshotters(_key, _value);
-    }
-
-    function getInflationMultiplier()
-        public
-        returns (uint256 _inflationMultiplier)
-    {
-        return inflationMultiplier;
     }
 }
