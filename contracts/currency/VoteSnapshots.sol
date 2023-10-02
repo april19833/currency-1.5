@@ -120,7 +120,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
             _accountBalanceSnapshots[account]
         );
 
-        return snapshotted ? value : balanceOf(account);
+        return snapshotted ? value : voteBalanceOf(account);
     }
 
     /**
@@ -195,7 +195,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        _updateSnapshot(_accountBalanceSnapshots[account], balanceOf(account));
+        _updateSnapshot(_accountBalanceSnapshots[account], voteBalanceOf(account));
     }
 
     function _updateTotalSupplySnapshot() private {
