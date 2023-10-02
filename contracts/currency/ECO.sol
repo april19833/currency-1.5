@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./InflationCheckpoints.sol";
+import "./InflationSnapshots.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 
 /** @title An ERC20 token interface to the Eco currency system.
  */
-contract ECO is InflationCheckpoints {
+contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
@@ -169,7 +169,7 @@ contract ECO is InflationCheckpoints {
         address _distributor,
         uint256 _initialSupply,
         address _initialPauser
-    ) InflationCheckpoints(_policy, "ECO", "ECO", _initialPauser) {
+    ) InflationSnapshots(_policy, "ECO", "ECO", _initialPauser) {
         distributor = _distributor;
         initialSupply = _initialSupply;
     }
@@ -206,21 +206,21 @@ contract ECO is InflationCheckpoints {
         if (_inflationMultiplier == 0) {
             revert BadRebaseValue();
         }
+        
+        // update snapshotId because balances are changing
+        _snapshot();
 
         uint256 newInflationMult = (_inflationMultiplier *
             getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
 
-        _writeCheckpoint(
-            _linearInflationCheckpoints,
-            _replace,
-            newInflationMult
-        );
+        _linearInflation = newInflationMult;
+        _updateSnapshot(_linearInflationSnapshots, newInflationMult);
 
         emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
     }
 
     function snapshot() public onlySnapshotterRole {
-        snapshotted = true;
+        _snapshot();
     }
 
     /**
