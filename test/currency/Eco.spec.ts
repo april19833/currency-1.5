@@ -691,23 +691,26 @@ describe.only('Eco', () => {
       })
     })
 
-    context('transfer gas testing', () => {
+    context.only('transfer gas testing', () => {
+      // can't use full balance because zeroing balance gives misleading gas costs
+      const testAmount = amount.div(2);
+
       it('no delegations', async () => {
-        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const tx = await ECOproxy.connect(bob).transfer(alice.address, testAmount)
         const receipt = await tx.wait()
         console.log(receipt.gasUsed)
       })
 
       it('sender delegated', async () => {
         await ECOproxy.connect(alice).delegate(charlie.address)
-        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, testAmount)
         const receipt = await tx.wait()
         console.log(receipt.gasUsed)
       })
 
       it('receiver delegated', async () => {
         await ECOproxy.connect(bob).delegate(dave.address)
-        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, testAmount)
         const receipt = await tx.wait()
         console.log(receipt.gasUsed)
       })
@@ -715,7 +718,7 @@ describe.only('Eco', () => {
       it('both delegated', async () => {
         await ECOproxy.connect(alice).delegate(charlie.address)
         await ECOproxy.connect(bob).delegate(dave.address)
-        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, testAmount)
         const receipt = await tx.wait()
         console.log(receipt.gasUsed)
       })
