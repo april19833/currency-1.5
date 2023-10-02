@@ -15,7 +15,7 @@ const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 eco i
 const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
-describe('Eco', () => {
+describe.only('Eco', () => {
   let alice: SignerWithAddress // default signer
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress

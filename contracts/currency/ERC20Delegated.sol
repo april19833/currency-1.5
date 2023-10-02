@@ -434,20 +434,20 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         address recipient,
         uint256 amount
     ) internal virtual {
-        require(
-            recipient != address(0),
-            "ERC20Delegated: vote transfer to the zero address"
-        );
-
-        uint256 senderBalance = _voteBalances[sender];
-        require(
-            senderBalance >= amount,
-            "ERC20Delegated: vote transfer amount exceeds balance"
-        );
-        unchecked {
-            _voteBalances[sender] = senderBalance - amount;
+        if (sender != address(0)) {
+            uint256 senderBalance = _voteBalances[sender];
+            require(
+                senderBalance >= amount,
+                "ERC20Delegated: vote transfer amount exceeds balance"
+            );
+            unchecked {
+                _voteBalances[sender] = senderBalance - amount;
+            }
         }
-        _voteBalances[recipient] += amount;
+
+        if (recipient != address(0)) {
+            _voteBalances[recipient] += amount;
+        }
 
         emit UpdatedVotes(recipient, amount);
     }
@@ -534,27 +534,25 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         return true;
     }
 
-    /**
-     * @dev Snapshots the totalSupply after it has been increased.
-     */
-    function _mint(
-        address account,
-        uint256 amount
-    ) internal virtual override returns (uint256) {
-        _voteBalances[address(0)] += amount;
-        amount = super._mint(account, amount);
-        return amount;
-    }
+    // /**
+    //  * @dev Snapshots the totalSupply after it has been increased.
+    //  */
+    // function _mint(
+    //     address account,
+    //     uint256 amount
+    // ) internal virtual override returns (uint256) {
+    //     amount = super._mint(account, amount);
+    //     return amount;
+    // }
 
-    /**
-     * @dev Snapshots the totalSupply after it has been decreased.
-     */
-    function _burn(
-        address account,
-        uint256 amount
-    ) internal virtual override returns (uint256) {
-        amount = super._burn(account, amount);
-
-        return amount;
-    }
+    // /**
+    //  * @dev Snapshots the totalSupply after it has been decreased.
+    //  */
+    // function _burn(
+    //     address account,
+    //     uint256 amount
+    // ) internal virtual override returns (uint256) {
+    //     amount = super._burn(account, amount);
+    //     return amount;
+    // }
 }
