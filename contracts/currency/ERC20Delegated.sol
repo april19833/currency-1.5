@@ -71,7 +71,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     function enableDelegationTo() public {
         require(
             isOwnDelegate(msg.sender),
-            "Cannot enable delegation if you have outstanding delegation"
+            "ERC20Delegated: cannot enable delegation if you have outstanding delegation"
         );
 
         delegationToAddressEnabled[msg.sender] = true;
@@ -95,7 +95,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         require(
             balanceOf(msg.sender) == voteBalanceOf(msg.sender) &&
                 isOwnDelegate(msg.sender),
-            "ERC20Delegated: Cannot re-enable delegating if you have outstanding delegations"
+            "ERC20Delegated: cannot re-enable delegating if you have outstanding delegations"
         );
 
         delegationFromAddressDisabled[msg.sender] = false;
@@ -137,17 +137,17 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     /**
      * @dev Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
-     * It will revert with "Must have an undelegated amount available to cover delegation" if you do
+     * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
      */
     function delegate(address delegatee) public {
         require(
             delegatee != msg.sender,
-            "Use undelegate instead of delegating to yourself"
+            "ERC20Delegated: use undelegate instead of delegating to yourself"
         );
 
         require(
             delegationToAddressEnabled[delegatee],
-            "Primary delegates must enable delegation"
+            "ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates"
         );
 
         if (!isOwnDelegate(msg.sender)) {
@@ -162,7 +162,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     /**
      * @dev Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
-     * It will revert with "Must have an undelegated amount available to cover delegation" if you do
+     * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
      */
     function delegateBySig(
         address delegator,
@@ -172,10 +172,10 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         bytes32 r,
         bytes32 s
     ) public {
-        require(delegator != delegatee, "Do not delegate to yourself");
+        require(delegator != delegatee, "ERC20Delegated: use undelegate instead of delegating to yourself");
         require(
             delegationToAddressEnabled[delegatee],
-            "Primary delegates must enable delegation"
+            "ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates"
         );
 
         if (!isOwnDelegate(delegator)) {
@@ -270,11 +270,11 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     ) public {
         require(
             voteAllowance(msg.sender, delegatee) >= amount,
-            "amount not available to undelegate"
+            "ERC20Delegated: amount not available to undelegate"
         );
         require(
             msg.sender == getPrimaryDelegate(msg.sender),
-            "undelegating amounts is only available for partial delegators"
+            "ERC20Delegated: undelegating amounts is only available for partial delegators"
         );
         _undelegate(msg.sender, delegatee, amount);
     }

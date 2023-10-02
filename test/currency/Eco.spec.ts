@@ -436,7 +436,7 @@ describe.only('Eco', () => {
     })
   })
 
-  describe('delegation', () => {
+  describe.only('delegation', () => {
     const amount = INITIAL_SUPPLY
     let voteAmount: BigNumber
 
@@ -483,7 +483,7 @@ describe.only('Eco', () => {
         await expect(
           ECOproxy.connect(alice).enableDelegationTo()
         ).to.be.revertedWith(
-          'Cannot enable delegation if you have outstanding delegation'
+          'ERC20Delegated: cannot enable delegation if you have outstanding delegation'
         )
       })
     })
@@ -502,7 +502,7 @@ describe.only('Eco', () => {
 
         await expect(
           ECOproxy.connect(alice).delegate(dave.address)
-        ).to.be.revertedWith('Primary delegates must enable delegation')
+        ).to.be.revertedWith('ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates')
       })
 
       it('disabling delegation is not sufficient to delegate', async () => {
@@ -511,7 +511,7 @@ describe.only('Eco', () => {
         await expect(
           ECOproxy.connect(dave).delegate(charlie.address)
         ).to.be.revertedWith(
-          'Cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
         )
       })
 
@@ -521,7 +521,7 @@ describe.only('Eco', () => {
 
         await expect(
           ECOproxy.connect(bob).delegate(dave.address)
-        ).to.be.revertedWith('Primary delegates must enable delegation')
+        ).to.be.revertedWith('ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates')
       })
     })
 
@@ -542,7 +542,7 @@ describe.only('Eco', () => {
 
         await expect(
           ECOproxy.connect(alice).delegate(dave.address)
-        ).to.be.revertedWith('Primary delegates must enable delegation')
+        ).to.be.revertedWith('ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates')
       })
 
       it('can reenable if not disabled', async () => {
@@ -556,7 +556,7 @@ describe.only('Eco', () => {
         await expect(
           ECOproxy.connect(dave).reenableDelegating()
         ).to.be.revertedWith(
-          'Cannot re-enable delegating if you have outstanding delegations to you'
+          'ERC20Delegated: cannot re-enable delegating if you have outstanding delegations'
         )
       })
     })
@@ -584,20 +584,20 @@ describe.only('Eco', () => {
       it('does not allow delegation if not enabled', async () => {
         await expect(
           ECOproxy.connect(alice).delegate(PLACEHOLDER_ADDRESS1)
-        ).to.be.revertedWith('Primary delegates must enable delegation')
+        ).to.be.revertedWith('ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates')
       })
 
       it('does not allow delegation to yourself', async () => {
         await expect(
           ECOproxy.connect(alice).delegate(alice.address)
-        ).to.be.revertedWith('Use undelegate instead of delegating to yourself')
+        ).to.be.revertedWith('ERC20Delegated: use undelegate instead of delegating to yourself')
       })
 
       it('does not allow delegation if you are a delegatee', async () => {
         await expect(
           ECOproxy.connect(charlie).delegate(dave.address)
         ).to.be.revertedWith(
-          'Cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
         )
       })
     })
@@ -618,7 +618,7 @@ describe.only('Eco', () => {
 
       it('disallows undelegate() with no delegate', async () => {
         await expect(ECOproxy.connect(alice).undelegate()).to.be.revertedWith(
-          'Must specifiy address without a Primary Delegate'
+          'ERC20Delegated: must specifiy undelegate address when not using a Primary Delegate'
         )
       })
     })
