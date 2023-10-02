@@ -254,7 +254,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         address delegator,
         address delegatee
     ) internal {
-        uint256 _amount = voteAllowance(delegator, delegatee);
+        uint256 _amount = voteAllowance(delegatee, delegator);
         _undelegate(delegator, delegatee, _amount);
         if (delegatee == getPrimaryDelegate(delegator)) {
             _setPrimaryDelegate(delegator, address(0));
@@ -269,7 +269,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         uint256 amount
     ) public {
         require(
-            voteAllowance(msg.sender, delegatee) >= amount,
+            voteAllowance(delegatee, msg.sender) >= amount,
             "ERC20Delegated: amount not available to undelegate"
         );
         require(

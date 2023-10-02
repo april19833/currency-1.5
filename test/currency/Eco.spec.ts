@@ -610,10 +610,10 @@ describe.only('Eco', () => {
         const receipt2 = await tx2.wait()
         console.log(receipt2.gasUsed)
 
-        const votes1 = await ECOproxy.voteBalanceOf(alice.address)
-        expect(votes1).to.equal(voteAmount)
         const votes2 = await ECOproxy.voteBalanceOf(charlie.address)
         expect(votes2).to.equal(voteAmount)
+        const votes1 = await ECOproxy.voteBalanceOf(alice.address)
+        expect(votes1).to.equal(voteAmount)
       })
 
       it('disallows undelegate() with no delegate', async () => {
