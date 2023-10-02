@@ -309,7 +309,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
                 amount -
                 _totalVoteAllowances[from];
 
-            // check to see if tokens must be undelegated to transefer
+            // check to see if tokens must be undelegated to transfer
             if (_undelegatedAmount < amount) {
                 address _sourcePrimaryDelegate = getPrimaryDelegate(from);
                 uint256 _sourcePrimaryDelegatement = voteAllowance(
