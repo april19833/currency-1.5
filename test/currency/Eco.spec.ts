@@ -9,7 +9,7 @@ import {
   ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
-import { BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
 
 const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 eco initially
 const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
@@ -28,7 +28,7 @@ describe('Eco', () => {
   let ECOimpl: ECO
   let ECOproxy: ECO
   let Fake__Policy: FakeContract<Policy>
-  let globalInflationMult: BigNumberish
+  let globalInflationMult: BigNumber
 
   beforeEach(async () => {
     const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
@@ -432,6 +432,292 @@ describe('Eco', () => {
         await expect(ECOproxy.connect(charlie).rebase(0)).to.be.revertedWith(
           ERRORS.ECO.REBASE_TO_ZERO
         )
+      })
+    })
+  })
+
+  describe('delegation', () => {
+    const amount = INITIAL_SUPPLY
+    let voteAmount: BigNumber
+
+    beforeEach(async () => {
+      // mint initial tokens
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        true
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        alice.address,
+        amount
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        bob.address,
+        amount
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        charlie.address,
+        amount
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        dave.address,
+        amount
+      )
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        false
+      )
+      expect(await ECOproxy.balanceOf(alice.address)).to.eq(amount)
+      expect(await ECOproxy.balanceOf(bob.address)).to.eq(amount)
+      expect(await ECOproxy.balanceOf(charlie.address)).to.eq(amount)
+      expect(await ECOproxy.balanceOf(dave.address)).to.eq(amount)
+      await ECOproxy.connect(charlie).enableDelegationTo()
+      await ECOproxy.connect(dave).enableDelegationTo()
+
+      voteAmount = globalInflationMult.mul(amount)
+    })
+
+    context('enableDelegationTo', () => {
+      it('cannot enable if already delegated', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+
+        await expect(
+          ECOproxy.connect(alice).enableDelegationTo()
+        ).to.be.revertedWith(
+          'Cannot enable delegation if you have outstanding delegation'
+        )
+      })
+    })
+
+    context('disableDelegationTo', () => {
+      it('can disable', async () => {
+        await ECOproxy.connect(dave).disableDelegationTo()
+      })
+
+      it('can disable even if not enabled', async () => {
+        await ECOproxy.connect(alice).disableDelegationTo()
+      })
+
+      it('disabling prevents delegation', async () => {
+        await ECOproxy.connect(dave).disableDelegationTo()
+
+        await expect(
+          ECOproxy.connect(alice).delegate(dave.address)
+        ).to.be.revertedWith('Primary delegates must enable delegation')
+      })
+
+      it('disabling delegation is not sufficient to delegate', async () => {
+        await ECOproxy.connect(dave).disableDelegationTo()
+
+        await expect(
+          ECOproxy.connect(dave).delegate(charlie.address)
+        ).to.be.revertedWith(
+          'Cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+        )
+      })
+
+      it('can still disable delegation to you with outstanding delegations', async () => {
+        await ECOproxy.connect(alice).delegate(dave.address)
+        await ECOproxy.connect(dave).disableDelegationTo()
+
+        await expect(
+          ECOproxy.connect(bob).delegate(dave.address)
+        ).to.be.revertedWith('Primary delegates must enable delegation')
+      })
+    })
+
+    context('reenableDelegating', () => {
+      it('can re-enable delegation and then delegate', async () => {
+        await ECOproxy.connect(dave).reenableDelegating()
+
+        await ECOproxy.connect(dave).delegate(charlie.address)
+      })
+
+      it('you may disable delegating to you and then re-enable', async () => {
+        await ECOproxy.connect(dave).disableDelegationTo()
+        await ECOproxy.connect(dave).reenableDelegating()
+      })
+
+      it('can reenable if you did not disable delegating to you first, still disables delegating to you', async () => {
+        await ECOproxy.connect(dave).reenableDelegating()
+
+        await expect(
+          ECOproxy.connect(alice).delegate(dave.address)
+        ).to.be.revertedWith('Primary delegates must enable delegation')
+      })
+
+      it('can reenable if not disabled', async () => {
+        await ECOproxy.connect(alice).reenableDelegating()
+      })
+
+      it('delegations to you prevent re-enabling', async () => {
+        await ECOproxy.connect(alice).delegate(dave.address)
+        await ECOproxy.connect(dave).disableDelegationTo()
+
+        await expect(
+          ECOproxy.connect(dave).reenableDelegating()
+        ).to.be.revertedWith(
+          'Cannot re-enable delegating if you have outstanding delegations to you'
+        )
+      })
+    })
+
+    context('delegate', () => {
+      it('correct votes when delegated', async () => {
+        const tx1 = await ECOproxy.connect(alice).delegate(charlie.address)
+        const receipt1 = await tx1.wait()
+        console.log(receipt1.gasUsed)
+        expect(await ECOproxy.getVotingGons(charlie.address)).to.equal(
+          voteAmount.mul(2)
+        )
+
+        const tx2 = await ECOproxy.connect(alice).delegate(dave.address)
+        const receipt2 = await tx2.wait()
+        console.log(receipt2.gasUsed)
+        expect(await ECOproxy.getVotingGons(charlie.address)).to.equal(
+          voteAmount
+        )
+        expect(await ECOproxy.getVotingGons(dave.address)).to.equal(
+          voteAmount.mul(2)
+        )
+      })
+
+      it('does not allow delegation if not enabled', async () => {
+        await expect(
+          ECOproxy.connect(alice).delegate(PLACEHOLDER_ADDRESS1)
+        ).to.be.revertedWith('Primary delegates must enable delegation')
+      })
+
+      it('does not allow delegation to yourself', async () => {
+        await expect(
+          ECOproxy.connect(alice).delegate(alice.address)
+        ).to.be.revertedWith('Use undelegate instead of delegating to yourself')
+      })
+
+      it('does not allow delegation if you are a delegatee', async () => {
+        await expect(
+          ECOproxy.connect(charlie).delegate(dave.address)
+        ).to.be.revertedWith(
+          'Cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+        )
+      })
+    })
+
+    context('undelegate', () => {
+      it('correct state when undelegated after delegating', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+
+        const tx2 = await ECOproxy.connect(alice).undelegate()
+        const receipt2 = await tx2.wait()
+        console.log(receipt2.gasUsed)
+
+        const votes1 = await ECOproxy.getVotingGons(alice.address)
+        expect(votes1).to.equal(voteAmount)
+        const votes2 = await ECOproxy.getVotingGons(charlie.address)
+        expect(votes2).to.equal(voteAmount)
+      })
+
+      it('disallows undelegate() with no delegate', async () => {
+        await expect(ECOproxy.connect(alice).undelegate()).to.be.revertedWith(
+          'Must specifiy address without a Primary Delegate'
+        )
+      })
+    })
+
+    context('isOwnDelegate', () => {
+      it('correct state when delegating and undelegating', async () => {
+        expect(await ECOproxy.isOwnDelegate(alice.address)).to.be.true
+
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        expect(await ECOproxy.isOwnDelegate(alice.address)).to.be.false
+
+        await ECOproxy.connect(alice).undelegate()
+        expect(await ECOproxy.isOwnDelegate(alice.address)).to.be.true
+      })
+    })
+
+    context('getPrimaryDelegate', () => {
+      it('correct state when delegating and undelegating', async () => {
+        expect(await ECOproxy.getPrimaryDelegate(alice.address)).to.equal(
+          alice.address
+        )
+
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        expect(await ECOproxy.getPrimaryDelegate(alice.address)).to.equal(
+          charlie.address
+        )
+
+        await ECOproxy.connect(alice).undelegate()
+        expect(await ECOproxy.getPrimaryDelegate(alice.address)).to.equal(
+          alice.address
+        )
+      })
+    })
+
+    context('delegate then transfer', () => {
+      it('sender delegated', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        await ECOproxy.connect(alice).transfer(bob.address, amount)
+        expect(await ECOproxy.getVotingGons(alice.address)).to.equal(0)
+        expect(await ECOproxy.getVotingGons(bob.address)).to.equal(
+          voteAmount.mul(2)
+        )
+        expect(await ECOproxy.getVotingGons(charlie.address)).to.equal(
+          voteAmount
+        )
+      })
+
+      it('receiver delegated', async () => {
+        await ECOproxy.connect(bob).delegate(dave.address)
+        await ECOproxy.connect(alice).transfer(bob.address, amount)
+        expect(await ECOproxy.getVotingGons(alice.address)).to.equal(0)
+        expect(await ECOproxy.getVotingGons(bob.address)).to.equal(0)
+        expect(await ECOproxy.getVotingGons(dave.address)).to.equal(
+          voteAmount.mul(3)
+        )
+      })
+
+      it('both delegated', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        await ECOproxy.connect(bob).delegate(dave.address)
+        await ECOproxy.connect(alice).transfer(bob.address, amount)
+        expect(await ECOproxy.getVotingGons(alice.address)).to.equal(0)
+        expect(await ECOproxy.getVotingGons(bob.address)).to.equal(0)
+        expect(await ECOproxy.getVotingGons(charlie.address)).to.equal(
+          voteAmount
+        )
+        expect(await ECOproxy.getVotingGons(dave.address)).to.equal(
+          voteAmount.mul(3)
+        )
+      })
+    })
+
+    context('transfer gas testing', () => {
+      it('no delegations', async () => {
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const receipt = await tx.wait()
+        console.log(receipt.gasUsed)
+      })
+
+      it('sender delegated', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const receipt = await tx.wait()
+        console.log(receipt.gasUsed)
+      })
+
+      it('receiver delegated', async () => {
+        await ECOproxy.connect(bob).delegate(dave.address)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const receipt = await tx.wait()
+        console.log(receipt.gasUsed)
+      })
+
+      it('both delegated', async () => {
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        await ECOproxy.connect(bob).delegate(dave.address)
+        const tx = await ECOproxy.connect(alice).transfer(bob.address, amount)
+        const receipt = await tx.wait()
+        console.log(receipt.gasUsed)
       })
     })
   })
