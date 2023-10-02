@@ -415,7 +415,7 @@ describe('Eco', () => {
 
         await ECOproxy.connect(charlie).rebase(newInflationMult)
 
-        expect(await ECOproxy.getPastLinearInflation(blockNumber)).to.eq(
+        expect(await ECOproxy.getInflationMultiplierAt(blockNumber)).to.eq(
           globalInflationMult
         )
       })

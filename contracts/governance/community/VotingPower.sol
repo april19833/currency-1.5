@@ -28,19 +28,19 @@ contract VotingPower is Policed {
     }
 
     function totalVotingPower(
-        uint256 _blockNumber
+        uint256 _snapshotId
     ) public view returns (uint256) {
-        uint256 _supply = ecoToken.totalSupplyAt(_blockNumber);
+        uint256 _supply = ecoToken.totalSupplyAt(_snapshotId);
 
         return _supply + 10 * totalECOxSnapshot - excludedVotingPower;
     }
 
     function votingPower(
         address _who,
-        uint256 _blockNumber
+        uint256 _snapshotId
     ) public view returns (uint256) {
-        uint256 _power = ecoToken.getPastVotes(_who, _blockNumber);
-        uint256 _powerx = getXStaking().votingECOx(_who, _blockNumber);
+        uint256 _power = ecoToken.balanceOfAt(_who, _snapshotId);
+        uint256 _powerx = getXStaking().votingECOx(_who, _snapshotId);
         // ECOx has 10x the voting power of ECO per unit
         return _power + 10 * _powerx;
     }
