@@ -93,7 +93,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         delegationToAddressEnabled[msg.sender] = false;
 
         require(
-            balanceOf(msg.sender) == voteBalanceOf(msg.sender) &&
+            _balances[msg.sender] == voteBalanceOf(msg.sender) &&
                 isOwnDelegate(msg.sender),
             "ERC20Delegated: cannot re-enable delegating if you have outstanding delegations"
         );
