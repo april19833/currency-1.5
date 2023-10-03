@@ -1,7 +1,7 @@
 /* -*- c-basic-offset: 4 -*- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "../currency/VoteSnapshots.sol";
+import "./VoteSnapshotCheckpoints.sol";
 import "../policy/Policed.sol";
 
 /** @title InflationSnapshots
@@ -9,10 +9,10 @@ import "../policy/Policed.sol";
  * are lazy-evaluated, but are effectively all atomically snapshotted when
  * the generation changes.
  */
-abstract contract InflationSnapshots is VoteSnapshots, Policed {
+abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
-    Snapshots internal _linearInflationSnapshots;
+    Checkpoint[] internal _linearInflationSnapshots;
 
     uint256 internal _linearInflation;
 
@@ -41,7 +41,10 @@ abstract contract InflationSnapshots is VoteSnapshots, Policed {
         Policed(_policy)
     {
         _linearInflation = INITIAL_INFLATION_MULTIPLIER;
-        _updateSnapshot(_linearInflationSnapshots, INITIAL_INFLATION_MULTIPLIER);
+        _updateSnapshot(
+            _linearInflationSnapshots,
+            INITIAL_INFLATION_MULTIPLIER
+        );
     }
 
     function initialize(
@@ -49,7 +52,10 @@ abstract contract InflationSnapshots is VoteSnapshots, Policed {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         _linearInflation = INITIAL_INFLATION_MULTIPLIER;
-        _updateSnapshot(_linearInflationSnapshots, INITIAL_INFLATION_MULTIPLIER);
+        _updateSnapshot(
+            _linearInflationSnapshots,
+            INITIAL_INFLATION_MULTIPLIER
+        );
     }
 
     function _beforeTokenTransfer(
@@ -72,11 +78,16 @@ abstract contract InflationSnapshots is VoteSnapshots, Policed {
     function getInflationMultiplierAt(
         uint256 snapshotId
     ) public view returns (uint256) {
-        (bool snapshotted, uint256 value) = _valueAt(
-            snapshotId,
-            _linearInflationSnapshots
-        );
+        // (bool snapshotted, uint256 value) = _valueAt(
+        //     snapshotId,
+        //     _linearInflationSnapshots
+        // );
 
+        // return snapshotted ? value : _linearInflation;
+        (uint256 value, bool snapshotted) = _checkpointsLookup(
+            _linearInflationSnapshots,
+            snapshotId
+        );
         return snapshotted ? value : _linearInflation;
     }
 
@@ -97,9 +108,9 @@ abstract contract InflationSnapshots is VoteSnapshots, Policed {
     function totalSupplyAt(
         uint256 snapshotId
     ) public view override returns (uint256) {
-        uint256 _linearInflation = getInflationMultiplierAt(snapshotId);
+        uint256 __linearInflation = getInflationMultiplierAt(snapshotId);
 
-        return super.totalSupplyAt(snapshotId) / _linearInflation;
+        return super.totalSupplyAt(snapshotId) / __linearInflation;
     }
 
     /** Return historical voting balance (includes delegation) at given block number.
@@ -117,8 +128,8 @@ abstract contract InflationSnapshots is VoteSnapshots, Policed {
         address owner,
         uint256 snapshotId
     ) public view override returns (uint256) {
-        uint256 _linearInflation = getInflationMultiplierAt(snapshotId);
+        uint256 __linearInflation = getInflationMultiplierAt(snapshotId);
 
-        return balanceOfAt(owner, snapshotId) / _linearInflation;
+        return getPastVotingGons(owner, snapshotId) / __linearInflation;
     }
 }
