@@ -195,7 +195,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        _updateSnapshot(_accountBalanceSnapshots[account], voteBalanceOf(account));
+        _updateSnapshot(
+            _accountBalanceSnapshots[account],
+            voteBalanceOf(account)
+        );
     }
 
     function _updateTotalSupplySnapshot() private {

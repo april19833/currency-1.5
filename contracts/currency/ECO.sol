@@ -206,7 +206,7 @@ contract ECO is InflationSnapshots {
         if (_inflationMultiplier == 0) {
             revert BadRebaseValue();
         }
-        
+
         // update snapshotId because balances are changing
         _snapshot();
 

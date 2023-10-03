@@ -172,7 +172,10 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         bytes32 r,
         bytes32 s
     ) public {
-        require(delegator != delegatee, "ERC20Delegated: use undelegate instead of delegating to yourself");
+        require(
+            delegator != delegatee,
+            "ERC20Delegated: use undelegate instead of delegating to yourself"
+        );
         require(
             delegationToAddressEnabled[delegatee],
             "ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates"
