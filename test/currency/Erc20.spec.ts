@@ -23,9 +23,9 @@ describe('Erc20', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let dave: SignerWithAddress // distributer
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonater] = await ethers.getSigners()
+    ;[alice, bob, charlie, dave, policyImpersonator] = await ethers.getSigners()
   })
 
   let ECOimpl: ECO
@@ -40,12 +40,12 @@ describe('Erc20', () => {
 
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     const ECOfact = new ECO__factory(alice)
 
-    ECOimpl = await ECOfact.connect(policyImpersonater).deploy(
+    ECOimpl = await ECOfact.connect(policyImpersonator).deploy(
       Fake__Policy.address,
       PLACEHOLDER_ADDRESS1,
       0,
@@ -53,7 +53,7 @@ describe('Erc20', () => {
     )
 
     const proxy = await new ForwardProxy__factory()
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(ECOimpl.address)
 
     ECOproxy = ECOfact.attach(proxy.address)
@@ -61,27 +61,27 @@ describe('Erc20', () => {
     expect(ECOproxy.address === proxy.address).to.be.true
 
     // set a global inflation multiplier for supply
-    await ECOproxy.connect(policyImpersonater).updateRebasers(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).updateRebasers(
+      policyImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonater).rebase(globalInflationMult)
-    await ECOproxy.connect(policyImpersonater).updateRebasers(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).rebase(globalInflationMult)
+    await ECOproxy.connect(policyImpersonator).updateRebasers(
+      policyImpersonator.address,
       false
     )
 
     // mint initial tokens
-    await ECOproxy.connect(policyImpersonater).updateMinters(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonater).mint(
+    await ECOproxy.connect(policyImpersonator).mint(
       dave.address,
       INITIAL_SUPPLY
     )
-    await ECOproxy.connect(policyImpersonater).updateMinters(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
       false
     )
     expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)

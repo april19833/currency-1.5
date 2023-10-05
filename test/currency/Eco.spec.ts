@@ -21,9 +21,9 @@ describe('Eco', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let dave: SignerWithAddress // distributer
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonater] = await ethers.getSigners()
+    ;[alice, bob, charlie, dave, policyImpersonator] = await ethers.getSigners()
   })
 
   let ECOimpl: ECO
@@ -38,12 +38,12 @@ describe('Eco', () => {
 
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     const ECOfact = new ECO__factory(alice)
 
-    ECOimpl = await ECOfact.connect(policyImpersonater).deploy(
+    ECOimpl = await ECOfact.connect(policyImpersonator).deploy(
       Fake__Policy.address,
       PLACEHOLDER_ADDRESS1,
       0,
@@ -51,30 +51,30 @@ describe('Eco', () => {
     )
 
     const proxy = await new ForwardProxy__factory()
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(ECOimpl.address)
 
     ECOproxy = ECOfact.attach(proxy.address)
 
     expect(ECOproxy.address === proxy.address).to.be.true
     // set a global inflation multiplier for supply
-    await ECOproxy.connect(policyImpersonater).updateRebasers(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).updateRebasers(
+      policyImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonater).rebase(globalInflationMult)
-    await ECOproxy.connect(policyImpersonater).updateRebasers(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).rebase(globalInflationMult)
+    await ECOproxy.connect(policyImpersonator).updateRebasers(
+      policyImpersonator.address,
       false
     )
     // snapshot
-    await ECOproxy.connect(policyImpersonater).updateSnapshotters(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).updateSnapshotters(
+      policyImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonater).snapshot()
-    await ECOproxy.connect(policyImpersonater).updateSnapshotters(
-      policyImpersonater.address,
+    await ECOproxy.connect(policyImpersonator).snapshot()
+    await ECOproxy.connect(policyImpersonator).updateSnapshotters(
+      policyImpersonator.address,
       false
     )
   })
@@ -82,7 +82,7 @@ describe('Eco', () => {
   describe('role permissions', () => {
     describe('minter role', () => {
       it('can be added by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateMinters(
+        await ECOproxy.connect(policyImpersonator).updateMinters(
           charlie.address,
           true
         )
@@ -91,11 +91,11 @@ describe('Eco', () => {
       })
 
       it('can be removed by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateMinters(
+        await ECOproxy.connect(policyImpersonator).updateMinters(
           charlie.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).updateMinters(
+        await ECOproxy.connect(policyImpersonator).updateMinters(
           charlie.address,
           false
         )
@@ -105,7 +105,7 @@ describe('Eco', () => {
 
       it('emits an event', async () => {
         expect(
-          await ECOproxy.connect(policyImpersonater).updateMinters(
+          await ECOproxy.connect(policyImpersonator).updateMinters(
             charlie.address,
             true
           )
@@ -123,7 +123,7 @@ describe('Eco', () => {
 
     describe('burner role', () => {
       it('can be added by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateBurners(
+        await ECOproxy.connect(policyImpersonator).updateBurners(
           charlie.address,
           true
         )
@@ -132,11 +132,11 @@ describe('Eco', () => {
       })
 
       it('can be removed by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateBurners(
+        await ECOproxy.connect(policyImpersonator).updateBurners(
           charlie.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).updateBurners(
+        await ECOproxy.connect(policyImpersonator).updateBurners(
           charlie.address,
           false
         )
@@ -146,7 +146,7 @@ describe('Eco', () => {
 
       it('emits an event', async () => {
         expect(
-          await ECOproxy.connect(policyImpersonater).updateBurners(
+          await ECOproxy.connect(policyImpersonator).updateBurners(
             charlie.address,
             true
           )
@@ -164,7 +164,7 @@ describe('Eco', () => {
 
     describe('rebaser role', () => {
       it('can be added by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateRebasers(
+        await ECOproxy.connect(policyImpersonator).updateRebasers(
           charlie.address,
           true
         )
@@ -173,11 +173,11 @@ describe('Eco', () => {
       })
 
       it('can be removed by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateRebasers(
+        await ECOproxy.connect(policyImpersonator).updateRebasers(
           charlie.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).updateRebasers(
+        await ECOproxy.connect(policyImpersonator).updateRebasers(
           charlie.address,
           false
         )
@@ -187,7 +187,7 @@ describe('Eco', () => {
 
       it('emits an event', async () => {
         expect(
-          await ECOproxy.connect(policyImpersonater).updateRebasers(
+          await ECOproxy.connect(policyImpersonator).updateRebasers(
             charlie.address,
             true
           )
@@ -205,7 +205,7 @@ describe('Eco', () => {
 
     describe('snapshotter role', () => {
       it('can be added by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
           charlie.address,
           true
         )
@@ -214,11 +214,11 @@ describe('Eco', () => {
       })
 
       it('can be removed by the policy', async () => {
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
           charlie.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
           charlie.address,
           false
         )
@@ -228,7 +228,7 @@ describe('Eco', () => {
 
       it('emits an event', async () => {
         expect(
-          await ECOproxy.connect(policyImpersonater).updateSnapshotters(
+          await ECOproxy.connect(policyImpersonator).updateSnapshotters(
             charlie.address,
             true
           )
@@ -248,16 +248,16 @@ describe('Eco', () => {
   describe('mint/burn', () => {
     beforeEach(async () => {
       // mint initial tokens
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         true
       )
-      await ECOproxy.connect(policyImpersonater).mint(
+      await ECOproxy.connect(policyImpersonator).mint(
         dave.address,
         INITIAL_SUPPLY
       )
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         false
       )
       expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
@@ -265,7 +265,7 @@ describe('Eco', () => {
 
     describe('mint', () => {
       beforeEach(async () => {
-        await ECOproxy.connect(policyImpersonater).updateMinters(
+        await ECOproxy.connect(policyImpersonator).updateMinters(
           charlie.address,
           true
         )
@@ -312,7 +312,7 @@ describe('Eco', () => {
 
     describe('burn', () => {
       beforeEach(async () => {
-        await ECOproxy.connect(policyImpersonater).updateBurners(
+        await ECOproxy.connect(policyImpersonator).updateBurners(
           charlie.address,
           true
         )
@@ -373,22 +373,22 @@ describe('Eco', () => {
 
     beforeEach(async () => {
       // mint initial tokens
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         true
       )
-      await ECOproxy.connect(policyImpersonater).mint(
+      await ECOproxy.connect(policyImpersonator).mint(
         dave.address,
         INITIAL_SUPPLY
       )
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         false
       )
       expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
 
       // charlie is the rebaser for this test
-      await ECOproxy.connect(policyImpersonater).updateRebasers(
+      await ECOproxy.connect(policyImpersonator).updateRebasers(
         charlie.address,
         true
       )
@@ -452,16 +452,16 @@ describe('Eco', () => {
 
     beforeEach(async () => {
       // mint initial tokens
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         true
       )
-      await ECOproxy.connect(policyImpersonater).mint(alice.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(bob.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(charlie.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(dave.address, amount)
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).mint(alice.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(bob.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(charlie.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(dave.address, amount)
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         false
       )
       expect(await ECOproxy.balanceOf(alice.address)).to.eq(amount)
@@ -631,7 +631,7 @@ describe('Eco', () => {
       })
     })
 
-    context.only('revokeDelegation', () => {
+    context('revokeDelegation', () => {
         it('correct state when revokeDelegation after delegating', async () => {
           await ECOproxy.connect(alice).delegate(charlie.address)
   
@@ -752,13 +752,13 @@ describe('Eco', () => {
       const testAmount = amount.div(2)
 
       it('after snapshot', async () => {
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
-          policyImpersonater.address,
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
+          policyImpersonator.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).snapshot()
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
-          policyImpersonater.address,
+        await ECOproxy.connect(policyImpersonator).snapshot()
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
+          policyImpersonator.address,
           false
         )
         const tx = await ECOproxy.connect(bob).transfer(
@@ -853,16 +853,16 @@ describe('Eco', () => {
         value: ethers.utils.parseUnits('10', 'ether'),
       })
       // mint initial tokens
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         true
       )
-      await ECOproxy.connect(policyImpersonater).mint(delegator.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(delegatee.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(otherDelegatee.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(delegateTransferRecipient.address, amount)
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).mint(delegator.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(delegatee.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(otherDelegatee.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(delegateTransferRecipient.address, amount)
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         false
       )
 
@@ -1114,16 +1114,16 @@ describe('Eco', () => {
 
     beforeEach(async () => {
       // mint initial tokens
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         true
       )
-      await ECOproxy.connect(policyImpersonater).mint(alice.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(bob.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(charlie.address, amount)
-      await ECOproxy.connect(policyImpersonater).mint(dave.address, amount)
-      await ECOproxy.connect(policyImpersonater).updateMinters(
-        policyImpersonater.address,
+      await ECOproxy.connect(policyImpersonator).mint(alice.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(bob.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(charlie.address, amount)
+      await ECOproxy.connect(policyImpersonator).mint(dave.address, amount)
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        policyImpersonator.address,
         false
       )
       expect(await ECOproxy.balanceOf(alice.address)).to.eq(amount)
@@ -1246,11 +1246,11 @@ describe('Eco', () => {
 
       it('no exploit on self transfer', async () => {
         // snapshot
-        await ECOproxy.connect(policyImpersonater).updateSnapshotters(
-          policyImpersonater.address,
+        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
+          policyImpersonator.address,
           true
         )
-        await ECOproxy.connect(policyImpersonater).snapshot()
+        await ECOproxy.connect(policyImpersonator).snapshot()
         const snapshotId = await ECOproxy.currentSnapshotId()
         await ECOproxy.connect(bob).delegate(charlie.address)
         await ECOproxy.connect(alice).delegateAmount(

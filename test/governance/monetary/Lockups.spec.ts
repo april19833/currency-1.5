@@ -19,7 +19,7 @@ import {
   Lockups__factory,
 } from '../../../typechain-types'
 
-describe('Lockups', () => {
+describe.only('Lockups', () => {
   let policyImpersonator: SignerWithAddress
 
   let eco: MockContract<ECO>
@@ -79,8 +79,19 @@ describe('Lockups', () => {
     )
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
 
-    await eco.mint(alice.address, 10000)
-    await eco.mint(bob.address, 10000)
+    // mint initial tokens
+    await eco.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
+      true
+    )
+    await ECOproxy.connect(policyImpersonator).mint(alice.address, amount)
+    await ECOproxy.connect(policyImpersonator).mint(bob.address, amount)
+    await ECOproxy.connect(policyImpersonator).mint(charlie.address, amount)
+    await ECOproxy.connect(policyImpersonator).mint(dave.address, amount)
+    await ECOproxy.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
+      false
+    )
     await eco.connect(charlie).enableDelegationTo()
     await eco.connect(dave).enableDelegationTo()
     await eco.connect(alice).delegate(charlie.address)

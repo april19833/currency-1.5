@@ -23,9 +23,9 @@ const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
 describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
   let charlie: SignerWithAddress
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, charlie, policyImpersonater] = await ethers.getSigners()
+    ;[alice, charlie, policyImpersonator] = await ethers.getSigners()
   })
   let eco: MockContract<ECO>
   let ECOx: MockContract<ECOx>
@@ -37,7 +37,7 @@ describe('ECOxExchange', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
@@ -68,7 +68,7 @@ describe('ECOxExchange', () => {
     )
 
     ecoXExchange = await exchangeFactory
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(Fake__Policy.address, ECOx.address, eco.address)
   })
 
@@ -76,7 +76,7 @@ describe('ECOxExchange', () => {
     describe('ecox role', () => {
       it('can be changed by the policy', async () => {
         await ecoXExchange
-          .connect(policyImpersonater)
+          .connect(policyImpersonator)
           .updateECOx(charlie.address)
         expect(await ecoXExchange.ECOx()).to.eq(charlie.address)
       })
@@ -84,7 +84,7 @@ describe('ECOxExchange', () => {
       it('emits an event', async () => {
         expect(
           await ecoXExchange
-            .connect(policyImpersonater)
+            .connect(policyImpersonator)
             .updateECOx(charlie.address)
         )
           .to.emit(ecoXExchange, 'UpdatedECOx')
@@ -101,7 +101,7 @@ describe('ECOxExchange', () => {
     describe('eco role', () => {
       it('can be changed by the policy', async () => {
         await ecoXExchange
-          .connect(policyImpersonater)
+          .connect(policyImpersonator)
           .updateEco(charlie.address)
         expect(await ecoXExchange.eco()).to.eq(charlie.address)
       })
@@ -109,7 +109,7 @@ describe('ECOxExchange', () => {
       it('emits an event', async () => {
         expect(
           await ecoXExchange
-            .connect(policyImpersonater)
+            .connect(policyImpersonator)
             .updateEco(charlie.address)
         )
           .to.emit(ecoXExchange, 'UpdatedEco')

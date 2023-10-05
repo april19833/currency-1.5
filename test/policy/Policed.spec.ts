@@ -13,9 +13,9 @@ import {
 describe('Policed', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[policyImpersonater, alice, bob] = await ethers.getSigners()
+    ;[policyImpersonator, alice, bob] = await ethers.getSigners()
   })
 
   let DummyPoliced: MockContract<DummyPoliced>
@@ -23,7 +23,7 @@ describe('Policed', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     DummyPoliced = await (
@@ -35,11 +35,11 @@ describe('Policed', () => {
     it('Policy set on contstructor', async () => {
       const contractPolicy = await DummyPoliced.policy()
       expect(contractPolicy === Fake__Policy.address).to.be.true
-      expect(contractPolicy === policyImpersonater.address).to.be.true
+      expect(contractPolicy === policyImpersonator.address).to.be.true
     })
 
     it('Policy can set a new policy', async () => {
-      await DummyPoliced.connect(policyImpersonater).setPolicy(alice.address)
+      await DummyPoliced.connect(policyImpersonator).setPolicy(alice.address)
       const contractPolicy = await DummyPoliced.policy()
       expect(contractPolicy === alice.address).to.be.true
     })
@@ -52,7 +52,7 @@ describe('Policed', () => {
 
     it('Policy cannot be set to zero address', async () => {
       await expect(
-        DummyPoliced.connect(policyImpersonater).setPolicy(
+        DummyPoliced.connect(policyImpersonator).setPolicy(
           constants.AddressZero
         )
       ).to.be.revertedWith(ERRORS.Policed.REQUIRE_NON_ZERO_ADDRESS)
@@ -66,7 +66,7 @@ describe('Policed', () => {
       const initialValue = await DummyPoliced.value()
       expect(initialValue).to.not.eq(newValue)
 
-      await DummyPoliced.connect(policyImpersonater).setValue(newValue)
+      await DummyPoliced.connect(policyImpersonator).setValue(newValue)
 
       const changedValue = await DummyPoliced.value()
       expect(changedValue).to.eq(newValue)
