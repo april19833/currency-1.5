@@ -39,10 +39,6 @@ contract ECO is InflationSnapshots {
      */
     mapping(address => bool) public snapshotters;
 
-    // placeholder test vars
-    bool public rebased;
-    bool public snapshotted;
-
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
@@ -213,8 +209,8 @@ contract ECO is InflationSnapshots {
         uint256 newInflationMult = (_inflationMultiplier *
             getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
 
-        _linearInflation = newInflationMult;
-        _updateSnapshot(_linearInflationSnapshots, newInflationMult);
+        inflationMultiplier = newInflationMult;
+        _updateSnapshot(inflationMultiplierSnapshots, newInflationMult);
 
         emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
     }

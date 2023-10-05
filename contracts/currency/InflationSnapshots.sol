@@ -12,9 +12,9 @@ import "../policy/Policed.sol";
 abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
-    Checkpoint[] internal _linearInflationSnapshots;
+    Checkpoint[] internal inflationMultiplierSnapshots;
 
-    uint256 internal _linearInflation;
+    uint256 internal inflationMultiplier;
 
     // to be used to record the transfer amounts after _beforeTokenTransfer
     // these values are the base (unchanging) values the currency is stored in
@@ -40,9 +40,9 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
         ERC20Delegated(_name, _symbol, address(_policy), _initialPauser)
         Policed(_policy)
     {
-        _linearInflation = INITIAL_INFLATION_MULTIPLIER;
+        inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
         _updateSnapshot(
-            _linearInflationSnapshots,
+            inflationMultiplierSnapshots,
             INITIAL_INFLATION_MULTIPLIER
         );
     }
@@ -51,9 +51,9 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
         address _self
     ) public virtual override onlyConstruction {
         super.initialize(_self);
-        _linearInflation = INITIAL_INFLATION_MULTIPLIER;
+        inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
         _updateSnapshot(
-            _linearInflationSnapshots,
+            inflationMultiplierSnapshots,
             INITIAL_INFLATION_MULTIPLIER
         );
     }
@@ -64,7 +64,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
         uint256 amount
     ) internal virtual override returns (uint256) {
         amount = super._beforeTokenTransfer(from, to, amount);
-        uint256 gonsAmount = amount * _linearInflation;
+        uint256 gonsAmount = amount * inflationMultiplier;
 
         emit BaseValueTransfer(from, to, gonsAmount);
 
@@ -72,7 +72,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
     }
 
     function getInflationMultiplier() public view returns (uint256) {
-        return _linearInflation;
+        return inflationMultiplier;
     }
 
     function getInflationMultiplierAt(
@@ -80,27 +80,27 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
     ) public view returns (uint256) {
         // (bool snapshotted, uint256 value) = _valueAt(
         //     snapshotId,
-        //     _linearInflationSnapshots
+        //     inflationMultiplierSnapshots
         // );
 
-        // return snapshotted ? value : _linearInflation;
+        // return snapshotted ? value : inflationMultiplier;
         (uint256 value, bool snapshotted) = _checkpointsLookup(
-            _linearInflationSnapshots,
+            inflationMultiplierSnapshots,
             snapshotId
         );
-        return snapshotted ? value : _linearInflation;
+        return snapshotted ? value : inflationMultiplier;
     }
 
     /** Access function to determine the token balance held by some address.
      */
     function balanceOf(address _owner) public view override returns (uint256) {
-        return _balances[_owner] / _linearInflation;
+        return _balances[_owner] / inflationMultiplier;
     }
 
     /** Returns the total (inflation corrected) token supply
      */
     function totalSupply() public view override returns (uint256) {
-        return _totalSupply / _linearInflation;
+        return _totalSupply / inflationMultiplier;
     }
 
     /** Returns the total (inflation corrected) token supply at a specified block number
@@ -108,9 +108,9 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
     function totalSupplyAt(
         uint256 snapshotId
     ) public view override returns (uint256) {
-        uint256 __linearInflation = getInflationMultiplierAt(snapshotId);
+        uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
 
-        return super.totalSupplyAt(snapshotId) / __linearInflation;
+        return super.totalSupplyAt(snapshotId) / _inflationMultiplier;
     }
 
     /** Return historical voting balance (includes delegation) at given block number.
@@ -128,8 +128,8 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
         address owner,
         uint256 snapshotId
     ) public view override returns (uint256) {
-        uint256 __linearInflation = getInflationMultiplierAt(snapshotId);
+        uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
 
-        return getPastVotingGons(owner, snapshotId) / __linearInflation;
+        return getPastVotingGons(owner, snapshotId) / _inflationMultiplier;
     }
 }
