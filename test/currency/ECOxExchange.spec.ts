@@ -16,9 +16,11 @@ import {
   ECOx__factory,
   ECO__factory,
   Policy,
+  ECOxStaking,
 } from '../../typechain-types'
 
 const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
+const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
 describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
@@ -33,11 +35,15 @@ describe('ECOxExchange', () => {
   let ecoXExchange: ECOxExchange
 
   let Fake__Policy: FakeContract<Policy>
+  let ecoXStaking: FakeContract<ECOxStaking>
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+    )
+    ecoXStaking = await smock.fake<ECOxStaking>(
+      'ECOxStaking',
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
@@ -55,12 +61,9 @@ describe('ECOxExchange', () => {
 
     ECOx = await ecoXFactory.deploy(
       Fake__Policy.address,
-      Fake__Policy.address, // ECOxStaking
-      Fake__Policy.address, // ECOxExchange
+      ecoXStaking.address, // ECOxStaking
+      PLACEHOLDER_ADDRESS1, // ECOxExchange
       Fake__Policy.address, // distributor
-      INITIAL_SUPPLY, // initial supply
-      eco.address,
-      Fake__Policy.address // initial pauser
     )
 
     const exchangeFactory: ECOxExchange__factory = new ECOxExchange__factory(
@@ -70,6 +73,8 @@ describe('ECOxExchange', () => {
     ecoXExchange = await exchangeFactory
       .connect(policyImpersonator)
       .deploy(Fake__Policy.address, ECOx.address, eco.address)
+
+    ECOx.connect(policyImpersonator).updateECOxExchange(ecoXExchange.address)
   })
 
   describe('role permissions', () => {

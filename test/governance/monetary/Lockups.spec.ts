@@ -19,7 +19,7 @@ import {
   Lockups__factory,
 } from '../../../typechain-types'
 
-describe.only('Lockups', () => {
+describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
 
   let eco: MockContract<ECO>
@@ -78,20 +78,23 @@ describe.only('Lockups', () => {
       depositWindow
     )
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
+    await eco.connect(policyImpersonator).updateMinters(
+      lockups.address,
+      true
+    )
 
     // mint initial tokens
     await eco.connect(policyImpersonator).updateMinters(
       policyImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonator).mint(alice.address, amount)
-    await ECOproxy.connect(policyImpersonator).mint(bob.address, amount)
-    await ECOproxy.connect(policyImpersonator).mint(charlie.address, amount)
-    await ECOproxy.connect(policyImpersonator).mint(dave.address, amount)
-    await ECOproxy.connect(policyImpersonator).updateMinters(
+    await eco.connect(policyImpersonator).mint(alice.address, 10000)
+    await eco.connect(policyImpersonator).mint(bob.address, 10000)
+    await eco.connect(policyImpersonator).updateMinters(
       policyImpersonator.address,
       false
     )
+
     await eco.connect(charlie).enableDelegationTo()
     await eco.connect(dave).enableDelegationTo()
     await eco.connect(alice).delegate(charlie.address)
@@ -159,14 +162,6 @@ describe.only('Lockups', () => {
       await time.increase(Number(await lockups.depositWindow()) / 2)
       await eco.connect(alice).approve(lockups.address, 10000)
       await eco.connect(bob).approve(lockups.address, 10000)
-      // const aliceAddress = alice.address
-      // const bobAddress = bob.address
-      // await eco.setVariables({
-      //   '_primaryDelegates': {
-      //     aliceAddress: charlie.address,
-      //     bobAddress: dave.address,
-      //   }
-      // })
     })
     it('does not allow late deposit', async () => {
       await time.increase(Number(await lockups.depositWindow()) / 2 + 1)

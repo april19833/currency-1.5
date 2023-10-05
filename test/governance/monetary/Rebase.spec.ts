@@ -69,6 +69,11 @@ describe('Rebase', () => {
       []
     )
     rebase.connect(policyImpersonator).setNotifier(notifier.address)
+
+    await eco.connect(policyImpersonator).updateRebasers(
+      rebase.address,
+      true
+    )
   })
 
   it('constructs', async () => {
@@ -76,7 +81,8 @@ describe('Rebase', () => {
   })
 
   it('only lets authorized call execute', async () => {
-    expect(await eco.rebased()).to.be.false
+    const initialInflationMult = await eco.getInflationMultiplier()
+      expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(initialInflationMult)
     const newMultiplier = 12345678
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
       .be.false
@@ -95,7 +101,7 @@ describe('Rebase', () => {
       .to.emit(rebase, 'Rebased')
       .withArgs(newMultiplier)
 
-    expect(await eco.rebased()).to.be.true
+      expect(await eco.getInflationMultiplier()).to.eq(newMultiplier)
   })
 
   it('errors on bad inflationmultiplier', async () => {
