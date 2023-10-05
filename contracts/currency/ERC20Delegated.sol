@@ -251,6 +251,19 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     }
 
     /**
+     * A primary delegated individual can revoke delegations of unwanted delegators
+     * Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
+     */
+    function revokeDelegation(address delegator) public {
+        address _primaryDelegate = getPrimaryDelegate(delegator);
+        require(
+            (delegator != msg.sender) && (_primaryDelegate == msg.sender),
+            "ERC20Delegated: can only revoke delegations to yourself"
+        );
+        _undelegateFromAddress(delegator, msg.sender);
+    }
+
+    /**
      * @dev Undelegate votes from the `delegatee` back to the delegator.
      */
     function _undelegateFromAddress(
@@ -397,7 +410,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
 
     /**
      * not the same as ERC20 transferFrom
-     * is instead more restrictive, only allows for
+     * is instead more restrictive, only allows for transfers where the recipient owns the allowance
      */
     function _voteTransferFrom(
         address sender,

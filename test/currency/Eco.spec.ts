@@ -631,6 +631,54 @@ describe('Eco', () => {
       })
     })
 
+    context.only('revokeDelegation', () => {
+        it('correct state when revokeDelegation after delegating', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+  
+          const tx2 = await ECOproxy.connect(charlie).revokeDelegation(alice.address)
+          const receipt2 = await tx2.wait()
+          console.log(receipt2.gasUsed)
+  
+          const votes2 = await ECOproxy.voteBalanceOf(charlie.address)
+          expect(votes2).to.equal(voteAmount)
+          const votes1 = await ECOproxy.voteBalanceOf(alice.address)
+          expect(votes1).to.equal(voteAmount)
+        })
+
+        it('revokeDelegation useable for intended purpose', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+          
+          await ECOproxy.connect(charlie).disableDelegationTo()
+          await expect(ECOproxy.connect(charlie).reenableDelegating()).to.be.revertedWith(
+            'ERC20Delegated: cannot re-enable delegating if you have outstanding delegations'
+        )
+  
+          await ECOproxy.connect(charlie).revokeDelegation(alice.address)
+          await ECOproxy.connect(charlie).reenableDelegating()
+        })
+  
+        it('disallows revokeDelegation if address is not delegated to you', async () => {
+            await ECOproxy.connect(alice).delegate(dave.address)
+
+            await expect(ECOproxy.connect(charlie).revokeDelegation(alice.address)).to.be.revertedWith(
+                'ERC20Delegated: can only revoke delegations to yourself'
+            )
+            await expect(ECOproxy.connect(charlie).revokeDelegation(bob.address)).to.be.revertedWith(
+                'ERC20Delegated: can only revoke delegations to yourself'
+            )
+        })
+  
+        it('disallows revokeDelegation from yourself', async () => {
+            await expect(ECOproxy.connect(charlie).revokeDelegation(charlie.address)).to.be.revertedWith(
+                'ERC20Delegated: can only revoke delegations to yourself'
+            )
+            // also safe if you've not activated delegation at all
+            await expect(ECOproxy.connect(alice).revokeDelegation(alice.address)).to.be.revertedWith(
+                'ERC20Delegated: can only revoke delegations to yourself'
+            )
+        })
+    })
+
     context('isOwnDelegate', () => {
       it('correct state when delegating and undelegating', async () => {
         expect(await ECOproxy.isOwnDelegate(alice.address)).to.be.true
