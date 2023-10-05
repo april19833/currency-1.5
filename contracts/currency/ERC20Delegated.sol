@@ -147,7 +147,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
 
         require(
             delegationToAddressEnabled[delegatee],
-            "ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates"
+            "ERC20Delegated: a primary delegate must enable delegation"
         );
 
         if (!isOwnDelegate(msg.sender)) {
@@ -178,7 +178,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         );
         require(
             delegationToAddressEnabled[delegatee],
-            "ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates"
+            "ERC20Delegated: a primary delegate must enable delegation"
         );
 
         if (!isOwnDelegate(delegator)) {
@@ -196,7 +196,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
      * @dev Delegate an `amount` of votes from the sender to `delegatee`.
      */
     function delegateAmount(address delegatee, uint256 amount) public {
-        require(delegatee != msg.sender, "Do not delegate to yourself");
+        require(delegatee != msg.sender, "ERC20Delegated: use undelegate instead of delegating to yourself");
 
         _delegate(msg.sender, delegatee, amount);
     }

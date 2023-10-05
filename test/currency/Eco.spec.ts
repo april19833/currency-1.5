@@ -10,8 +10,9 @@ import {
   Policy,
 } from '../../typechain-types'
 import { BigNumber, BigNumberish } from 'ethers'
+import { delegateBySig } from '../utils/permit'
 
-const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 eco initially
+const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 ECO initially
 const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
@@ -500,7 +501,7 @@ describe('Eco', () => {
         await expect(
           ECOproxy.connect(alice).delegate(dave.address)
         ).to.be.revertedWith(
-          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: a primary delegate must enable delegation'
         )
       })
 
@@ -521,7 +522,7 @@ describe('Eco', () => {
         await expect(
           ECOproxy.connect(bob).delegate(dave.address)
         ).to.be.revertedWith(
-          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: a primary delegate must enable delegation'
         )
       })
     })
@@ -544,7 +545,7 @@ describe('Eco', () => {
         await expect(
           ECOproxy.connect(alice).delegate(dave.address)
         ).to.be.revertedWith(
-          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: a primary delegate must enable delegation'
         )
       })
 
@@ -588,7 +589,7 @@ describe('Eco', () => {
         await expect(
           ECOproxy.connect(alice).delegate(PLACEHOLDER_ADDRESS1)
         ).to.be.revertedWith(
-          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+          'ERC20Delegated: a primary delegate must enable delegation'
         )
       })
 
@@ -762,6 +763,303 @@ describe('Eco', () => {
     })
   })
 
+  describe('delegation by signature', () => {
+    const amount = INITIAL_SUPPLY.div(4)
+    const delegator = ethers.Wallet.createRandom().connect(ethers.provider)
+    const nonDelegatee = ethers.Wallet.createRandom().connect(ethers.provider)
+    const delegateTransferRecipient = ethers.Wallet.createRandom().connect(ethers.provider)
+    const delegatee = ethers.Wallet.createRandom().connect(ethers.provider)
+    const otherDelegatee = ethers.Wallet.createRandom().connect(ethers.provider)
+    const sender = ethers.Wallet.createRandom().connect(ethers.provider)
+    let voteAmount: BigNumber
+    let chainId: number
+
+    before(async () => {
+      ;({ chainId } = await ethers.provider.getNetwork())
+    })
+
+    beforeEach(async () => {
+      // give ether to the new wallets
+      await alice.sendTransaction({
+        to: delegator.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      await alice.sendTransaction({
+        to: nonDelegatee.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      await alice.sendTransaction({
+        to: delegateTransferRecipient.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      await alice.sendTransaction({
+        to: delegatee.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      await alice.sendTransaction({
+        to: otherDelegatee.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      await alice.sendTransaction({
+        to: sender.address,
+        value: ethers.utils.parseUnits('10', 'ether'),
+      })
+      // mint initial tokens
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        true
+      )
+      await ECOproxy.connect(policyImpersonater).mint(delegator.address, amount)
+      await ECOproxy.connect(policyImpersonater).mint(delegatee.address, amount)
+      await ECOproxy.connect(policyImpersonater).mint(otherDelegatee.address, amount)
+      await ECOproxy.connect(policyImpersonater).mint(delegateTransferRecipient.address, amount)
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        false
+      )
+
+      await ECOproxy.connect(delegatee).enableDelegationTo()
+      await ECOproxy
+        .connect(otherDelegatee)
+        .enableDelegationTo()
+
+      voteAmount = globalInflationMult.mul(amount)
+    })
+
+    context('delegateBySig', () => {
+      it('correct votes when delegated', async () => {
+        const tx1 = await delegateBySig(
+          ECOproxy,
+          delegator,
+          delegatee,
+          chainId,
+          sender,
+          {}
+        )
+        const receipt1 = await tx1.wait()
+        console.log(receipt1.gasUsed)
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount.mul(2)
+        )
+
+        const tx2 = await delegateBySig(
+          ECOproxy,
+          delegator,
+          otherDelegatee,
+          chainId,
+          sender,
+          { nonce: '1' }
+        )
+        const receipt2 = await tx2.wait()
+        console.log(receipt2.gasUsed)
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount
+        )
+        expect(
+          await ECOproxy.voteBalanceOf(otherDelegatee.address)
+        ).to.equal(voteAmount.mul(2))
+      })
+
+      it('does not allow delegation if not enabled', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegator, nonDelegatee, chainId, sender, {})
+        ).to.be.revertedWith('ERC20Delegated: a primary delegate must enable delegation')
+      })
+
+      it('does not allow delegation to yourself', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegator, delegator, chainId, delegator, {})
+        ).to.be.revertedWith('ERC20Delegated: use undelegate instead of delegating to yourself')
+      })
+
+      it('does not allow delegator to be the zero address', async () => {
+        const zeroWallet = {address: ethers.constants.AddressZero, privateKey: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
+        await expect(
+          delegateBySig(ECOproxy, zeroWallet, delegatee, chainId, delegatee, {})
+        ).to.be.revertedWith('invalid delegator')
+      })
+
+      it('allows executing own delegation', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount.mul(2)
+        )
+      })
+
+      it('allows delegation by signer', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegator, {})
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount.mul(2)
+        )
+      })
+
+      it('does not allow delegation if you are a delegatee', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegatee, otherDelegatee, chainId, delegatee, {})
+        ).to.be.revertedWith(
+          'ERC20Delegated: cannot delegate if you have enabled primary delegation to yourself and/or have outstanding delegates'
+        )
+      })
+
+      it('does not allow delegation after deadline', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
+            deadline: Math.floor(new Date().getTime() / 1000 - 5),
+          })
+        ).to.be.revertedWith('DelegatePermit: expired deadline')
+      })
+
+      it('does not allow non-delegator signature', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
+            signer: delegateTransferRecipient,
+          })
+        ).to.be.revertedWith('DelegatePermit: invalid signature')
+      })
+
+      it('does not allow non-monotonic nonce', async () => {
+        await expect(
+          delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
+            nonce: '100',
+          })
+        ).to.be.revertedWith('DelegatePermit: invalid signature')
+      })
+
+      it('does not allow nonce reuse', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
+          nonce: '0',
+        })
+        await expect(
+          delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
+            nonce: '0',
+          })
+        ).to.be.revertedWith('DelegatePermit: invalid signature')
+      })
+    })
+
+    context('undelegate', () => {
+      it('correct state when undelegated after delegating', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+
+        const tx2 = await ECOproxy
+          .connect(delegator)
+          .undelegate({ gasLimit: 1000000 })
+        const receipt2 = await tx2.wait()
+        console.log(receipt2.gasUsed)
+
+        const votes1 = await ECOproxy.voteBalanceOf(delegator.address)
+        expect(votes1).to.equal(voteAmount)
+        const votes2 = await ECOproxy.voteBalanceOf(delegatee.address)
+        expect(votes2).to.equal(voteAmount)
+      })
+    })
+
+    context('isOwnDelegate', () => {
+      it('correct state when delegating and undelegating', async () => {
+        expect(await ECOproxy.isOwnDelegate(delegator.address)).to.be.true
+
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+        expect(await ECOproxy.isOwnDelegate(delegator.address)).to.be
+          .false
+
+        await ECOproxy.connect(delegator).undelegate({ gasLimit: 1000000 })
+        expect(await ECOproxy.isOwnDelegate(delegator.address)).to.be.true
+      })
+    })
+
+    context('getPrimaryDelegate', () => {
+      it('correct state when delegating and undelegating', async () => {
+        expect(
+          await ECOproxy.getPrimaryDelegate(delegator.address)
+        ).to.equal(delegator.address)
+
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+        expect(
+          await ECOproxy.getPrimaryDelegate(delegator.address)
+        ).to.equal(delegatee.address)
+
+        await ECOproxy.connect(delegator).undelegate({ gasLimit: 1000000 })
+        expect(
+          await ECOproxy.getPrimaryDelegate(delegator.address)
+        ).to.equal(delegator.address)
+      })
+    })
+
+    context('delegate then transfer', () => {
+      it('sender delegated', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+        await ECOproxy
+          .connect(delegator)
+          .transfer(delegateTransferRecipient.address, amount, {
+            gasLimit: 1000000,
+          })
+        expect(await ECOproxy.voteBalanceOf(delegator.address)).to.equal(
+          0
+        )
+        expect(
+          await ECOproxy.voteBalanceOf(delegateTransferRecipient.address)
+        ).to.equal(voteAmount.mul(2))
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount
+        )
+      })
+
+      it('receiver delegated', async () => {
+        await delegateBySig(
+          ECOproxy,
+          delegateTransferRecipient,
+          otherDelegatee,
+          chainId,
+          delegateTransferRecipient,
+          {}
+        )
+        await ECOproxy
+          .connect(delegator)
+          .transfer(delegateTransferRecipient.address, amount, {
+            gasLimit: 1000000,
+          })
+        expect(await ECOproxy.voteBalanceOf(delegator.address)).to.equal(
+          0
+        )
+        expect(
+          await ECOproxy.voteBalanceOf(delegateTransferRecipient.address)
+        ).to.equal(0)
+        expect(
+          await ECOproxy.voteBalanceOf(otherDelegatee.address)
+        ).to.equal(voteAmount.mul(3))
+      })
+
+      it('both delegated', async () => {
+        await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
+        await delegateBySig(
+          ECOproxy,
+          delegateTransferRecipient,
+          otherDelegatee,
+          chainId,
+          delegateTransferRecipient,
+          {}
+        )
+        await ECOproxy
+          .connect(delegator)
+          .transfer(delegateTransferRecipient.address, amount, {
+            gasLimit: 1000000,
+          })
+        expect(await ECOproxy.voteBalanceOf(delegator.address)).to.equal(
+          0
+        )
+        expect(
+          await ECOproxy.voteBalanceOf(delegateTransferRecipient.address)
+        ).to.equal(0)
+        expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
+          voteAmount
+        )
+        expect(
+          await ECOproxy.voteBalanceOf(otherDelegatee.address)
+        ).to.equal(voteAmount.mul(3))
+      })
+    })
+  })
+
   describe('partial delegation', () => {
     const amount = INITIAL_SUPPLY.div(4)
     let voteAmount: BigNumber
@@ -828,7 +1126,7 @@ describe('Eco', () => {
             alice.address,
             voteAmount.div(5)
           )
-        ).to.be.revertedWith('Do not delegate to yourself')
+        ).to.be.revertedWith('ERC20Delegated: use undelegate instead of delegating to yourself')
       })
 
       it('does not allow delegation if you are a delegatee', async () => {
