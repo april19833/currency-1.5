@@ -536,26 +536,4 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
 
         return true;
     }
-
-    // /**
-    //  * @dev Snapshots the totalSupply after it has been increased.
-    //  */
-    // function _mint(
-    //     address account,
-    //     uint256 amount
-    // ) internal virtual override returns (uint256) {
-    //     amount = super._mint(account, amount);
-    //     return amount;
-    // }
-
-    // /**
-    //  * @dev Snapshots the totalSupply after it has been decreased.
-    //  */
-    // function _burn(
-    //     address account,
-    //     uint256 amount
-    // ) internal virtual override returns (uint256) {
-    //     amount = super._burn(account, amount);
-    //     return amount;
-    // }
 }
