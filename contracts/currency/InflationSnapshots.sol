@@ -37,10 +37,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         address _initialPauser
     ) VoteSnapshotCheckpoints(_policy, _name, _symbol, _initialPauser) {
         inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
-        _updateSnapshot(
-            inflationMultiplierSnapshots,
-            INITIAL_INFLATION_MULTIPLIER
-        );
+        _updateInflationSnapshot();
     }
 
     function initialize(
@@ -48,10 +45,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
-        _updateSnapshot(
-            inflationMultiplierSnapshots,
-            INITIAL_INFLATION_MULTIPLIER
-        );
+        _updateInflationSnapshot();
     }
 
     function _beforeTokenTransfer(
@@ -135,5 +129,23 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
 
         return super.voteBalanceOfAt(owner, snapshotId) / _inflationMultiplier;
+    }
+
+    function _updateInflationSnapshot() internal {
+        uint256 numSnapshots = inflationMultiplierSnapshots.length;
+        uint256 currentValue = inflationMultiplier;
+
+        if (numSnapshots == 0 || inflationMultiplierSnapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
+            require(
+                currentValue <= type(uint224).max,
+                "new snapshot cannot be casted safely"
+            );
+            inflationMultiplierSnapshots.push(
+                Checkpoint({
+                    snapshotId: currentSnapshotId,
+                    value: uint224(currentValue)
+                })
+            );
+        }
     }
 }

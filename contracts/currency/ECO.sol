@@ -139,7 +139,7 @@ contract ECO is InflationSnapshots {
         }
 
         // update snapshot with old value
-        _updateSnapshot(inflationMultiplierSnapshots, inflationMultiplier);
+        _updateInflationSnapshot();
 
         uint256 newInflationMult = (_inflationMultiplier *
             inflationMultiplier) / INITIAL_INFLATION_MULTIPLIER;

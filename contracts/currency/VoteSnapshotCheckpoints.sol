@@ -24,6 +24,8 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
     // mapping to the ordered arrays of voting checkpoints for each address
     mapping(address => Checkpoint[]) public checkpoints;
 
+    mapping(address => Checkpoint) public lastestCheckpoint;
+
     // the checkpoints to track the token total supply
     Checkpoint[] private _totalSupplyCheckpoints;
 
@@ -154,45 +156,40 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        _updateSnapshot(checkpoints[account], _voteBalances[account]);
+        Checkpoint storage snapshot = lastestCheckpoint[account];
+        uint256 currentValue = _voteBalances[account];
+
+        if (snapshot.snapshotId < currentSnapshotId) {
+            // a snapshot is done in the constructor/initializer, so this means the address is uninitialized
+            require(
+                currentValue <= type(uint224).max,
+                "new snapshot cannot be casted safely"
+            );
+
+            snapshot.snapshotId = currentSnapshotId;
+            snapshot.value = uint224(currentValue);
+
+            checkpoints[account].push(
+                snapshot
+            );
+        }
     }
 
     function _updateTotalSupplySnapshot() private {
-        _updateSnapshot(_totalSupplyCheckpoints, _totalSupply);
-    }
+        uint256 numSnapshots = _totalSupplyCheckpoints.length;
+        uint256 currentValue = _totalSupply;
 
-    function _updateSnapshot(
-        Checkpoint[] storage snapshots,
-        uint256 currentValue
-    ) internal {
-        uint256 numSnapshots = snapshots.length;
-
-        if (numSnapshots == 0) {
+        if (numSnapshots == 0 || _totalSupplyCheckpoints[numSnapshots - 1].snapshotId < currentSnapshotId) {
             require(
                 currentValue <= type(uint224).max,
                 "new snapshot cannot be casted safely"
             );
-            snapshots.push(
+            _totalSupplyCheckpoints.push(
                 Checkpoint({
                     snapshotId: currentSnapshotId,
                     value: uint224(currentValue)
                 })
             );
-            return;
-        }
-
-        if (snapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
-            require(
-                currentValue <= type(uint224).max,
-                "new snapshot cannot be casted safely"
-            );
-            snapshots.push(
-                Checkpoint({
-                    snapshotId: currentSnapshotId,
-                    value: uint224(currentValue)
-                })
-            );
-            return;
         }
     }
 
