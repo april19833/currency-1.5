@@ -57,16 +57,6 @@ contract ECOx is ERC20MintAndBurn {
      */
     event UpdatedECOxExchange(address _old, address _new);
 
-    /**
-     * emits when ECOx is paused
-     */
-    event ECOxPaused();
-
-    /**
-     * emits when ECOx is unpaused
-     */
-    event ECOxUnpaused();
-
     constructor(
         Policy _policy,
         address _ecoXStaking,
@@ -122,24 +112,6 @@ contract ECOx is ERC20MintAndBurn {
     function updateECOxExchange(address _newRoleHolder) public onlyPolicy {
         emit UpdatedECOxExchange(ecoXExchange, _newRoleHolder);
         ecoXExchange = _newRoleHolder;
-    }
-
-    /**
-     * @notice pauses transfers of this token
-     * @dev only callable by the pauser
-     */
-    function pause() external override onlyPauser {
-        emit ECOxPaused();
-        _pause();
-    }
-
-    /**
-     * @notice unpauses transfers of this token
-     * @dev only callable by the pauser
-     */
-    function unpause() external override onlyPauser {
-        emit ECOxUnpaused();
-        _unpause();
     }
 
     // function computeValue(

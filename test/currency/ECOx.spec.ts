@@ -221,7 +221,7 @@ describe('EcoX', () => {
       // emits on pause
       await expect(await ecoXProxy.connect(bob).pause()).to.emit(
         ecoXProxy,
-        'ECOxPaused'
+        'Paused'
       )
 
       // cant do it anymore
@@ -264,7 +264,7 @@ describe('EcoX', () => {
       // emits on unpause
       await expect(await ecoXProxy.connect(bob).unpause()).to.emit(
         ecoXProxy,
-        'ECOxUnpaused'
+        'Unpaused'
       )
 
       // can do all that shit again
