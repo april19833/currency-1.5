@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -19,7 +19,7 @@ import {
   Lockups__factory,
 } from '../../../typechain-types'
 
-describe('Lockups', () => {
+describe.only('Lockups', () => {
   let policyImpersonator: SignerWithAddress
 
   let eco: MockContract<ECO>
@@ -124,8 +124,8 @@ describe('Lockups', () => {
 
   describe('createLockup', async () => {
     it('doesnt allow durations that are too low or too high', async () => {
-      const lowDuration = (await lockups.MIN_DURATION()) - 1
-      const highDuration = (await lockups.MAX_DURATION()) + 1
+      const lowDuration = (await lockups.MIN_DURATION()).sub(1)
+      const highDuration = (await lockups.MAX_DURATION()).add(1)
 
       await expect(
         lockups.connect(alice).createLockup(lowDuration, goodRate)
@@ -137,7 +137,7 @@ describe('Lockups', () => {
     })
 
     it('doesnt allow rates that are too high', async () => {
-      const badRate = (await lockups.MAX_RATE()) + 1
+      const badRate = (await lockups.MAX_RATE()).add(1)
       await expect(
         lockups.connect(alice).createLockup(goodDuration, badRate)
       ).to.be.revertedWith(ERRORS.Lockups.BAD_RATE)
@@ -157,11 +157,14 @@ describe('Lockups', () => {
   })
 
   describe('deposit', async () => {
+    let inflationMultiplier: BigNumber
+
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
       await eco.connect(alice).approve(lockups.address, 10000)
       await eco.connect(bob).approve(lockups.address, 10000)
+      inflationMultiplier = await lockups.currentInflationMultiplier()
     })
     it('does not allow late deposit', async () => {
       await time.increase(Number(await lockups.depositWindow()) / 2 + 1)
@@ -171,56 +174,56 @@ describe('Lockups', () => {
     })
     it('does single deposit properly', async () => {
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
       expect(await eco.getPrimaryDelegate(alice.address)).to.eq(charlie.address)
-      expect(await eco.balanceOf(alice.address)).to.eq(10000)
+      expect(await eco.balanceOf(alice.address)).to.eq(depositAmount)
       expect(await eco.balanceOf(lockups.address)).to.eq(0)
-      await expect(lockups.connect(alice).deposit(0, 10000))
+      await expect(lockups.connect(alice).deposit(0, depositAmount))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, 10000)
+        .withArgs(lockups.address, charlie.address, gons)
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(0, alice.address, gons)
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
       expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
-      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
+      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount)
     })
 
     it('does additional deposits in the same window properly', async () => {
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
-      await expect(lockups.connect(alice).deposit(0, 4000))
+      await expect(lockups.connect(alice).deposit(0, depositAmount.div(4)))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, 4000)
-      await expect(lockups.connect(alice).deposit(0, 6000))
+        .withArgs(lockups.address, charlie.address, gons.div(4))
+      await expect(lockups.connect(alice).deposit(0, depositAmount.mul(3).div(4)))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, 6000)
+        .withArgs(lockups.address, charlie.address, gons.mul(3).div(4))
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(
           0,
           alice.address,
-          (await lockups.currentInflationMultiplier()).mul(6000)
+          gons
         )
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
       expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
-      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
+      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount)
     })
     it('works as expected when two users deposit to the same lockup', async () => {
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
-      await expect(lockups.connect(alice).deposit(0, 10000))
+      await expect(lockups.connect(alice).deposit(0, depositAmount))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, 10000)
+        .withArgs(lockups.address, charlie.address, gons)
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(0, alice.address, gons)
-      await expect(lockups.connect(bob).deposit(0, 10000))
+      await expect(lockups.connect(bob).deposit(0, depositAmount))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, dave.address, 10000)
+        .withArgs(lockups.address, dave.address, gons)
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(0, bob.address, gons)
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
@@ -238,24 +241,24 @@ describe('Lockups', () => {
       const d1 = 6000
       await expect(lockups.connect(alice).deposit(0, d0))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, d0)
+        .withArgs(lockups.address, charlie.address, (inflationMultiplier).mul(d0))
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(
           0,
           alice.address,
-          (await lockups.currentInflationMultiplier()).mul(d0)
+          (inflationMultiplier).mul(d0)
         )
       await expect(lockups.connect(alice).deposit(1, d1))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, d1)
+        .withArgs(lockups.address, charlie.address, (inflationMultiplier).mul(d1))
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(
           1,
           alice.address,
-          (await lockups.currentInflationMultiplier()).mul(d1)
+          (inflationMultiplier).mul(d1)
         )
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(
-        (await lockups.currentInflationMultiplier()).mul(d0)
+        (inflationMultiplier).mul(d0)
       )
       expect(await lockups.getBalance(0, alice.address)).to.eq(d0)
       expect(await lockups.getYield(0, alice.address)).to.eq(
@@ -263,32 +266,32 @@ describe('Lockups', () => {
       )
 
       expect(await lockups.getGonsBalance(1, alice.address)).to.eq(
-        (await lockups.currentInflationMultiplier()).mul(d1)
+        (inflationMultiplier).mul(d1)
       )
       expect(await lockups.getBalance(1, alice.address)).to.eq(d1)
       expect(await lockups.getYield(1, alice.address)).to.eq(
         (d1 * Number(otherRate)) / Number(BASE)
       )
-      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
+      expect(await eco.balanceOf(lockups.address)).to.eq(d0 + d1)
     })
     it('depositsFor', async () => {
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
       expect(await eco.getPrimaryDelegate(alice.address)).to.eq(charlie.address)
-      expect(await eco.balanceOf(alice.address)).to.eq(10000)
+      expect(await eco.balanceOf(alice.address)).to.eq(depositAmount)
       expect(await eco.balanceOf(lockups.address)).to.eq(0)
-      await expect(lockups.connect(bob).depositFor(0, alice.address, 10000))
+      await expect(lockups.connect(bob).depositFor(0, alice.address, depositAmount))
         .to.emit(eco, 'DelegatedVotes')
-        .withArgs(lockups.address, charlie.address, 10000)
+        .withArgs(lockups.address, charlie.address, gons)
         .to.emit(lockups, 'LockupDeposit')
         .withArgs(0, alice.address, gons)
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
       expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
-      expect(await eco.balanceOf(lockups.address)).to.eq(10000)
-      expect(await eco.balanceOf(bob.address)).to.eq(10000)
+      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount)
+      expect(await eco.balanceOf(bob.address)).to.eq(depositAmount)
     })
   })
 
@@ -303,12 +306,15 @@ describe('Lockups', () => {
   })
 
   describe('withdraw early', async () => {
+    let inflationMultiplier: BigNumber
+
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
+      inflationMultiplier = await lockups.currentInflationMultiplier()
 
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
 
       await eco.connect(alice).approve(lockups.address, depositAmount)
@@ -341,7 +347,7 @@ describe('Lockups', () => {
           alice.address,
           depositAmount
             .sub(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
@@ -361,7 +367,7 @@ describe('Lockups', () => {
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
 
       const newInflationMultiplier = (
-        await lockups.currentInflationMultiplier()
+        inflationMultiplier
       ).mul(2)
       await eco.setVariable('inflationMultiplier', newInflationMultiplier)
       await lockups.updateInflationMultiplier()
@@ -374,7 +380,7 @@ describe('Lockups', () => {
           depositAmount
             .div(2)
             .sub(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(newInflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
@@ -388,12 +394,15 @@ describe('Lockups', () => {
   })
 
   describe('withdraw after end', async () => {
+    let inflationMultiplier: BigNumber
+    
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
+      inflationMultiplier = await lockups.currentInflationMultiplier()
 
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(inflationMultiplier)
       interest = depositAmount.mul(goodRate).div(BASE)
 
       await eco.connect(alice).approve(lockups.address, depositAmount)
@@ -422,7 +431,7 @@ describe('Lockups', () => {
           alice.address,
           depositAmount
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
@@ -452,7 +461,7 @@ describe('Lockups', () => {
           alice.address,
           depositAmount
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       await expect(lockups.connect(alice).withdraw(0))
@@ -481,7 +490,7 @@ describe('Lockups', () => {
           alice.address,
           depositAmount
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
@@ -500,7 +509,7 @@ describe('Lockups', () => {
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
 
       const newInflationMultiplier = (
-        await lockups.currentInflationMultiplier()
+        inflationMultiplier
       ).mul(2)
       await eco.setVariable('inflationMultiplier', newInflationMultiplier)
       await lockups.updateInflationMultiplier()
@@ -513,7 +522,7 @@ describe('Lockups', () => {
           depositAmount
             .div(2)
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(newInflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
@@ -545,7 +554,7 @@ describe('Lockups', () => {
           alice.address,
           depositAmount
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       await expect(lockups.connect(bob).withdraw(0))
@@ -555,7 +564,7 @@ describe('Lockups', () => {
           bob.address,
           depositAmount
             .add(interest)
-            .mul(await lockups.currentInflationMultiplier())
+            .mul(inflationMultiplier)
         )
 
       expect(await eco.balanceOf(alice.address)).to.eq(
