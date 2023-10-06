@@ -27,7 +27,15 @@ describe('Erc20', () => {
   let minterImpersonator: SignerWithAddress
   let rebaserImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonator, minterImpersonator, rebaserImpersonator] = await ethers.getSigners()
+    ;[
+      alice,
+      bob,
+      charlie,
+      dave,
+      policyImpersonator,
+      minterImpersonator,
+      rebaserImpersonator,
+    ] = await ethers.getSigners()
   })
 
   let ECOimpl: ECO

@@ -11,7 +11,7 @@ import "../policy/Policed.sol";
  *
  * This extension keeps a history (snapshots) of each account's vote power at each snapshot point.
  * Voting power values at snapshots can be accessed directly via {voteBalanceOfAt} or though the overridable
- * accessor of 
+ * accessor of
  */
 abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     // structure for saving past voting balances, accounting for delegation
@@ -41,7 +41,8 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
         string memory _symbol,
         address _initialPauser
     )
-        ERC20Delegated(_name, _symbol, address(_policy), _initialPauser) Policed(_policy)
+        ERC20Delegated(_name, _symbol, address(_policy), _initialPauser)
+        Policed(_policy)
     {
         _snapshot();
     }

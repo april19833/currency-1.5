@@ -204,7 +204,10 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
      * @dev Delegate an `amount` of votes from the sender to `delegatee`.
      */
     function delegateAmount(address delegatee, uint256 amount) public {
-        require(delegatee != msg.sender, "ERC20Delegated: use undelegate instead of delegating to yourself");
+        require(
+            delegatee != msg.sender,
+            "ERC20Delegated: use undelegate instead of delegating to yourself"
+        );
 
         _delegate(msg.sender, delegatee, amount);
     }

@@ -35,9 +35,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         string memory _name,
         string memory _symbol,
         address _initialPauser
-    )
-        VoteSnapshotCheckpoints(_policy, _name, _symbol, _initialPauser)
-    {
+    ) VoteSnapshotCheckpoints(_policy, _name, _symbol, _initialPauser) {
         inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
         _updateSnapshot(
             inflationMultiplierSnapshots,
@@ -97,7 +95,9 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
 
     /** Access function to determine the voting balance (includes delegation) of some address.
      */
-    function voteBalanceOf(address _owner) public view override returns (uint256) {
+    function voteBalanceOf(
+        address _owner
+    ) public view override returns (uint256) {
         return _voteBalances[_owner] / inflationMultiplier;
     }
 

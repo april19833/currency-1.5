@@ -188,7 +188,7 @@ export function createDelegatePermitMessageData(data: PermitMessageDataDTO) {
 
 export async function delegateBySig(
   token: ECO,
-  delegator: { address: string, privateKey: string },
+  delegator: { address: string; privateKey: string },
   delegatee: { address: string },
   chainId: number,
   sender: Wallet,

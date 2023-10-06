@@ -22,26 +22,25 @@ import {
   ECO__factory,
 } from '../../../typechain-types'
 
-
 describe('notifier', () => {
   let policyImpersonator: SignerWithAddress
-  
+
   const notifierFactory = new Notifier__factory()
-  
+
   let notifier: Notifier
-  
+
   let downstream: MockContract<DummyDownstream>
-  
+
   let eco: MockContract<ECO>
-  
+
   let policy: FakeContract<Policy>
-  
+
   let rebase: MockContract<Rebase>
-  
+
   let alice: SignerWithAddress
 
   const newInflationMult = 123123
-  
+
   before(async () => {
     ;[policyImpersonator, alice] = await ethers.getSigners()
   })
@@ -205,7 +204,9 @@ describe('notifier', () => {
         .setAuthorized(alice.address, true)
 
       const initialInflationMult = await eco.getInflationMultiplier()
-      expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(initialInflationMult)
+      expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(
+        initialInflationMult
+      )
       expect(await downstream.pigsFly()).to.be.false
       await expect(rebase.connect(alice).execute(newInflationMult))
         .to.emit(notifier, 'TransactionFailed')

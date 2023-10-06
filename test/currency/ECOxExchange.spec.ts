@@ -42,9 +42,7 @@ describe('ECOxExchange', () => {
       'Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
-    ecoXStaking = await smock.fake<ECOxStaking>(
-      'ECOxStaking',
-    )
+    ecoXStaking = await smock.fake<ECOxStaking>('ECOxStaking')
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
       'ECO'
@@ -63,7 +61,7 @@ describe('ECOxExchange', () => {
       Fake__Policy.address,
       ecoXStaking.address, // ECOxStaking
       PLACEHOLDER_ADDRESS1, // ECOxExchange
-      Fake__Policy.address, // distributor
+      Fake__Policy.address // distributor
     )
 
     const exchangeFactory: ECOxExchange__factory = new ECOxExchange__factory(
