@@ -39,9 +39,7 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
         string memory _name,
         string memory _symbol,
         address _initialPauser
-    )
-        ERC20Delegated(_policy, _name, _symbol, _initialPauser)
-    {
+    ) ERC20Delegated(_policy, _name, _symbol, _initialPauser) {
         _snapshot();
     }
 
@@ -154,8 +152,6 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
 
         return super._beforeTokenTransfer(from, to, amount);
     }
-
-
 
     function _updateAccountSnapshot(address account) private {
         _updateSnapshot(checkpoints[account], _voteBalances[account]);

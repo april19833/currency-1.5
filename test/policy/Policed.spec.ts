@@ -1,5 +1,4 @@
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
@@ -12,10 +11,9 @@ import {
 
 describe('Policed', () => {
   let alice: SignerWithAddress
-  let bob: SignerWithAddress
   let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bob] = await ethers.getSigners()
+    ;[policyImpersonator, alice] = await ethers.getSigners()
   })
 
   let DummyPoliced: MockContract<DummyPoliced>
@@ -55,7 +53,7 @@ describe('Policed', () => {
 
     it('Non-Policy cannot call onlyPolicy functions', async () => {
       await expect(
-        DummyPoliced.connect(bob).setValue(newValue)
+        DummyPoliced.connect(alice).setValue(newValue)
       ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     })
   })

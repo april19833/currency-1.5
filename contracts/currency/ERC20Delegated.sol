@@ -462,11 +462,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address recipient,
         uint256 amount
     ) internal virtual {
-        amount = _beforeVoteTokenTransfer(
-            sender,
-            recipient,
-            amount
-        );
+        amount = _beforeVoteTokenTransfer(sender, recipient, amount);
 
         if (sender != address(0)) {
             uint256 senderBalance = _voteBalances[sender];
