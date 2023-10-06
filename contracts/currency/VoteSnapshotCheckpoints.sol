@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./ERC20Delegated.sol";
+import "../policy/Policed.sol";
 
 /**
  * @dev Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
@@ -19,7 +20,7 @@ import "./ERC20Delegated.sol";
  *
  * _Available since v4.2._
  */
-abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
+abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     // structure for saving past voting balances, accounting for delegation
     struct Checkpoint {
         uint32 snapshotId;
@@ -33,6 +34,31 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
 
     // the checkpoints to track the token total supply
     Checkpoint[] private _totalSupplyCheckpoints;
+
+    /** Construct a new instance.
+     *
+     * Note that it is always necessary to call reAuthorize on the balance store
+     * after it is first constructed to populate the authorized interface
+     * contracts cache. These calls are separated to allow the authorized
+     * contracts to be configured/deployed after the balance store contract.
+     */
+    constructor(
+        Policy _policy,
+        string memory _name,
+        string memory _symbol,
+        address _initialPauser
+    )
+        ERC20Delegated(_name, _symbol, address(_policy), _initialPauser) Policed(_policy)
+    {
+        _snapshot();
+    }
+
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
+        super.initialize(_self);
+        _snapshot();
+    }
 
     /**
      * @dev Emitted by {_snapshot} when a snapshot identified by `id` is created.
@@ -154,7 +180,7 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
     }
 
     function _updateTotalSupplySnapshot() private {
-        _updateSnapshot(_totalSupplyCheckpoints, totalSupply());
+        _updateSnapshot(_totalSupplyCheckpoints, _totalSupply);
     }
 
     function _updateSnapshot(
@@ -221,7 +247,9 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
         uint256 ckptsLength = ckpts.length;
         if (ckptsLength == 0) return (0, false);
         Checkpoint memory lastCkpt = ckpts[ckptsLength - 1];
-        if (snapshotId >= lastCkpt.snapshotId) return (0, false);
+        uint224 lastCkptSnapId = lastCkpt.snapshotId;
+        if (snapshotId == lastCkptSnapId) return (lastCkpt.value, true);
+        if (snapshotId > lastCkptSnapId) return (0, false);
 
         uint256 high = ckptsLength;
         uint256 low = 0;

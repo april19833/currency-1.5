@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./VoteSnapshotCheckpoints.sol";
-import "../policy/Policed.sol";
 
 /** @title InflationSnapshots
  * This implements a generational store with snapshotted balances. Balances
  * are lazy-evaluated, but are effectively all atomically snapshotted when
  * the generation changes.
  */
-abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
+abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
     Checkpoint[] internal inflationMultiplierSnapshots;
@@ -37,8 +36,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints, Policed {
         string memory _symbol,
         address _initialPauser
     )
-        ERC20Delegated(_name, _symbol, address(_policy), _initialPauser)
-        Policed(_policy)
+        VoteSnapshotCheckpoints(_policy, _name, _symbol, _initialPauser)
     {
         inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
         _updateSnapshot(

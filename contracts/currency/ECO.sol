@@ -203,14 +203,13 @@ contract ECO is InflationSnapshots {
             revert BadRebaseValue();
         }
 
-        // update snapshotId because balances are changing
-        _snapshot();
+        // update snapshot with old value
+        _updateSnapshot(inflationMultiplierSnapshots, inflationMultiplier);
 
         uint256 newInflationMult = (_inflationMultiplier *
-            getInflationMultiplier()) / INITIAL_INFLATION_MULTIPLIER;
+            inflationMultiplier) / INITIAL_INFLATION_MULTIPLIER;
 
         inflationMultiplier = newInflationMult;
-        _updateSnapshot(inflationMultiplierSnapshots, newInflationMult);
 
         emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
     }
