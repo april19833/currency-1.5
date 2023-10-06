@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import "./ERC20Delegated.sol";
-import "../policy/Policed.sol";
 
 /**
  * @dev Extension of ERC20 to support Compound-like snapshotting. This version is more generic than Compound's,
@@ -13,7 +12,7 @@ import "../policy/Policed.sol";
  * Voting power values at snapshots can be accessed directly via {voteBalanceOfAt} or though the overridable
  * accessor of
  */
-abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
+abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
     // structure for saving past voting balances, accounting for delegation
     struct Checkpoint {
         uint32 snapshotId;
@@ -41,8 +40,7 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
         string memory _symbol,
         address _initialPauser
     )
-        ERC20Delegated(_name, _symbol, address(_policy), _initialPauser)
-        Policed(_policy)
+        ERC20Delegated(_policy, _name, _symbol, _initialPauser)
     {
         _snapshot();
     }

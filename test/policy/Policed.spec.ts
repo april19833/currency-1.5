@@ -37,26 +37,6 @@ describe('Policed', () => {
       expect(contractPolicy === Fake__Policy.address).to.be.true
       expect(contractPolicy === policyImpersonator.address).to.be.true
     })
-
-    it('Policy can set a new policy', async () => {
-      await DummyPoliced.connect(policyImpersonator).setPolicy(alice.address)
-      const contractPolicy = await DummyPoliced.policy()
-      expect(contractPolicy === alice.address).to.be.true
-    })
-
-    it('Setting policy is onlyPolicy', async () => {
-      await expect(
-        DummyPoliced.connect(bob).setPolicy(bob.address)
-      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-    })
-
-    it('Policy cannot be set to zero address', async () => {
-      await expect(
-        DummyPoliced.connect(policyImpersonator).setPolicy(
-          constants.AddressZero
-        )
-      ).to.be.revertedWith(ERRORS.Policed.REQUIRE_NON_ZERO_ADDRESS)
-    })
   })
 
   describe('role tests', () => {

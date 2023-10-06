@@ -750,7 +750,7 @@ describe('Eco', () => {
       })
     })
 
-    context.only('transfer gas testing', () => {
+    context('transfer gas testing', () => {
       // can't use full balance because zeroing balance gives misleading gas costs
       const testAmount = amount.div(2)
 
