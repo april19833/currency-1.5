@@ -209,6 +209,10 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
             delegatee != msg.sender,
             "ERC20Delegated: use undelegate instead of delegating to yourself"
         );
+        require(
+            delegatee != address(0),
+            "ERC20Delegated: cannot delegate to the zero address"
+        );
 
         _delegate(msg.sender, delegatee, amount);
     }

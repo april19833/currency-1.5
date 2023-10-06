@@ -596,6 +596,14 @@ describe('Eco', () => {
         )
       })
 
+      it('does not allow delegation to the zero address', async () => {
+        await expect(
+          ECOproxy.connect(alice).delegate(ethers.constants.AddressZero)
+        ).to.be.revertedWith(
+          'ERC20Delegated: a primary delegate must enable delegation'
+        )
+      })
+
       it('does not allow delegation if you are a delegatee', async () => {
         await expect(
           ECOproxy.connect(charlie).delegate(dave.address)
@@ -1218,6 +1226,17 @@ describe('Eco', () => {
           )
         ).to.be.revertedWith(
           'ERC20Delegated: use undelegate instead of delegating to yourself'
+        )
+      })
+
+      it('does not allow delegation to the zero address', async () => {
+        await expect(
+          ECOproxy.connect(alice).delegateAmount(
+            ethers.constants.AddressZero,
+            voteAmount.div(5)
+          )
+        ).to.be.revertedWith(
+          'ERC20Delegated: cannot delegate to the zero address'
         )
       })
 
