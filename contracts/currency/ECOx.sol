@@ -85,7 +85,7 @@ contract ECOx is ERC20MintAndBurn {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
 
-        policy = Policed(_self).policy();
+        // policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
         ecoXStaking = ECOx(_self).ecoXStaking();
         ecoXExchange = ECOx(_self).ecoXExchange();
