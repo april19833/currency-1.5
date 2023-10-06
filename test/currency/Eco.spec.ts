@@ -445,7 +445,6 @@ describe('Eco', () => {
 
   describe('delegation', () => {
     const amount = INITIAL_SUPPLY.div(4)
-    let voteAmount: BigNumber
 
     beforeEach(async () => {
       // mint initial tokens
@@ -461,8 +460,6 @@ describe('Eco', () => {
       
       await ECOproxy.connect(charlie).enableDelegationTo()
       await ECOproxy.connect(dave).enableDelegationTo()
-
-      voteAmount = globalInflationMult.mul(amount)
     })
 
     context('enableDelegationTo', () => {
@@ -562,17 +559,17 @@ describe('Eco', () => {
         const receipt1 = await tx1.wait()
         console.log(receipt1.gasUsed)
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
 
         const tx2 = await ECOproxy.connect(alice).delegate(dave.address)
         const receipt2 = await tx2.wait()
         console.log(receipt2.gasUsed)
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount
+          amount
         )
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
       })
 
@@ -610,9 +607,9 @@ describe('Eco', () => {
         console.log(receipt2.gasUsed)
 
         const votes2 = await ECOproxy.voteBalanceOf(charlie.address)
-        expect(votes2).to.equal(voteAmount)
+        expect(votes2).to.equal(amount)
         const votes1 = await ECOproxy.voteBalanceOf(alice.address)
-        expect(votes1).to.equal(voteAmount)
+        expect(votes1).to.equal(amount)
       })
 
       it('disallows undelegate() with no delegate', async () => {
@@ -631,9 +628,9 @@ describe('Eco', () => {
           console.log(receipt2.gasUsed)
   
           const votes2 = await ECOproxy.voteBalanceOf(charlie.address)
-          expect(votes2).to.equal(voteAmount)
+          expect(votes2).to.equal(amount)
           const votes1 = await ECOproxy.voteBalanceOf(alice.address)
-          expect(votes1).to.equal(voteAmount)
+          expect(votes1).to.equal(amount)
         })
 
         it('revokeDelegation useable for intended purpose', async () => {
@@ -706,10 +703,10 @@ describe('Eco', () => {
         await ECOproxy.connect(alice).transfer(bob.address, amount)
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount
+          amount
         )
       })
 
@@ -719,7 +716,7 @@ describe('Eco', () => {
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(3)
+          amount.mul(3)
         )
       })
 
@@ -730,10 +727,10 @@ describe('Eco', () => {
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount
+          amount
         )
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(3)
+          amount.mul(3)
         )
       })
     })
@@ -803,7 +800,6 @@ describe('Eco', () => {
     const delegatee = ethers.Wallet.createRandom().connect(ethers.provider)
     const otherDelegatee = ethers.Wallet.createRandom().connect(ethers.provider)
     const sender = ethers.Wallet.createRandom().connect(ethers.provider)
-    let voteAmount: BigNumber
     let chainId: number
 
     before(async () => {
@@ -846,8 +842,6 @@ describe('Eco', () => {
       await ECOproxy
         .connect(otherDelegatee)
         .enableDelegationTo()
-
-      voteAmount = globalInflationMult.mul(amount)
     })
 
     context('delegateBySig', () => {
@@ -863,7 +857,7 @@ describe('Eco', () => {
         const receipt1 = await tx1.wait()
         console.log(receipt1.gasUsed)
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
 
         const tx2 = await delegateBySig(
@@ -877,11 +871,11 @@ describe('Eco', () => {
         const receipt2 = await tx2.wait()
         console.log(receipt2.gasUsed)
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount
+          amount
         )
         expect(
           await ECOproxy.voteBalanceOf(otherDelegatee.address)
-        ).to.equal(voteAmount.mul(2))
+        ).to.equal(amount.mul(2))
       })
 
       it('does not allow delegation if not enabled', async () => {
@@ -906,14 +900,14 @@ describe('Eco', () => {
       it('allows executing own delegation', async () => {
         await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegatee, {})
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
       })
 
       it('allows delegation by signer', async () => {
         await delegateBySig(ECOproxy, delegator, delegatee, chainId, delegator, {})
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount.mul(2)
+          amount.mul(2)
         )
       })
 
@@ -972,9 +966,9 @@ describe('Eco', () => {
         console.log(receipt2.gasUsed)
 
         const votes1 = await ECOproxy.voteBalanceOf(delegator.address)
-        expect(votes1).to.equal(voteAmount)
+        expect(votes1).to.equal(amount)
         const votes2 = await ECOproxy.voteBalanceOf(delegatee.address)
-        expect(votes2).to.equal(voteAmount)
+        expect(votes2).to.equal(amount)
       })
     })
 
@@ -1022,9 +1016,9 @@ describe('Eco', () => {
         )
         expect(
           await ECOproxy.voteBalanceOf(delegateTransferRecipient.address)
-        ).to.equal(voteAmount.mul(2))
+        ).to.equal(amount.mul(2))
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount
+          amount
         )
       })
 
@@ -1050,7 +1044,7 @@ describe('Eco', () => {
         ).to.equal(0)
         expect(
           await ECOproxy.voteBalanceOf(otherDelegatee.address)
-        ).to.equal(voteAmount.mul(3))
+        ).to.equal(amount.mul(3))
       })
 
       it('both delegated', async () => {
@@ -1075,11 +1069,11 @@ describe('Eco', () => {
           await ECOproxy.voteBalanceOf(delegateTransferRecipient.address)
         ).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(delegatee.address)).to.equal(
-          voteAmount
+          amount
         )
         expect(
           await ECOproxy.voteBalanceOf(otherDelegatee.address)
-        ).to.equal(voteAmount.mul(3))
+        ).to.equal(amount.mul(3))
       })
     })
   })
@@ -1115,10 +1109,10 @@ describe('Eco', () => {
         const receipt1 = await tx1.wait()
         console.log(receipt1.gasUsed)
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(
-          voteAmount.div(2)
+          amount.div(2)
         )
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount.div(2).mul(3)
+          amount.div(2).mul(3)
         )
 
         const tx2 = await ECOproxy.connect(alice).delegateAmount(
@@ -1128,13 +1122,13 @@ describe('Eco', () => {
         const receipt2 = await tx2.wait()
         console.log(receipt2.gasUsed)
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(
-          voteAmount.div(4)
+          amount.div(4)
         )
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount.div(2).mul(3)
+          amount.div(2).mul(3)
         )
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.div(4).mul(5)
+          amount.div(4).mul(5)
         )
       })
 
@@ -1229,14 +1223,14 @@ describe('Eco', () => {
         )
         await ECOproxy.connect(bob).transfer(bob.address, amount.div(4))
 
-        expect(await ECOproxy.balanceOfAt(alice.address, snapshotId)).to.equal(
+        expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId)).to.equal(
           amount.mul(3).div(4)
         )
-        expect(await ECOproxy.balanceOfAt(bob.address, snapshotId)).to.equal(
+        expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId)).to.equal(
           amount.div(4)
         )
         expect(
-          await ECOproxy.balanceOfAt(charlie.address, snapshotId)
+          await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId)
         ).to.equal(amount.mul(2))
 
         await ECOproxy.connect(alice).undelegateFromAddress(bob.address)
@@ -1274,13 +1268,13 @@ describe('Eco', () => {
 
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(alice.address)
-        ).to.equal(voteAmount.div(2))
+        ).to.equal(amount.div(2))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(charlie.address)
-        ).to.equal(voteAmount.div(2).mul(3))
+        ).to.equal(amount.div(2).mul(3))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(dave.address)
-        ).to.equal(voteAmount)
+        ).to.equal(amount)
 
         const tx2 = await ECOproxy.connect(alice).undelegateFromAddress(
           charlie.address
@@ -1290,13 +1284,13 @@ describe('Eco', () => {
 
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(alice.address)
-        ).to.equal(voteAmount)
+        ).to.equal(amount)
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(charlie.address)
-        ).to.equal(voteAmount)
+        ).to.equal(amount)
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(dave.address)
-        ).to.equal(voteAmount)
+        ).to.equal(amount)
       })
     })
 
@@ -1320,13 +1314,13 @@ describe('Eco', () => {
 
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(alice.address)
-        ).to.equal(voteAmount.div(8).mul(3))
+        ).to.equal(amount.div(8).mul(3))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(charlie.address)
-        ).to.equal(voteAmount.div(2).mul(3))
+        ).to.equal(amount.div(2).mul(3))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(dave.address)
-        ).to.equal(voteAmount.div(8).mul(9))
+        ).to.equal(amount.div(8).mul(9))
 
         const tx2 = await ECOproxy.connect(alice).undelegateAmountFromAddress(
           charlie.address,
@@ -1337,13 +1331,13 @@ describe('Eco', () => {
 
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(alice.address)
-        ).to.equal(voteAmount.div(8).mul(5))
+        ).to.equal(amount.div(8).mul(5))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(charlie.address)
-        ).to.equal(voteAmount.div(4).mul(5))
+        ).to.equal(amount.div(4).mul(5))
         expect(
           await ECOproxy.connect(alice).voteBalanceOf(dave.address)
-        ).to.equal(voteAmount.div(8).mul(9))
+        ).to.equal(amount.div(8).mul(9))
       })
 
       it('reverts if amount is too high', async () => {
@@ -1419,10 +1413,10 @@ describe('Eco', () => {
         await ECOproxy.connect(alice).transfer(bob.address, amount.div(2))
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
       })
 
@@ -1445,20 +1439,20 @@ describe('Eco', () => {
         )
         await ECOproxy.connect(alice).transfer(bob.address, amount.div(2))
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(
-          voteAmount.div(2)
+          amount.div(2)
         )
-        expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(voteAmount)
+        expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(amount)
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
 
         await ECOproxy.connect(alice).transfer(bob.address, amount.div(2))
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
       })
 
@@ -1474,13 +1468,13 @@ describe('Eco', () => {
         await ECOproxy.connect(alice).transfer(bob.address, amount.div(2))
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.equal(0)
         expect(await ECOproxy.voteBalanceOf(bob.address)).to.equal(
-          voteAmount.mul(5).div(4)
+          amount.mul(5).div(4)
         )
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(
-          voteAmount.mul(3).div(2)
+          amount.mul(3).div(2)
         )
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
-          voteAmount.mul(5).div(4)
+          amount.mul(5).div(4)
         )
       })
     })

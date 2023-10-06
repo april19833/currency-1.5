@@ -60,7 +60,7 @@ contract Lockups is Lever, TimeUtils {
     mapping(uint256 => Lockup) public lockups;
 
     // sum of early withdraw penalties in gons
-    uint256 penalties;
+    uint256 public penalties;
 
     // rate is out of bounds
     error BadRate();
@@ -194,7 +194,7 @@ contract Lockups is Lever, TimeUtils {
         eco.transferFrom(_beneficiary, address(this), _amount);
 
         // TODO: when we patch checkpointing make sure to look into what happens when the primary delegate is switched between deposits
-        eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), _amount);
+        eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), gonsAmount);
 
         emit LockupDeposit(_lockupId, _beneficiary, gonsAmount);
     }
@@ -217,13 +217,14 @@ contract Lockups is Lever, TimeUtils {
 
     function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
-        uint256 amount = lockup.gonsBalances[_recipient] /
+        uint256 gonsAmount = lockup.gonsBalances[_recipient];
+        uint256 amount = gonsAmount /
             currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
 
         eco.undelegateAmountFromAddress(
             eco.getPrimaryDelegate(_recipient),
-            amount
+            gonsAmount
         );
 
         if (getTime() < lockup.end) {

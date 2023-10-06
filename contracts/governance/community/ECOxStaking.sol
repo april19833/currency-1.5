@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../currency/VoteSnapshots.sol";
+import "../../currency/VoteSnapshotCheckpoints.sol";
 import "../../currency/ECOx.sol";
 import "../../policy/Policed.sol";
 
 /** @title ECOxStaking
  *
  */
-contract ECOxStaking is VoteSnapshots, Policed {
+contract ECOxStaking is VoteSnapshotCheckpoints {
     /** The Deposit event indicates that ECOx has been locked up, credited
      * to a particular address in a particular amount.
      *
@@ -35,8 +35,7 @@ contract ECOxStaking is VoteSnapshots, Policed {
         // Note that the policy has the ability to pause transfers
         // through ERC20Pausable, although transfers are paused by default
         // therefore the pauser is unset
-        ERC20Delegated("Staked ECOx", "sECOx", address(_policy), address(0))
-        Policed(_policy)
+        VoteSnapshotCheckpoints(_policy, "Staked ECOx", "sECOx", address(0))
     {
         require(
             address(_ecoXAddr) != address(0),
@@ -73,7 +72,7 @@ contract ECOxStaking is VoteSnapshots, Policed {
         address _voter,
         uint256 snapshotId
     ) external view returns (uint256) {
-        return balanceOfAt(_voter, snapshotId);
+        return voteBalanceOfAt(_voter, snapshotId);
     }
 
     function totalVotingECOx(

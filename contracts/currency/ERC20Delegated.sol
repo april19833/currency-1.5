@@ -7,8 +7,16 @@ import "./DelegatePermit.sol";
 
 /**
  * This contract tracks delegations of an ERC20 token by tokenizing the delegations
- * It assumes a virtual secondary token that is transferred to denote changes in votes
- * The secondary token is then coupled to the transfers of the underlying token via _afterTokenTransfer hooks
+ * It assumes a companion token that is transferred to denote changes in votes brought
+ * on by both transfers (via _afterTokenTransfer hooks) and delegations.
+ * The secondary token creates allowances whenever it delegates to allow for reclaiming the voting power later
+ *
+ * Voting power can be queried through the public accessor {voteBalanceOf}. Vote power can be delegated either
+ * by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}.
+ * Delegates need to disable their own ability to delegate to enable others to delegate to them.
+ *
+ * Raw delegations can be done in partial amounts via {delegateAmount}. This is intended for contracts which can run
+ * their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
  */
 abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
     // this balance tracks the amount of votes an address has for snapshot purposes
@@ -93,7 +101,7 @@ abstract contract ERC20Delegated is ERC20Pausable, DelegatePermit {
         delegationToAddressEnabled[msg.sender] = false;
 
         require(
-            _balances[msg.sender] == voteBalanceOf(msg.sender) &&
+            _balances[msg.sender] == _voteBalances[msg.sender] &&
                 isOwnDelegate(msg.sender),
             "ERC20Delegated: cannot re-enable delegating if you have outstanding delegations"
         );

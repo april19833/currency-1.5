@@ -23,7 +23,7 @@ interface IECO is IERC20 {
     /**
      * Returns final votes of an address at the end of a blockNumber
      */
-    function balanceOfAt(
+    function voteBalanceOfAt(
         address owner,
         uint256 blockNumber
     ) external view returns (uint256);

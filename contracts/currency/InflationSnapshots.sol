@@ -95,6 +95,12 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         return _balances[_owner] / inflationMultiplier;
     }
 
+    /** Access function to determine the voting balance (includes delegation) of some address.
+     */
+    function voteBalanceOf(address _owner) public view override returns (uint256) {
+        return _voteBalances[_owner] / inflationMultiplier;
+    }
+
     /** Returns the total (inflation corrected) token supply
      */
     function totalSupply() public view override returns (uint256) {
@@ -122,12 +128,12 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
      *                        of. Must be less than or equal to the present
      *                        block number.
      */
-    function balanceOfAt(
+    function voteBalanceOfAt(
         address owner,
         uint256 snapshotId
     ) public view override returns (uint256) {
         uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
 
-        return getPastVotingGons(owner, snapshotId) / _inflationMultiplier;
+        return super.voteBalanceOfAt(owner, snapshotId) / _inflationMultiplier;
     }
 }

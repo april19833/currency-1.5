@@ -39,7 +39,7 @@ contract VotingPower is Policed {
         address _who,
         uint256 _snapshotId
     ) public view returns (uint256) {
-        uint256 _power = ecoToken.balanceOfAt(_who, _snapshotId);
+        uint256 _power = ecoToken.voteBalanceOfAt(_who, _snapshotId);
         uint256 _powerx = getXStaking().votingECOx(_who, _snapshotId);
         // ECOx has 10x the voting power of ECO per unit
         return _power + 10 * _powerx;

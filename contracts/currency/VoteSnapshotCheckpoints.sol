@@ -6,19 +6,12 @@ import "./ERC20Delegated.sol";
 import "../policy/Policed.sol";
 
 /**
- * @dev Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
+ * @dev Extension of ERC20 to support Compound-like snapshotting. This version is more generic than Compound's,
  * and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
  *
- * This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either
- * by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Voting
- * power can be queried through the public accessors {getVotingGons} and {getPastVotingGons}.
- *
- * By default, token balance does not account for voting power. This makes transfers cheaper. The downside is that it
- * requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
- * Enabling self-delegation can easily be done by overriding the {delegates} function. Keep in mind however that this
- * will significantly increase the base gas cost of transfers.
- *
- * _Available since v4.2._
+ * This extension keeps a history (snapshots) of each account's vote power at each snapshot point.
+ * Voting power values at snapshots can be accessed directly via {voteBalanceOfAt} or though the overridable
+ * accessor of 
  */
 abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     // structure for saving past voting balances, accounting for delegation
@@ -65,32 +58,6 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
      */
     event Snapshot(uint256 id);
 
-    /** Returns the total (inflation corrected) token supply at a specified block number
-     */
-    function totalSupplyAt(
-        uint256 snapshotId
-    ) public view virtual returns (uint256) {
-        return getPastTotalSupply(snapshotId);
-    }
-
-    /** Return historical voting balance (includes delegation) at given block number.
-     *
-     * If the latest block number for the account is before the requested
-     * block then the most recent known balance is returned. Otherwise the
-     * exact block number requested is returned.
-     *
-     * @param _owner The account to check the balance of.
-     * @param snapshotId The block number to check the balance at the start
-     *                        of. Must be less than or equal to the present
-     *                        block number.
-     */
-    function balanceOfAt(
-        address _owner,
-        uint256 snapshotId
-    ) public view virtual returns (uint256) {
-        return getPastVotingGons(_owner, snapshotId);
-    }
-
     /**
      * @dev Get number of checkpoints for `account`.
      */
@@ -101,16 +68,21 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     }
 
     /**
-     * @dev Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
+     * Return historical voting balance (includes delegation) at given block number.
      *
-     * Requirements:
+     * If the latest block number for the account is before the requested
+     * block then the most recent known balance is returned. Otherwise the
+     * exact block number requested is returned.
      *
-     * - `blockNumber` must have been already mined
+     * @param account The account to check the balance of.
+     * @param snapshotId The block number to check the balance at the start
+     *                        of. Must be less than or equal to the present
+     *                        block number.
      */
-    function getPastVotingGons(
+    function voteBalanceOfAt(
         address account,
         uint256 snapshotId
-    ) public view returns (uint256) {
+    ) public view virtual returns (uint256) {
         require(snapshotId <= currentSnapshotId, "must be past snapshot");
         (uint256 value, bool snapshotted) = _checkpointsLookup(
             checkpoints[account],
@@ -127,9 +99,9 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
      *
      * - `blockNumber` must have been already mined
      */
-    function getPastTotalSupply(
+    function totalSupplyAt(
         uint256 snapshotId
-    ) public view returns (uint256) {
+    ) public view virtual returns (uint256) {
         require(snapshotId <= currentSnapshotId, "must be past snapshot");
         (uint256 value, bool snapshotted) = _checkpointsLookup(
             _totalSupplyCheckpoints,
@@ -176,7 +148,7 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     }
 
     function _updateAccountSnapshot(address account) private {
-        _updateSnapshot(checkpoints[account], voteBalanceOf(account));
+        _updateSnapshot(checkpoints[account], _voteBalances[account]);
     }
 
     function _updateTotalSupplySnapshot() private {
