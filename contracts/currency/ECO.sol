@@ -183,7 +183,7 @@ contract ECO is InflationCheckpoints {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
-        policy = Policed(_self).policy();
+        // policy = Policed(_self).policy();
         _mint(distributor, initialSupply);
     }
 
