@@ -166,7 +166,6 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
         uint256 currentValue
     ) internal {
         uint256 numSnapshots = snapshots.length;
-        uint32 _currentSnapshotId = currentSnapshotId;
 
         if (numSnapshots == 0) {
             require(
@@ -175,28 +174,21 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated {
             );
             snapshots.push(
                 Checkpoint({
-                    snapshotId: _currentSnapshotId,
+                    snapshotId: currentSnapshotId,
                     value: uint224(currentValue)
                 })
             );
             return;
         }
 
-        Checkpoint memory snapshot = snapshots[numSnapshots - 1];
-
-        if (snapshot.snapshotId < _currentSnapshotId) {
-            if (snapshot.value == currentValue) {
-                // this branch will rarely happen
-                snapshots[numSnapshots - 1].snapshotId = _currentSnapshotId;
-                return;
-            }
+        if (snapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
             require(
                 currentValue <= type(uint224).max,
                 "new snapshot cannot be casted safely"
             );
             snapshots.push(
                 Checkpoint({
-                    snapshotId: _currentSnapshotId,
+                    snapshotId: currentSnapshotId,
                     value: uint224(currentValue)
                 })
             );
