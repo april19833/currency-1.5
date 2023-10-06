@@ -1648,8 +1648,134 @@ describe('Eco', () => {
                     .withArgs(snapshotIdOld + 1)
             })
 
-            it('allows accessing previous balances', async () => {
+            context.only('allows accessing previous balances', () => {
+                beforeEach(async () => {
+                    await ECOproxy.connect(minterImpersonator).mint(alice.address, INITIAL_SUPPLY)
+                    await ECOproxy.connect(minterImpersonator).mint(bob.address, INITIAL_SUPPLY)
+                    await ECOproxy.connect(minterImpersonator).mint(charlie.address, INITIAL_SUPPLY.mul(2))
 
+                    await ECOproxy.connect(charlie).enableDelegationTo()
+                    await ECOproxy.connect(dave).enableDelegationTo()
+                })
+
+                it('doesn\'t require an action to access current balances', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId = await ECOproxy.currentSnapshotId()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId)).to.be.eq(0)
+                })
+
+                it('doesn\'t require an action to access past balances if no changes', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId = await ECOproxy.currentSnapshotId()
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId)).to.be.eq(0)
+                })
+
+                it('triggers off of transfer', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId1 = await ECOproxy.currentSnapshotId()
+                    
+                    await ECOproxy.connect(alice).transfer(bob.address, INITIAL_SUPPLY.div(4))
+                    await ECOproxy.connect(alice).transfer(charlie.address, INITIAL_SUPPLY.div(2))
+                    await ECOproxy.connect(charlie).transfer(dave.address, INITIAL_SUPPLY)
+
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId1)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.div(4))
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(5).div(4))
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(3).div(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY)
+                })
+
+                it('triggers off of delegate', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId1 = await ECOproxy.currentSnapshotId()
+                    
+                    await ECOproxy.connect(alice).delegate(dave.address)
+                    await ECOproxy.connect(bob).delegateAmount(dave.address, globalInflationMult.mul(INITIAL_SUPPLY).div(2))
+                    await ECOproxy.connect(charlie).transfer(alice.address, INITIAL_SUPPLY)
+
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId1)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId2)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.div(2))
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(5).div(2))
+                })
+
+                it('triggers off of undelegate', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId1 = await ECOproxy.currentSnapshotId()
+                    
+                    await ECOproxy.connect(alice).delegate(dave.address)
+                    await ECOproxy.connect(bob).delegateAmount(dave.address, globalInflationMult.mul(INITIAL_SUPPLY).div(2))
+                    await ECOproxy.connect(charlie).transfer(alice.address, INITIAL_SUPPLY)
+
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+                    await ECOproxy.connect(alice).undelegate()
+                    await ECOproxy.connect(bob).undelegateAmountFromAddress(dave.address, globalInflationMult.mul(INITIAL_SUPPLY).div(4))
+
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId3 = await ECOproxy.currentSnapshotId()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId1)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId2)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.div(2))
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(5).div(2))
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId3)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId3)).to.be.eq(INITIAL_SUPPLY.mul(3).div(4))
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId3)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId3)).to.be.eq(INITIAL_SUPPLY.div(4))
+                })
+
+                it.only('rememebers old rebase values', async () => {
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId1 = await ECOproxy.currentSnapshotId()
+
+                    const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
+                    const digits10to19 = Math.floor(Math.random() * 10000000000)
+                    const newInflationMult = ethers.BigNumber.from(
+                    `${digits10to19}${digits1to9}`
+                    )
+                    const cumulativeInflationMult = newInflationMult.mul(globalInflationMult).div(DENOMINATOR)
+                    await ECOproxy.connect(rebaserImpersonator).rebase(newInflationMult)
+
+                    await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                    const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY)
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId1)).to.be.eq(INITIAL_SUPPLY.mul(2))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId1)).to.be.eq(0)
+                    expect(await ECOproxy.voteBalanceOfAt(alice.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(globalInflationMult).div(cumulativeInflationMult))
+                    expect(await ECOproxy.voteBalanceOfAt(bob.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(globalInflationMult).div(cumulativeInflationMult))
+                    expect(await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId2)).to.be.eq(INITIAL_SUPPLY.mul(2).mul(globalInflationMult).div(cumulativeInflationMult))
+                    expect(await ECOproxy.voteBalanceOfAt(dave.address, snapshotId2)).to.be.eq(0)
+                })
             })
         })
     })
