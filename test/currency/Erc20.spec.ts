@@ -24,8 +24,10 @@ describe('Erc20', () => {
   let charlie: SignerWithAddress
   let dave: SignerWithAddress // distributer
   let policyImpersonator: SignerWithAddress
+  let minterImpersonator: SignerWithAddress
+  let rebaserImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, dave, policyImpersonator] = await ethers.getSigners()
+    ;[alice, bob, charlie, dave, policyImpersonator, minterImpersonator, rebaserImpersonator] = await ethers.getSigners()
   })
 
   let ECOimpl: ECO
@@ -60,29 +62,23 @@ describe('Erc20', () => {
 
     expect(ECOproxy.address === proxy.address).to.be.true
 
-    // set a global inflation multiplier for supply
+    // set impersonator permissions
     await ECOproxy.connect(policyImpersonator).updateRebasers(
-      policyImpersonator.address,
+      rebaserImpersonator.address,
       true
     )
-    await ECOproxy.connect(policyImpersonator).rebase(globalInflationMult)
-    await ECOproxy.connect(policyImpersonator).updateRebasers(
-      policyImpersonator.address,
-      false
+    await ECOproxy.connect(policyImpersonator).updateMinters(
+      minterImpersonator.address,
+      true
     )
 
+    // set a global inflation multiplier for supply
+    await ECOproxy.connect(rebaserImpersonator).rebase(globalInflationMult)
+
     // mint initial tokens
-    await ECOproxy.connect(policyImpersonator).updateMinters(
-      policyImpersonator.address,
-      true
-    )
-    await ECOproxy.connect(policyImpersonator).mint(
+    await ECOproxy.connect(minterImpersonator).mint(
       dave.address,
       INITIAL_SUPPLY
-    )
-    await ECOproxy.connect(policyImpersonator).updateMinters(
-      policyImpersonator.address,
-      false
     )
     expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
   })
