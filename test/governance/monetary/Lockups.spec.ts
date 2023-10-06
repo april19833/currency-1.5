@@ -199,7 +199,7 @@ describe('Lockups', () => {
         .to.emit(eco, 'DelegatedVotes')
         .withArgs(lockups.address, charlie.address, gons.mul(3).div(4))
         .to.emit(lockups, 'LockupDeposit')
-        .withArgs(0, alice.address, gons)
+        .withArgs(0, alice.address, gons.mul(3).div(4))
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
       expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, alice.address)).to.eq(interest)
