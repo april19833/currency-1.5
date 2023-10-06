@@ -750,7 +750,7 @@ describe('Eco', () => {
       })
     })
 
-    context('transfer gas testing', () => {
+    context.only('transfer gas testing', () => {
       // can't use full balance because zeroing balance gives misleading gas costs
       const testAmount = amount.div(2)
 
@@ -1613,6 +1613,35 @@ describe('Eco', () => {
         const receipt = await tx.wait()
         console.log(receipt.gasUsed)
       })
+    })
+  })
+
+  describe('snapshotting', () => {
+    context('snapshot', () => {
+        context('happy path', () => {
+            it('can snapshot', async () => {
+                await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            })
+
+            it('changes state', async () => {
+                const snapshotId1 = await ECOproxy.currentSnapshotId()
+                await ECOproxy.connect(snapshotterImpersonator).snapshot()
+                const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+                expect(snapshotId2).to.be.eq(snapshotId1 + 1)
+            })
+
+            it('emits an event', async () => {
+                const snapshotIdOld = await ECOproxy.currentSnapshotId()
+                await expect(ECOproxy.connect(snapshotterImpersonator).snapshot())
+                    .to.emit(ECOproxy, 'Snapshot')
+                    .withArgs(snapshotIdOld + 1)
+            })
+
+            it('allows accessing previous balances', async () => {
+
+            })
+        })
     })
   })
 })

@@ -133,20 +133,31 @@ abstract contract VoteSnapshotCheckpoints is ERC20Delegated, Policed {
     ) internal virtual override returns (uint256) {
         if (from == address(0)) {
             // mint
-            _updateAccountSnapshot(to);
             _updateTotalSupplySnapshot();
         } else if (to == address(0)) {
             // burn
-            _updateAccountSnapshot(from);
             _updateTotalSupplySnapshot();
-        } else {
-            // transfer
+        }
+
+        return super._beforeTokenTransfer(from, to, amount);
+    }
+
+    function _beforeVoteTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual override returns (uint256) {
+        if (from != address(0)) {
             _updateAccountSnapshot(from);
+        }
+        if (to != address(0)) {
             _updateAccountSnapshot(to);
         }
 
         return super._beforeTokenTransfer(from, to, amount);
     }
+
+
 
     function _updateAccountSnapshot(address account) private {
         _updateSnapshot(checkpoints[account], _voteBalances[account]);
