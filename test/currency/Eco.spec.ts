@@ -1289,28 +1289,38 @@ describe('Eco', () => {
       })
 
       it('no exploit on self transfer', async () => {
-        // snapshot
-        await ECOproxy.connect(policyImpersonator).updateSnapshotters(
-          policyImpersonator.address,
-          true
-        )
-        await ECOproxy.connect(policyImpersonator).snapshot()
-        const snapshotId = await ECOproxy.currentSnapshotId()
         await ECOproxy.connect(bob).delegate(charlie.address)
         await ECOproxy.connect(alice).delegateAmount(
-          bob.address,
-          voteAmount.div(4)
+            bob.address,
+            voteAmount.div(4)
         )
+              
+        await ECOproxy.connect(snapshotterImpersonator).snapshot()
+        const snapshotId1 = await ECOproxy.currentSnapshotId()
+        
         await ECOproxy.connect(bob).transfer(bob.address, amount.div(4))
 
         expect(
-          await ECOproxy.voteBalanceOfAt(alice.address, snapshotId)
+          await ECOproxy.voteBalanceOfAt(alice.address, snapshotId1)
         ).to.equal(amount.mul(3).div(4))
         expect(
-          await ECOproxy.voteBalanceOfAt(bob.address, snapshotId)
+          await ECOproxy.voteBalanceOfAt(bob.address, snapshotId1)
         ).to.equal(amount.div(4))
         expect(
-          await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId)
+          await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId1)
+        ).to.equal(amount.mul(2))
+
+        await ECOproxy.connect(snapshotterImpersonator).snapshot()
+        const snapshotId2 = await ECOproxy.currentSnapshotId()
+
+        expect(
+            await ECOproxy.voteBalanceOfAt(alice.address, snapshotId2)
+        ).to.equal(amount.mul(3).div(4))
+        expect(
+            await ECOproxy.voteBalanceOfAt(bob.address, snapshotId2)
+        ).to.equal(amount.div(4))
+        expect(
+            await ECOproxy.voteBalanceOfAt(charlie.address, snapshotId2)
         ).to.equal(amount.mul(2))
 
         await ECOproxy.connect(alice).undelegateFromAddress(bob.address)
