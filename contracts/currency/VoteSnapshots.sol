@@ -3,138 +3,123 @@
 pragma solidity ^0.8.0;
 
 import "./ERC20Delegated.sol";
-import "@openzeppelin/contracts/utils/Arrays.sol";
 
 /**
- * Derived from OZ's ERC20Snapshot (https://docs.openzeppelin.com/contracts/3.x/api/token/erc20#ERC20Snapshot), documented below
- * our changes are documented afterward
+ * @dev Extension of ERC20 to support Compound-like snapshotting. This version is more generic than Compound's,
+ * and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
+ *
+ * This extension keeps a history (snapshots) of each account's vote power at each snapshot point.
+ * Voting power values at snapshots can be accessed directly via {voteBalanceOfAt} or though the overridable
+ * accessor of
  */
-
-/**
- * @dev This contract extends an ERC20 token with a snapshot mechanism. When a snapshot is created, the balances and
- * total supply at the time are recorded for later access.
- *
- * This can be used to safely create mechanisms based on token balances such as trustless dividends or weighted voting.
- * In naive implementations it's possible to perform a "double spend" attack by reusing the same balance from different
- * accounts. By using snapshots to calculate dividends or voting power, those attacks no longer apply. It can also be
- * used to create an efficient ERC20 forking mechanism.
- *
- * Snapshots are created by the internal {_snapshot} function, which will emit the {Snapshot} event and return a
- * snapshot id. To get the total supply at the time of a snapshot, call the function {totalSupplyAt} with the snapshot
- * id. To get the balance of an account at the time of a snapshot, call the {balanceOfAt} function with the snapshot id
- * and the account address.
- *
- * NOTE: Snapshot policy can be customized by overriding the {_getCurrentSnapshotId} method. For example, having it
- * return `block.number` will trigger the creation of snapshot at the beginning of each new block. When overriding this
- * function, be careful about the monotonicity of its result. Non-monotonic snapshot ids will break the contract.
- *
- * Implementing snapshots for every block using this method will incur significant gas costs. For a gas-efficient
- * alternative consider {ERC20Votes}.
- *
- * ==== Gas Costs
- *
- * Snapshots are efficient. Snapshot creation is _O(1)_. Retrieval of balances or total supply from a snapshot is _O(log
- * n)_ in the number of snapshots that have been created, although _n_ for a specific account will generally be much
- * smaller since identical balances in subsequent snapshots are stored as a single entry.
- *
- * There is a constant overhead for normal ERC20 transfers due to the additional snapshot bookkeeping. This overhead is
- * only significant for the first transfer that immediately follows a snapshot for a particular account. Subsequent
- * transfers will have normal cost until the next snapshot, and so on.
- */
-
-/**
- * ECO-specific adjustments:
- *
- */
-
 abstract contract VoteSnapshots is ERC20Delegated {
-    // Inspired by Jordi Baylina's MiniMeToken to record historical balances:
-    // https://github.com/Giveth/minime/blob/ea04d950eea153a04c51fa510b068b9dded390cb/contracts/MiniMeToken.sol
-
-    using Arrays for uint256[];
-    using Counters for Counters.Counter;
-
-    // Snapshotted values have arrays of ids and the value corresponding to that id. These could be an array of a
-    // Snapshot struct, but that would impede usage of functions that work on an array.
-    struct Snapshots {
-        uint256[] ids;
-        uint256[] values;
+    // structure for saving past voting balances, accounting for delegation
+    struct Snapshot {
+        uint32 snapshotId;
+        uint224 value;
     }
 
-    mapping(address => Snapshots) private _accountBalanceSnapshots;
-    Snapshots private _totalSupplySnapshots;
+    uint32 public currentSnapshotId;
 
-    // Snapshot ids increase monotonically, with the first value being 1. An id of 0 is invalid.
-    Counters.Counter private _currentSnapshotId;
+    // mapping to the ordered arrays of voting snapshots for each address
+    mapping(address => Snapshot[]) public snapshots;
+
+    mapping(address => Snapshot) public lastestSnapshot;
+
+    // the snapshots to track the token total supply
+    Snapshot[] private _totalSupplySnapshots;
 
     /**
      * @dev Emitted by {_snapshot} when a snapshot identified by `id` is created.
      */
-    event Snapshot(uint256 id);
+    event NewSnapshotId(uint256 id);
 
-    /**
-     * @dev Creates a new snapshot and returns its snapshot id.
+    /** Construct a new instance.
      *
-     * Emits a {Snapshot} event that contains the same id.
-     *
-     * {_snapshot} is `internal` and you have to decide how to expose it externally. Its usage may be restricted to a
-     * set of accounts, for example using {AccessControl}, or it may be open to the public.
-     *
-     * [WARNING]
-     * ====
-     * While an open way of calling {_snapshot} is required for certain trust minimization mechanisms such as forking,
-     * you must consider that it can potentially be used by attackers in two ways.
-     *
-     * First, it can be used to increase the cost of retrieval of values from snapshots, although it will grow
-     * logarithmically thus rendering this attack ineffective in the long term. Second, it can be used to target
-     * specific accounts and increase the cost of ERC20 transfers for them, in the ways specified in the Gas Costs
-     * section above.
-     *
-     * We haven't measured the actual numbers; if this is something you're interested in please reach out to us.
-     * ====
+     * Note that it is always necessary to call reAuthorize on the balance store
+     * after it is first constructed to populate the authorized interface
+     * contracts cache. These calls are separated to allow the authorized
+     * contracts to be configured/deployed after the balance store contract.
      */
-    function _snapshot() internal virtual returns (uint256) {
-        _currentSnapshotId.increment();
+    constructor(
+        Policy _policy,
+        string memory _name,
+        string memory _symbol,
+        address _initialPauser
+    ) ERC20Delegated(_policy, _name, _symbol, _initialPauser) {
+        _snapshot();
+    }
 
-        uint256 currentId = _getCurrentSnapshotId();
-        emit Snapshot(currentId);
-        return currentId;
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
+        super.initialize(_self);
+        _snapshot();
     }
 
     /**
-     * @dev Get the current snapshotId
+     * @dev Get number of snapshots for `account`.
      */
-    function _getCurrentSnapshotId() internal view virtual returns (uint256) {
-        return _currentSnapshotId.current();
+    function numSnapshots(
+        address account
+    ) public view virtual returns (uint256) {
+        return snapshots[account].length;
     }
 
     /**
-     * @dev Retrieves the balance of `account` at the time `snapshotId` was created.
+     * Return historical voting balance (includes delegation) at given block number.
+     *
+     * If the latest block number for the account is before the requested
+     * block then the most recent known balance is returned. Otherwise the
+     * exact block number requested is returned.
+     *
+     * @param account The account to check the balance of.
+     * @param snapshotId The block number to check the balance at the start
+     *                        of. Must be less than or equal to the present
+     *                        block number.
      */
-    function balanceOfAt(
+    function voteBalanceOfAt(
         address account,
         uint256 snapshotId
     ) public view virtual returns (uint256) {
-        (bool snapshotted, uint256 value) = _valueAt(
-            snapshotId,
-            _accountBalanceSnapshots[account]
+        require(snapshotId <= currentSnapshotId, "must be past snapshot");
+        (uint256 value, bool snapshotted) = _snapshotLookup(
+            snapshots[account],
+            snapshotId
         );
-
-        return snapshotted ? value : voteBalanceOf(account);
+        return snapshotted ? value : _voteBalances[account];
     }
 
     /**
-     * @dev Retrieves the total supply at the time `snapshotId` was created.
+     * @dev Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
+     * It is NOT the sum of all the delegated votes!
+     *
+     * Requirements:
+     *
+     * - `blockNumber` must have been already mined
      */
     function totalSupplyAt(
         uint256 snapshotId
     ) public view virtual returns (uint256) {
-        (bool snapshotted, uint256 value) = _valueAt(
-            snapshotId,
-            _totalSupplySnapshots
+        require(snapshotId <= currentSnapshotId, "must be past snapshot");
+        (uint256 value, bool snapshotted) = _snapshotLookup(
+            _totalSupplySnapshots,
+            snapshotId
         );
+        return snapshotted ? value : _totalSupply;
+    }
 
-        return snapshotted ? value : totalSupply();
+    /**
+     * @dev Creates a new snapshot and returns its snapshot id.
+     *
+     * Emits a {NewSnapshotId} event that contains the same id.
+     */
+    function _snapshot() internal virtual returns (uint256) {
+        // the math will error if the snapshot overflows
+        uint32 newId = ++currentSnapshotId;
+
+        emit NewSnapshotId(newId);
+        return newId;
     }
 
     // Update balance and/or total supply snapshots before the values are modified. This is implemented
@@ -146,83 +131,105 @@ abstract contract VoteSnapshots is ERC20Delegated {
     ) internal virtual override returns (uint256) {
         if (from == address(0)) {
             // mint
-            _updateAccountSnapshot(to);
             _updateTotalSupplySnapshot();
         } else if (to == address(0)) {
             // burn
-            _updateAccountSnapshot(from);
             _updateTotalSupplySnapshot();
-        } else {
-            // transfer
+        }
+
+        return super._beforeTokenTransfer(from, to, amount);
+    }
+
+    function _beforeVoteTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual override returns (uint256) {
+        if (from != address(0)) {
             _updateAccountSnapshot(from);
+        }
+        if (to != address(0)) {
             _updateAccountSnapshot(to);
         }
 
         return super._beforeTokenTransfer(from, to, amount);
     }
 
-    function _valueAt(
-        uint256 snapshotId,
-        Snapshots storage snapshots
-    ) internal view returns (bool, uint256) {
-        require(snapshotId > 0, "ERC20Snapshot: id is 0");
-        require(
-            snapshotId <= _getCurrentSnapshotId(),
-            "ERC20Snapshot: nonexistent id"
-        );
-
-        // When a valid snapshot is queried, there are three possibilities:
-        //  a) The queried value was not modified after the snapshot was taken. Therefore, a snapshot entry was never
-        //  created for this id, and all stored snapshot ids are smaller than the requested one. The value that corresponds
-        //  to this id is the current one.
-        //  b) The queried value was modified after the snapshot was taken. Therefore, there will be an entry with the
-        //  requested id, and its value is the one to return.
-        //  c) More snapshots were created after the requested one, and the queried value was later modified. There will be
-        //  no entry for the requested id: the value that corresponds to it is that of the smallest snapshot id that is
-        //  larger than the requested one.
-        //
-        // In summary, we need to find an element in an array, returning the index of the smallest value that is larger if
-        // it is not found, unless said value doesn't exist (e.g. when all values are smaller). Arrays.findUpperBound does
-        // exactly this.
-
-        uint256 index = snapshots.ids.findUpperBound(snapshotId);
-
-        if (index == snapshots.ids.length) {
-            return (false, 0);
-        } else {
-            return (true, snapshots.values[index]);
-        }
-    }
-
     function _updateAccountSnapshot(address account) private {
-        _updateSnapshot(
-            _accountBalanceSnapshots[account],
-            voteBalanceOf(account)
-        );
+        Snapshot storage snapshot = lastestSnapshot[account];
+        uint256 currentValue = _voteBalances[account];
+
+        if (snapshot.snapshotId < currentSnapshotId) {
+            // a snapshot is done in the constructor/initializer, so this means the address is uninitialized
+            require(
+                currentValue <= type(uint224).max,
+                "new snapshot cannot be casted safely"
+            );
+
+            snapshot.snapshotId = currentSnapshotId;
+            snapshot.value = uint224(currentValue);
+
+            snapshots[account].push(
+                snapshot
+            );
+        }
     }
 
     function _updateTotalSupplySnapshot() private {
-        _updateSnapshot(_totalSupplySnapshots, totalSupply());
-    }
+        uint256 numSnapshots = _totalSupplySnapshots.length;
+        uint256 currentValue = _totalSupply;
 
-    function _updateSnapshot(
-        Snapshots storage snapshots,
-        uint256 currentValue
-    ) internal {
-        uint256 currentId = _getCurrentSnapshotId();
-        if (_lastSnapshotId(snapshots.ids) < currentId) {
-            snapshots.ids.push(currentId);
-            snapshots.values.push(currentValue);
+        if (numSnapshots == 0 || _totalSupplySnapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
+            require(
+                currentValue <= type(uint224).max,
+                "new snapshot cannot be casted safely"
+            );
+            _totalSupplySnapshots.push(
+                Snapshot({
+                    snapshotId: currentSnapshotId,
+                    value: uint224(currentValue)
+                })
+            );
         }
     }
 
-    function _lastSnapshotId(
-        uint256[] storage ids
-    ) private view returns (uint256) {
-        if (ids.length == 0) {
-            return 0;
-        } else {
-            return ids[ids.length - 1];
+    /**
+     * @dev Lookup a value in a list of (sorted) snapshots.
+     */
+    function _snapshotLookup(
+        Snapshot[] storage ckpts,
+        uint256 snapshotId
+    ) internal view returns (uint256, bool) {
+        // This function runs a binary search to look for the last snapshot taken before `blockNumber`.
+        //
+        // During the loop, the index of the wanted snapshot remains in the range [low-1, high).
+        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
+        // - If the middle snapshot is after `blockNumber`, the next iteration looks in [low, mid)
+        // - If the middle snapshot is before or equal to `blockNumber`, the next iteration looks in [mid+1, high)
+        // Once it reaches a single value (when low == high), it has found the right snapshot at the index high-1, if not
+        // out of bounds (in which case it's looking too far in the past and the result is 0).
+        // Note that if the latest snapshot available is exactly for `blockNumber`, it will end up with an index that is
+        // past the end of the array, so this technically doesn't find a snapshot after `blockNumber`, but the result is
+        // the same.
+        uint256 ckptsLength = ckpts.length;
+        if (ckptsLength == 0) return (0, false);
+        Snapshot memory lastCkpt = ckpts[ckptsLength - 1];
+        uint224 lastCkptSnapId = lastCkpt.snapshotId;
+        if (snapshotId == lastCkptSnapId) return (lastCkpt.value, true);
+        if (snapshotId > lastCkptSnapId) return (0, false);
+
+        uint256 high = ckptsLength;
+        uint256 low = 0;
+
+        while (low < high) {
+            uint256 mid = low + ((high - low) >> 1);
+            if (ckpts[mid].snapshotId > snapshotId) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
         }
+
+        return high == 0 ? (0, true) : (ckpts[high - 1].value, true);
     }
 }

@@ -1663,7 +1663,7 @@ describe('Eco', () => {
         it('emits an event', async () => {
           const snapshotIdOld = await ECOproxy.currentSnapshotId()
           await expect(ECOproxy.connect(snapshotterImpersonator).snapshot())
-            .to.emit(ECOproxy, 'Snapshot')
+            .to.emit(ECOproxy, 'NewSnapshotId')
             .withArgs(snapshotIdOld + 1)
         })
 

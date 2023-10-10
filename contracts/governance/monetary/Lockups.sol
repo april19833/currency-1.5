@@ -193,7 +193,7 @@ contract Lockups is Lever, TimeUtils {
 
         eco.transferFrom(_beneficiary, address(this), _amount);
 
-        // TODO: when we patch checkpointing make sure to look into what happens when the primary delegate is switched between deposits
+        // TODO: when we patch snapshotting make sure to look into what happens when the primary delegate is switched between deposits
         eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), gonsAmount);
 
         emit LockupDeposit(_lockupId, _beneficiary, gonsAmount);

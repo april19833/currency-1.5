@@ -1,17 +1,17 @@
 /* -*- c-basic-offset: 4 -*- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "./VoteSnapshotCheckpoints.sol";
+import "./VoteSnapshots.sol";
 
 /** @title InflationSnapshots
  * This implements a generational store with snapshotted balances. Balances
  * are lazy-evaluated, but are effectively all atomically snapshotted when
  * the generation changes.
  */
-abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
+abstract contract InflationSnapshots is VoteSnapshots {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
-    Checkpoint[] internal inflationMultiplierSnapshots;
+    Snapshot[] internal inflationMultiplierSnapshots;
 
     uint256 internal inflationMultiplier;
 
@@ -35,7 +35,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         string memory _name,
         string memory _symbol,
         address _initialPauser
-    ) VoteSnapshotCheckpoints(_policy, _name, _symbol, _initialPauser) {
+    ) VoteSnapshots(_policy, _name, _symbol, _initialPauser) {
         inflationMultiplier = INITIAL_INFLATION_MULTIPLIER;
         _updateInflationSnapshot();
     }
@@ -74,7 +74,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
         // );
 
         // return snapshotted ? value : inflationMultiplier;
-        (uint256 value, bool snapshotted) = _checkpointsLookup(
+        (uint256 value, bool snapshotted) = _snapshotLookup(
             inflationMultiplierSnapshots,
             snapshotId
         );
@@ -141,7 +141,7 @@ abstract contract InflationSnapshots is VoteSnapshotCheckpoints {
                 "new snapshot cannot be casted safely"
             );
             inflationMultiplierSnapshots.push(
-                Checkpoint({
+                Snapshot({
                     snapshotId: currentSnapshotId,
                     value: uint224(currentValue)
                 })
