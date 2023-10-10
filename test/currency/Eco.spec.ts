@@ -9,8 +9,11 @@ import {
   ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
+import { BigNumberish } from 'ethers'
 
-const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '000'.repeat(7)) // 1000 eco initially
+const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 eco initially
+const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
+const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
 describe('Eco', () => {
   let alice: SignerWithAddress // default signer
@@ -25,8 +28,13 @@ describe('Eco', () => {
   let ECOimpl: ECO
   let ECOproxy: ECO
   let Fake__Policy: FakeContract<Policy>
+  let globalInflationMult: BigNumberish
 
   beforeEach(async () => {
+    const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
+    const digits10to19 = Math.floor(Math.random() * 10000000000)
+    globalInflationMult = ethers.BigNumber.from(`${digits10to19}${digits1to9}`)
+
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
       { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
@@ -36,8 +44,8 @@ describe('Eco', () => {
 
     ECOimpl = await ECOfact.connect(policyImpersonater).deploy(
       Fake__Policy.address,
-      dave.address,
-      INITIAL_SUPPLY,
+      PLACEHOLDER_ADDRESS1,
+      0,
       bob.address
     )
 
@@ -48,6 +56,17 @@ describe('Eco', () => {
     ECOproxy = ECOfact.attach(proxy.address)
 
     expect(ECOproxy.address === proxy.address).to.be.true
+
+    // set a global inflation multiplier for supply
+    await ECOproxy.connect(policyImpersonater).updateRebasers(
+      policyImpersonater.address,
+      true
+    )
+    await ECOproxy.connect(policyImpersonater).rebase(globalInflationMult)
+    await ECOproxy.connect(policyImpersonater).updateRebasers(
+      policyImpersonater.address,
+      false
+    )
   })
 
   describe('role permissions', () => {
@@ -218,6 +237,19 @@ describe('Eco', () => {
 
   describe('mint/burn', () => {
     beforeEach(async () => {
+      // mint initial tokens
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        true
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        dave.address,
+        INITIAL_SUPPLY
+      )
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        false
+      )
       expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
     })
 
@@ -317,6 +349,89 @@ describe('Eco', () => {
               INITIAL_SUPPLY
             )
         })
+      })
+    })
+  })
+
+  describe('rebase', () => {
+    const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
+    const digits10to19 = Math.floor(Math.random() * 10000000000)
+    const newInflationMult = ethers.BigNumber.from(
+      `${digits10to19}${digits1to9}`
+    )
+    let cumulativeInflationMult: BigNumberish
+
+    beforeEach(async () => {
+      // mint initial tokens
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        true
+      )
+      await ECOproxy.connect(policyImpersonater).mint(
+        dave.address,
+        INITIAL_SUPPLY
+      )
+      await ECOproxy.connect(policyImpersonater).updateMinters(
+        policyImpersonater.address,
+        false
+      )
+      expect(await ECOproxy.balanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
+
+      // charlie is the rebaser for this test
+      await ECOproxy.connect(policyImpersonater).updateRebasers(
+        charlie.address,
+        true
+      )
+
+      cumulativeInflationMult = newInflationMult
+        .mul(globalInflationMult)
+        .div(DENOMINATOR)
+    })
+
+    describe('happy path', () => {
+      it('can rebase', async () => {
+        await ECOproxy.connect(charlie).rebase(newInflationMult)
+      })
+
+      it('emits an event', async () => {
+        await expect(ECOproxy.connect(charlie).rebase(newInflationMult))
+          .to.emit(ECOproxy, 'NewInflationMultiplier')
+          .withArgs(newInflationMult, cumulativeInflationMult)
+      })
+
+      it('changes state', async () => {
+        await ECOproxy.connect(charlie).rebase(newInflationMult)
+
+        expect(await ECOproxy.getInflationMultiplier()).to.eq(
+          cumulativeInflationMult
+        )
+        expect(await ECOproxy.balanceOf(dave.address)).to.eq(
+          INITIAL_SUPPLY.mul(DENOMINATOR).div(newInflationMult)
+        )
+      })
+
+      it('preserves historical multiplier', async () => {
+        const blockNumber = await ethers.provider.getBlockNumber()
+
+        await ECOproxy.connect(charlie).rebase(newInflationMult)
+
+        expect(await ECOproxy.getPastLinearInflation(blockNumber)).to.eq(
+          globalInflationMult
+        )
+      })
+    })
+
+    describe('reverts', () => {
+      it('is rebasers gated', async () => {
+        await expect(
+          ECOproxy.connect(dave).rebase(newInflationMult)
+        ).to.be.revertedWith(ERRORS.ECO.BAD_REBASER)
+      })
+
+      it('cannot rebase to zero', async () => {
+        await expect(ECOproxy.connect(charlie).rebase(0)).to.be.revertedWith(
+          ERRORS.ECO.REBASE_TO_ZERO
+        )
       })
     })
   })

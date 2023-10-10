@@ -15,8 +15,11 @@ describe('EcoX', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let policyImpersonater: SignerWithAddress
+  let fakeStaking: SignerWithAddress
+  let fakeExchange: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonater] = await ethers.getSigners()
+    ;[alice, bob, charlie, policyImpersonater, fakeStaking, fakeExchange] =
+      await ethers.getSigners()
   })
 
   let ecoXImpl: ECOx
@@ -33,8 +36,8 @@ describe('EcoX', () => {
 
     ecoXImpl = await EcoXFact.connect(policyImpersonater).deploy(
       Fake__Policy.address, // policy
-      Fake__Policy.address, // ecoxstaking
-      Fake__Policy.address, // ecoxexchange
+      fakeStaking.address, // ecoxstaking
+      fakeExchange.address, // ecoxexchange
       bob.address // pauser
     )
 
@@ -45,6 +48,21 @@ describe('EcoX', () => {
     ecoXProxy = EcoXFact.attach(proxy.address)
 
     expect(ecoXProxy.address === proxy.address).to.be.true
+  })
+
+  describe('construction + initialization', async () => {
+    it('constructs', async () => {
+      expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
+      expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
+      expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
+      expect(await ecoXImpl.pauser()).to.eq(bob.address)
+    })
+    it('initializes', async () => {
+      expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
+      expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
+      expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
+      expect(await ecoXImpl.pauser()).to.eq(bob.address)
+    })
   })
 
   describe('role permissions', () => {
@@ -166,7 +184,105 @@ describe('EcoX', () => {
       })
     })
   })
+
+  describe('pausable', async () => {
+    beforeEach(async () => {
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateBurners(bob.address, true)
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+
+      expect(await ecoXProxy.paused()).to.be.false
+
+      await ecoXProxy.connect(bob).mint(bob.address, 1000)
+      expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1000)
+    })
+    it('cant be paused by non-pauser', async () => {
+      await expect(ecoXProxy.pause()).to.be.revertedWith(
+        ERRORS.ERC20PAUSABLE.ONLY_PAUSER
+      )
+    })
+    it('cant be unpaused when already unpaused', async () => {
+      await expect(ecoXProxy.connect(bob).unpause()).to.be.revertedWith(
+        ERRORS.PAUSABLE.REQUIRE_PAUSED
+      )
+    })
+    it('cant mint or burn or transfer if pause is successful', async () => {
+      // can do all that shit before
+      await ecoXProxy.connect(bob).mint(alice.address, 1)
+      expect(await ecoXProxy.balanceOf(alice.address)).to.eq(1)
+      await ecoXProxy.connect(alice).transfer(bob.address, 1)
+      expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1001)
+      await ecoXProxy.connect(bob).burn(bob.address, 1)
+      expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1000)
+
+      // emits on pause
+      await expect(await ecoXProxy.connect(bob).pause()).to.emit(
+        ecoXProxy,
+        'Paused'
+      )
+
+      // cant do it anymore
+      await expect(
+        ecoXProxy.connect(bob).mint(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+      await expect(
+        ecoXProxy.connect(bob).burn(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+      await expect(
+        ecoXProxy.connect(bob).transfer(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+    })
+    it('cant be unpaused by non-pauser', async () => {
+      await ecoXProxy.connect(bob).pause()
+      await expect(ecoXProxy.pause()).to.be.revertedWith(
+        ERRORS.ERC20PAUSABLE.ONLY_PAUSER
+      )
+    })
+    it('cant be paused when already paused', async () => {
+      await ecoXProxy.connect(bob).pause()
+      await expect(ecoXProxy.connect(bob).pause()).to.be.revertedWith(
+        ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED
+      )
+    })
+    it('can mint or burn or transfer if unpause is successful', async () => {
+      await ecoXProxy.connect(bob).pause()
+
+      // cant do anything when paused
+      await expect(
+        ecoXProxy.connect(bob).mint(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+      await expect(
+        ecoXProxy.connect(bob).burn(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+      await expect(
+        ecoXProxy.connect(bob).transfer(alice.address, 1)
+      ).to.be.revertedWith(ERRORS.PAUSABLE.REQUIRE_NOT_PAUSED)
+
+      // emits on unpause
+      await expect(await ecoXProxy.connect(bob).unpause()).to.emit(
+        ecoXProxy,
+        'Unpaused'
+      )
+
+      // can do all that shit again
+      await ecoXProxy.connect(bob).mint(alice.address, 1)
+      expect(await ecoXProxy.balanceOf(alice.address)).to.eq(1)
+      await ecoXProxy.connect(alice).transfer(bob.address, 1)
+      expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1001)
+      await ecoXProxy.connect(bob).burn(bob.address, 1)
+      expect(await ecoXProxy.balanceOf(bob.address)).to.eq(1000)
+    })
+  })
+
   describe('mint', async () => {
+    it('reverts when non-minter mints', async () => {
+      await expect(
+        ecoXProxy.connect(bob).mint(bob.address, 100)
+      ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_MINTERS)
+    })
     it('mints', async () => {
       await ecoXProxy
         .connect(policyImpersonater)
@@ -177,19 +293,40 @@ describe('EcoX', () => {
     })
   })
   describe('burn', async () => {
-    it('burns', async () => {
+    it('reverts when non-burner non self burns', async () => {
       await ecoXProxy
         .connect(policyImpersonater)
         .updateMinters(bob.address, true)
+      await ecoXProxy.connect(bob).mint(alice.address, 100)
+
+      await expect(
+        ecoXProxy.connect(bob).burn(alice.address, 100)
+      ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_BURNERS)
+    })
+    it('burns when non-burner burns for self', async () => {
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(bob.address, true)
+      await ecoXProxy.connect(bob).mint(bob.address, 100)
+
+      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+        .to.emit(ecoXProxy, 'Transfer')
+        .withArgs(bob.address, ethers.constants.AddressZero, 100)
+    })
+    it('burns when burner burns for non-self', async () => {
+      // ow
+      await ecoXProxy
+        .connect(policyImpersonater)
+        .updateMinters(alice.address, true)
       await ecoXProxy
         .connect(policyImpersonater)
         .updateBurners(bob.address, true)
 
-      await ecoXProxy.connect(bob).mint(bob.address, 100)
-      // ow
-      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+      await ecoXProxy.connect(alice).mint(alice.address, 100)
+
+      await expect(ecoXProxy.connect(bob).burn(alice.address, 100))
         .to.emit(ecoXProxy, 'Transfer')
-        .withArgs(bob.address, ethers.constants.AddressZero, 100)
+        .withArgs(alice.address, ethers.constants.AddressZero, 100)
     })
   })
 })
