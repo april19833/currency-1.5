@@ -17,15 +17,22 @@ import {
   ECO__factory,
   Policy,
 } from '../../typechain-types'
+import { BigNumber, Signer } from 'ethers'
 
-const INITIAL_SUPPLY = '1' + '000'.repeat(7) // 1000 ECOx initially
+const INITIAL_SUPPLY = ethers.utils.parseEther('100')
+
+async function calcEcoValue(ecoXToConvert: string, initialEcoXSupply: string, currentEcoXSupply: string) {
+  return 
+}
 
 describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
   let charlie: SignerWithAddress
   let policyImpersonater: SignerWithAddress
+  let pauser: SignerWithAddress
+  const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
   before(async () => {
-    ;[alice, charlie, policyImpersonater] = await ethers.getSigners()
+    ;[alice, charlie, policyImpersonater, pauser] = await ethers.getSigners()
   })
   let eco: MockContract<ECO>
   let ECOx: MockContract<ECOx>
@@ -45,9 +52,9 @@ describe('ECOxExchange', () => {
     )
     eco = await ecoFactory.deploy(
       Fake__Policy.address,
-      Fake__Policy.address, // distributor
-      INITIAL_SUPPLY, // initial supply
-      Fake__Policy.address // initial pauser
+      PLACEHOLDER_ADDRESS1, // distributor
+      INITIAL_SUPPLY.mul(10), // initial supply of eco is 10x that of ecox --> 1000
+      pauser.address // initial pauser
     )
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
       'ECOx'
@@ -55,12 +62,9 @@ describe('ECOxExchange', () => {
 
     ECOx = await ecoXFactory.deploy(
       Fake__Policy.address,
-      Fake__Policy.address, // ECOxStaking
-      Fake__Policy.address, // ECOxExchange
-      Fake__Policy.address, // distributor
-      INITIAL_SUPPLY, // initial supply
-      eco.address,
-      Fake__Policy.address // initial pauser
+      PLACEHOLDER_ADDRESS1, // ECOxStaking
+      PLACEHOLDER_ADDRESS1, // ECOxExchange
+      pauser.address // initial pauser
     )
 
     const exchangeFactory: ECOxExchange__factory = new ECOxExchange__factory(
@@ -69,7 +73,16 @@ describe('ECOxExchange', () => {
 
     ecoXExchange = await exchangeFactory
       .connect(policyImpersonater)
-      .deploy(Fake__Policy.address, ECOx.address, eco.address)
+      .deploy(Fake__Policy.address, ECOx.address, eco.address, INITIAL_SUPPLY)
+    
+    await ECOx.connect(policyImpersonater).updateECOxExchange(ecoXExchange.address)
+  })
+
+  it('constructs', async () => {
+    expect(await ecoXExchange.policy()).to.eq(Fake__Policy.address)
+    expect(await ecoXExchange.ecox()).to.eq(ECOx.address)
+    expect(await ecoXExchange.eco()).to.eq(eco.address)
+    expect(await ecoXExchange.initialSupply()).to.eq(INITIAL_SUPPLY)
   })
 
   describe('role permissions', () => {
@@ -78,7 +91,7 @@ describe('ECOxExchange', () => {
         await ecoXExchange
           .connect(policyImpersonater)
           .updateECOx(charlie.address)
-        expect(await ecoXExchange.ECOx()).to.eq(charlie.address)
+        expect(await ecoXExchange.ecox()).to.eq(charlie.address)
       })
 
       it('emits an event', async () => {
@@ -122,5 +135,9 @@ describe('ECOxExchange', () => {
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       })
     })
+  })
+
+  describe('ecoValueOf', async () => {
+    it('returns the correct value')
   })
 })

@@ -41,6 +41,13 @@ contract ECOxExchange is Policed {
      */
     event UpdatedEco(address _old, address _new);
 
+    /**
+     * constructor
+     * @param policy policy address
+     * @param _ECOx ECOx address
+     * @param _eco ECO address
+     * @param _initialSupply initial supply of ECOx
+     */
     constructor(Policy policy, ECOx _ECOx, ECO _eco, uint256 _initialSupply) Policed(policy) {
         ecox = _ECOx;
         eco = _eco;
