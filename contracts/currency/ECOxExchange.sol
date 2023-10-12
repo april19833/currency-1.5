@@ -6,7 +6,6 @@ import "./ECOx.sol";
 import "./InflationCheckpoints.sol";
 
 contract ECOxExchange is Policed {
-
     /**
      * @dev bits of precision used in the exponentiation approximation
      */
@@ -48,12 +47,16 @@ contract ECOxExchange is Policed {
      * @param _eco ECO address
      * @param _initialSupply initial supply of ECOx
      */
-    constructor(Policy policy, ECOx _ECOx, ECO _eco, uint256 _initialSupply) Policed(policy) {
+    constructor(
+        Policy policy,
+        ECOx _ECOx,
+        ECO _eco,
+        uint256 _initialSupply
+    ) Policed(policy) {
         ecox = _ECOx;
         eco = _eco;
         initialSupply = _initialSupply;
     }
-
 
     function ecoValueOf(uint256 _ecoXValue) public view returns (uint256) {
         uint256 _ecoSupply = eco.totalSupply();

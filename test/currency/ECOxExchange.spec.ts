@@ -17,22 +17,37 @@ import {
   ECO__factory,
   Policy,
 } from '../../typechain-types'
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber } from 'ethers'
+import {BigNumber as BN} from 'bignumber.js'
 
-const INITIAL_SUPPLY = ethers.utils.parseEther('100')
+const INITIAL_SUPPLY = (ethers.utils.parseEther('100')).toString()
 
-async function calcEcoValue(ecoXToConvert: string, initialEcoXSupply: string, currentEcoXSupply: string) {
-  return 
+async function calcEcoValue(
+  ecoXToConvert: BN,
+  initialEcoXSupply: BN,
+  currentEcoSupply: BN
+) {
+  return currentEcoSupply.times(
+    Math.E ** (ecoXToConvert.dividedBy(initialEcoXSupply).toNumber()) - 1
+  )
 }
+// async function floorBN(numerator: BN, denominator: BN) {
+//   return (numerator.sub(numerator.mod(denominator))).div(denominator)
+// }
+// async function decimalMultiplyBN(decimal: number, BN: BN) {
+//   const bigthing = Math.floor(decimal * Number.MAX_SAFE_INTEGER)
+//   return floorBN(BN.mul(bigthing), BN.from(Number.MAX_SAFE_INTEGER))
+// }
+// const randomInt = (min:number, max:number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
   let charlie: SignerWithAddress
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   let pauser: SignerWithAddress
   const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
   before(async () => {
-    ;[alice, charlie, policyImpersonater, pauser] = await ethers.getSigners()
+    ;[alice, charlie, policyImpersonator, pauser] = await ethers.getSigners()
   })
   let eco: MockContract<ECO>
   let ECOx: MockContract<ECOx>
@@ -44,7 +59,7 @@ describe('ECOxExchange', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
@@ -53,7 +68,7 @@ describe('ECOxExchange', () => {
     eco = await ecoFactory.deploy(
       Fake__Policy.address,
       PLACEHOLDER_ADDRESS1, // distributor
-      INITIAL_SUPPLY.mul(10), // initial supply of eco is 10x that of ecox --> 1000
+      INITIAL_SUPPLY + '000', // initial supply of eco is 10x that of ecox --> 1000
       pauser.address // initial pauser
     )
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
@@ -72,10 +87,30 @@ describe('ECOxExchange', () => {
     )
 
     ecoXExchange = await exchangeFactory
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(Fake__Policy.address, ECOx.address, eco.address, INITIAL_SUPPLY)
-    
-    await ECOx.connect(policyImpersonater).updateECOxExchange(ecoXExchange.address)
+
+    await ECOx.connect(policyImpersonator).updateECOxExchange(
+      ecoXExchange.address
+    )
+    await ECOx.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
+      true
+    )
+    await ECOx.connect(policyImpersonator).updateBurners(
+      policyImpersonator.address,
+      true
+    )
+    await ECOx.connect(policyImpersonator).mint(
+      policyImpersonator.address,
+      INITIAL_SUPPLY
+    )
+
+    await eco
+      .connect(policyImpersonator)
+      .updateMinters(policyImpersonator.address, true)
+
+    await eco.connect(policyImpersonator).mint(policyImpersonator.address, INITIAL_SUPPLY+"0")
   })
 
   it('constructs', async () => {
@@ -89,7 +124,7 @@ describe('ECOxExchange', () => {
     describe('ecox role', () => {
       it('can be changed by the policy', async () => {
         await ecoXExchange
-          .connect(policyImpersonater)
+          .connect(policyImpersonator)
           .updateECOx(charlie.address)
         expect(await ecoXExchange.ecox()).to.eq(charlie.address)
       })
@@ -97,7 +132,7 @@ describe('ECOxExchange', () => {
       it('emits an event', async () => {
         expect(
           await ecoXExchange
-            .connect(policyImpersonater)
+            .connect(policyImpersonator)
             .updateECOx(charlie.address)
         )
           .to.emit(ecoXExchange, 'UpdatedECOx')
@@ -114,7 +149,7 @@ describe('ECOxExchange', () => {
     describe('eco role', () => {
       it('can be changed by the policy', async () => {
         await ecoXExchange
-          .connect(policyImpersonater)
+          .connect(policyImpersonator)
           .updateEco(charlie.address)
         expect(await ecoXExchange.eco()).to.eq(charlie.address)
       })
@@ -122,7 +157,7 @@ describe('ECOxExchange', () => {
       it('emits an event', async () => {
         expect(
           await ecoXExchange
-            .connect(policyImpersonater)
+            .connect(policyImpersonator)
             .updateEco(charlie.address)
         )
           .to.emit(ecoXExchange, 'UpdatedEco')
@@ -138,6 +173,25 @@ describe('ECOxExchange', () => {
   })
 
   describe('ecoValueOf', async () => {
-    it('returns the correct value')
+    it('returns the correct value', async () => {
+      const ecoxBalance = BigNumber.from(INITIAL_SUPPLY)
+
+      await ECOx.connect(policyImpersonator).transfer(
+        alice.address,
+        ecoxBalance
+      )
+      expect(await ECOx.balanceOf(alice.address)).to.eq(ecoxBalance)
+      expect(await eco.balanceOf(alice.address)).to.eq(0)
+      console.log(await eco.totalSupply())
+      
+      
+      const calced = (await calcEcoValue(BN(ecoxBalance.toString()), BN(INITIAL_SUPPLY), BN((await eco.totalSupply()).toString())))
+      const divisor = 10000
+      const bigNumberCalced = BigNumber.from(calced.dividedBy(divisor).toString()).mul(divisor)
+      console.log(await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance))
+
+
+      expect(await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance)).to.eq(bigNumberCalced)
+    })
   })
 })
