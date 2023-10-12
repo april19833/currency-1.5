@@ -21,6 +21,8 @@ describe('Eco', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let dave: SignerWithAddress // distributer
+  let matthew: SignerWithAddress // non-voter
+  let nico: SignerWithAddress // non-voter
   let policyImpersonator: SignerWithAddress
   let minterImpersonator: SignerWithAddress
   let snapshotterImpersonator: SignerWithAddress
@@ -31,6 +33,8 @@ describe('Eco', () => {
       bob,
       charlie,
       dave,
+      matthew,
+      nico,
       policyImpersonator,
       minterImpersonator,
       snapshotterImpersonator,
@@ -83,6 +87,12 @@ describe('Eco', () => {
       rebaserImpersonator.address,
       true
     )
+
+    // the main addresses need to be voters for the snapshot
+    await ECOproxy.connect(alice).enableVoting()
+    await ECOproxy.connect(bob).enableVoting()
+    await ECOproxy.connect(charlie).enableVoting()
+    await ECOproxy.connect(dave).enableVoting()
 
     // snapshot
     await ECOproxy.connect(snapshotterImpersonator).snapshot()
@@ -461,11 +471,15 @@ describe('Eco', () => {
       await ECOproxy.connect(minterImpersonator).mint(bob.address, amount)
       await ECOproxy.connect(minterImpersonator).mint(charlie.address, amount)
       await ECOproxy.connect(minterImpersonator).mint(dave.address, amount)
+      await ECOproxy.connect(minterImpersonator).mint(matthew.address, amount)
+      await ECOproxy.connect(minterImpersonator).mint(nico.address, amount)
 
       expect(await ECOproxy.balanceOf(alice.address)).to.eq(amount)
       expect(await ECOproxy.balanceOf(bob.address)).to.eq(amount)
       expect(await ECOproxy.balanceOf(charlie.address)).to.eq(amount)
       expect(await ECOproxy.balanceOf(dave.address)).to.eq(amount)
+      expect(await ECOproxy.balanceOf(matthew.address)).to.eq(amount)
+      expect(await ECOproxy.balanceOf(nico.address)).to.eq(amount)
 
       await ECOproxy.connect(charlie).enableDelegationTo()
       await ECOproxy.connect(dave).enableDelegationTo()
@@ -762,55 +776,169 @@ describe('Eco', () => {
       // can't use full balance because zeroing balance gives misleading gas costs
       const testAmount = amount.div(2)
 
-      it('after snapshot', async () => {
-        await ECOproxy.connect(snapshotterImpersonator).snapshot()
+      context('both voters', () => {
+        it('after snapshot', async () => {
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-        const tx = await ECOproxy.connect(bob).transfer(
-          alice.address,
-          testAmount
-        )
-        const receipt = await tx.wait()
-        console.log(receipt.gasUsed)
+          const tx = await ECOproxy.connect(bob).transfer(
+            alice.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('no delegations', async () => {
+          const tx = await ECOproxy.connect(bob).transfer(
+            alice.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('sender delegated', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+          const tx = await ECOproxy.connect(alice).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('receiver delegated', async () => {
+          await ECOproxy.connect(bob).delegate(dave.address)
+          const tx = await ECOproxy.connect(alice).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('both delegated', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+          await ECOproxy.connect(bob).delegate(dave.address)
+          const tx = await ECOproxy.connect(alice).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('both delegated + snapshot', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+          await ECOproxy.connect(bob).delegate(dave.address)
+
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+          const tx = await ECOproxy.connect(alice).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
       })
 
-      it('no delegations', async () => {
-        const tx = await ECOproxy.connect(bob).transfer(
-          alice.address,
-          testAmount
-        )
-        const receipt = await tx.wait()
-        console.log(receipt.gasUsed)
+      context('receiver voter', () => {
+        it('after snapshot', async () => {
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+          const tx = await ECOproxy.connect(nico).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('no delegations', async () => {
+          const tx = await ECOproxy.connect(nico).transfer(
+            alice.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('receiver delegated', async () => {
+          await ECOproxy.connect(bob).delegate(dave.address)
+          const tx = await ECOproxy.connect(nico).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('receiver delegated and unsnapshotted', async () => {
+          await ECOproxy.connect(bob).delegate(charlie.address)
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+          const tx = await ECOproxy.connect(nico).transfer(
+            bob.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
       })
 
-      it('sender delegated', async () => {
-        await ECOproxy.connect(alice).delegate(charlie.address)
-        const tx = await ECOproxy.connect(alice).transfer(
-          bob.address,
-          testAmount
-        )
-        const receipt = await tx.wait()
-        console.log(receipt.gasUsed)
+      context('sender voter', () => {
+        it('after snapshot', async () => {
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+          const tx = await ECOproxy.connect(bob).transfer(
+            matthew.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('no delegations', async () => {
+          const tx = await ECOproxy.connect(bob).transfer(
+            matthew.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('sender delegated', async () => {
+          await ECOproxy.connect(alice).delegate(charlie.address)
+          const tx = await ECOproxy.connect(alice).transfer(
+            matthew.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
       })
 
-      it('receiver delegated', async () => {
-        await ECOproxy.connect(bob).delegate(dave.address)
-        const tx = await ECOproxy.connect(alice).transfer(
-          bob.address,
-          testAmount
-        )
-        const receipt = await tx.wait()
-        console.log(receipt.gasUsed)
-      })
+      context('neither voter', () => {
+        it('after snapshot', async () => {
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-      it('both delegated', async () => {
-        await ECOproxy.connect(alice).delegate(charlie.address)
-        await ECOproxy.connect(bob).delegate(dave.address)
-        const tx = await ECOproxy.connect(alice).transfer(
-          bob.address,
-          testAmount
-        )
-        const receipt = await tx.wait()
-        console.log(receipt.gasUsed)
+          const tx = await ECOproxy.connect(nico).transfer(
+            matthew.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
+
+        it('normal', async () => {
+          const tx = await ECOproxy.connect(nico).transfer(
+            matthew.address,
+            testAmount
+          )
+          const receipt = await tx.wait()
+          console.log(receipt.gasUsed)
+        })
       })
     })
   })
@@ -868,6 +996,11 @@ describe('Eco', () => {
         delegateTransferRecipient.address,
         amount
       )
+      // all parties will be voters
+      await ECOproxy.connect(delegator).enableVoting()
+      await ECOproxy.connect(delegatee).enableVoting()
+      await ECOproxy.connect(otherDelegatee).enableVoting()
+      await ECOproxy.connect(delegateTransferRecipient).enableVoting()
 
       await ECOproxy.connect(delegatee).enableDelegationTo()
       await ECOproxy.connect(otherDelegatee).enableDelegationTo()

@@ -20,6 +20,9 @@ import "./ERC20MintAndBurn.sol";
  * their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
  */
 abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
+    // this checks who has opted in to voting
+    mapping(address => bool) public voter;
+
     // this balance tracks the amount of votes an address has for snapshot purposes
     mapping(address => uint256) internal _voteBalances;
 
@@ -53,9 +56,13 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
     );
 
     /**
-     * @dev Emitted when a token transfer or delegate change results in changes to an account's voting power.
+     * @dev Emitted when a token transfer or delegate change results a transfer of voting power.
      */
-    event UpdatedVotes(address indexed voter, uint256 newVotes);
+    event VoteTransfer(
+        address indexed sendingVoter,
+        address indexed recievingVoter,
+        uint256 votes
+    );
 
     /**
      * @dev Emitted when an account denotes a primary delegate.
@@ -72,6 +79,13 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address _initialPauser
     ) ERC20MintAndBurn(_policy, _name, _symbol, _initialPauser) {
         // call to super constructor
+    }
+
+    function enableVoting() public {
+        require(!voter[msg.sender], "ERC20Delegated: voting already enabled");
+
+        voter[msg.sender] = true;
+        _voteMint(msg.sender, _balances[msg.sender]);
     }
 
     /**
@@ -220,7 +234,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
     /**
      * @dev Change delegation for `delegator` to `delegatee`.
      *
-     * Emits events {NewDelegatedAmount} and {UpdatedVotes}.
+     * Emits events {NewDelegatedAmount} and {VoteTransfer}.
      */
     function _delegate(
         address delegator,
@@ -323,7 +337,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
     /**
      * @dev Move voting power when tokens are transferred.
      *
-     * Emits a {UpdatedVotes} event.
+     * Emits a {VoteTransfer} event.
      */
     function _afterTokenTransfer(
         address from,
@@ -335,8 +349,10 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
             return;
         }
 
+        bool fromVoter = voter[from];
+
         // if the address has delegated, they might be transfering tokens allotted to someone else
-        if (!isOwnDelegate(from)) {
+        if (fromVoter && !isOwnDelegate(from)) {
             uint256 _undelegatedAmount = _balances[from] +
                 amount -
                 _totalVoteAllowances[from];
@@ -362,16 +378,26 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
             }
         }
 
-        address _destPrimaryDelegate = _primaryDelegates[to];
-        address _voteDestination = to;
-        // saving gas by manually doing isOwnDelegate since this function already needs to read the data for this conditional
-        if (_destPrimaryDelegate != address(0)) {
-            _increaseVoteAllowance(_destPrimaryDelegate, to, amount);
-            _totalVoteAllowances[to] += amount;
-            _voteDestination = _destPrimaryDelegate;
-        }
+        if (voter[to]) {
+            address _voteDestination = to;
+            address _destPrimaryDelegate = _primaryDelegates[to];
+            // saving gas by manually doing a form of isOwnDelegate since this function already needs to read the data for this conditional
+            if (_destPrimaryDelegate != address(0)) {
+                _increaseVoteAllowance(_destPrimaryDelegate, to, amount);
+                _totalVoteAllowances[to] += amount;
+                _voteDestination = _destPrimaryDelegate;
+            }
 
-        _voteTransfer(from, _voteDestination, amount);
+            if (fromVoter) {
+                _voteTransfer(from, _voteDestination, amount);
+            } else {
+                _voteMint(_voteDestination, amount);
+            }
+        } else {
+            if (fromVoter) {
+                _voteBurn(from, amount);
+            }
+        }
     }
 
     /**
@@ -466,7 +492,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address recipient,
         uint256 amount
     ) internal virtual {
-        amount = _beforeVoteTokenTransfer(sender, recipient, amount);
+        _beforeVoteTokenTransfer(sender, recipient, amount);
 
         if (sender != address(0)) {
             uint256 senderBalance = _voteBalances[sender];
@@ -483,9 +509,73 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
             _voteBalances[recipient] += amount;
         }
 
-        emit UpdatedVotes(recipient, amount);
+        emit VoteTransfer(sender, recipient, amount);
 
         _afterVoteTokenTransfer(sender, recipient, amount);
+    }
+
+    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+     * the total supply.
+     *
+     * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * Requirements:
+     *
+     * - `account` cannot be the zero address.
+     */
+    function _voteMint(
+        address account,
+        uint256 amount
+    ) internal virtual returns (uint256) {
+        require(
+            account != address(0),
+            "ERC20Delegated: vote mint to the zero address"
+        );
+
+        _beforeVoteTokenTransfer(address(0), account, amount);
+
+        // _voteTotalSupply += amount;
+
+        _voteBalances[account] += amount;
+        emit VoteTransfer(address(0), account, amount);
+
+        _afterVoteTokenTransfer(address(0), account, amount);
+
+        return amount;
+    }
+
+    /**
+     * @dev Destroys `amount` tokens from `account`, reducing the
+     * total supply.
+     *
+     * Emits a {Transfer} event with `to` set to the zero address.
+     *
+     * Requirements:
+     *
+     * - `account` cannot be the zero address.
+     * - `account` must have at least `amount` tokens.
+     */
+    function _voteBurn(
+        address account,
+        uint256 amount
+    ) internal virtual returns (uint256) {
+        _beforeVoteTokenTransfer(account, address(0), amount);
+
+        uint256 accountBalance = _voteBalances[account];
+        require(
+            accountBalance >= amount,
+            "ERC20Delegated: vote burn amount exceeds balance"
+        );
+        unchecked {
+            _voteBalances[account] = accountBalance - amount;
+        }
+        // _voteTotalSupply -= amount;
+
+        emit VoteTransfer(account, address(0), amount);
+
+        _afterVoteTokenTransfer(account, address(0), amount);
+
+        return amount;
     }
 
     /**
@@ -588,9 +678,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address, // from
         address, // to
         uint256 amount
-    ) internal virtual returns (uint256) {
-        return amount;
-    }
+    ) internal virtual {}
 
     /**
      * @dev Hook that is called after any transfer of tokens. This includes

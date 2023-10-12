@@ -135,7 +135,11 @@ abstract contract InflationSnapshots is VoteSnapshots {
         uint256 numSnapshots = inflationMultiplierSnapshots.length;
         uint256 currentValue = inflationMultiplier;
 
-        if (numSnapshots == 0 || inflationMultiplierSnapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
+        if (
+            numSnapshots == 0 ||
+            inflationMultiplierSnapshots[numSnapshots - 1].snapshotId <
+            currentSnapshotId
+        ) {
             require(
                 currentValue <= type(uint224).max,
                 "new snapshot cannot be casted safely"
