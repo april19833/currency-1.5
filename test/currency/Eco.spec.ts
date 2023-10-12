@@ -462,7 +462,7 @@ describe('Eco', () => {
     })
   })
 
-  describe.only('votes', () => {
+  describe('votes', () => {
     beforeEach(async () => {
       await ECOproxy.connect(minterImpersonator).mint(matthew.address, INITIAL_SUPPLY)
     })
@@ -601,6 +601,14 @@ describe('Eco', () => {
           'ERC20Delegated: cannot enable delegation if you have outstanding delegation'
         )
       })
+
+      it('cannot enable if not a voter', async () => {
+        await expect(
+          ECOproxy.connect(matthew).enableDelegationTo()
+        ).to.be.revertedWith(
+          'ERC20Delegated: enable voting before enabling being a delegate'
+        )
+      })
     })
 
     context('disableDelegationTo', () => {
@@ -697,6 +705,14 @@ describe('Eco', () => {
         expect(await ECOproxy.voteBalanceOf(charlie.address)).to.equal(amount)
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.equal(
           amount.mul(2)
+        )
+      })
+
+      it('does not allow delegation if not a voter', async () => {
+        await expect(
+          ECOproxy.connect(matthew).delegate(dave.address)
+        ).to.be.revertedWith(
+          'ERC20Delegated: must be a voter to delegate'
         )
       })
 
