@@ -97,6 +97,8 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
             "ERC20Delegated: cannot enable delegation if you have outstanding delegation"
         );
 
+        require(voter[msg.sender], "ERC20Delegated: enable voting before enabling being a delegate");
+
         delegationToAddressEnabled[msg.sender] = true;
         delegationFromAddressDisabled[msg.sender] = true;
     }
@@ -241,6 +243,8 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address delegatee,
         uint256 amount
     ) internal virtual {
+        require(voter[delegator], "ERC20Delegated: must be a voter to delegate");
+
         // more strict that the transfer requirement
         require(
             amount <= _balances[delegator] - _totalVoteAllowances[delegator],
