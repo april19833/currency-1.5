@@ -18,18 +18,29 @@ import {
   Policy,
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
-import {BigNumber as BN} from 'bignumber.js'
+import { BigDecimal } from 'bigdecimal'
+// import {BigNumber as BN} from 'bignumber.js'
 
-const INITIAL_SUPPLY = (ethers.utils.parseEther('100')).toString()
+const INITIAL_SUPPLY = (ethers.utils.parseEther('100'))
 
 async function calcEcoValue(
-  ecoXToConvert: BN,
-  initialEcoXSupply: BN,
-  currentEcoSupply: BN
+  ecoXToConvert: BigNumber,
+  initialEcoXSupply: BigNumber,
+  currentEcoSupply: BigNumber
 ) {
-  return currentEcoSupply.times(
-    Math.E ** (ecoXToConvert.dividedBy(initialEcoXSupply).toNumber()) - 1
-  )
+  // console.log(Math.E) 
+  const e: BigDecimal = new BigDecimal("2.718281828459045235360")
+  console.log(e.toString())
+  const exponent: BigDecimal = new BigDecimal(ecoXToConvert.toString()).divide(new BigDecimal(initialEcoXSupply.toString()))
+  console.log(exponent)
+  console.log(exponent.floatValue())
+  const exponentiated: BigDecimal = e.pow()
+  console.log(exponentiated.toString())
+  const bdEcoSupply: BigDecimal = new BigDecimal(currentEcoSupply.toString())
+  return bdEcoSupply.multiply(exponentiated.subtract(new BigDecimal("1")))
+  // return currentEcoSupply.mul(
+  //   new BigDecimal(Math.E).pow(ecoXToConvert.div(initialEcoXSupply)) - 1
+  // )
 }
 // async function floorBN(numerator: BN, denominator: BN) {
 //   return (numerator.sub(numerator.mod(denominator))).div(denominator)
@@ -173,8 +184,9 @@ describe('ECOxExchange', () => {
   })
 
   describe('ecoValueOf', async () => {
-    it('returns the correct value', async () => {
-      const ecoxBalance = BigNumber.from(INITIAL_SUPPLY)
+    it.only('returns the correct value', async () => {
+      const ecoxBalance = BigNumber.from(INITIAL_SUPPLY).div(2)
+      console.log(ecoxBalance)
 
       await ECOx.connect(policyImpersonator).transfer(
         alice.address,
@@ -182,16 +194,18 @@ describe('ECOxExchange', () => {
       )
       expect(await ECOx.balanceOf(alice.address)).to.eq(ecoxBalance)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
-      console.log(await eco.totalSupply())
+      // console.log(await eco.totalSupply())
       
       
-      const calced = (await calcEcoValue(BN(ecoxBalance.toString()), BN(INITIAL_SUPPLY), BN((await eco.totalSupply()).toString())))
-      const divisor = 10000
-      const bigNumberCalced = BigNumber.from(calced.dividedBy(divisor).toString()).mul(divisor)
+      const calced = (await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, await eco.totalSupply())).stripTrailingZeros()
+      console.log(calced.toString())
       console.log(await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance))
+      // const divisor = 10000
+      // const bigNumberCalced = BigNumber.from(calced.dividedBy(divisor).toString()).mul(divisor)
+      // console.log(await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance))
 
 
-      expect(await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance)).to.eq(bigNumberCalced)
+      expect((await ecoXExchange.connect(alice).ecoValueOf(ecoxBalance)).toString()).to.eq(calced.toString())
     })
   })
 })
