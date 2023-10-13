@@ -15,10 +15,9 @@ describe('EcoX', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let policyImpersonater: SignerWithAddress
-  let fakeStaking: SignerWithAddress
   let fakeExchange: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonater, fakeStaking, fakeExchange] =
+    ;[alice, bob, charlie, policyImpersonater, fakeExchange] =
       await ethers.getSigners()
   })
 
@@ -36,7 +35,6 @@ describe('EcoX', () => {
 
     ecoXImpl = await EcoXFact.connect(policyImpersonater).deploy(
       Fake__Policy.address, // policy
-      fakeStaking.address, // ecoxstaking
       fakeExchange.address, // ecoxexchange
       bob.address // pauser
     )
@@ -53,13 +51,11 @@ describe('EcoX', () => {
   describe('construction + initialization', async () => {
     it('constructs', async () => {
       expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
-      expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
       expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
       expect(await ecoXImpl.pauser()).to.eq(bob.address)
     })
     it('initializes', async () => {
       expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
-      expect(await ecoXImpl.ecoXStaking()).to.eq(fakeStaking.address)
       expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
       expect(await ecoXImpl.pauser()).to.eq(bob.address)
     })
@@ -137,28 +133,6 @@ describe('EcoX', () => {
         await expect(
           ecoXProxy.connect(charlie).updateBurners(charlie.address, true)
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-      })
-    })
-
-    describe('ECOxStaking role', () => {
-      it('is onlyPolicy gated', async () => {
-        await expect(
-          ecoXProxy.connect(charlie).updateECOxStaking(charlie.address)
-        ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-      })
-      it('swaps out the addresses if called by policy', async () => {
-        const oldStaking = await ecoXProxy.ecoXStaking()
-        expect(oldStaking).to.not.eq(charlie.address)
-
-        await expect(
-          ecoXProxy
-            .connect(policyImpersonater)
-            .updateECOxStaking(charlie.address)
-        )
-          .to.emit(ecoXProxy, 'UpdatedECOxStaking')
-          .withArgs(oldStaking, charlie.address)
-
-        expect(await ecoXProxy.ecoXStaking()).to.eq(charlie.address)
       })
     })
 
