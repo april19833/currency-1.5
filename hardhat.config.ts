@@ -79,6 +79,13 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 50000,
   },
+  dodoc: {
+    runOnCompile: true,
+    debugMode: false,
+    include: ['governance/monetary'],
+    keepFileStructure: true,
+    // More options...
+  },
   gasReporter: {
     enabled: !!process.env.ENABLE_GAS_REPORT,
     currency: 'USD',
