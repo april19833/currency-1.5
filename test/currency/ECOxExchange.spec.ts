@@ -19,25 +19,28 @@ import {
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
 import { BigDecimal, RoundingMode } from 'bigdecimal'
-import { Alchemy } from 'alchemy-sdk'
 // import {BigNumber as BN} from 'bignumber.js'
 
-const INITIAL_SUPPLY = (ethers.utils.parseEther('100'))
+const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 
 async function calcEcoValue(
   ecoXToConvert: BigNumber,
   initialEcoXSupply: BigNumber,
   currentEcoSupply: BigNumber
 ) {
-  const exponent: BigDecimal = new BigDecimal(ecoXToConvert.toString()).divide(new BigDecimal(initialEcoXSupply.toString()))
-  // console.log(exponent.floatValue())
-  /** 
+  const exponent: BigDecimal = new BigDecimal(ecoXToConvert.toString()).divide(
+    new BigDecimal(initialEcoXSupply.toString())
+  )
+  /**
    * Math.E is imprecise here, it has been accounted for in tests by using chai's closeTo with a tolerance rather than eq
    */
-  const exponentiated = new BigDecimal(((Math.E ** exponent.floatValue())).toString()) 
-  // console.log(exponentiated.toString())
+  const exponentiated = new BigDecimal(
+    (Math.E ** exponent.floatValue()).toString()
+  )
   const bdEcoSupply: BigDecimal = new BigDecimal(currentEcoSupply.toString())
-  const unrounded = bdEcoSupply.multiply(exponentiated.subtract(new BigDecimal("1")))
+  const unrounded = bdEcoSupply.multiply(
+    exponentiated.subtract(new BigDecimal('1'))
+  )
   return unrounded.setScale(0, RoundingMode.HALF_UP())
 }
 
@@ -114,12 +117,14 @@ describe('ECOxExchange', () => {
     await eco
       .connect(policyImpersonator)
       .updateMinters(policyImpersonator.address, true)
-    
+
     await eco
       .connect(policyImpersonator)
       .updateMinters(ecoXExchange.address, true)
 
-    await eco.connect(policyImpersonator).mint(policyImpersonator.address, INITIAL_SUPPLY+"0")
+    await eco
+      .connect(policyImpersonator)
+      .mint(policyImpersonator.address, INITIAL_SUPPLY + '0')
   })
 
   it('constructs', async () => {
@@ -185,42 +190,53 @@ describe('ECOxExchange', () => {
     it('returns the correct value with low proportion', async () => {
       const ecoxBalance = INITIAL_SUPPLY.div(1234567)
 
-      const calced = (await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, await eco.totalSupply()))
+      const calced = await calcEcoValue(
+        ecoxBalance,
+        INITIAL_SUPPLY,
+        await eco.totalSupply()
+      )
 
-      /** 
+      /**
        * math libraries are a nightmare, the E constant wasnt precise enough in base form and if i made a more precise
        * version as a BigDecimal i wasnt able to do the necessary decimal exponentiation so ive just added a tolerance
-       * to account for the imprecision 
+       * to account for the imprecision
        */
-      expect(await ecoXExchange.ecoValueOf(ecoxBalance)).to.be.closeTo(BigNumber.from(calced.toPlainString()), BigNumber.from('1000000'))
+      expect(await ecoXExchange.ecoValueOf(ecoxBalance)).to.be.closeTo(
+        BigNumber.from(calced.toPlainString()),
+        BigNumber.from('1000000')
+      )
     })
 
     it('returns the correct value with high proportion', async () => {
       const ecoxBalance = INITIAL_SUPPLY.div(2)
 
-      const calced = (await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, await eco.totalSupply()))
+      const calced = await calcEcoValue(
+        ecoxBalance,
+        INITIAL_SUPPLY,
+        await eco.totalSupply()
+      )
 
-      expect(await ecoXExchange.ecoValueOf(ecoxBalance)).to.be.closeTo(BigNumber.from(calced.toPlainString()), BigNumber.from('1000000'))
+      expect(await ecoXExchange.ecoValueOf(ecoxBalance)).to.be.closeTo(
+        BigNumber.from(calced.toPlainString()),
+        BigNumber.from('1000000')
+      )
     })
   })
-  describe('valueAt', async() => {
+  describe('valueAt', async () => {
     it('returns the correct value', async () => {
       const otherEcoSupply = BigNumber.from('1012345678901234567890')
-
       const ecoxBalance = INITIAL_SUPPLY.div(5)
-
       eco.totalSupplyAt.returns(otherEcoSupply)
+      const calced = (
+        await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, otherEcoSupply)
+      ).stripTrailingZeros()
 
-      // await ECOx.connect(policyImpersonator).transfer(
-      //   alice.address,
-      //   ecoxBalance
-      // )
-      // expect(await ECOx.balanceOf(alice.address)).to.eq(ecoxBalance)
-      // expect(await eco.balanceOf(alice.address)).to.eq(0)
-
-      const calced = (await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, otherEcoSupply)).stripTrailingZeros()
-
-      expect(await ecoXExchange.valueAt(ecoxBalance.toString(), 12345)).to.be.closeTo(BigNumber.from(calced.toPlainString()), BigNumber.from('1000000'))
+      expect(
+        await ecoXExchange.valueAt(ecoxBalance.toString(), 12345)
+      ).to.be.closeTo(
+        BigNumber.from(calced.toPlainString()),
+        BigNumber.from('1000000')
+      )
     })
   })
 
@@ -236,12 +252,19 @@ describe('ECOxExchange', () => {
       expect(await ECOx.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
 
-      const calced = (await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, await eco.totalSupply()))
-      
+      const calced = await calcEcoValue(
+        ecoxBalance,
+        INITIAL_SUPPLY,
+        await eco.totalSupply()
+      )
+
       await ecoXExchange.connect(alice).exchange(ecoxBalance)
 
       expect(await ECOx.balanceOf(alice.address)).to.eq(remainder)
-      expect(await eco.balanceOf(alice.address)).to.be.closeTo(BigNumber.from(calced.toPlainString()), BigNumber.from('1000000'))
+      expect(await eco.balanceOf(alice.address)).to.be.closeTo(
+        BigNumber.from(calced.toPlainString()),
+        BigNumber.from('1000000')
+      )
     })
   })
 })
