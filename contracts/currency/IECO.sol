@@ -4,44 +4,35 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+// TODO: make an interface for delegation
+
 interface IECO is IERC20 {
     /**
-     * Only available to CurrencyTimer and ECOx
+     * Only available to minters
      */
     function mint(address to, uint256 amount) external;
 
     /**
-     * Only available to token holders and CurrencyTimer
+     * Only available to token holders for their own tokens and burners
      */
     function burn(address from, uint256 amount) external;
 
     /**
-     * Returns the currentGeneration
+     * Returns the votes for the current snapshot
+     *
+     * @param account the address whose vote balance to check
      */
-    function currentGeneration() external view returns (uint256);
-
-    /**
-     * Returns final votes of an address at the end of a blockNumber
-     */
-    function voteBalanceOfAt(
-        address owner,
-        uint256 blockNumber
+    function voteBalanceSnapshot(
+        address account
     ) external view returns (uint256);
 
     /**
      * Returns the inflation multiplier value for the current snapshot
      */
-    function getInflationMultiplier() external view returns (uint256);
+    function inflationMultiplierSnapshot() external view returns (uint256);
 
     /**
-     * Returns the inflation multiplier value for the specified snapshot
+     * Returns the total supply for the current snapshot
      */
-    function getInflationMultiplierAt(
-        uint256 snapshotId
-    ) external view returns (uint256);
-
-    /**
-     * Returns the final total supply at the end of the given block number
-     */
-    function totalSupplyAt(uint256 blockNumber) external view returns (uint256);
+    function totalSupplySnapshot() external view returns (uint256);
 }
