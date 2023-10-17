@@ -24,7 +24,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
     // mapping to the ordered arrays of voting snapshots for each address
     mapping(address => Snapshot[]) public snapshots;
 
-    mapping(address => Snapshot) public lastestSnapshot;
+    mapping(address => Snapshot) public latestSnapshot;
 
     // the snapshots to track the token total supply
     Snapshot[] private _totalSupplySnapshots;
@@ -156,7 +156,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        Snapshot storage snapshot = lastestSnapshot[account];
+        Snapshot storage snapshot = latestSnapshot[account];
         uint256 currentValue = _voteBalances[account];
 
         if (snapshot.snapshotId < currentSnapshotId) {
