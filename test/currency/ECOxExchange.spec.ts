@@ -55,7 +55,6 @@ describe('ECOxExchange', () => {
 
     ECOx = await ecoXFactory.deploy(
       Fake__Policy.address,
-      Fake__Policy.address, // ECOxStaking
       Fake__Policy.address, // ECOxExchange
       Fake__Policy.address, // distributor
       INITIAL_SUPPLY, // initial supply

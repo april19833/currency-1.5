@@ -15,11 +15,6 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * @dev address of ECOxStaking contract
-     */
-    address public ecoXStaking;
-
-    /**
      * @dev address of ECOxExchange contract
      */
     address public ecoXExchange;
@@ -44,13 +39,6 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * emits when the ECOxStaking address is changed
-     * @param _old old holder of role
-     * @param _new new holder of role
-     */
-    event UpdatedECOxStaking(address _old, address _new);
-
-    /**
      * emits when the ECOxExchange address is changed
      * @param _old old holder of role
      * @param _new new holder of role
@@ -59,11 +47,9 @@ contract ECOx is ERC20MintAndBurn {
 
     constructor(
         Policy _policy,
-        address _ecoXStaking,
         address _ecoXExchange,
         address _pauser
     ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {
-        ecoXStaking = _ecoXStaking;
         ecoXExchange = _ecoXExchange;
     }
 
@@ -77,7 +63,6 @@ contract ECOx is ERC20MintAndBurn {
 
         // policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
-        ecoXStaking = ECOx(_self).ecoXStaking();
         ecoXExchange = ECOx(_self).ecoXExchange();
     }
 
@@ -95,15 +80,6 @@ contract ECOx is ERC20MintAndBurn {
 
     //     return computeValue(_ecoXValue, _ecoSupplyAt);
     // }
-
-    /**
-     * @dev change the ECOxStaking address
-     * @param _newRoleHolder the new ECOxStaking address
-     */
-    function updateECOxStaking(address _newRoleHolder) public onlyPolicy {
-        emit UpdatedECOxStaking(ecoXStaking, _newRoleHolder);
-        ecoXStaking = _newRoleHolder;
-    }
 
     /**
      * @dev change the ECOxExchange address
