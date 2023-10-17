@@ -19,7 +19,6 @@ import {
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
 import { BigDecimal, RoundingMode } from 'bigdecimal'
-// import {BigNumber as BN} from 'bignumber.js'
 
 const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 
