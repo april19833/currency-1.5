@@ -144,15 +144,15 @@ abstract contract VoteSnapshots is ERC20Delegated {
         address from,
         address to,
         uint256 amount
-    ) internal virtual override returns (uint256) {
-        if (from != address(0)) {
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, amount);
+
+        if (from != address(0) && voter[from]) {
             _updateAccountSnapshot(from);
         }
-        if (to != address(0)) {
+        if (to != address(0) && voter[to]) {
             _updateAccountSnapshot(to);
         }
-
-        return super._beforeTokenTransfer(from, to, amount);
     }
 
     function _updateAccountSnapshot(address account) private {
@@ -169,9 +169,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
             snapshot.snapshotId = currentSnapshotId;
             snapshot.value = uint224(currentValue);
 
-            snapshots[account].push(
-                snapshot
-            );
+            snapshots[account].push(snapshot);
         }
     }
 
@@ -179,7 +177,11 @@ abstract contract VoteSnapshots is ERC20Delegated {
         uint256 numSnapshots = _totalSupplySnapshots.length;
         uint256 currentValue = _totalSupply;
 
-        if (numSnapshots == 0 || _totalSupplySnapshots[numSnapshots - 1].snapshotId < currentSnapshotId) {
+        if (
+            numSnapshots == 0 ||
+            _totalSupplySnapshots[numSnapshots - 1].snapshotId <
+            currentSnapshotId
+        ) {
             require(
                 currentValue <= type(uint224).max,
                 "new snapshot cannot be casted safely"

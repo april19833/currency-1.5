@@ -31,6 +31,8 @@ contract Lockups is Lever, TimeUtils {
         // the amount minted will remain the same regardless of changes in linear inflation
         // multiplying this number by the currentInflationMultiplier yields gons
         mapping(address => uint256) interest;
+        // the delegates for each user to track delegation
+        mapping(address => address) delegates;
     }
 
     // denominator when multiplying by rate to get yield amount
@@ -129,6 +131,7 @@ contract Lockups is Lever, TimeUtils {
         eco = _eco;
         depositWindow = _depositWindow;
         currentInflationMultiplier = eco.getInflationMultiplier();
+        eco.enableVoting();
     }
 
     /** Creates a lockup
@@ -187,16 +190,36 @@ contract Lockups is Lever, TimeUtils {
         if (getTime() >= lockup.depositWindowEnd) {
             revert LateDeposit(_lockupId, _beneficiary);
         }
-        lockup.interest[_beneficiary] += (_amount * lockup.rate) / BASE;
-        uint256 gonsAmount = _amount * currentInflationMultiplier;
-        lockup.gonsBalances[_beneficiary] += gonsAmount;
 
         eco.transferFrom(_beneficiary, address(this), _amount);
 
-        // TODO: when we patch snapshotting make sure to look into what happens when the primary delegate is switched between deposits
-        eco.delegateAmount(eco.getPrimaryDelegate(_beneficiary), gonsAmount);
+        uint256 _gonsAmount = _amount * currentInflationMultiplier;
 
-        emit LockupDeposit(_lockupId, _beneficiary, gonsAmount);
+        if (eco.voter(_beneficiary)) {
+            address _primaryDelegate = eco.getPrimaryDelegate(_beneficiary);
+            address depositDelegate = lockup.delegates[_beneficiary];
+            uint256 depositGons = lockup.gonsBalances[_beneficiary];
+
+            if (depositGons > 0 && _primaryDelegate != depositDelegate) {
+                if (depositDelegate != address(0)) {
+                    // this case catches if the voter status of the user changes between deposits
+                    eco.undelegateAmountFromAddress(
+                        depositDelegate,
+                        depositGons
+                    );
+                }
+                eco.delegateAmount(_primaryDelegate, _gonsAmount + depositGons);
+            } else {
+                eco.delegateAmount(_primaryDelegate, _gonsAmount);
+            }
+
+            lockup.delegates[_beneficiary] = _primaryDelegate;
+        }
+
+        lockup.interest[_beneficiary] += (_amount * lockup.rate) / BASE;
+        lockup.gonsBalances[_beneficiary] += _gonsAmount;
+
+        emit LockupDeposit(_lockupId, _beneficiary, _gonsAmount);
     }
 
     /** User withdraws their own funds. Withdrawing before the lockup has ended will result in a
@@ -220,11 +243,11 @@ contract Lockups is Lever, TimeUtils {
         uint256 gonsAmount = lockup.gonsBalances[_recipient];
         uint256 amount = gonsAmount / currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
+        address delegate = lockup.delegates[_recipient];
 
-        eco.undelegateAmountFromAddress(
-            eco.getPrimaryDelegate(_recipient),
-            gonsAmount
-        );
+        if (delegate != address(0)) {
+            eco.undelegateAmountFromAddress(delegate, gonsAmount);
+        }
 
         if (getTime() < lockup.end) {
             if (msg.sender != _recipient) {
@@ -240,6 +263,7 @@ contract Lockups is Lever, TimeUtils {
 
         lockup.gonsBalances[_recipient] = 0;
         lockup.interest[_recipient] = 0;
+        lockup.delegates[_recipient] = address(0);
         eco.transfer(_recipient, amount);
 
         emit LockupWithdrawal(
@@ -256,7 +280,7 @@ contract Lockups is Lever, TimeUtils {
     function getGonsBalance(
         uint256 _lockupId,
         address _who
-    ) public view returns (uint256 ecoAmount) {
+    ) public view returns (uint256 gonsAmount) {
         return lockups[_lockupId].gonsBalances[_who];
     }
 
@@ -281,6 +305,17 @@ contract Lockups is Lever, TimeUtils {
         address _who
     ) public view returns (uint256 ecoAmount) {
         return lockups[_lockupId].interest[_who];
+    }
+
+    /** getter function for yield
+     * @param _lockupId the ID of the lockup
+     * @param _who address whose delegate is being fetched
+     */
+    function getDelegate(
+        uint256 _lockupId,
+        address _who
+    ) public view returns (address lockupDelegate) {
+        return lockups[_lockupId].delegates[_who];
     }
 
     /** sweep accumulated penalty eco to a destination address
