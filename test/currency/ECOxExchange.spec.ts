@@ -80,7 +80,6 @@ describe('ECOxExchange', () => {
 
     ECOx = await ecoXFactory.deploy(
       Fake__Policy.address,
-      PLACEHOLDER_ADDRESS1, // ECOxStaking
       PLACEHOLDER_ADDRESS1, // ECOxExchange
       pauser.address // initial pauser
     )
