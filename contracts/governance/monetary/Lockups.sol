@@ -130,7 +130,7 @@ contract Lockups is Lever, TimeUtils {
     ) Lever(_policy, _notifier) {
         eco = _eco;
         depositWindow = _depositWindow;
-        currentInflationMultiplier = eco.getInflationMultiplier();
+        currentInflationMultiplier = eco.inflationMultiplier();
         eco.enableVoting();
     }
 
@@ -329,6 +329,6 @@ contract Lockups is Lever, TimeUtils {
     // updates currentInflationMultiplier
     // add this to the rebase notifier
     function updateInflationMultiplier() external {
-        currentInflationMultiplier = eco.getInflationMultiplier();
+        currentInflationMultiplier = eco.inflationMultiplier();
     }
 }
