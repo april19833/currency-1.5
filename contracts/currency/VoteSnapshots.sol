@@ -20,13 +20,11 @@ abstract contract VoteSnapshots is ERC20Delegated {
     // the reference snapshotId that the update function checks against
     uint32 public currentSnapshotId;
 
-    // mapping to the ordered arrays of voting snapshots for each address
-    mapping(address => Snapshot[]) public snapshots;
-
-    mapping(address => Snapshot) public latestSnapshot;
+    // mapping of each address to it's latest snapshot of votes
+    mapping(address => Snapshot) private _voteSnapshots;
 
     // the snapshot to track the token total supply
-    Snapshot[] private _totalSupplySnapshot;
+    Snapshot private _totalSupplySnapshot;
 
     /**
      * @dev Emitted by {_snapshot} when a new snapshot is created.
@@ -58,32 +56,31 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     /**
-     * TODO: new function
+     * @dev Retrieve the balance for the snapshot
+     *
+     * @param account the address to check vote balances for
      */
-    function voteBalanceOfAt(
-        address account,
-        uint256 snapshotId
+    function voteBalanceSnapshot(
+        address account
     ) public view virtual returns (uint256) {
-        require(snapshotId <= currentSnapshotId, "must be past snapshot");
-        (uint256 value, bool snapshotted) = _snapshotLookup(
-            snapshots[account],
-            snapshotId
-        );
-        return snapshotted ? value : _voteBalances[account];
+        Snapshot memory _accountSnapshot = _voteSnapshots[account];
+
+        if (_accountSnapshot.snapshotId < currentSnapshotId) {
+            return _voteBalances[account];
+        } else {
+            return _accountSnapshot.value;
+        }
     }
 
     /**
      * @dev Retrieve the `totalSupply` for the snapshot
      */
-    function totalSupplyAt(
-        uint256 snapshotId
-    ) public view virtual returns (uint256) {
-        require(snapshotId <= currentSnapshotId, "must be past snapshot");
-        (uint256 value, bool snapshotted) = _snapshotLookup(
-            _totalSupplySnapshot,
-            snapshotId
-        );
-        return snapshotted ? value : _totalSupply;
+    function totalSupplySnapshot() public view virtual returns (uint256) {
+        if (_totalSupplySnapshot.snapshotId < currentSnapshotId) {
+            return _totalSupply;
+        } else {
+            return _totalSupplySnapshot.value;
+        }
     }
 
     /**
@@ -139,83 +136,31 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        Snapshot storage snapshot = latestSnapshot[account];
+        Snapshot storage snapshot = _voteSnapshots[account];
         uint256 currentValue = _voteBalances[account];
 
         if (snapshot.snapshotId < currentSnapshotId) {
-            // a snapshot is done in the constructor/initializer, so this means the address is uninitialized
             require(
                 currentValue <= type(uint224).max,
-                "new snapshot cannot be casted safely"
+                "VoteSnapshots: new snapshot cannot be casted safely"
             );
 
             snapshot.snapshotId = currentSnapshotId;
             snapshot.value = uint224(currentValue);
-
-            snapshots[account].push(snapshot);
         }
     }
 
     function _updateTotalSupplySnapshot() private {
-        uint256 numSnapshots = _totalSupplySnapshot.length;
-        uint256 currentValue = _totalSupply;
-
         if (
-            numSnapshots == 0 ||
-            _totalSupplySnapshot[numSnapshots - 1].snapshotId <
-            currentSnapshotId
+            _totalSupplySnapshot.snapshotId < currentSnapshotId
         ) {
+            uint256 currentValue = _totalSupply;
             require(
                 currentValue <= type(uint224).max,
-                "new snapshot cannot be casted safely"
+                "VoteSnapshots: new snapshot cannot be casted safely"
             );
-            _totalSupplySnapshot.push(
-                Snapshot({
-                    snapshotId: currentSnapshotId,
-                    value: uint224(currentValue)
-                })
-            );
+            _totalSupplySnapshot.snapshotId = currentSnapshotId;
+            _totalSupplySnapshot.value = uint224(currentValue);
         }
-    }
-
-    /**
-     * @dev likely this is gone after
-     */
-    function _snapshotLookup(
-        Snapshot[] storage ckpts,
-        uint256 snapshotId
-    ) internal view returns (uint256, bool) {
-        // TODO: Edit comment
-        // This function runs a binary search to look for the last snapshot taken before `blockNumber`.
-        //
-        // During the loop, the index of the wanted snapshot remains in the range [low-1, high).
-        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
-        // - If the middle snapshot is after `blockNumber`, the next iteration looks in [low, mid)
-        // - If the middle snapshot is before or equal to `blockNumber`, the next iteration looks in [mid+1, high)
-        // Once it reaches a single value (when low == high), it has found the right snapshot at the index high-1, if not
-        // out of bounds (in which case it's looking too far in the past and the result is 0).
-        // Note that if the latest snapshot available is exactly for `blockNumber`, it will end up with an index that is
-        // past the end of the array, so this technically doesn't find a snapshot after `blockNumber`, but the result is
-        // the same.
-        uint256 ckptsLength = ckpts.length;
-        if (ckptsLength == 0) return (0, false);
-        Snapshot memory lastCkpt = ckpts[ckptsLength - 1];
-        uint224 lastCkptSnapId = lastCkpt.snapshotId;
-        if (snapshotId == lastCkptSnapId) return (lastCkpt.value, true);
-        if (snapshotId > lastCkptSnapId) return (0, false);
-
-        uint256 high = ckptsLength;
-        uint256 low = 0;
-
-        while (low < high) {
-            uint256 mid = low + ((high - low) >> 1);
-            if (ckpts[mid].snapshotId > snapshotId) {
-                high = mid;
-            } else {
-                low = mid + 1;
-            }
-        }
-
-        return high == 0 ? (0, true) : (ckpts[high - 1].value, true);
     }
 }

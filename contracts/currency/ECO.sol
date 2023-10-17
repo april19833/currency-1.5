@@ -45,11 +45,6 @@ contract ECO is InflationSnapshots {
      */
     error OnlySnapshotters();
 
-    /**
-     * error for when a rebase attempts to rebase incorrectly
-     */
-    error BadRebaseValue();
-
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -67,16 +62,6 @@ contract ECO is InflationSnapshots {
      * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
      */
     event UpdatedSnapshotters(address actor, bool newPermission);
-
-    /** Fired when a proposal with a new inflation multiplier is selected and passed.
-     * Used to calculate new values for the rebased token.
-     * @param adjustinginflationMultiplier the multiplier that has just been applied to the tokens
-     * @param cumulativeInflationMultiplier the total multiplier that is used to convert to and from gons
-     */
-    event NewInflationMultiplier(
-        uint256 adjustinginflationMultiplier,
-        uint256 cumulativeInflationMultiplier
-    );
 
     //////////////////////////////////////////////
     ////////////////// MODIFIERS /////////////////
@@ -125,7 +110,6 @@ contract ECO is InflationSnapshots {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
-        // policy = Policed(_self).policy();
         _mint(distributor, initialSupply);
     }
 
@@ -134,19 +118,7 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
-        if (_inflationMultiplier == 0) {
-            revert BadRebaseValue();
-        }
-
-        // update snapshot with old value
-        _updateInflationSnapshot();
-
-        uint256 newInflationMult = (_inflationMultiplier *
-            inflationMultiplier) / INITIAL_INFLATION_MULTIPLIER;
-
-        inflationMultiplier = newInflationMult;
-
-        emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
+        _rebase(_inflationMultiplier);
     }
 
     function snapshot() public onlySnapshotterRole {

@@ -4,16 +4,30 @@ pragma solidity ^0.8.0;
 import "./VoteSnapshots.sol";
 
 /** @title InflationSnapshots
- * This implements a generational store with snapshotted balances. Balances
- * are lazy-evaluated, but are effectively all atomically snapshotted when
- * the generation changes.
+ * This implements a scaling inflation multiplier on all balances and votes.
+ * Changing this value (via implementing _rebase)
  */
 abstract contract InflationSnapshots is VoteSnapshots {
     uint256 public constant INITIAL_INFLATION_MULTIPLIER = 1e18;
 
-    Snapshot[] internal inflationMultiplierSnapshots;
+    Snapshot internal _inflationMultiplierSnapshot;
 
-    uint256 internal inflationMultiplier;
+    uint256 public inflationMultiplier;
+
+    /**
+     * error for when a rebase attempts to rebase incorrectly
+     */
+    error BadRebaseValue();
+
+    /** Fired when a proposal with a new inflation multiplier is selected and passed.
+     * Used to calculate new values for the rebased token.
+     * @param adjustinginflationMultiplier the multiplier that has just been applied to the tokens
+     * @param cumulativeInflationMultiplier the total multiplier that is used to convert to and from gons
+     */
+    event NewInflationMultiplier(
+        uint256 adjustinginflationMultiplier,
+        uint256 cumulativeInflationMultiplier
+    );
 
     // to be used to record the transfer amounts after _beforeTokenTransfer
     // these values are the base (unchanging) values the currency is stored in
@@ -48,6 +62,22 @@ abstract contract InflationSnapshots is VoteSnapshots {
         _updateInflationSnapshot();
     }
 
+    function _rebase(uint256 _inflationMultiplier) internal virtual {
+        if (_inflationMultiplier == 0) {
+            revert BadRebaseValue();
+        }
+
+        // update snapshot with old value
+        _updateInflationSnapshot();
+
+        uint256 newInflationMult = (_inflationMultiplier *
+            inflationMultiplier) / INITIAL_INFLATION_MULTIPLIER;
+
+        inflationMultiplier = newInflationMult;
+
+        emit NewInflationMultiplier(_inflationMultiplier, newInflationMult);
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -61,18 +91,12 @@ abstract contract InflationSnapshots is VoteSnapshots {
         return gonsAmount;
     }
 
-    function getInflationMultiplier() public view returns (uint256) {
-        return inflationMultiplier;
-    }
-
-    function getInflationMultiplierAt(
-        uint256 snapshotId
-    ) public view returns (uint256) {
-        (uint256 value, bool snapshotted) = _snapshotLookup(
-            inflationMultiplierSnapshots,
-            snapshotId
-        );
-        return snapshotted ? value : inflationMultiplier;
+    function inflationMultiplierSnapshot() public view returns (uint256) {
+        if (_inflationMultiplierSnapshot.snapshotId < currentSnapshotId) {
+            return inflationMultiplier;
+        } else {
+            return _inflationMultiplierSnapshot.value;
+        }
     }
 
     /** Access function to determine the token balance held by some address.
@@ -95,59 +119,39 @@ abstract contract InflationSnapshots is VoteSnapshots {
         return _totalSupply / inflationMultiplier;
     }
 
-    /** Returns the total (inflation corrected) token supply at a specified block number
+    /** Returns the total (inflation corrected) token supply for the current snapshot
      */
-    function totalSupplyAt(
-        uint256 snapshotId
-    ) public view override returns (uint256) {
-        uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
-
-        return super.totalSupplyAt(snapshotId) / _inflationMultiplier;
+    function totalSupplySnapshot() public view override returns (uint256) {
+        return super.totalSupplySnapshot() / inflationMultiplierSnapshot();
     }
 
-    /** Return historical voting balance (includes delegation) at given block number.
+    /** Return snapshotted voting balance (includes delegation) for the current snapshot.
      *
-     * If the latest block number for the account is before the requested
-     * block then the most recent known balance is returned. Otherwise the
-     * exact block number requested is returned.
-     *
-     * @param owner The account to check the balance of.
-     * @param snapshotId The block number to check the balance at the start
-     *                        of. Must be less than or equal to the present
-     *                        block number.
+     * @param account The account to check the votes of.
      */
-    function voteBalanceOfAt(
-        address owner,
-        uint256 snapshotId
+    function voteBalanceSnapshot(
+        address account
     ) public view override returns (uint256) {
-        uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
+        uint256 _inflationMultiplier = inflationMultiplierSnapshot();
 
         if (_inflationMultiplier == 0) {
             return 0;
         }
 
-        return super.voteBalanceOfAt(owner, snapshotId) / _inflationMultiplier;
+        return super.voteBalanceSnapshot(account) / _inflationMultiplier;
     }
 
-    function _updateInflationSnapshot() internal {
-        uint256 numSnapshots = inflationMultiplierSnapshots.length;
-        uint256 currentValue = inflationMultiplier;
-
+    function _updateInflationSnapshot() private {
         if (
-            numSnapshots == 0 ||
-            inflationMultiplierSnapshots[numSnapshots - 1].snapshotId <
-            currentSnapshotId
+            _inflationMultiplierSnapshot.snapshotId < currentSnapshotId
         ) {
+            uint256 currentValue = inflationMultiplier;
             require(
                 currentValue <= type(uint224).max,
-                "new snapshot cannot be casted safely"
+                "InflationSnapshots: new snapshot cannot be casted safely"
             );
-            inflationMultiplierSnapshots.push(
-                Snapshot({
-                    snapshotId: currentSnapshotId,
-                    value: uint224(currentValue)
-                })
-            );
+            _inflationMultiplierSnapshot.snapshotId = currentSnapshotId;
+            _inflationMultiplierSnapshot.value = uint224(currentValue);
         }
     }
 }
