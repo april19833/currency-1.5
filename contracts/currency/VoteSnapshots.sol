@@ -5,20 +5,19 @@ pragma solidity ^0.8.0;
 import "./ERC20Delegated.sol";
 
 /**
- * @dev Extension of ERC20 to support Compound-like snapshotting. This version is more generic than Compound's,
- * and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
+ * @dev Extension of ERC20Delegated to support snapshotting.
  *
- * This extension keeps a history (snapshots) of each account's vote power at each snapshot point.
- * Voting power values at snapshots can be accessed directly via {voteBalanceOfAt} or though the overridable
- * accessor of
+ * This extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken.
+ * Only addresses that have opted into voting are snapshotted.
  */
 abstract contract VoteSnapshots is ERC20Delegated {
-    // structure for saving past voting balances, accounting for delegation
+    // structure for saving snapshotted values
     struct Snapshot {
         uint32 snapshotId;
         uint224 value;
     }
 
+    // the reference snapshotId that the update function checks against
     uint32 public currentSnapshotId;
 
     // mapping to the ordered arrays of voting snapshots for each address
@@ -26,20 +25,19 @@ abstract contract VoteSnapshots is ERC20Delegated {
 
     mapping(address => Snapshot) public latestSnapshot;
 
-    // the snapshots to track the token total supply
-    Snapshot[] private _totalSupplySnapshots;
+    // the snapshot to track the token total supply
+    Snapshot[] private _totalSupplySnapshot;
 
     /**
-     * @dev Emitted by {_snapshot} when a snapshot identified by `id` is created.
+     * @dev Emitted by {_snapshot} when a new snapshot is created.
+     *
+     * @param id the new value of currentSnapshotId
      */
     event NewSnapshotId(uint256 id);
 
     /** Construct a new instance.
      *
-     * Note that it is always necessary to call reAuthorize on the balance store
-     * after it is first constructed to populate the authorized interface
-     * contracts cache. These calls are separated to allow the authorized
-     * contracts to be configured/deployed after the balance store contract.
+     * the root _policy needs to be passed down through to service ERC20BurnAndMint
      */
     constructor(
         Policy _policy,
@@ -47,6 +45,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         string memory _symbol,
         address _initialPauser
     ) ERC20Delegated(_policy, _name, _symbol, _initialPauser) {
+        // snapshot on creation to make it clear that everyone's balances should be updated
         _snapshot();
     }
 
@@ -54,29 +53,12 @@ abstract contract VoteSnapshots is ERC20Delegated {
         address _self
     ) public virtual override onlyConstruction {
         super.initialize(_self);
+        // snapshot on initialization to make it clear that everyone's balances should be updated after upgrade
         _snapshot();
     }
 
     /**
-     * @dev Get number of snapshots for `account`.
-     */
-    function numSnapshots(
-        address account
-    ) public view virtual returns (uint256) {
-        return snapshots[account].length;
-    }
-
-    /**
-     * Return historical voting balance (includes delegation) at given block number.
-     *
-     * If the latest block number for the account is before the requested
-     * block then the most recent known balance is returned. Otherwise the
-     * exact block number requested is returned.
-     *
-     * @param account The account to check the balance of.
-     * @param snapshotId The block number to check the balance at the start
-     *                        of. Must be less than or equal to the present
-     *                        block number.
+     * TODO: new function
      */
     function voteBalanceOfAt(
         address account,
@@ -91,19 +73,14 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     /**
-     * @dev Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
-     * It is NOT the sum of all the delegated votes!
-     *
-     * Requirements:
-     *
-     * - `blockNumber` must have been already mined
+     * @dev Retrieve the `totalSupply` for the snapshot
      */
     function totalSupplyAt(
         uint256 snapshotId
     ) public view virtual returns (uint256) {
         require(snapshotId <= currentSnapshotId, "must be past snapshot");
         (uint256 value, bool snapshotted) = _snapshotLookup(
-            _totalSupplySnapshots,
+            _totalSupplySnapshot,
             snapshotId
         );
         return snapshotted ? value : _totalSupply;
@@ -122,8 +99,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
         return newId;
     }
 
-    // Update balance and/or total supply snapshots before the values are modified. This is implemented
-    // in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+    /** 
+     * Update total supply snapshots before the values are modified. This is implemented
+     * in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     */
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -140,6 +119,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
         return super._beforeTokenTransfer(from, to, amount);
     }
 
+    /** 
+     * Update balance snapshots for votes before the values are modified. This is implemented
+     * in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     */
     function _beforeVoteTokenTransfer(
         address from,
         address to,
@@ -174,19 +157,19 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateTotalSupplySnapshot() private {
-        uint256 numSnapshots = _totalSupplySnapshots.length;
+        uint256 numSnapshots = _totalSupplySnapshot.length;
         uint256 currentValue = _totalSupply;
 
         if (
             numSnapshots == 0 ||
-            _totalSupplySnapshots[numSnapshots - 1].snapshotId <
+            _totalSupplySnapshot[numSnapshots - 1].snapshotId <
             currentSnapshotId
         ) {
             require(
                 currentValue <= type(uint224).max,
                 "new snapshot cannot be casted safely"
             );
-            _totalSupplySnapshots.push(
+            _totalSupplySnapshot.push(
                 Snapshot({
                     snapshotId: currentSnapshotId,
                     value: uint224(currentValue)
@@ -196,12 +179,13 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     /**
-     * @dev Lookup a value in a list of (sorted) snapshots.
+     * @dev likely this is gone after
      */
     function _snapshotLookup(
         Snapshot[] storage ckpts,
         uint256 snapshotId
     ) internal view returns (uint256, bool) {
+        // TODO: Edit comment
         // This function runs a binary search to look for the last snapshot taken before `blockNumber`.
         //
         // During the loop, the index of the wanted snapshot remains in the range [low-1, high).
