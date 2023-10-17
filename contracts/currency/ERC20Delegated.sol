@@ -538,8 +538,6 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
 
         _beforeVoteTokenTransfer(address(0), account, amount);
 
-        // _voteTotalSupply += amount;
-
         _voteBalances[account] += amount;
         emit VoteTransfer(address(0), account, amount);
 
@@ -573,7 +571,6 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         unchecked {
             _voteBalances[account] = accountBalance - amount;
         }
-        // _voteTotalSupply -= amount;
 
         emit VoteTransfer(account, address(0), amount);
 
