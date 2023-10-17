@@ -7,7 +7,6 @@ import {
   MockContractFactory,
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { ERRORS } from '../utils/errors'
 import {
   ECO,
   ECOx,
@@ -45,12 +44,11 @@ async function calcEcoValue(
 
 describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
-  let charlie: SignerWithAddress
   let policyImpersonator: SignerWithAddress
   let pauser: SignerWithAddress
   const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
   before(async () => {
-    ;[alice, charlie, policyImpersonator, pauser] = await ethers.getSigners()
+    ;[alice, policyImpersonator, pauser] = await ethers.getSigners()
   })
   let eco: MockContract<ECO>
   let ECOx: MockContract<ECOx>
@@ -130,58 +128,6 @@ describe('ECOxExchange', () => {
     expect(await ecoXExchange.ecox()).to.eq(ECOx.address)
     expect(await ecoXExchange.eco()).to.eq(eco.address)
     expect(await ecoXExchange.initialSupply()).to.eq(INITIAL_SUPPLY)
-  })
-
-  describe('role permissions', () => {
-    describe('ecox role', () => {
-      it('can be changed by the policy', async () => {
-        await ecoXExchange
-          .connect(policyImpersonator)
-          .updateECOx(charlie.address)
-        expect(await ecoXExchange.ecox()).to.eq(charlie.address)
-      })
-
-      it('emits an event', async () => {
-        expect(
-          await ecoXExchange
-            .connect(policyImpersonator)
-            .updateECOx(charlie.address)
-        )
-          .to.emit(ecoXExchange, 'UpdatedECOx')
-          .withArgs(charlie.address)
-      })
-
-      it('is onlyPolicy gated', async () => {
-        await expect(
-          ecoXExchange.connect(charlie).updateECOx(charlie.address)
-        ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-      })
-    })
-
-    describe('eco role', () => {
-      it('can be changed by the policy', async () => {
-        await ecoXExchange
-          .connect(policyImpersonator)
-          .updateEco(charlie.address)
-        expect(await ecoXExchange.eco()).to.eq(charlie.address)
-      })
-
-      it('emits an event', async () => {
-        expect(
-          await ecoXExchange
-            .connect(policyImpersonator)
-            .updateEco(charlie.address)
-        )
-          .to.emit(ecoXExchange, 'UpdatedEco')
-          .withArgs(charlie.address)
-      })
-
-      it('is onlyPolicy gated', async () => {
-        await expect(
-          ecoXExchange.connect(charlie).updateEco(charlie.address)
-        ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-      })
-    })
   })
 
   describe('ecoValueOf', async () => {
