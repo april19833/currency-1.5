@@ -68,12 +68,6 @@ abstract contract InflationSnapshots is VoteSnapshots {
     function getInflationMultiplierAt(
         uint256 snapshotId
     ) public view returns (uint256) {
-        // (bool snapshotted, uint256 value) = _valueAt(
-        //     snapshotId,
-        //     inflationMultiplierSnapshots
-        // );
-
-        // return snapshotted ? value : inflationMultiplier;
         (uint256 value, bool snapshotted) = _snapshotLookup(
             inflationMultiplierSnapshots,
             snapshotId
