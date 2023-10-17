@@ -21,7 +21,6 @@ describe('Policed', () => {
   let DummyPoliced: MockContract<DummyPoliced>
   let Fake__Policy: FakeContract<Policy>
   beforeEach(async () => {
-    // Get a new mock L1 messenger
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
       { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
@@ -65,13 +64,13 @@ describe('Policed', () => {
 
     it('Policy can call onlyPolicy functions', async () => {
       const initialValue = await DummyPoliced.value()
-      expect(initialValue.eq(newValue)).to.be.false
+      expect(initialValue).to.not.eq(newValue)
 
       await DummyPoliced.connect(policyImpersonater).setValue(newValue)
 
       const changedValue = await DummyPoliced.value()
-      expect(changedValue.eq(newValue)).to.be.true
-      expect(changedValue.eq(initialValue)).to.be.false
+      expect(changedValue).to.eq(newValue)
+      expect(changedValue).to.not.eq(initialValue)
     })
 
     it('Non-Policy cannot call onlyPolicy functions', async () => {
