@@ -464,7 +464,10 @@ describe('Eco', () => {
 
   describe('votes', () => {
     beforeEach(async () => {
-      await ECOproxy.connect(minterImpersonator).mint(matthew.address, INITIAL_SUPPLY)
+      await ECOproxy.connect(minterImpersonator).mint(
+        matthew.address,
+        INITIAL_SUPPLY
+      )
     })
 
     describe('enableVoting', () => {
@@ -476,71 +479,126 @@ describe('Eco', () => {
         await ECOproxy.connect(matthew).enableVoting()
 
         expect(await ECOproxy.voter(matthew.address)).to.be.true
-        expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(INITIAL_SUPPLY)
+        expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(
+          INITIAL_SUPPLY
+        )
       })
 
       it('emits an event', async () => {
         await expect(ECOproxy.connect(matthew).enableVoting())
           .to.emit(ECOproxy, 'VoteTransfer')
-          .withArgs(ethers.constants.AddressZero, matthew.address, INITIAL_SUPPLY.mul(globalInflationMult))
+          .withArgs(
+            ethers.constants.AddressZero,
+            matthew.address,
+            INITIAL_SUPPLY.mul(globalInflationMult)
+          )
       })
 
       it('cannot enable if already enabled', async () => {
         await ECOproxy.connect(matthew).enableVoting()
 
-        await expect(ECOproxy.connect(matthew).enableVoting())
-          .to.be.revertedWith('ERC20Delegated: voting already enabled')
+        await expect(
+          ECOproxy.connect(matthew).enableVoting()
+        ).to.be.revertedWith('ERC20Delegated: voting already enabled')
       })
 
       it('non-voters are zero in every snapshot', async () => {
         await ECOproxy.connect(snapshotterImpersonator).snapshot()
-        await ECOproxy.connect(minterImpersonator).mint(matthew.address, INITIAL_SUPPLY)
+        await ECOproxy.connect(minterImpersonator).mint(
+          matthew.address,
+          INITIAL_SUPPLY
+        )
         await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY.mul(2))
+        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(
+          INITIAL_SUPPLY.mul(2)
+        )
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
         const currentSnapshotId = await ECOproxy.currentSnapshotId()
-        for(let snapshot:number = 0; snapshot <= currentSnapshotId; snapshot++) {
-          expect(await ECOproxy.voteBalanceOfAt(matthew.address, snapshot)).to.eq(0)
+        for (
+          let snapshot: number = 0;
+          snapshot <= currentSnapshotId;
+          snapshot++
+        ) {
+          expect(
+            await ECOproxy.voteBalanceOfAt(matthew.address, snapshot)
+          ).to.eq(0)
         }
       })
     })
 
     describe('transferring', () => {
       beforeEach(async () => {
-        await ECOproxy.connect(minterImpersonator).mint(alice.address, INITIAL_SUPPLY)
+        await ECOproxy.connect(minterImpersonator).mint(
+          alice.address,
+          INITIAL_SUPPLY
+        )
       })
 
       it('transfer from a non-voter to a voter mints votes', async () => {
         expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY)
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
         expect(await ECOproxy.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY)
-        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(INITIAL_SUPPLY)
+        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY
+        )
 
-        await expect(ECOproxy.connect(matthew).transfer(alice.address, INITIAL_SUPPLY.div(2)))
+        await expect(
+          ECOproxy.connect(matthew).transfer(
+            alice.address,
+            INITIAL_SUPPLY.div(2)
+          )
+        )
           .to.emit(ECOproxy, 'VoteTransfer')
-          .withArgs(ethers.constants.AddressZero, alice.address, INITIAL_SUPPLY.div(2).mul(globalInflationMult))
+          .withArgs(
+            ethers.constants.AddressZero,
+            alice.address,
+            INITIAL_SUPPLY.div(2).mul(globalInflationMult)
+          )
 
-        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY.div(2))
+        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(
+          INITIAL_SUPPLY.div(2)
+        )
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
-        expect(await ECOproxy.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY.mul(3).div(2))
-        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(INITIAL_SUPPLY.mul(3).div(2))
+        expect(await ECOproxy.balanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY.mul(3).div(2)
+        )
+        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY.mul(3).div(2)
+        )
       })
 
       it('transfer to a non-voter to a voter burns votes', async () => {
         expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY)
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
         expect(await ECOproxy.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY)
-        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(INITIAL_SUPPLY)
+        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY
+        )
 
-        await expect(ECOproxy.connect(alice).transfer(matthew.address, INITIAL_SUPPLY.div(2)))
+        await expect(
+          ECOproxy.connect(alice).transfer(
+            matthew.address,
+            INITIAL_SUPPLY.div(2)
+          )
+        )
           .to.emit(ECOproxy, 'VoteTransfer')
-          .withArgs(alice.address, ethers.constants.AddressZero, INITIAL_SUPPLY.div(2).mul(globalInflationMult))
+          .withArgs(
+            alice.address,
+            ethers.constants.AddressZero,
+            INITIAL_SUPPLY.div(2).mul(globalInflationMult)
+          )
 
-        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY.mul(3).div(2))
+        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(
+          INITIAL_SUPPLY.mul(3).div(2)
+        )
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
-        expect(await ECOproxy.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY.div(2))
-        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(INITIAL_SUPPLY.div(2))
+        expect(await ECOproxy.balanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY.div(2)
+        )
+        expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY.div(2)
+        )
       })
 
       it('transfer from a non-voter to a delegated voter mints votes for the delegate', async () => {
@@ -554,16 +612,31 @@ describe('Eco', () => {
         expect(await ECOproxy.balanceOf(dave.address)).to.eq(0)
         expect(await ECOproxy.voteBalanceOf(dave.address)).to.eq(INITIAL_SUPPLY)
 
-        await expect(ECOproxy.connect(matthew).transfer(alice.address, INITIAL_SUPPLY.div(2)))
+        await expect(
+          ECOproxy.connect(matthew).transfer(
+            alice.address,
+            INITIAL_SUPPLY.div(2)
+          )
+        )
           .to.emit(ECOproxy, 'VoteTransfer')
-          .withArgs(ethers.constants.AddressZero, dave.address, INITIAL_SUPPLY.div(2).mul(globalInflationMult))
+          .withArgs(
+            ethers.constants.AddressZero,
+            dave.address,
+            INITIAL_SUPPLY.div(2).mul(globalInflationMult)
+          )
 
-        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(INITIAL_SUPPLY.div(2))
+        expect(await ECOproxy.balanceOf(matthew.address)).to.eq(
+          INITIAL_SUPPLY.div(2)
+        )
         expect(await ECOproxy.voteBalanceOf(matthew.address)).to.eq(0)
-        expect(await ECOproxy.balanceOf(alice.address)).to.eq(INITIAL_SUPPLY.mul(3).div(2))
+        expect(await ECOproxy.balanceOf(alice.address)).to.eq(
+          INITIAL_SUPPLY.mul(3).div(2)
+        )
         expect(await ECOproxy.voteBalanceOf(alice.address)).to.eq(0)
         expect(await ECOproxy.balanceOf(dave.address)).to.eq(0)
-        expect(await ECOproxy.voteBalanceOf(dave.address)).to.eq(INITIAL_SUPPLY.mul(3).div(2))
+        expect(await ECOproxy.voteBalanceOf(dave.address)).to.eq(
+          INITIAL_SUPPLY.mul(3).div(2)
+        )
       })
     })
   })
@@ -711,9 +784,7 @@ describe('Eco', () => {
       it('does not allow delegation if not a voter', async () => {
         await expect(
           ECOproxy.connect(matthew).delegate(dave.address)
-        ).to.be.revertedWith(
-          'ERC20Delegated: must be a voter to delegate'
-        )
+        ).to.be.revertedWith('ERC20Delegated: must be a voter to delegate')
       })
 
       it('does not allow delegation if not enabled', async () => {

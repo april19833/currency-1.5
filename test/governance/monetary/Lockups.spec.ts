@@ -53,7 +53,8 @@ describe('Lockups', () => {
   const BASE = '1000000000000000000'
 
   before(async () => {
-    ;[policyImpersonator, alice, bob, charlie, dave, matthew] = await ethers.getSigners()
+    ;[policyImpersonator, alice, bob, charlie, dave, matthew] =
+      await ethers.getSigners()
   })
 
   beforeEach(async () => {
@@ -206,7 +207,9 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, matthew.address)).to.eq(gons)
       expect(await lockups.getBalance(0, matthew.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, matthew.address)).to.eq(interest)
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
       expect(await eco.balanceOf(matthew.address)).to.eq(0)
       expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount)
       expect(await eco.voteBalanceOf(matthew.address)).to.eq(0)
@@ -404,7 +407,7 @@ describe('Lockups', () => {
           matthew.address,
           depositAmount.sub(interest).mul(inflationMultiplier)
         )
-        
+
       expect(await eco.balanceOf(lockups.address)).to.eq(interest.mul(2))
       expect(await eco.balanceOf(alice.address)).to.eq(
         depositAmount.sub(interest)
@@ -487,7 +490,9 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, matthew.address)).to.eq(gons)
       expect(await lockups.getBalance(0, matthew.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, matthew.address)).to.eq(interest)
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
 
       await expect(lockups.connect(alice).withdraw(0))
         .to.emit(lockups, 'LockupWithdrawal')
@@ -507,9 +512,7 @@ describe('Lockups', () => {
       expect(await eco.balanceOf(alice.address)).to.eq(
         depositAmount.add(interest)
       )
-      expect(await eco.balanceOf(bob.address)).to.eq(
-        0
-      )
+      expect(await eco.balanceOf(bob.address)).to.eq(0)
       expect(await eco.balanceOf(matthew.address)).to.eq(
         depositAmount.add(interest)
       )
@@ -518,7 +521,9 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(0)
       expect(await lockups.getBalance(0, alice.address)).to.eq(0)
       expect(await lockups.getYield(0, alice.address)).to.eq(0)
-      expect(await lockups.getDelegate(0, alice.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, alice.address)).to.eq(
+        ethers.constants.AddressZero
+      )
 
       expect(await lockups.getGonsBalance(0, bob.address)).to.eq(gons)
       expect(await lockups.getBalance(0, bob.address)).to.eq(depositAmount)
@@ -528,7 +533,9 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, matthew.address)).to.eq(0)
       expect(await lockups.getBalance(0, matthew.address)).to.eq(0)
       expect(await lockups.getYield(0, matthew.address)).to.eq(0)
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
     })
     it('doesnt behave unexpectedly if they call withdraw twice', async () => {
       expect(await eco.balanceOf(alice.address)).to.eq(0)
@@ -648,16 +655,22 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, alice.address)).to.eq(0)
       expect(await lockups.getBalance(0, alice.address)).to.eq(0)
       expect(await lockups.getYield(0, alice.address)).to.eq(0)
-      expect(await lockups.getDelegate(0, alice.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, alice.address)).to.eq(
+        ethers.constants.AddressZero
+      )
       expect(await eco.balanceOf(bob.address)).to.eq(
         depositAmount.add(interest)
       )
       expect(await lockups.getGonsBalance(0, bob.address)).to.eq(0)
       expect(await lockups.getBalance(0, bob.address)).to.eq(0)
       expect(await lockups.getYield(0, bob.address)).to.eq(0)
-      expect(await lockups.getDelegate(0, bob.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, bob.address)).to.eq(
+        ethers.constants.AddressZero
+      )
 
-      expect(await eco.voteBalanceOf(dave.address)).to.eq(depositAmount.add(interest).mul(2))
+      expect(await eco.voteBalanceOf(dave.address)).to.eq(
+        depositAmount.add(interest).mul(2)
+      )
       expect(await eco.voteBalanceOf(charlie.address)).to.eq(0)
       expect(await eco.voteBalanceOf(bob.address)).to.eq(0)
       expect(await eco.voteBalanceOf(alice.address)).to.eq(0)
@@ -668,16 +681,19 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, matthew.address)).to.eq(gons)
       expect(await lockups.getBalance(0, matthew.address)).to.eq(depositAmount)
       expect(await lockups.getYield(0, matthew.address)).to.eq(interest)
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
-      
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
+
       await eco.connect(matthew).enableVoting()
       await eco.connect(matthew).delegate(dave.address)
 
       expect(await eco.voteBalanceOf(matthew.address)).to.eq(0)
       expect(await eco.voteBalanceOf(dave.address)).to.eq(0)
-      
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
 
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
 
       await expect(lockups.connect(matthew).withdraw(0))
         .to.emit(lockups, 'LockupWithdrawal')
@@ -693,10 +709,14 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, matthew.address)).to.eq(0)
       expect(await lockups.getBalance(0, matthew.address)).to.eq(0)
       expect(await lockups.getYield(0, matthew.address)).to.eq(0)
-      expect(await lockups.getDelegate(0, matthew.address)).to.eq(ethers.constants.AddressZero)
+      expect(await lockups.getDelegate(0, matthew.address)).to.eq(
+        ethers.constants.AddressZero
+      )
 
       expect(await eco.voteBalanceOf(matthew.address)).to.eq(0)
-      expect(await eco.voteBalanceOf(dave.address)).to.eq(depositAmount.add(interest))
+      expect(await eco.voteBalanceOf(dave.address)).to.eq(
+        depositAmount.add(interest)
+      )
     })
 
     it('lets two people withdraw their own stuff as expected', async () => {

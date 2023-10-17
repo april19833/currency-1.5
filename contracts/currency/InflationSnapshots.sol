@@ -128,7 +128,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     ) public view override returns (uint256) {
         uint256 _inflationMultiplier = getInflationMultiplierAt(snapshotId);
 
-        if(_inflationMultiplier == 0) {
+        if (_inflationMultiplier == 0) {
             return 0;
         }
 

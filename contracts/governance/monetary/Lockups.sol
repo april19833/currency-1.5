@@ -195,7 +195,7 @@ contract Lockups is Lever, TimeUtils {
 
         uint256 _gonsAmount = _amount * currentInflationMultiplier;
 
-        if(eco.voter(_beneficiary)) {
+        if (eco.voter(_beneficiary)) {
             address _primaryDelegate = eco.getPrimaryDelegate(_beneficiary);
             address depositDelegate = lockup.delegates[_beneficiary];
             uint256 depositGons = lockup.gonsBalances[_beneficiary];
@@ -203,12 +203,12 @@ contract Lockups is Lever, TimeUtils {
             if (depositGons > 0 && _primaryDelegate != depositDelegate) {
                 if (depositDelegate != address(0)) {
                     // this case catches if the voter status of the user changes between deposits
-                    eco.undelegateAmountFromAddress(depositDelegate, depositGons);
+                    eco.undelegateAmountFromAddress(
+                        depositDelegate,
+                        depositGons
+                    );
                 }
-                eco.delegateAmount(
-                    _primaryDelegate,
-                    _gonsAmount + depositGons
-                );
+                eco.delegateAmount(_primaryDelegate, _gonsAmount + depositGons);
             } else {
                 eco.delegateAmount(_primaryDelegate, _gonsAmount);
             }
@@ -246,10 +246,7 @@ contract Lockups is Lever, TimeUtils {
         address delegate = lockup.delegates[_recipient];
 
         if (delegate != address(0)) {
-            eco.undelegateAmountFromAddress(
-                delegate,
-                gonsAmount
-            );
+            eco.undelegateAmountFromAddress(delegate, gonsAmount);
         }
 
         if (getTime() < lockup.end) {
