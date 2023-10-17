@@ -27,10 +27,8 @@ contract VotingPower is Policed {
         ecoToken = _ecoAddr;
     }
 
-    function totalVotingPower(
-        uint256 _snapshotId
-    ) public view returns (uint256) {
-        uint256 _supply = ecoToken.totalSupplyAt(_snapshotId);
+    function totalVotingPower() public view returns (uint256) {
+        uint256 _supply = ecoToken.totalSupplySnapshot();
 
         return _supply + 10 * totalECOxSnapshot - excludedVotingPower;
     }
@@ -39,7 +37,7 @@ contract VotingPower is Policed {
         address _who,
         uint256 _snapshotId
     ) public view returns (uint256) {
-        uint256 _power = ecoToken.voteBalanceOfAt(_who, _snapshotId);
+        uint256 _power = ecoToken.voteBalanceSnapshot(_who);
         uint256 _powerx = getXStaking().votingECOx(_who, _snapshotId);
         // ECOx has 10x the voting power of ECO per unit
         return _power + 10 * _powerx;
