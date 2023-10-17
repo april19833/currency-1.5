@@ -44,9 +44,7 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         VoteCheckpoints("Staked ECOx", "sECOx", address(_policy), address(0))
         Policed(_policy)
     {
-        if(
-            address(_ecoXAddr) == address(0)
-        ) {
+        if (address(_ecoXAddr) == address(0)) {
             revert NoZeroECOx();
         }
         ecoXToken = _ecoXAddr;

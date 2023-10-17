@@ -1,6 +1,11 @@
 import { ethers } from 'hardhat'
 import { expect } from 'chai'
-import { smock, FakeContract, MockContract, MockContractFactory } from '@defi-wonderland/smock'
+import {
+  smock,
+  FakeContract,
+  MockContract,
+  MockContractFactory,
+} from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
@@ -19,7 +24,7 @@ const one = ethers.utils.parseEther('1')
 const INITIAL_BALANCE = one.mul(1000)
 const stakeX = INITIAL_BALANCE.div(2)
 
-describe.only('ECOxStaking', () => {
+describe('ECOxStaking', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress // no approval address
@@ -35,36 +40,43 @@ describe.only('ECOxStaking', () => {
   let ecoX: MockContract<ECOx>
   let ecoXStaking: ECOxStaking
 
-  beforeEach( async () => {
+  beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-        'Policy',
-        { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      'Policy',
+      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
     )
 
     const EcoXFact: MockContractFactory<ECOx__factory> = await smock.mock(
-        'ECOx'
+      'ECOx'
     )
     ecoX = await EcoXFact.connect(policyImpersonater).deploy(
-        Fake__Policy.address,
-        PLACEHOLDER_ADDRESS1,
-        PLACEHOLDER_ADDRESS1,
+      Fake__Policy.address,
+      PLACEHOLDER_ADDRESS1,
+      PLACEHOLDER_ADDRESS1
     )
 
-    await ecoX.connect(policyImpersonater).updateMinters(ecoXminterImpersonator.address, true)
-    await ecoX.connect(ecoXminterImpersonator).mint(alice.address, INITIAL_BALANCE)
-    await ecoX.connect(ecoXminterImpersonator).mint(bob.address, INITIAL_BALANCE)
-    await ecoX.connect(ecoXminterImpersonator).mint(charlie.address, INITIAL_BALANCE)
+    await ecoX
+      .connect(policyImpersonater)
+      .updateMinters(ecoXminterImpersonator.address, true)
+    await ecoX
+      .connect(ecoXminterImpersonator)
+      .mint(alice.address, INITIAL_BALANCE)
+    await ecoX
+      .connect(ecoXminterImpersonator)
+      .mint(bob.address, INITIAL_BALANCE)
+    await ecoX
+      .connect(ecoXminterImpersonator)
+      .mint(charlie.address, INITIAL_BALANCE)
 
     const ecoXStakingFact = new ECOxStaking__factory(policyImpersonater)
 
-    await expect(ecoXStakingFact.deploy(
-        Fake__Policy.address,
-        ethers.constants.AddressZero,
-    )).to.be.revertedWith(ERRORS.ECOxStaking.CONSTRUCTOR_ZERO_ECOX_ADDRESS)
+    await expect(
+      ecoXStakingFact.deploy(Fake__Policy.address, ethers.constants.AddressZero)
+    ).to.be.revertedWith(ERRORS.ECOxStaking.CONSTRUCTOR_ZERO_ECOX_ADDRESS)
 
     const ecoXStakingImpl = await ecoXStakingFact.deploy(
-        Fake__Policy.address,
-        ecoX.address,
+      Fake__Policy.address,
+      ecoX.address
     )
 
     const proxy = await new ForwardProxy__factory()
@@ -82,101 +94,107 @@ describe.only('ECOxStaking', () => {
 
   context('deposit and withdrawal', () => {
     describe('deposit', () => {
-        context('happy path', () => {
-            it('can deposit', async () => {
-                await ecoXStaking.connect(alice).deposit(stakeX)
-            })
-
-            it('changes state', async () => {
-                expect(await ecoXStaking.balanceOf(alice.address)).to.eq(0)
-                await ecoXStaking.connect(alice).deposit(stakeX)
-                expect(await ecoXStaking.balanceOf(alice.address)).to.eq(stakeX)
-            })
-
-            it('emits events', async () => {
-                await expect(ecoXStaking.connect(alice).deposit(stakeX))
-                    .to.emit(ecoXStaking, `Deposit`)
-                    .withArgs(alice.address, stakeX)
-            })
+      context('happy path', () => {
+        it('can deposit', async () => {
+          await ecoXStaking.connect(alice).deposit(stakeX)
         })
 
-        context('reverts', () => {
-            it('without an allowance', async () => {
-                await expect(ecoXStaking.connect(charlie).deposit(stakeX))
-                    .to.be.revertedWith(ERRORS.ERC20.TRANSFERFROM_BAD_ALLOWANCE)
-            })
-
-            it('without tokens for your allowance allowance', async () => {
-                await ecoX.connect(bob).increaseAllowance(ecoXStaking.address, INITIAL_BALANCE)
-                await expect(ecoXStaking.connect(bob).deposit(INITIAL_BALANCE.mul(2)))
-                    .to.be.revertedWith(ERRORS.ERC20.TRANSFER_BAD_AMOUNT)
-            })
+        it('changes state', async () => {
+          expect(await ecoXStaking.balanceOf(alice.address)).to.eq(0)
+          await ecoXStaking.connect(alice).deposit(stakeX)
+          expect(await ecoXStaking.balanceOf(alice.address)).to.eq(stakeX)
         })
+
+        it('emits events', async () => {
+          await expect(ecoXStaking.connect(alice).deposit(stakeX))
+            .to.emit(ecoXStaking, `Deposit`)
+            .withArgs(alice.address, stakeX)
+        })
+      })
+
+      context('reverts', () => {
+        it('without an allowance', async () => {
+          await expect(
+            ecoXStaking.connect(charlie).deposit(stakeX)
+          ).to.be.revertedWith(ERRORS.ERC20.TRANSFERFROM_BAD_ALLOWANCE)
+        })
+
+        it('without tokens for your allowance allowance', async () => {
+          await ecoX
+            .connect(bob)
+            .increaseAllowance(ecoXStaking.address, INITIAL_BALANCE)
+          await expect(
+            ecoXStaking.connect(bob).deposit(INITIAL_BALANCE.mul(2))
+          ).to.be.revertedWith(ERRORS.ERC20.TRANSFER_BAD_AMOUNT)
+        })
+      })
     })
 
     describe('withdraw', () => {
-        context('happy path', () => {
-            beforeEach(async () => {
-                await ecoXStaking.connect(alice).deposit(stakeX)
-            })
-
-            it('can withdraw', async () => {
-                await ecoXStaking.connect(alice).withdraw(stakeX)
-            })
-
-            it('can withdraw partial', async () => {
-                await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
-            })
-
-            it('changes state', async () => {
-                expect(await ecoXStaking.balanceOf(alice.address)).to.eq(stakeX)
-                await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
-                expect(await ecoXStaking.balanceOf(alice.address)).to.eq(stakeX.div(2))
-                expect(await ecoX.balanceOf(alice.address)).to.eq(stakeX.mul(3).div(2))
-                await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
-                expect(await ecoXStaking.balanceOf(alice.address)).to.eq(0)
-                expect(await ecoX.balanceOf(alice.address)).to.eq(INITIAL_BALANCE)
-            })
-
-            it('emits events', async () => {
-                await expect(ecoXStaking.connect(alice).withdraw(stakeX))
-                    .to.emit(ecoXStaking, `Withdrawal`)
-                    .withArgs(alice.address, stakeX)
-            })
+      context('happy path', () => {
+        beforeEach(async () => {
+          await ecoXStaking.connect(alice).deposit(stakeX)
         })
 
-        context('reverts', () => {
-            it('no funds', async () => {
-                await expect(ecoXStaking.connect(charlie).withdraw(stakeX))
-                    .to.be.revertedWith(ERRORS.ERC20.BURN_BAD_AMOUNT)
-            })
-
-            it('overdraw', async () => {
-                await expect(ecoXStaking.connect(alice).withdraw(stakeX.mul(3)))
-                    .to.be.revertedWith(ERRORS.ERC20.BURN_BAD_AMOUNT)
-            })
+        it('can withdraw', async () => {
+          await ecoXStaking.connect(alice).withdraw(stakeX)
         })
+
+        it('can withdraw partial', async () => {
+          await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
+        })
+
+        it('changes state', async () => {
+          expect(await ecoXStaking.balanceOf(alice.address)).to.eq(stakeX)
+          await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
+          expect(await ecoXStaking.balanceOf(alice.address)).to.eq(
+            stakeX.div(2)
+          )
+          expect(await ecoX.balanceOf(alice.address)).to.eq(
+            stakeX.mul(3).div(2)
+          )
+          await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
+          expect(await ecoXStaking.balanceOf(alice.address)).to.eq(0)
+          expect(await ecoX.balanceOf(alice.address)).to.eq(INITIAL_BALANCE)
+        })
+
+        it('emits events', async () => {
+          await expect(ecoXStaking.connect(alice).withdraw(stakeX))
+            .to.emit(ecoXStaking, `Withdrawal`)
+            .withArgs(alice.address, stakeX)
+        })
+      })
+
+      context('reverts', () => {
+        it('no funds', async () => {
+          await expect(
+            ecoXStaking.connect(charlie).withdraw(stakeX)
+          ).to.be.revertedWith(ERRORS.ERC20.BURN_BAD_AMOUNT)
+        })
+
+        it('overdraw', async () => {
+          await expect(
+            ecoXStaking.connect(alice).withdraw(stakeX.mul(3))
+          ).to.be.revertedWith(ERRORS.ERC20.BURN_BAD_AMOUNT)
+        })
+      })
     })
   })
 
   context('disabled ERC20 functionality', () => {
     beforeEach(async () => {
-        await ecoXStaking.connect(alice).deposit(stakeX)
+      await ecoXStaking.connect(alice).deposit(stakeX)
     })
 
     it('reverts on transfer', async () => {
-      await expect(
-        ecoXStaking.transfer(alice.address, 1)
-      ).to.be.revertedWith(ERRORS.ECOxStaking.ATTEMPTED_TRANSFER)
+      await expect(ecoXStaking.transfer(alice.address, 1)).to.be.revertedWith(
+        ERRORS.ECOxStaking.ATTEMPTED_TRANSFER
+      )
     })
 
     it('reverts on transferFrom', async () => {
       await expect(
-        ecoXStaking.transferFrom(
-          alice.address,
-          bob.address,
-          1
-        )
+        ecoXStaking.transferFrom(alice.address, bob.address, 1)
       ).to.be.revertedWith(ERRORS.ECOxStaking.ATTEMPTED_TRANSFER)
     })
   })
@@ -200,9 +218,7 @@ describe.only('ECOxStaking', () => {
     context('basic token and checkpoints data', async () => {
       // Confirm the internal balance method works
       it('can get the balance', async () => {
-        expect(await ecoXStaking.balanceOf(alice.address)).to.equal(
-          stakeX
-        )
+        expect(await ecoXStaking.balanceOf(alice.address)).to.equal(stakeX)
       })
 
       it('can get the past total supply', async () => {
@@ -214,8 +230,8 @@ describe.only('ECOxStaking', () => {
 
       it('can get a past balance', async () => {
         const pastBalance1 = await ecoXStaking.getPastVotes(
-        alice.address,
-        blockNumber1
+          alice.address,
+          blockNumber1
         )
         expect(pastBalance1).to.be.equal(0)
         const pastBalance2 = await ecoXStaking.getPastVotes(
@@ -237,35 +253,35 @@ describe.only('ECOxStaking', () => {
     })
 
     describe('delegate', () => {
-        it('can delegate', async () => {
-            const blockNumber1 = await time.latestBlock()
-            await ecoXStaking.connect(alice).delegate(bob.address)
-            const blockNumber2 = await time.latestBlock()
-            time.advanceBlock();
-            expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
-                INITIAL_BALANCE.add(stakeX)
-            )
-            expect(
-                await ecoXStaking.votingECOx(bob.address, blockNumber1)
-            ).to.equal(INITIAL_BALANCE)
-            expect(
-                await ecoXStaking.votingECOx(bob.address, blockNumber2)
-            ).to.equal(INITIAL_BALANCE.add(stakeX))
-        })
+      it('can delegate', async () => {
+        const blockNumber1 = await time.latestBlock()
+        await ecoXStaking.connect(alice).delegate(bob.address)
+        const blockNumber2 = await time.latestBlock()
+        time.advanceBlock()
+        expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
+          INITIAL_BALANCE.add(stakeX)
+        )
+        expect(
+          await ecoXStaking.votingECOx(bob.address, blockNumber1)
+        ).to.equal(INITIAL_BALANCE)
+        expect(
+          await ecoXStaking.votingECOx(bob.address, blockNumber2)
+        ).to.equal(INITIAL_BALANCE.add(stakeX))
+      })
 
-        it('can withdraw if delegated', async () => {
-            await ecoXStaking.connect(alice).delegate(bob.address)
+      it('can withdraw if delegated', async () => {
+        await ecoXStaking.connect(alice).delegate(bob.address)
 
-            expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
-                INITIAL_BALANCE.add(stakeX)
-            )
+        expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
+          INITIAL_BALANCE.add(stakeX)
+        )
 
-            await ecoXStaking.connect(alice).withdraw(stakeX)
+        await ecoXStaking.connect(alice).withdraw(stakeX)
 
-            expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
-                INITIAL_BALANCE
-            )
-        })
+        expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
+          INITIAL_BALANCE
+        )
+      })
     })
 
     context('undelegate', () => {
@@ -285,18 +301,21 @@ describe.only('ECOxStaking', () => {
       })
 
       it('partial delegation allows withdrawing the rest', async () => {
-          await ecoXStaking
-            .connect(alice)
-            .delegateAmount(bob.address, stakeX.div(2))
-          await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
+        await ecoXStaking
+          .connect(alice)
+          .delegateAmount(bob.address, stakeX.div(2))
+        await ecoXStaking.connect(alice).withdraw(stakeX.div(2))
       })
 
       it('partial delegation reverts otherwise', async () => {
-          await ecoXStaking
-            .connect(alice)
-            .delegateAmount(bob.address, stakeX.div(2))
-          await expect(ecoXStaking.connect(alice).withdraw(stakeX))
-            .to.be.revertedWith('Delegation too complicated to transfer. Undelegate and simplify before trying again')
+        await ecoXStaking
+          .connect(alice)
+          .delegateAmount(bob.address, stakeX.div(2))
+        await expect(
+          ecoXStaking.connect(alice).withdraw(stakeX)
+        ).to.be.revertedWith(
+          'Delegation too complicated to transfer. Undelegate and simplify before trying again'
+        )
       })
     })
   })

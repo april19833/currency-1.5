@@ -87,5 +87,5 @@ export const ERRORS = {
   ECOxStaking: {
     CONSTRUCTOR_ZERO_ECOX_ADDRESS: 'NoZeroECOx',
     ATTEMPTED_TRANSFER: 'NonTransferrable',
-  }
+  },
 }
