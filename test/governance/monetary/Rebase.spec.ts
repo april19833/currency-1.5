@@ -78,7 +78,7 @@ describe('Rebase', () => {
   })
 
   it('only lets authorized call execute', async () => {
-    const initialInflationMult = await eco.getInflationMultiplier()
+    const initialInflationMult = await eco.inflationMultiplier()
     expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(initialInflationMult)
     const newMultiplier = 12345678
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
@@ -98,7 +98,7 @@ describe('Rebase', () => {
       .to.emit(rebase, 'Rebased')
       .withArgs(newMultiplier)
 
-    expect(await eco.getInflationMultiplier()).to.eq(newMultiplier)
+    expect(await eco.inflationMultiplier()).to.eq(newMultiplier)
   })
 
   it('errors on bad inflationmultiplier', async () => {

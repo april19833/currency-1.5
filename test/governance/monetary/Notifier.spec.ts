@@ -203,7 +203,7 @@ describe('notifier', () => {
         .connect(policyImpersonator)
         .setAuthorized(alice.address, true)
 
-      const initialInflationMult = await eco.getInflationMultiplier()
+      const initialInflationMult = await eco.inflationMultiplier()
       expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(
         initialInflationMult
       )
@@ -215,7 +215,7 @@ describe('notifier', () => {
           downstream.address,
           downstream.interface.encodeFunctionData('callThatFails')
         )
-      expect(await eco.getInflationMultiplier()).to.eq(newInflationMult)
+      expect(await eco.inflationMultiplier()).to.eq(newInflationMult)
       expect(await downstream.pigsFly()).to.be.false
     })
   })
