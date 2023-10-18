@@ -4,10 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "../../policy/Policed.sol";
 import "../../currency/ECO.sol";
-import "../../currency/ECOxStaking.sol";
+import "./ECOxStaking.sol";
 
-
-contract CommunityGovernance is Policed, Pausable, TimeUtils{
+contract CommunityGovernance is Policed, Pausable, TimeUtils {
     //////////////////////////////////////////////
     /////////////////// TYPES ////////////////////
     //////////////////////////////////////////////
@@ -15,7 +14,7 @@ contract CommunityGovernance is Policed, Pausable, TimeUtils{
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
-    
+
     /** ECO contract */
     ECO public immutable eco;
 
@@ -29,6 +28,15 @@ contract CommunityGovernance is Policed, Pausable, TimeUtils{
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
+    /**
+     * error for when non-pauser tries to call methods without permission
+     */
+    error OnlyPauser();
+
+    /**
+     * error for when setPauser is called with the existing pauser address as an argument
+     */
+    error SamePauser();
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -39,14 +47,26 @@ contract CommunityGovernance is Policed, Pausable, TimeUtils{
      */
     event PauserAssignment(address indexed pauser);
 
-    constructor(Policy policy, address _eco, address _ecoXStaking) Policed(policy) {
+    modifier onlyPauser() {
+        require(msg.sender == pauser, "ERC20Pausable: not pauser");
+        _;
+    }
+
+    constructor(
+        Policy policy,
+        address _eco,
+        address _ecoXStaking,
+        address _pauser
+    ) Policed(policy) {
         eco = ECO(_eco);
         ecoXStaking = ECOxStaking(_ecoXStaking);
-        pauser = address(policy);
+        pauser = _pauser;
     }
 
     function setPauser(address _pauser) public onlyPolicy {
-        require(_pauser != pauser, "CommunityGovernance: must change pauser");
+        if (pauser == _pauser) {
+            revert SamePauser();
+        }
         pauser = _pauser;
         emit PauserAssignment(_pauser);
     }
