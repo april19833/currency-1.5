@@ -9,6 +9,15 @@ import "../../policy/Policed.sol";
  *
  */
 contract ECOxStaking is VoteCheckpoints, Policed {
+    // the ECOx contract address
+    IERC20 public immutable ecoXToken;
+
+    // error for if the constructor tries to set the ECOx address to zero
+    error NoZeroECOx();
+
+    // error for if any transfer function is attempted to be used
+    error NonTransferrable();
+
     /** The Deposit event indicates that ECOx has been locked up, credited
      * to a particular address in a particular amount.
      *
@@ -25,9 +34,6 @@ contract ECOxStaking is VoteCheckpoints, Policed {
      */
     event Withdrawal(address indexed destination, uint256 amount);
 
-    // the ECOx contract address
-    IERC20 public immutable ecoXToken;
-
     constructor(
         Policy _policy,
         IERC20 _ecoXAddr
@@ -38,10 +44,9 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         VoteCheckpoints("Staked ECOx", "sECOx", address(_policy), address(0))
         Policed(_policy)
     {
-        require(
-            address(_ecoXAddr) != address(0),
-            "Critical: do not set the _ecoXAddr as the zero address"
-        );
+        if (address(_ecoXAddr) == address(0)) {
+            revert NoZeroECOx();
+        }
         ecoXToken = _ecoXAddr;
     }
 
@@ -83,7 +88,7 @@ contract ECOxStaking is VoteCheckpoints, Policed {
     }
 
     function transfer(address, uint256) public pure override returns (bool) {
-        revert("sECOx is non-transferrable");
+        revert NonTransferrable();
     }
 
     function transferFrom(
@@ -91,6 +96,6 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         address,
         uint256
     ) public pure override returns (bool) {
-        revert("sECOx is non-transferrable");
+        revert NonTransferrable();
     }
 }

@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../../utils/errors'
 
-import { getABI } from '../../utils/testUtils'
+import { getABI } from '../../utils/getABI'
 import {
   TrustedNodes,
   TrustedNodes__factory,

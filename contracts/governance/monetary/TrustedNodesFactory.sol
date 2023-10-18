@@ -23,7 +23,6 @@ contract TrustedNodesFactory is Policed, TimeUtils {
         CurrencyGovernance _currencyGovernance,
         ECOx _ecoX
     ) Policed(_policy) {
-        policy = _policy;
         currencyGovernance = _currencyGovernance;
         ecoX = _ecoX;
     }

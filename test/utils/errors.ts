@@ -84,4 +84,8 @@ export const ERRORS = {
     REQUIRE_NOT_PAUSED: 'Pausable: paused',
     REQUIRE_PAUSED: 'Pausable: not paused',
   },
+  ECOxStaking: {
+    CONSTRUCTOR_ZERO_ECOX_ADDRESS: 'NoZeroECOx',
+    ATTEMPTED_TRANSFER: 'NonTransferrable',
+  },
 }
