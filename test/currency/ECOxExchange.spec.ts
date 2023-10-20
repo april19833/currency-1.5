@@ -15,6 +15,7 @@ import {
   ECOx__factory,
   ECO__factory,
   Policy,
+  ECOxStaking,
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
 import { BigDecimal, RoundingMode } from 'bigdecimal'
@@ -56,12 +57,14 @@ describe('ECOxExchange', () => {
   let ecoXExchange: ECOxExchange
 
   let Fake__Policy: FakeContract<Policy>
+  let ecoXStaking: FakeContract<ECOxStaking>
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
+    ecoXStaking = await smock.fake<ECOxStaking>('ECOxStaking')
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
       'ECO'
@@ -170,13 +173,13 @@ describe('ECOxExchange', () => {
     it('returns the correct value', async () => {
       const otherEcoSupply = BigNumber.from('1012345678901234567890')
       const ecoxBalance = INITIAL_SUPPLY.div(5)
-      eco.totalSupplyAt.returns(otherEcoSupply)
+      eco.totalSupplySnapshot.returns(otherEcoSupply)
       const calced = (
         await calcEcoValue(ecoxBalance, INITIAL_SUPPLY, otherEcoSupply)
       ).stripTrailingZeros()
 
       expect(
-        await ecoXExchange.valueAt(ecoxBalance.toString(), 12345)
+        await ecoXExchange.valueAt(ecoxBalance.toString())
       ).to.be.closeTo(
         BigNumber.from(calced.toPlainString()),
         BigNumber.from('1000000')

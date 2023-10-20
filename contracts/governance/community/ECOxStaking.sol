@@ -78,13 +78,13 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         address _voter,
         uint256 _blockNumber
     ) external view returns (uint256) {
-        return getPastVotingGons(_voter, _blockNumber);
+        return getPastVotes(_voter, _blockNumber);
     }
 
     function totalVotingECOx(
         uint256 _blockNumber
     ) external view returns (uint256) {
-        return getPastTotalSupply(_blockNumber);
+        return totalSupplyAt(_blockNumber);
     }
 
     function transfer(address, uint256) public pure override returns (bool) {

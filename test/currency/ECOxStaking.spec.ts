@@ -24,7 +24,7 @@ const one = ethers.utils.parseEther('1')
 const INITIAL_BALANCE = one.mul(1000)
 const stakeX = INITIAL_BALANCE.div(2)
 
-describe('ECOxStaking', () => {
+describe.only('ECOxStaking', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress // no approval address

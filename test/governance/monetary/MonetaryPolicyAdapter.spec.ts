@@ -45,10 +45,10 @@ const REVERTING_UINT156_3 = 1001932810298400
 
 describe('MonetaryPolicyAdapter', () => {
   let cgImpersonater: SignerWithAddress
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   before(async () => {
-    ;[cgImpersonater, policyImpersonater, alice] = await ethers.getSigners()
+    ;[cgImpersonater, policyImpersonator, alice] = await ethers.getSigners()
   })
 
   let Enacter: MonetaryPolicyAdapter
@@ -62,7 +62,7 @@ describe('MonetaryPolicyAdapter', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     Fake__CurrencyGovernance = await smock.fake<CurrencyGovernance>(
@@ -71,13 +71,13 @@ describe('MonetaryPolicyAdapter', () => {
     )
 
     Enacter = await new MonetaryPolicyAdapter__factory()
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(Fake__Policy.address, Fake__CurrencyGovernance.address)
 
     DummyLeverFactory = new DummyLever__factory()
-    DummyLever1 = await DummyLeverFactory.connect(policyImpersonater).deploy()
-    DummyLever2 = await DummyLeverFactory.connect(policyImpersonater).deploy()
-    DummyLever3 = await DummyLeverFactory.connect(policyImpersonater).deploy()
+    DummyLever1 = await DummyLeverFactory.connect(policyImpersonator).deploy()
+    DummyLever2 = await DummyLeverFactory.connect(policyImpersonator).deploy()
+    DummyLever3 = await DummyLeverFactory.connect(policyImpersonator).deploy()
   })
 
   describe('roles', () => {
@@ -107,14 +107,14 @@ describe('MonetaryPolicyAdapter', () => {
 
     describe('currencyGovernance role', () => {
       it('the policy contract can call the setter', async () => {
-        await Enacter.connect(policyImpersonater).setCurrencyGovernance(
+        await Enacter.connect(policyImpersonator).setCurrencyGovernance(
           alice.address
         )
       })
 
       it('emits an event', async () => {
         expect(
-          await Enacter.connect(policyImpersonater).setCurrencyGovernance(
+          await Enacter.connect(policyImpersonator).setCurrencyGovernance(
             alice.address
           )
         )
@@ -130,7 +130,7 @@ describe('MonetaryPolicyAdapter', () => {
 
       it('cannot set to zero', async () => {
         await expect(
-          Enacter.connect(policyImpersonater).setCurrencyGovernance(
+          Enacter.connect(policyImpersonator).setCurrencyGovernance(
             constants.AddressZero
           )
         ).to.be.revertedWith(

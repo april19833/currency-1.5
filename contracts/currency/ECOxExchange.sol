@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 import "./ECO.sol";
 import "../policy/Policed.sol";
 import "./ECOx.sol";
-import "./InflationCheckpoints.sol";
 
 contract ECOxExchange is Policed {
     /**
@@ -51,10 +50,9 @@ contract ECOxExchange is Policed {
     }
 
     function valueAt(
-        uint256 _ecoXValue,
-        uint256 _blockNumber
+        uint256 _ecoXValue
     ) public view returns (uint256) {
-        uint256 _ecoSupplyAt = eco.totalSupplyAt(_blockNumber);
+        uint256 _ecoSupplyAt = eco.totalSupplySnapshot();
 
         return computeValue(_ecoXValue, _ecoSupplyAt);
     }

@@ -231,7 +231,7 @@ contract PolicyVotes is VotingPower, TimeUtils {
      * from the root policy.
      */
     function execute() external {
-        uint256 _total = totalVotingPower(blockNumber);
+        uint256 _total = totalVotingPower();
 
         Result _res;
 
