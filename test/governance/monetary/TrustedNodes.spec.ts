@@ -71,7 +71,6 @@ describe('TrustedNodes', () => {
     )
     ecoX = await ecoXFactory.deploy(
       policy.address,
-      ecoXStaking.address,
       ecoXExchange.address,
       policy.address
     )
