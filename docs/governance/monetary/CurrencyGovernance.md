@@ -18,14 +18,14 @@ function CYCLE_LENGTH() external view returns (uint256)
 
 
 
-*CYCLE_LENGTH calculates the proposal time + voting time + reveal time*
+*CYCLE_LENGTH equals the proposal time + voting time + reveal time*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | proposal time + voting time + reveal time |
+| _0 | uint256 | CYCLE_LENGTH proposal time + voting time + reveal time |
 
 ### IDEMPOTENT_INFLATION_MULTIPLIER
 
