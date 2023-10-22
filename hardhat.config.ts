@@ -80,10 +80,14 @@ const config: HardhatUserConfig = {
     timeout: 50000,
   },
   dodoc: {
-    runOnCompile: true,
-    debugMode: false,
-    include: ['governance/monetary'],
-    keepFileStructure: true,
+    // runOnCompile: true,
+    // include: ['governance/monetary'],
+    exclude: ['governance/community'],
+    outputDir: 'docs/solidity',
+    // templatePath: './template.sqrl',
+    // debugMode: false,
+    // keepFileStructure: true,
+    // freshOutput: true,
     // More options...
   },
   gasReporter: {

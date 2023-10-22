@@ -209,10 +209,33 @@ getter function for inflation-adjusted deposits
 |---|---|---|
 | ecoAmount | uint256 | undefined |
 
+### getDelegate
+
+```solidity
+function getDelegate(uint256 _lockupId, address _who) external view returns (address lockupDelegate)
+```
+
+getter function for yield
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _lockupId | uint256 | the ID of the lockup |
+| _who | address | address whose delegate is being fetched |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| lockupDelegate | address | undefined |
+
 ### getGonsBalance
 
 ```solidity
-function getGonsBalance(uint256 _lockupId, address _who) external view returns (uint256 ecoAmount)
+function getGonsBalance(uint256 _lockupId, address _who) external view returns (uint256 gonsAmount)
 ```
 
 getter function for gonsBalances
@@ -230,7 +253,7 @@ getter function for gonsBalances
 
 | Name | Type | Description |
 |---|---|---|
-| ecoAmount | uint256 | undefined |
+| gonsAmount | uint256 | undefined |
 
 ### getYield
 
@@ -328,6 +351,23 @@ function notifier() external view returns (contract Notifier)
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract Notifier | undefined |
+
+### penalties
+
+```solidity
+function penalties() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### policy
 
