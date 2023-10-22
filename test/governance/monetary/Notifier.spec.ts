@@ -39,6 +39,8 @@ describe('notifier', () => {
 
   let alice: SignerWithAddress
 
+  const newInflationMult = 123123
+
   before(async () => {
     ;[policyImpersonator, alice] = await ethers.getSigners()
   })
@@ -73,6 +75,7 @@ describe('notifier', () => {
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
       [12341234] // gasCosts
     )
+    await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
   })
   describe('construction', async () => {
@@ -123,7 +126,7 @@ describe('notifier', () => {
         .addTransaction(
           downstream.address,
           downstream.interface.encodeFunctionData('callThatFails'),
-          123123
+          newInflationMult
         )
     ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     await expect(
@@ -184,7 +187,7 @@ describe('notifier', () => {
         .setAuthorized(alice.address, true)
 
       expect(await target.notified()).to.be.false
-      await rebase.connect(alice).execute(123123)
+      await rebase.connect(alice).execute(newInflationMult)
       expect(await target.notified()).to.be.true
     })
 
@@ -194,22 +197,25 @@ describe('notifier', () => {
         .addTransaction(
           downstream.address,
           downstream.interface.encodeFunctionData('callThatFails'),
-          123123
+          newInflationMult
         )
       await rebase
         .connect(policyImpersonator)
         .setAuthorized(alice.address, true)
 
-      expect(await eco.rebased()).to.be.false
+      const initialInflationMult = await eco.inflationMultiplier()
+      expect(await eco.INITIAL_INFLATION_MULTIPLIER()).to.eq(
+        initialInflationMult
+      )
       expect(await downstream.pigsFly()).to.be.false
-      await expect(rebase.connect(alice).execute(123123))
+      await expect(rebase.connect(alice).execute(newInflationMult))
         .to.emit(notifier, 'TransactionFailed')
         .withArgs(
           1,
           downstream.address,
           downstream.interface.encodeFunctionData('callThatFails')
         )
-      expect(await eco.rebased()).to.be.true
+      expect(await eco.inflationMultiplier()).to.eq(newInflationMult)
       expect(await downstream.pigsFly()).to.be.false
     })
   })

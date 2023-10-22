@@ -93,9 +93,9 @@ describe('CurrencyGovernance', () => {
   let dave: SignerWithAddress
   let niko: SignerWithAddress
   let mila: SignerWithAddress
-  let policyImpersonater: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   before(async () => {
-    ;[policyImpersonater, alice, bob, charlie, dave, niko, mila] =
+    ;[policyImpersonator, alice, bob, charlie, dave, niko, mila] =
       await ethers.getSigners()
   })
 
@@ -152,7 +152,7 @@ describe('CurrencyGovernance', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
+      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     TrustedNodes = await (
@@ -173,14 +173,14 @@ describe('CurrencyGovernance', () => {
     ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
 
     CurrencyGovernance = await new CurrencyGovernance__factory()
-      .connect(policyImpersonater)
+      .connect(policyImpersonator)
       .deploy(Fake__Policy.address, TrustedNodes.address, Enacter.address)
 
-    await TrustedNodes.connect(policyImpersonater).updateCurrencyGovernance(
+    await TrustedNodes.connect(policyImpersonator).updateCurrencyGovernance(
       CurrencyGovernance.address
     )
 
-    await Enacter.connect(policyImpersonater).setCurrencyGovernance(
+    await Enacter.connect(policyImpersonator).setCurrencyGovernance(
       CurrencyGovernance.address
     )
   })
@@ -210,7 +210,7 @@ describe('CurrencyGovernance', () => {
   describe('enacter role', () => {
     it('can be changed by the policy', async () => {
       const initialEnacterAddress = await CurrencyGovernance.enacter()
-      await CurrencyGovernance.connect(policyImpersonater).setEnacter(
+      await CurrencyGovernance.connect(policyImpersonator).setEnacter(
         alice.address
       )
       const changedEnacterAddress = await CurrencyGovernance.enacter()
@@ -220,7 +220,7 @@ describe('CurrencyGovernance', () => {
 
     it('emits an event', async () => {
       expect(
-        await CurrencyGovernance.connect(policyImpersonater).setEnacter(
+        await CurrencyGovernance.connect(policyImpersonator).setEnacter(
           alice.address
         )
       )
@@ -236,7 +236,7 @@ describe('CurrencyGovernance', () => {
 
     it('cannot be set to the zero address', async () => {
       await expect(
-        CurrencyGovernance.connect(policyImpersonater).setEnacter(
+        CurrencyGovernance.connect(policyImpersonator).setEnacter(
           constants.AddressZero
         )
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_ENACTER)
@@ -246,7 +246,7 @@ describe('CurrencyGovernance', () => {
   describe('trusted nodes role', () => {
     it('can be changed by the policy', async () => {
       const initialTNAddress = await CurrencyGovernance.trustedNodes()
-      await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+      await CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
         alice.address
       )
       const changedTNAddress = await CurrencyGovernance.trustedNodes()
@@ -256,7 +256,7 @@ describe('CurrencyGovernance', () => {
 
     it('emits an event', async () => {
       expect(
-        await CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+        await CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
           alice.address
         )
       )
@@ -272,7 +272,7 @@ describe('CurrencyGovernance', () => {
 
     it('cannot be set to the zero address', async () => {
       await expect(
-        CurrencyGovernance.connect(policyImpersonater).setTrustedNodes(
+        CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
           constants.AddressZero
         )
       ).to.be.revertedWith(
@@ -286,7 +286,7 @@ describe('CurrencyGovernance', () => {
 
     beforeEach(async () => {
       StageTestCG = await new StageTestCurrencyGovernance__factory()
-        .connect(policyImpersonater)
+        .connect(policyImpersonator)
         .deploy()
     })
 

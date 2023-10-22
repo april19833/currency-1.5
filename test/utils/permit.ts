@@ -188,19 +188,18 @@ export function createDelegatePermitMessageData(data: PermitMessageDataDTO) {
 
 export async function delegateBySig(
   token: ECO,
-  delegator: Wallet,
-  delegatee: Wallet,
+  delegator: { address: string; privateKey: string },
+  delegatee: { address: string },
   chainId: number,
   sender: Wallet,
   {
     deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000),
-    nonce = '0',
+    nonce = '-1',
     signer = delegator,
   }
 ) {
-  // console.log(delegator.getAddress())
   const nonceToUse =
-    nonce === undefined ? await token.delegationNonce(delegator.address) : nonce
+    nonce === '-1' ? await token.delegationNonce(delegator.address) : nonce
 
   const delegationData = createDelegatePermitMessageData({
     name: await token.name(),
