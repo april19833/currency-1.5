@@ -92,7 +92,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     function inflationMultiplierSnapshot() public view returns (uint256) {
-        if (_inflationMultiplierSnapshot.snapshotId < currentSnapshotId) {
+        if (_inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock) {
             return inflationMultiplier;
         } else {
             return _inflationMultiplierSnapshot.value;
@@ -143,14 +143,14 @@ abstract contract InflationSnapshots is VoteSnapshots {
 
     function _updateInflationSnapshot() private {
         if (
-            _inflationMultiplierSnapshot.snapshotId < currentSnapshotId
+            _inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock
         ) {
             uint256 currentValue = inflationMultiplier;
             require(
                 currentValue <= type(uint224).max,
                 "InflationSnapshots: new snapshot cannot be casted safely"
             );
-            _inflationMultiplierSnapshot.snapshotId = currentSnapshotId;
+            _inflationMultiplierSnapshot.snapshotBlock = currentSnapshotBlock;
             _inflationMultiplierSnapshot.value = uint224(currentValue);
         }
     }
