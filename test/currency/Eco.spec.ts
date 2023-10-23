@@ -1972,18 +1972,18 @@ describe('Eco', () => {
         })
 
         it('changes state', async () => {
-          const snapshotId1 = await ECOproxy.currentSnapshotId()
+          const snapshotBlock1 = await ECOproxy.currentSnapshotBlock()
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
-          const snapshotId2 = await ECOproxy.currentSnapshotId()
+          const snapshotBlock2 = await ECOproxy.currentSnapshotBlock()
 
-          expect(snapshotId2).to.be.eq(snapshotId1 + 1)
+          expect(snapshotBlock2).to.be.greaterThan(snapshotBlock1)
         })
 
         it('emits an event', async () => {
-          const snapshotIdOld = await ECOproxy.currentSnapshotId()
+          const snapshotBlockOld = await ECOproxy.currentSnapshotBlock()
           await expect(ECOproxy.connect(snapshotterImpersonator).snapshot())
-            .to.emit(ECOproxy, 'NewSnapshotId')
-            .withArgs(snapshotIdOld + 1)
+            .to.emit(ECOproxy, 'NewSnapshotBlock')
+            .withArgs(snapshotBlockOld + 2) // this is the number of blocks here
         })
 
         context('allows accessing previous balances', () => {
