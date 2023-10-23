@@ -142,9 +142,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     function _updateInflationSnapshot() private {
-        if (
-            _inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock
-        ) {
+        if (_inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock) {
             uint256 currentValue = inflationMultiplier;
             require(
                 currentValue <= type(uint224).max,

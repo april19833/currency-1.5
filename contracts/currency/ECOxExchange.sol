@@ -49,9 +49,7 @@ contract ECOxExchange is Policed {
         return computeValue(_ecoXValue, _ecoSupply);
     }
 
-    function valueAt(
-        uint256 _ecoXValue
-    ) public view returns (uint256) {
+    function valueAt(uint256 _ecoXValue) public view returns (uint256) {
         uint256 _ecoSupplyAt = eco.totalSupplySnapshot();
 
         return computeValue(_ecoXValue, _ecoSupplyAt);

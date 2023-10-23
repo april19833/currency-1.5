@@ -96,7 +96,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         return block.number;
     }
 
-    /** 
+    /**
      * Update total supply snapshots before the values are modified. This is implemented
      * in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
      */
@@ -116,7 +116,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         return super._beforeTokenTransfer(from, to, amount);
     }
 
-    /** 
+    /**
      * Update balance snapshots for votes before the values are modified. This is implemented
      * in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
      */
@@ -148,12 +148,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
             snapshot.snapshotBlock = currentSnapshotBlock;
             snapshot.value = uint224(currentValue);
         }
-    }       
+    }
 
     function _updateTotalSupplySnapshot() private {
-        if (
-            _totalSupplySnapshot.snapshotBlock < currentSnapshotBlock
-        ) {
+        if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
             uint256 currentValue = _totalSupply;
             require(
                 currentValue <= type(uint224).max,

@@ -19,7 +19,6 @@ import {
   ECOx__factory,
   CurrencyGovernance,
   ECOxExchange,
-  ECOxStaking,
 } from '../../../typechain-types'
 import { DAY } from '../../utils/constants'
 
@@ -52,7 +51,6 @@ describe('TrustedNodes', () => {
   let trustedNodes: TrustedNodes
   let ecoX: MockContract<ECOx>
   let ecoXExchange: FakeContract<ECOxExchange>
-  let ecoXStaking: FakeContract<ECOxStaking>
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
@@ -64,7 +62,6 @@ describe('TrustedNodes', () => {
       { address: currencyGovernanceImpersonator.address }
     )
     ecoXExchange = await smock.fake<ECOxExchange>('ECOxExchange')
-    ecoXStaking = await smock.fake<ECOxStaking>('ECOxStaking')
 
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
       'ECOx'
