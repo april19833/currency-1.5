@@ -11,77 +11,97 @@ import "./ERC1820Client.sol"; // this will become a storage gap
  * governance systems for other contracts.
  */
 contract Policy is ForwardTarget, ERC1820Client {
-    mapping(bytes32 => bool) public setters;
+    uint256 private __gap; // to cover setters mapping
 
-    modifier onlySetter(bytes32 _identifier) {
-        require(
-            setters[_identifier],
-            "Identifier hash is not authorized for this action"
-        );
+    /**
+     * @dev mapping to store the contracts allowed to call functions
+     */
+    mapping(address => bool) public governers;
 
-        require(
-            ERC1820REGISTRY.getInterfaceImplementer(
-                address(this),
-                _identifier
-            ) == msg.sender,
-            "Caller is not the authorized address for identifier"
-        );
+    /**
+     * @dev error for when an address tries submit proposal actions without permission
+     */
+    error OnlyGoverners();
 
+    /**
+     * @dev error for when an address tries to call a pseudo-internal function
+     */
+    error OnlySelf();
+
+    /**
+     * for when a part of enacting a proposal reverts
+     */
+    error FailedProposalSubcall(address target, string reason);
+
+    /**
+     * emits when the governer permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can govern, false for cannot)
+     */
+    event UpdatedGoverners(address actor, bool newPermission);
+
+    /**
+     * emits when enaction happens to keep record of enaction
+     * @param proposalId the proposal lookup that got successfully enacted
+     * @param governor the contract which was the source of the proposal, source for looking up the calldata
+     * @param successes the return success values from each of the calls to the targets in order
+     */
+    event EnactedGovernanceProposal(
+        bytes32 proposalId,
+        address governor,
+        bool[] successes
+    );
+
+    /**
+     * @dev Modifier for checking if the sender is a governer
+     */
+    modifier onlyGovernerRole() {
+        if (!governers[msg.sender]) {
+            revert OnlyGoverners();
+        }
         _;
     }
 
-    /** Remove the specified role from the contract calling this function.
-     * This is for cleanup only, so if another contract has taken the
-     * role, this does nothing.
-     *
-     * @param _interfaceIdentifierHash The interface identifier to remove from
-     *                                 the registry.
+    /**
+     * @dev Modifier for faux internal calls
+     * see if we need this
      */
-    function removeSelf(bytes32 _interfaceIdentifierHash) external {
-        address old = ERC1820REGISTRY.getInterfaceImplementer(
-            address(this),
-            _interfaceIdentifierHash
-        );
-
-        if (old == msg.sender) {
-            ERC1820REGISTRY.setInterfaceImplementer(
-                address(this),
-                _interfaceIdentifierHash,
-                address(0)
-            );
+    modifier onlySelf() {
+        if (!msg.sender != address(this)) {
+            revert OnlySelf();
         }
+        _;
     }
 
-    /** Set the policy label for a contract
-     *
-     * @param _key The label to apply to the contract.
-     *
-     * @param _implementer The contract to assume the label.
+    /**
+     * @dev change the governance permissions for an address
+     * internal function 
+     * @param _key the address to change permissions for
+     * @param _value the new permission. true = can govern, false = cannot govern
      */
-    function setPolicy(
-        bytes32 _key,
-        address _implementer,
-        bytes32 _authKey
-    ) public onlySetter(_authKey) {
-        ERC1820REGISTRY.setInterfaceImplementer(
-            address(this),
-            _key,
-            _implementer
-        );
+    function updateGoverners(address _key, bool _value) internal {
+        governers[_key] = _value;
+        emit UpdatedGoverners(_key, _value);
     }
 
-    /** Enact the code of one of the governance contracts.
-     *
-     * @param _delegate The contract code to delegate execution to.
-     */
-    function internalCommand(
-        address _delegate,
-        bytes32 _authKey
-    ) public onlySetter(_authKey) {
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, ) = _delegate.delegatecall(
-            abi.encodeWithSignature("enacted(address)", _delegate)
-        );
-        require(_success, "Command failed during delegatecall");
+    function enact(
+        bytes32 proposalId,
+        address[] calldata targets,
+        bytes4[] calldata signatures,
+        bytes[] memory calldatas
+    ) external virtual onlyGovernerRole {
+        // the array lengths have all been vetted already by the proposal-making process
+        // upstream is just trusted
+        for (uint256 i = 0; i < targets.length; i++) {
+            (bool success, bytes memory returnData) = targets[i].call(
+                abi.encodePacked(signatures[i], calldatas[i])
+            );
+
+            if (!success) {
+                revert FailedProposalSubcall(targets[i], string(returnData));
+            }
+        }
+
+        emit EnactedGovernanceProposal(proposalId, msg.sender);
     }
 }
