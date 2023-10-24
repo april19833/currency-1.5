@@ -13,12 +13,12 @@ import "./ERC20Delegated.sol";
 abstract contract VoteSnapshots is ERC20Delegated {
     // structure for saving snapshotted values
     struct Snapshot {
-        uint32 snapshotId;
+        uint32 snapshotBlock;
         uint224 value;
     }
 
-    // the reference snapshotId that the update function checks against
-    uint32 public currentSnapshotId;
+    // the reference snapshotBlock that the update function checks against
+    uint32 public currentSnapshotBlock;
 
     // mapping of each address to it's latest snapshot of votes
     mapping(address => Snapshot) private _voteSnapshots;
@@ -29,9 +29,9 @@ abstract contract VoteSnapshots is ERC20Delegated {
     /**
      * @dev Emitted by {_snapshot} when a new snapshot is created.
      *
-     * @param id the new value of currentSnapshotId
+     * @param block the new value of currentSnapshotBlock
      */
-    event NewSnapshotId(uint256 id);
+    event NewSnapshotBlock(uint256 block);
 
     /** Construct a new instance.
      *
@@ -65,7 +65,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
     ) public view virtual returns (uint256) {
         Snapshot memory _accountSnapshot = _voteSnapshots[account];
 
-        if (_accountSnapshot.snapshotId < currentSnapshotId) {
+        if (_accountSnapshot.snapshotBlock < currentSnapshotBlock) {
             return _voteBalances[account];
         } else {
             return _accountSnapshot.value;
@@ -76,7 +76,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
      * @dev Retrieve the `totalSupply` for the snapshot
      */
     function totalSupplySnapshot() public view virtual returns (uint256) {
-        if (_totalSupplySnapshot.snapshotId < currentSnapshotId) {
+        if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
             return _totalSupply;
         } else {
             return _totalSupplySnapshot.value;
@@ -86,17 +86,17 @@ abstract contract VoteSnapshots is ERC20Delegated {
     /**
      * @dev Creates a new snapshot and returns its snapshot id.
      *
-     * Emits a {NewSnapshotId} event that contains the same id.
+     * Emits a {NewSnapshotBlock} event that contains the same id.
      */
     function _snapshot() internal virtual returns (uint256) {
         // the math will error if the snapshot overflows
-        uint32 newId = ++currentSnapshotId;
+        currentSnapshotBlock = uint32(block.number);
 
-        emit NewSnapshotId(newId);
-        return newId;
+        emit NewSnapshotBlock(block.number);
+        return block.number;
     }
 
-    /** 
+    /**
      * Update total supply snapshots before the values are modified. This is implemented
      * in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
      */
@@ -116,7 +116,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         return super._beforeTokenTransfer(from, to, amount);
     }
 
-    /** 
+    /**
      * Update balance snapshots for votes before the values are modified. This is implemented
      * in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
      */
@@ -139,27 +139,25 @@ abstract contract VoteSnapshots is ERC20Delegated {
         Snapshot storage snapshot = _voteSnapshots[account];
         uint256 currentValue = _voteBalances[account];
 
-        if (snapshot.snapshotId < currentSnapshotId) {
+        if (snapshot.snapshotBlock < currentSnapshotBlock) {
             require(
                 currentValue <= type(uint224).max,
                 "VoteSnapshots: new snapshot cannot be casted safely"
             );
 
-            snapshot.snapshotId = currentSnapshotId;
+            snapshot.snapshotBlock = currentSnapshotBlock;
             snapshot.value = uint224(currentValue);
         }
     }
 
     function _updateTotalSupplySnapshot() private {
-        if (
-            _totalSupplySnapshot.snapshotId < currentSnapshotId
-        ) {
+        if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
             uint256 currentValue = _totalSupply;
             require(
                 currentValue <= type(uint224).max,
                 "VoteSnapshots: new snapshot cannot be casted safely"
             );
-            _totalSupplySnapshot.snapshotId = currentSnapshotId;
+            _totalSupplySnapshot.snapshotBlock = currentSnapshotBlock;
             _totalSupplySnapshot.value = uint224(currentValue);
         }
     }

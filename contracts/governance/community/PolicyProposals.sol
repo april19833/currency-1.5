@@ -237,9 +237,7 @@ contract PolicyProposals is VotingPower, TimeUtils {
 
         // check if totalVotingThreshold still needs to be precomputed
         if (totalVotingThreshold == 0) {
-            totalVotingThreshold =
-                totalVotingPower() *
-                SUPPORT_THRESHOLD;
+            totalVotingThreshold = totalVotingPower() * SUPPORT_THRESHOLD;
         }
     }
 
