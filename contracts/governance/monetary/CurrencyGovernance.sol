@@ -80,8 +80,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public constant PROPOSAL_TIME = 10 days;
     uint256 public constant VOTING_TIME = 3 days;
     uint256 public constant REVEAL_TIME = 1 days;
-    /// @dev CYCLE_LENGTH equals the proposal time + voting time + reveal time
-    /// @return CYCLE_LENGTH proposal time + voting time + reveal time
     uint256 public constant CYCLE_LENGTH =
         PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 

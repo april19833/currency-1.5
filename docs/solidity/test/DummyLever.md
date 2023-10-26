@@ -1,192 +1,45 @@
-# DummyLever
+# Eco Association
+Copyright (c) 2023 Eco Association
 
-
-
-
+## DummyLever
 
 contract to be a placeholder for a monetary policy lever in tests
-
-
-
-## Methods
-
-### alwaysPass
-
-```solidity
-function alwaysPass(bytes32 data) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| data | bytes32 | undefined |
-
-### alwaysPassFunctionSignature
-
-```solidity
-function alwaysPassFunctionSignature() external view returns (bytes4)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes4 | undefined |
-
-### alwaysRevert
-
-```solidity
-function alwaysRevert(bytes32 data) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| data | bytes32 | undefined |
-
-### alwaysRevertFunctionSignature
-
-```solidity
-function alwaysRevertFunctionSignature() external view returns (bytes4)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes4 | undefined |
-
-### datalessPasser
-
-```solidity
-function datalessPasser() external nonpayable
-```
-
-
-
-
-
-
-### datalessPasserFunctionSignature
-
-```solidity
-function datalessPasserFunctionSignature() external view returns (bytes4)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes4 | undefined |
-
-### execute
-
-```solidity
-function execute(uint256 number, address account, bytes32 data) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| number | uint256 | undefined |
-| account | address | undefined |
-| data | bytes32 | undefined |
-
-### executeFunctionSignature
-
-```solidity
-function executeFunctionSignature() external view returns (bytes4)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes4 | undefined |
 
 ### executeMarker
 
 ```solidity
-function executeMarker() external view returns (uint256)
+uint256 executeMarker
 ```
 
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### veryExpensiveFunction
+### executeFunctionSignature
 
 ```solidity
-function veryExpensiveFunction() external nonpayable
+bytes4 executeFunctionSignature
 ```
 
+### alwaysPassFunctionSignature
 
+```solidity
+bytes4 alwaysPassFunctionSignature
+```
 
+### datalessPasserFunctionSignature
 
+```solidity
+bytes4 datalessPasserFunctionSignature
+```
 
+### alwaysRevertFunctionSignature
+
+```solidity
+bytes4 alwaysRevertFunctionSignature
+```
 
 ### veryExpensiveFunctionSignature
 
 ```solidity
-function veryExpensiveFunctionSignature() external view returns (bytes4)
+bytes4 veryExpensiveFunctionSignature
 ```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes4 | undefined |
-
-
-
-## Events
 
 ### ExecuteData
 
@@ -194,17 +47,45 @@ function veryExpensiveFunctionSignature() external view returns (bytes4)
 event ExecuteData(uint256 number, address account, bytes32 data)
 ```
 
+### constructor
 
+```solidity
+constructor() public
+```
 
+### execute
 
+```solidity
+function execute(uint256 number, address account, bytes32 data) external
+```
 
-#### Parameters
+### alwaysPass
 
-| Name | Type | Description |
-|---|---|---|
-| number  | uint256 | undefined |
-| account  | address | undefined |
-| data  | bytes32 | undefined |
+```solidity
+function alwaysPass(bytes32 data) external
+```
 
+### datalessPasser
 
+```solidity
+function datalessPasser() external
+```
+
+### alwaysRevert
+
+```solidity
+function alwaysRevert(bytes32 data) external
+```
+
+### veryExpensiveFunction
+
+```solidity
+function veryExpensiveFunction() external
+```
+
+### fallback
+
+```solidity
+fallback(bytes data) external payable returns (bytes)
+```
 

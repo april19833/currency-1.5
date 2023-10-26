@@ -1,71 +1,29 @@
-# DummyDownstream
+# Eco Association
+Copyright (c) 2023 Eco Association
 
-
-
-
-
-
-
-
-
-## Methods
-
-### callThatFails
-
-```solidity
-function callThatFails() external nonpayable
-```
-
-
-
-
-
-
-### callThatSucceeds
-
-```solidity
-function callThatSucceeds() external nonpayable
-```
-
-
-
-
-
+## DummyDownstream
 
 ### notified
 
 ```solidity
-function notified() external view returns (bool)
+bool notified
 ```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 ### pigsFly
 
 ```solidity
-function pigsFly() external view returns (bool)
+bool pigsFly
 ```
 
+### callThatSucceeds
 
+```solidity
+function callThatSucceeds() public
+```
 
+### callThatFails
 
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-
-
+```solidity
+function callThatFails() public
+```
 

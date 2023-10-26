@@ -1,68 +1,30 @@
-# Policed
+# Eco Association
+Copyright (c) 2023 Eco Association
 
-
-
-> Policed Contracts A policed contract is any contract managed by a policy.
-
-
-
-
-
-## Methods
-
-### implementation
-
-```solidity
-function implementation() external view returns (address _impl)
-```
-
-Get the address of the proxy target contract.
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _impl | address | undefined |
-
-### initialize
-
-```solidity
-function initialize(address _self) external nonpayable
-```
-
-Storage initialization of cloned contract This is used to initialize the storage of the forwarded contract, and should (typically) copy or repeat any work that would normally be done in the constructor of the proxied contract. Implementations of ForwardTarget should override this function, and chain to super.initialize(_self).
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _self | address | The address of the original contract instance (the one being              forwarded to). |
+## Policed
 
 ### policy
 
 ```solidity
-function policy() external view returns (contract Policy)
+contract Policy policy
 ```
 
-The address of the root policy instance overseeing this instance. This address can be used for ERC1820 lookup of other components, ERC1820 lookup of role policies, and interaction with the policy hierarchy.
+The address of the root policy instance overseeing this instance.
 
+This address can be used for ERC1820 lookup of other components, ERC1820
+lookup of role policies, and interaction with the policy hierarchy.
 
+### NonZeroPolicyAddr
 
+```solidity
+error NonZeroPolicyAddr()
+```
 
-#### Returns
+### PolicyOnlyFunction
 
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract Policy | undefined |
-
-
-
-## Events
+```solidity
+error PolicyOnlyFunction()
+```
 
 ### NewPolicy
 
@@ -72,39 +34,32 @@ event NewPolicy(contract Policy newPolicy, contract Policy oldPolicy)
 
 emits when the policy contract is changed
 
+#### Parameters
 
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newPolicy | contract Policy | denotes the new policy contract address |
+| oldPolicy | contract Policy | denotes the old policy contract address |
+
+### onlyPolicy
+
+```solidity
+modifier onlyPolicy()
+```
+
+Restrict method access to the root policy instance only.
+
+### constructor
+
+```solidity
+constructor(contract Policy _policy) internal
+```
+
+constructor
 
 #### Parameters
 
 | Name | Type | Description |
-|---|---|---|
-| newPolicy  | contract Policy | denotes the new policy contract address |
-| oldPolicy  | contract Policy | denotes the old policy contract address |
-
-
-
-## Errors
-
-### NonZeroPolicyAddr
-
-```solidity
-error NonZeroPolicyAddr()
-```
-
-
-
-
-
-
-### PolicyOnlyFunction
-
-```solidity
-error PolicyOnlyFunction()
-```
-
-
-
-
-
-
+| ---- | ---- | ----------- |
+| _policy | contract Policy | the address of the owning policy contract |
 

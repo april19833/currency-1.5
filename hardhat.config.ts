@@ -9,7 +9,7 @@ import 'solidity-coverage'
 
 import '@nomiclabs/hardhat-ethers'
 import '@openzeppelin/hardhat-upgrades'
-import '@primitivefi/hardhat-dodoc'
+import 'solidity-docgen'
 
 dotenv.config()
 
@@ -79,16 +79,16 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 50000,
   },
-  dodoc: {
-    // runOnCompile: true,
-    // include: ['governance/monetary'],
-    exclude: ['governance/community'],
+  docgen: {
     outputDir: 'docs/solidity',
-    // templatePath: './template.sqrl',
-    // debugMode: false,
-    // keepFileStructure: true,
-    // freshOutput: true,
-    // More options...
+    templates: './templates',
+    theme: 'markdown',
+    // pages: 'single',
+    // pages: 'items',
+    pages: 'files',
+    exclude: ['governance/community'],
+    collapseNewlines: true,
+    pageExtension: '.md',
   },
   gasReporter: {
     enabled: !!process.env.ENABLE_GAS_REPORT,

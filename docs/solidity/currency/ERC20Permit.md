@@ -1,14 +1,42 @@
-# ERC20Permit
+# Eco Association
+Copyright (c) 2023 Eco Association
 
+## ERC20Permit
 
+_Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
+https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
 
+Adds the {permit} method, which can be used to change an account's ERC20 allowance (see {IERC20-allowance}) by
+presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn't
+need to send a transaction, and thus is not required to hold Ether at all.
 
+_Available since v3.4.__
 
+### constructor
 
+```solidity
+constructor(string name) internal
+```
 
-*Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in https://eips.ethereum.org/EIPS/eip-2612[EIP-2612]. Adds the {permit} method, which can be used to change an account&#39;s ERC20 allowance (see {IERC20-allowance}) by presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn&#39;t need to send a transaction, and thus is not required to hold Ether at all. _Available since v3.4._*
+_Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
 
-## Methods
+It's a good idea to use the same `name` that is defined as the ERC20 token name._
+
+### permit
+
+```solidity
+function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public virtual
+```
+
+_See {IERC20Permit-permit}._
+
+### nonces
+
+```solidity
+function nonces(address owner) public view virtual returns (uint256)
+```
+
+_See {IERC20Permit-nonces}._
 
 ### DOMAIN_SEPARATOR
 
@@ -16,61 +44,33 @@
 function DOMAIN_SEPARATOR() external view returns (bytes32)
 ```
 
+_See {IERC20Permit-DOMAIN_SEPARATOR}._
 
-
-*See {IERC20Permit-DOMAIN_SEPARATOR}.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined |
-
-### nonces
+### _useNonce
 
 ```solidity
-function nonces(address owner) external view returns (uint256)
+function _useNonce(address owner) internal virtual returns (uint256 current)
 ```
 
+_"Consume a nonce": return the current value and increment.
 
+_Available since v4.1.__
 
-*See {IERC20Permit-nonces}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### permit
+### _approve
 
 ```solidity
-function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external nonpayable
+function _approve(address owner, address spender, uint256 amount) internal virtual
 ```
 
+_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
+This internal function is equivalent to `approve`, and can be used to
+e.g. set automatic allowances for certain subsystems, etc.
 
-*See {IERC20Permit-permit}.*
+Emits an {Approval} event.
 
-#### Parameters
+Requirements:
 
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-| spender | address | undefined |
-| value | uint256 | undefined |
-| deadline | uint256 | undefined |
-| v | uint8 | undefined |
-| r | bytes32 | undefined |
-| s | bytes32 | undefined |
-
-
-
+- `owner` cannot be the zero address.
+- `spender` cannot be the zero address._
 

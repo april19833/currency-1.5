@@ -1,1106 +1,425 @@
-# ERC20Delegated
+# Eco Association
+Copyright (c) 2023 Eco Association
 
+## ERC20Delegated
 
+This contract tracks delegations of an ERC20 token by tokenizing the delegations
+It assumes a companion token that is transferred to denote changes in votes brought
+on by both transfers (via _afterTokenTransfer hooks) and delegations.
+The secondary token creates allowances whenever it delegates to allow for reclaiming the voting power later
 
+Voting power can be queried through the public accessor {voteBalanceOf}. Vote power can be delegated either
+by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}.
+Delegates need to disable their own ability to delegate to enable others to delegate to them.
 
-
-This contract tracks delegations of an ERC20 token by tokenizing the delegations It assumes a companion token that is transferred to denote changes in votes brought on by both transfers (via _afterTokenTransfer hooks) and delegations. The secondary token creates allowances whenever it delegates to allow for reclaiming the voting power later Voting power can be queried through the public accessor {voteBalanceOf}. Vote power can be delegated either by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Delegates need to disable their own ability to delegate to enable others to delegate to them. Raw delegations can be done in partial amounts via {delegateAmount}. This is intended for contracts which can run their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
-
-
-
-## Methods
-
-### DOMAIN_SEPARATOR
-
-```solidity
-function DOMAIN_SEPARATOR() external view returns (bytes32)
-```
-
-
-
-*See {IERC20Permit-DOMAIN_SEPARATOR}.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined |
-
-### allowance
-
-```solidity
-function allowance(address owner, address spender) external view returns (uint256)
-```
-
-
-
-*See {IERC20-allowance}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-| spender | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### approve
-
-```solidity
-function approve(address spender, uint256 amount) external nonpayable returns (bool)
-```
-
-
-
-*See {IERC20-approve}. Requirements: - `spender` cannot be the zero address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| spender | address | undefined |
-| amount | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### balanceOf
-
-```solidity
-function balanceOf(address account) external view returns (uint256)
-```
-
-
-
-*See {IERC20-balanceOf}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### burn
-
-```solidity
-function burn(address _from, uint256 _value) external nonpayable
-```
-
-
-
-*burns tokens to a given address*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _from | address | the address whose tokens are being burned |
-| _value | uint256 | the amount of tokens being burned |
-
-### burners
-
-```solidity
-function burners(address) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### decimals
-
-```solidity
-function decimals() external view returns (uint8)
-```
-
-
-
-*Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless this function is overridden; NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint8 | undefined |
-
-### decreaseAllowance
-
-```solidity
-function decreaseAllowance(address spender, uint256 subtractedValue) external nonpayable returns (bool)
-```
-
-
-
-*Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| spender | address | undefined |
-| subtractedValue | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### delegate
-
-```solidity
-function delegate(address delegatee) external nonpayable
-```
-
-
-
-*Delegate all votes from the sender to `delegatee`. NOTE: This function assumes that you do not have partial delegations It will revert with &quot;ERC20Delegated: must have an undelegated amount available to cover delegation&quot; if you do*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegatee | address | undefined |
-
-### delegateAmount
-
-```solidity
-function delegateAmount(address delegatee, uint256 amount) external nonpayable
-```
-
-
-
-*Delegate an `amount` of votes from the sender to `delegatee`.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegatee | address | undefined |
-| amount | uint256 | undefined |
-
-### delegateBySig
-
-```solidity
-function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external nonpayable
-```
-
-
-
-*Delegate all votes from the sender to `delegatee`. NOTE: This function assumes that you do not have partial delegations It will revert with &quot;ERC20Delegated: must have an undelegated amount available to cover delegation&quot; if you do*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegator | address | undefined |
-| delegatee | address | undefined |
-| deadline | uint256 | undefined |
-| v | uint8 | undefined |
-| r | bytes32 | undefined |
-| s | bytes32 | undefined |
-
-### delegationFromAddressDisabled
-
-```solidity
-function delegationFromAddressDisabled(address) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### delegationNonce
-
-```solidity
-function delegationNonce(address owner) external view returns (uint256)
-```
-
-get the current nonce for the given address
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | The address to get nonce for |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | the current nonce of `owner` |
-
-### delegationToAddressEnabled
-
-```solidity
-function delegationToAddressEnabled(address) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### disableDelegationTo
-
-```solidity
-function disableDelegationTo() external nonpayable
-```
-
-
-
-*Set yourself as no longer recieving delegates.*
-
-
-### enableDelegationTo
-
-```solidity
-function enableDelegationTo() external nonpayable
-```
-
-
-
-*Set yourself as willing to recieve delegates.*
-
-
-### enableVoting
-
-```solidity
-function enableVoting() external nonpayable
-```
-
-
-
-
-
-
-### getPrimaryDelegate
-
-```solidity
-function getPrimaryDelegate(address account) external view returns (address)
-```
-
-
-
-*Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified. The primary delegate is the one that is delegated any new funds the address recieves.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### implementation
-
-```solidity
-function implementation() external view returns (address _impl)
-```
-
-Get the address of the proxy target contract.
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _impl | address | undefined |
-
-### increaseAllowance
-
-```solidity
-function increaseAllowance(address spender, uint256 addedValue) external nonpayable returns (bool)
-```
-
-
-
-*Atomically increases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| spender | address | undefined |
-| addedValue | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### initialize
-
-```solidity
-function initialize(address _self) external nonpayable
-```
-
-Storage initialization of cloned contract This is used to initialize the storage of the forwarded contract, and should (typically) copy or repeat any work that would normally be done in the constructor of the proxied contract. Implementations of ForwardTarget should override this function, and chain to super.initialize(_self).
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _self | address | The address of the original contract instance (the one being              forwarded to). |
-
-### isOwnDelegate
-
-```solidity
-function isOwnDelegate(address account) external view returns (bool)
-```
-
-
-
-*Returns true if the user has no amount of their balance delegated, otherwise false.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### mint
-
-```solidity
-function mint(address _to, uint256 _value) external nonpayable
-```
-
-
-
-*mints tokens to a given address*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _to | address | the address receiving tokens |
-| _value | uint256 | the amount of tokens being minted |
-
-### minters
-
-```solidity
-function minters(address) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### name
-
-```solidity
-function name() external view returns (string)
-```
-
-
-
-*Returns the name of the token.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
-### nonces
-
-```solidity
-function nonces(address owner) external view returns (uint256)
-```
-
-
-
-*See {IERC20Permit-nonces}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### pause
-
-```solidity
-function pause() external nonpayable
-```
-
-pauses transfers of this token
-
-*only callable by the pauser*
-
-
-### paused
-
-```solidity
-function paused() external view returns (bool)
-```
-
-
-
-*Returns true if the contract is paused, and false otherwise.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### pauser
-
-```solidity
-function pauser() external view returns (address)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### permit
-
-```solidity
-function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external nonpayable
-```
-
-
-
-*See {IERC20Permit-permit}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner | address | undefined |
-| spender | address | undefined |
-| value | uint256 | undefined |
-| deadline | uint256 | undefined |
-| v | uint8 | undefined |
-| r | bytes32 | undefined |
-| s | bytes32 | undefined |
-
-### policy
-
-```solidity
-function policy() external view returns (contract Policy)
-```
-
-The address of the root policy instance overseeing this instance. This address can be used for ERC1820 lookup of other components, ERC1820 lookup of role policies, and interaction with the policy hierarchy.
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract Policy | undefined |
-
-### reenableDelegating
-
-```solidity
-function reenableDelegating() external nonpayable
-```
-
-
-
-*Set yourself as being able to delegate again. also disables delegating to you*
-
-
-### revokeDelegation
-
-```solidity
-function revokeDelegation(address delegator) external nonpayable
-```
-
-A primary delegated individual can revoke delegations of unwanted delegators Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegator | address | undefined |
-
-### roleAdmin
-
-```solidity
-function roleAdmin() external view returns (address)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### setPauser
-
-```solidity
-function setPauser(address _pauser) external nonpayable
-```
-
-set the given address as the pauser
-
-*only the roleAdmin can call this function*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _pauser | address | The address that can pause this token |
-
-### symbol
-
-```solidity
-function symbol() external view returns (string)
-```
-
-
-
-*Returns the symbol of the token, usually a shorter version of the name.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | string | undefined |
-
-### totalSupply
-
-```solidity
-function totalSupply() external view returns (uint256)
-```
-
-
-
-*See {IERC20-totalSupply}.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### transfer
-
-```solidity
-function transfer(address recipient, uint256 amount) external nonpayable returns (bool)
-```
-
-
-
-*See {IERC20-transfer}. Requirements: - `recipient` cannot be the zero address. - the caller must have a balance of at least `amount`.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| recipient | address | undefined |
-| amount | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### transferFrom
-
-```solidity
-function transferFrom(address sender, address recipient, uint256 amount) external nonpayable returns (bool)
-```
-
-
-
-*See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}. Requirements: - `sender` and `recipient` cannot be the zero address. - `sender` must have a balance of at least `amount`. - the caller must have allowance for ``sender``&#39;s tokens of at least `amount`.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sender | address | undefined |
-| recipient | address | undefined |
-| amount | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### undelegate
-
-```solidity
-function undelegate() external nonpayable
-```
-
-
-
-*Undelegate all votes from the sender&#39;s primary delegate.*
-
-
-### undelegateAmountFromAddress
-
-```solidity
-function undelegateAmountFromAddress(address delegatee, uint256 amount) external nonpayable
-```
-
-
-
-*Undelegate a specific amount of votes from the `delegatee` back to the sender.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegatee | address | undefined |
-| amount | uint256 | undefined |
-
-### undelegateFromAddress
-
-```solidity
-function undelegateFromAddress(address delegatee) external nonpayable
-```
-
-
-
-*Undelegate votes from the `delegatee` back to the sender.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegatee | address | undefined |
-
-### unpause
-
-```solidity
-function unpause() external nonpayable
-```
-
-unpauses transfers of this token
-
-*only callable by the pauser*
-
-
-### updateBurners
-
-```solidity
-function updateBurners(address _key, bool _value) external nonpayable
-```
-
-
-
-*change the burning permissions for an address only callable by tokenRoleAdmin*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _key | address | the address to change permissions for |
-| _value | bool | the new permission. true = can burn, false = cannot burn |
-
-### updateMinters
-
-```solidity
-function updateMinters(address _key, bool _value) external nonpayable
-```
-
-
-
-*change the minting permissions for an address only callable by tokenRoleAdmin*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _key | address | the address to change permissions for |
-| _value | bool | the new permission. true = can mint, false = cannot mint |
-
-### voteBalanceOf
-
-```solidity
-function voteBalanceOf(address account) external view returns (uint256)
-```
-
-
-
-*See {IERC20-balanceOf}.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
+Raw delegations can be done in partial amounts via {delegateAmount}. This is intended for contracts which can run
+their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
 
 ### voter
 
 ```solidity
-function voter(address) external view returns (bool)
+mapping(address => bool) voter
 ```
 
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-
-
-## Events
-
-### Approval
+### _voteBalances
 
 ```solidity
-event Approval(address indexed owner, address indexed spender, uint256 value)
+mapping(address => uint256) _voteBalances
 ```
 
+### _primaryDelegates
 
+```solidity
+mapping(address => address) _primaryDelegates
+```
 
+a mapping that tracks the primaryDelegates of each user
 
+Primary delegates can only be chosen using delegate() which sends the full balance
+The exist to maintain the functionality that recieving tokens gives those votes to the delegate
 
-#### Parameters
+### delegationToAddressEnabled
 
-| Name | Type | Description |
-|---|---|---|
-| owner `indexed` | address | undefined |
-| spender `indexed` | address | undefined |
-| value  | uint256 | undefined |
+```solidity
+mapping(address => bool) delegationToAddressEnabled
+```
+
+### delegationFromAddressDisabled
+
+```solidity
+mapping(address => bool) delegationFromAddressDisabled
+```
 
 ### DelegatedVotes
 
 ```solidity
-event DelegatedVotes(address indexed delegator, address indexed delegatee, uint256 amount)
+event DelegatedVotes(address delegator, address delegatee, uint256 amount)
 ```
 
-
-
-*Emitted when a delegatee is delegated new votes.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegator `indexed` | address | undefined |
-| delegatee `indexed` | address | undefined |
-| amount  | uint256 | undefined |
-
-### NewPolicy
-
-```solidity
-event NewPolicy(contract Policy newPolicy, contract Policy oldPolicy)
-```
-
-emits when the policy contract is changed
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| newPolicy  | contract Policy | undefined |
-| oldPolicy  | contract Policy | undefined |
-
-### NewPrimaryDelegate
-
-```solidity
-event NewPrimaryDelegate(address indexed delegator, address indexed primaryDelegate)
-```
-
-
-
-*Emitted when an account denotes a primary delegate.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| delegator `indexed` | address | undefined |
-| primaryDelegate `indexed` | address | undefined |
-
-### Paused
-
-```solidity
-event Paused(address account)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account  | address | undefined |
-
-### PauserAssignment
-
-```solidity
-event PauserAssignment(address indexed pauser)
-```
-
-event indicating the pauser was updated
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| pauser `indexed` | address | undefined |
-
-### Transfer
-
-```solidity
-event Transfer(address indexed from, address indexed to, uint256 value)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| from `indexed` | address | undefined |
-| to `indexed` | address | undefined |
-| value  | uint256 | undefined |
-
-### Unpaused
-
-```solidity
-event Unpaused(address account)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account  | address | undefined |
-
-### UpdatedBurners
-
-```solidity
-event UpdatedBurners(address actor, bool newPermission)
-```
-
-emits when the burners permissions are changed
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| actor  | address | undefined |
-| newPermission  | bool | undefined |
-
-### UpdatedMinters
-
-```solidity
-event UpdatedMinters(address actor, bool newPermission)
-```
-
-emits when the minters permissions are changed
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| actor  | address | undefined |
-| newPermission  | bool | undefined |
+_Emitted when a delegatee is delegated new votes._
 
 ### VoteTransfer
 
 ```solidity
-event VoteTransfer(address indexed sendingVoter, address indexed recievingVoter, uint256 votes)
+event VoteTransfer(address sendingVoter, address recievingVoter, uint256 votes)
 ```
 
+_Emitted when a token transfer or delegate change results a transfer of voting power._
 
-
-*Emitted when a token transfer or delegate change results a transfer of voting power.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sendingVoter `indexed` | address | undefined |
-| recievingVoter `indexed` | address | undefined |
-| votes  | uint256 | undefined |
-
-
-
-## Errors
-
-### NonZeroPolicyAddr
+### NewPrimaryDelegate
 
 ```solidity
-error NonZeroPolicyAddr()
+event NewPrimaryDelegate(address delegator, address primaryDelegate)
 ```
 
+_Emitted when an account denotes a primary delegate._
 
-
-
-
-
-### OnlyBurners
+### constructor
 
 ```solidity
-error OnlyBurners()
+constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
 ```
 
-
-
-*error for when an address tries to burn tokens without permission*
-
-
-### OnlyMinters
+### enableVoting
 
 ```solidity
-error OnlyMinters()
+function enableVoting() public
 ```
 
-
-
-*error for when an address tries to mint tokens without permission*
-
-
-### PolicyOnlyFunction
+### enableDelegationTo
 
 ```solidity
-error PolicyOnlyFunction()
+function enableDelegationTo() public
 ```
 
+_Set yourself as willing to recieve delegates._
 
+### disableDelegationTo
 
+```solidity
+function disableDelegationTo() public
+```
 
+_Set yourself as no longer recieving delegates._
 
+### reenableDelegating
 
+```solidity
+function reenableDelegating() public
+```
+
+_Set yourself as being able to delegate again.
+also disables delegating to you_
+
+### isOwnDelegate
+
+```solidity
+function isOwnDelegate(address account) public view returns (bool)
+```
+
+_Returns true if the user has no amount of their balance delegated, otherwise false._
+
+### getPrimaryDelegate
+
+```solidity
+function getPrimaryDelegate(address account) public view virtual returns (address)
+```
+
+_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+The primary delegate is the one that is delegated any new funds the address recieves._
+
+### _setPrimaryDelegate
+
+```solidity
+function _setPrimaryDelegate(address delegator, address delegatee) internal
+```
+
+sets the primaryDelegate and emits an event to track it
+
+### delegate
+
+```solidity
+function delegate(address delegatee) public
+```
+
+_Delegate all votes from the sender to `delegatee`.
+NOTE: This function assumes that you do not have partial delegations
+It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
+
+### delegateBySig
+
+```solidity
+function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
+```
+
+_Delegate all votes from the sender to `delegatee`.
+NOTE: This function assumes that you do not have partial delegations
+It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
+
+### delegateAmount
+
+```solidity
+function delegateAmount(address delegatee, uint256 amount) public
+```
+
+_Delegate an `amount` of votes from the sender to `delegatee`._
+
+### _delegate
+
+```solidity
+function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
+```
+
+_Change delegation for `delegator` to `delegatee`.
+
+Emits events {NewDelegatedAmount} and {VoteTransfer}._
+
+### undelegate
+
+```solidity
+function undelegate() public
+```
+
+_Undelegate all votes from the sender's primary delegate._
+
+### undelegateFromAddress
+
+```solidity
+function undelegateFromAddress(address delegatee) public
+```
+
+_Undelegate votes from the `delegatee` back to the sender._
+
+### revokeDelegation
+
+```solidity
+function revokeDelegation(address delegator) public
+```
+
+A primary delegated individual can revoke delegations of unwanted delegators
+Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
+
+### _undelegateFromAddress
+
+```solidity
+function _undelegateFromAddress(address delegator, address delegatee) internal
+```
+
+_Undelegate votes from the `delegatee` back to the delegator._
+
+### undelegateAmountFromAddress
+
+```solidity
+function undelegateAmountFromAddress(address delegatee, uint256 amount) public
+```
+
+_Undelegate a specific amount of votes from the `delegatee` back to the sender._
+
+### _undelegate
+
+```solidity
+function _undelegate(address delegator, address delegatee, uint256 amount) internal virtual
+```
+
+### _afterTokenTransfer
+
+```solidity
+function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
+```
+
+_Move voting power when tokens are transferred.
+
+Emits a {VoteTransfer} event._
+
+### voteBalanceOf
+
+```solidity
+function voteBalanceOf(address account) public view virtual returns (uint256)
+```
+
+_See {IERC20-balanceOf}._
+
+### voteTransfer
+
+```solidity
+function voteTransfer(address recipient, uint256 amount) internal virtual returns (bool)
+```
+
+_See {IERC20-transfer}.
+
+Requirements:
+
+- `recipient` cannot be the zero address.
+- the caller must have a balance of at least `amount`._
+
+### voteAllowance
+
+```solidity
+function voteAllowance(address owner, address spender) internal view virtual returns (uint256)
+```
+
+_See {IERC20-allowance}._
+
+### voteApprove
+
+```solidity
+function voteApprove(address spender, uint256 amount) internal virtual returns (bool)
+```
+
+_See {IERC20-approve}.
+
+Requirements:
+
+- `spender` cannot be the zero address._
+
+### _voteTransferFrom
+
+```solidity
+function _voteTransferFrom(address sender, address recipient, uint256 amount) internal virtual returns (bool)
+```
+
+not the same as ERC20 transferFrom
+is instead more restrictive, only allows for transfers where the recipient owns the allowance
+
+### _voteTransfer
+
+```solidity
+function _voteTransfer(address sender, address recipient, uint256 amount) internal virtual
+```
+
+_Moves `amount` of tokens from `sender` to `recipient`.
+
+This internal function is equivalent to {transfer}, and can be used to
+e.g. implement automatic token fees, slashing mechanisms, etc.
+
+Emits a {Transfer} event.
+
+Requirements:
+
+- `sender` cannot be the zero address.
+- `recipient` cannot be the zero address.
+- `sender` must have a balance of at least `amount`._
+
+### _voteMint
+
+```solidity
+function _voteMint(address account, uint256 amount) internal virtual returns (uint256)
+```
+
+_Creates `amount` tokens and assigns them to `account`, increasing
+the total supply.
+
+Emits a {Transfer} event with `from` set to the zero address.
+
+Requirements:
+
+- `account` cannot be the zero address._
+
+### _voteBurn
+
+```solidity
+function _voteBurn(address account, uint256 amount) internal virtual returns (uint256)
+```
+
+_Destroys `amount` tokens from `account`, reducing the
+total supply.
+
+Emits a {Transfer} event with `to` set to the zero address.
+
+Requirements:
+
+- `account` cannot be the zero address.
+- `account` must have at least `amount` tokens._
+
+### _voteApprove
+
+```solidity
+function _voteApprove(address owner, address spender, uint256 amount) internal virtual
+```
+
+_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+
+This internal function is equivalent to `approve`, and can be used to
+e.g. set automatic allowances for certain subsystems, etc.
+
+Emits an {Approval} event.
+
+Requirements:
+
+- `owner` cannot be the zero address.
+- `spender` cannot be the zero address._
+
+### _increaseVoteAllowance
+
+```solidity
+function _increaseVoteAllowance(address owner, address spender, uint256 addedValue) internal virtual returns (bool)
+```
+
+_Atomically increases the allowance granted to `spender` by the caller.
+
+This is an alternative to {approve} that can be used as a mitigation for
+problems described in {IERC20-approve}.
+
+Emits an {Approval} event indicating the updated allowance.
+
+Requirements:
+
+- `spender` cannot be the zero address._
+
+### _decreaseVoteAllowance
+
+```solidity
+function _decreaseVoteAllowance(address owner, address spender, uint256 subtractedValue) internal virtual returns (bool)
+```
+
+_Atomically decreases the allowance granted to `spender` by the caller.
+
+This is an alternative to {approve} that can be used as a mitigation for
+problems described in {IERC20-approve}.
+
+Emits an {Approval} event indicating the updated allowance.
+
+Requirements:
+
+- `spender` cannot be the zero address.
+- `spender` must have allowance for the caller of at least
+`subtractedValue`._
+
+### _beforeVoteTokenTransfer
+
+```solidity
+function _beforeVoteTokenTransfer(address, address, uint256 amount) internal virtual
+```
+
+_Hook that is called before any transfer of tokens. This includes
+minting and burning.
+
+Calling conditions:
+
+- when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+will be transferred to `to`.
+- when `from` is zero, `amount` tokens will be minted for `to`.
+- when `to` is zero, `amount` of ``from``'s tokens will be burned.
+- `from` and `to` are never both zero.
+
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
+
+### _afterVoteTokenTransfer
+
+```solidity
+function _afterVoteTokenTransfer(address, address, uint256 amount) internal virtual
+```
+
+_Hook that is called after any transfer of tokens. This includes
+minting and burning.
+
+Calling conditions:
+
+- when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+has been transferred to `to`.
+- when `from` is zero, `amount` tokens have been minted for `to`.
+- when `to` is zero, `amount` of ``from``'s tokens have been burned.
+- `from` and `to` are never both zero.
+
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 

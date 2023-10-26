@@ -1,12 +1,11 @@
-# ERC1820Client
+# Eco Association
+Copyright (c) 2023 Eco Association
 
+## ERC1820Client
 
+### ERC1820REGISTRY
 
-> Utilities for interfacing with ERC1820
-
-
-
-
-
-
+```solidity
+contract IERC1820Registry ERC1820REGISTRY
+```
 

@@ -1,142 +1,19 @@
-# TrustedNodesFactory
+# Eco Association
+Copyright (c) 2023 Eco Association
 
-
-
-
-
-
-
-
-
-## Methods
-
-### currencyGovernance
-
-```solidity
-function currencyGovernance() external view returns (contract CurrencyGovernance)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract CurrencyGovernance | undefined |
+## TrustedNodesFactory
 
 ### ecoX
 
 ```solidity
-function ecoX() external view returns (contract ECOx)
+contract ECOx ecoX
 ```
 
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract ECOx | undefined |
-
-### implementation
+### currencyGovernance
 
 ```solidity
-function implementation() external view returns (address _impl)
+contract CurrencyGovernance currencyGovernance
 ```
-
-Get the address of the proxy target contract.
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _impl | address | undefined |
-
-### initialize
-
-```solidity
-function initialize(address _self) external nonpayable
-```
-
-Storage initialization of cloned contract This is used to initialize the storage of the forwarded contract, and should (typically) copy or repeat any work that would normally be done in the constructor of the proxied contract. Implementations of ForwardTarget should override this function, and chain to super.initialize(_self).
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _self | address | The address of the original contract instance (the one being              forwarded to). |
-
-### newCohort
-
-```solidity
-function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) external nonpayable returns (address)
-```
-
-Deploys a new TrustedNodes instance
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _termLength | uint256 | the length of term for trustees in the new cohort |
-| _voteReward | uint256 | the reward earned by each trustee each time they participate in voting |
-| _newTrustees | address[] | the new cohort of trustees |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### policy
-
-```solidity
-function policy() external view returns (contract Policy)
-```
-
-The address of the root policy instance overseeing this instance. This address can be used for ERC1820 lookup of other components, ERC1820 lookup of role policies, and interaction with the policy hierarchy.
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract Policy | undefined |
-
-### updateCurrencyGovernance
-
-```solidity
-function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) external nonpayable
-```
-
-Changes the holder currencyGovernance role
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _currencyGovernance | contract CurrencyGovernance | the new currencyGovernance role holder |
-
-
-
-## Events
 
 ### NewCohort
 
@@ -146,55 +23,56 @@ event NewCohort(contract TrustedNodes trustedNodes)
 
 Event emitted when a new cohort is deployed
 
+#### Parameters
 
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustedNodes | contract TrustedNodes | the address of the deployed cohort |
+
+### constructor
+
+```solidity
+constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX) public
+```
+
+configures the factory to easily deploy
+new TrustedNodes contracts after election
 
 #### Parameters
 
 | Name | Type | Description |
-|---|---|---|
-| trustedNodes  | contract TrustedNodes | the address of the deployed cohort |
+| ---- | ---- | ----------- |
+| _policy | contract Policy | the root policy address |
+| _currencyGovernance | contract CurrencyGovernance |  |
+| _ecoX | contract ECOx | the ecoX address |
 
-### NewPolicy
+### newCohort
 
 ```solidity
-event NewPolicy(contract Policy newPolicy, contract Policy oldPolicy)
+function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (address)
 ```
 
-emits when the policy contract is changed
-
-
+Deploys a new TrustedNodes instance
 
 #### Parameters
 
 | Name | Type | Description |
-|---|---|---|
-| newPolicy  | contract Policy | undefined |
-| oldPolicy  | contract Policy | undefined |
+| ---- | ---- | ----------- |
+| _termLength | uint256 | the length of term for trustees in the new cohort |
+| _voteReward | uint256 | the reward earned by each trustee each time they participate in voting |
+| _newTrustees | address[] | the new cohort of trustees |
 
-
-
-## Errors
-
-### NonZeroPolicyAddr
+### updateCurrencyGovernance
 
 ```solidity
-error NonZeroPolicyAddr()
+function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
 ```
 
+Changes the holder currencyGovernance role
 
+#### Parameters
 
-
-
-
-### PolicyOnlyFunction
-
-```solidity
-error PolicyOnlyFunction()
-```
-
-
-
-
-
-
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _currencyGovernance | contract CurrencyGovernance | the new currencyGovernance role holder |
 
