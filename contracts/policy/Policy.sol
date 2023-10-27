@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import "../proxy/ForwardTarget.sol";
-import "./ERC1820Client.sol"; // this will become a storage gap
 
 /** @title The policy contract that oversees other contracts
  *
  * Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
-contract Policy is ForwardTarget, ERC1820Client {
+contract Policy is ForwardTarget {
     uint256 private __gap; // to cover setters mapping
 
     /**
@@ -30,8 +28,10 @@ contract Policy is ForwardTarget, ERC1820Client {
 
     /**
      * for when a part of enacting a proposal reverts
+     * @param proposal the proposal address that got reverted during enaction
+     * @param reason the string reason given for the revert
      */
-    error FailedProposalSubcall(address target, string reason);
+    error FailedProposal(address proposal, string reason);
 
     /**
      * emits when the governer permissions are changed
@@ -86,10 +86,12 @@ contract Policy is ForwardTarget, ERC1820Client {
         address proposal
     ) external virtual onlyGovernerRole {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, ) = proposal.delegatecall(
+        (bool _success, bytes memory returnData) = proposal.delegatecall(
             abi.encodeWithSignature("enacted(address)", proposal)
         );
-        require(_success, "Command failed during delegatecall");
+        if(!_success) {
+            revert FailedProposal(proposal, string(returnData));
+        }
 
         emit EnactedGovernanceProposal(proposal, msg.sender);
     }
