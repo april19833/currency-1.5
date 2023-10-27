@@ -15,11 +15,11 @@ contract SampleProposal is Policy, Proposal {
 
     /** Address to confirm is false (alice)
      */
-    address public REMOVE_GOVERNOR = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address public constant REMOVE_GOVERNOR = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     /** Constant to set as a new governor address
      */
-    address public NEW_GOVERNOR = 0x0000000000000000000000000000000000001101;
+    address public constant NEW_GOVERNOR = 0x0000000000000000000000000000000000001101;
 
     /** The name of the proposal.
      */
@@ -43,8 +43,8 @@ contract SampleProposal is Policy, Proposal {
      */
     function enacted(address _self) public override {
         SampleProposal(_self).incrementCounter();
-        updateGovernors(REMOVE_GOVERNOR, false);
-        updateGovernors(NEW_GOVERNOR, true);
+        this.updateGovernors(REMOVE_GOVERNOR, false);
+        this.updateGovernors(NEW_GOVERNOR, true);
     }
 
     /** Function to test the enactment.
