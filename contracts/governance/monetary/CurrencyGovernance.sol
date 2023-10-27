@@ -629,7 +629,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * due to a small quirk, forgetting to reveal your vote in the previous round requires you to first call commit with zero data
      */
     function abstain() external onlyTrusted duringVotePhase {
-        if(commitments[msg.sender] != bytes32(0)) {
+        if (commitments[msg.sender] != bytes32(0)) {
             revert NoAbstainWithCommit();
         }
         emit Abstain(msg.sender, getCurrentCycle());
