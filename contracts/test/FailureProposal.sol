@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "../governance/community/proposals/Proposal.sol";
 import "../policy/Policy.sol";
 
-/** @title SampleProposal
+/** @title FailureProposal
  *
- * A proposal used for testing proposal adoption.
+ * A proposal used for testing proposal failures.
  */
-contract SampleProposal is Policy, Proposal {
+contract FailureProposal is Policy, Proposal {
     /** Apologize in case of failure
      */
     error ImSorry();
