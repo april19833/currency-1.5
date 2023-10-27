@@ -43,25 +43,13 @@ contract SampleProposal is Policy, Proposal {
      */
     function enacted(address _self) public override {
         SampleProposal(_self).incrementCounter();
-        removeGovernor(REMOVE_GOVERNOR);
-        setGovernor(NEW_GOVERNOR);
+        updateGovernors(REMOVE_GOVERNOR, false);
+        updateGovernors(NEW_GOVERNOR, true);
     }
 
     /** Function to test the enactment.
      */
     function incrementCounter() public {
         ++counter;
-    }
-
-    /** Function to set a governor
-     */
-    function setGovernor(address newGovernor) public {
-        governors[newGovernor] = true;
-    }
-
-    /** Function to set a governor
-     */
-    function removeGovernor(address oldGovernor) public {
-        governors[oldGovernor] = false;
     }
 }
