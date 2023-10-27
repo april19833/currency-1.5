@@ -14,12 +14,12 @@ contract Policy is ForwardTarget {
     /**
      * @dev mapping to store the contracts allowed to call functions
      */
-    mapping(address => bool) public governers;
+    mapping(address => bool) public governors;
 
     /**
      * @dev error for when an address tries submit proposal actions without permission
      */
-    error OnlyGoverners();
+    error OnlyGovernors();
 
     /**
      * @dev error for when an address tries to call a pseudo-internal function
@@ -34,11 +34,11 @@ contract Policy is ForwardTarget {
     error FailedProposal(address proposal, string reason);
 
     /**
-     * emits when the governer permissions are changed
+     * emits when the governor permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can govern, false for cannot)
      */
-    event UpdatedGoverners(address actor, bool newPermission);
+    event UpdatedGovernors(address actor, bool newPermission);
 
     /**
      * emits when enaction happens to keep record of enaction
@@ -51,11 +51,11 @@ contract Policy is ForwardTarget {
     );
 
     /**
-     * @dev Modifier for checking if the sender is a governer
+     * @dev Modifier for checking if the sender is a governor
      */
-    modifier onlyGovernerRole() {
-        if (!governers[msg.sender]) {
-            revert OnlyGoverners();
+    modifier onlyGovernorRole() {
+        if (!governors[msg.sender]) {
+            revert OnlyGovernors();
         }
         _;
     }
@@ -77,14 +77,14 @@ contract Policy is ForwardTarget {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can govern, false = cannot govern
      */
-    function updateGoverners(address _key, bool _value) internal {
-        governers[_key] = _value;
-        emit UpdatedGoverners(_key, _value);
+    function updateGovernors(address _key, bool _value) internal {
+        governors[_key] = _value;
+        emit UpdatedGovernors(_key, _value);
     }
 
     function enact(
         address proposal
-    ) external virtual onlyGovernerRole {
+    ) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
         (bool _success, bytes memory returnData) = proposal.delegatecall(
             abi.encodeWithSignature("enacted(address)", proposal)
