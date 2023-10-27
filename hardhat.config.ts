@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
             //     optimizerSteps: "u",
             //   },
             // },
+            runs: 999,
           },
           // viaIR: true,
         },

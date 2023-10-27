@@ -12,8 +12,7 @@ The project is organized into components:
 - [The governance system](contracts/governance)
   - [Community governance](contracts/governance/community)
   - [Monetary governance](contracts/governance/monetary)
-- [The VDF implementation](contracts/VDF)
-- [The deployment tooling](contracts/deploy)
+- [The deployment tooling](contracts/deploy) TODO
 
 Each component is documented in a README file in the corresponding contracts directory. See the [Background](#background) section for an overview of how they fit together.
 
@@ -81,27 +80,35 @@ The policies framework provides the core contract logic that facilitates upgrada
 
 The proxy framework, combined with the ERC1820 registry, allow contracts to be upgraded while keeping their state intact and maintaining accessibility without the need to publicize a new address.
 
-#### The VDF Implementation (/VDF)
-
-Eco uses a VDF as a critical component of the the Random Inflation process (part of the monetary governance module), and the VDF component provides most of that functionality. It allows incremental proving of a Verifiable Delay Function, and the demonstration of a proof to the governance system.
-
 #### The Deployment Tooling (/deploy)
+
+TODO
+
+- Upgrade Process
 
 The deployment tooling is used to bootstrap the other contracts when first deployed to an Ethereum network. It includes the functionality necessary to configure the system, and also provides faucet and cleanup contracts for use in testing.
 
 ## Install
 
-To use the code you'll need the proper tools. Make sure you have a recent version of [Node.JS](https://nodejs.org), and a recent version of [NPM](https://npmjs.com).
+To use the code you'll need the proper tools. Make sure you have a recent version of [Node.JS](https://nodejs.org), a recent version of [NPM](https://npmjs.com), and [YARN](https://classic.yarnpkg.com/lang/en/).
 
-Once Node and NPM are installed you can use the `npm` command to install additional dependencies:
+Once Node, NPM and YARN are installed you can use the `yarn` command to install additional dependencies:
 
-```
-npm ci
+```bash
+yarn install
 ```
 
 ## Usage
 
 These contracts are intended for deployment to the Ethereum blockchain. Once deployed, you can interact with the contracts using the standard Ethereum RPC mechanisms. The key contract functions are documented in the API sections of the component README files.
+
+### Compiling the contracts
+
+To compile the contracts run
+
+```bash
+yarn compile
+```
 
 ### Running the Linter, Tests and Coverage Report
 
@@ -111,14 +118,14 @@ The commands below provide the basics to get set up developing as well as outlin
 
 `eslint` and `solhint` are used to lint the code in this repository. Additionally, the prettier enforces a clean code style for readability. You can run the linter and prettier using:
 
-```
-npm run lint
+```bash
+yarn lint
 ```
 
 and
 
-```
-npm run format
+```bash
+yarn format
 ```
 
 respectively.
@@ -127,8 +134,8 @@ respectively.
 
 You can run the test suite by invoking:
 
-```
-npm run test
+```bash
+yarn test
 ```
 
 The test suite is extensive and can take some time to run.
@@ -137,9 +144,8 @@ The test suite is extensive and can take some time to run.
 
 Coverage reports are generated separated for Solidity and JavaScript code:
 
-```
-npm run coverage:js
-npm run coverage:sol
+```bash
+yarn coverage
 ```
 
 Or, aliased for convenience when running both:
