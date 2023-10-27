@@ -3,22 +3,23 @@ pragma solidity ^0.8.0;
 
 import "../governance/community/proposals/Proposal.sol";
 import "../policy/Policy.sol";
-import "../policy/Policed.sol";
 
 /** @title SampleProposal
  *
  * A proposal used for testing proposal adoption.
  */
-contract SampleProposal is Policy, Policed, Proposal {
+contract SampleProposal is Policy, Proposal {
     /** State variable to test
      */
     uint256 public counter;
 
+    /** Address to confirm is false (alice)
+     */
+    address public REMOVE_GOVERNOR = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+
     /** Constant to set as a new governor address
      */
     address public NEW_GOVERNOR = 0x0000000000000000000000000000000000001101;
-
-    constructor(Policy _policy) Policed(_policy) {}
 
     /** The name of the proposal.
      */
@@ -29,7 +30,7 @@ contract SampleProposal is Policy, Policed, Proposal {
     /** A description of what the proposal does.
      */
     function description() public pure override returns (string memory) {
-        return "A trackalbe sample";
+        return "Change the governor variable";
     }
 
     /** A URL for more information.
@@ -42,18 +43,25 @@ contract SampleProposal is Policy, Policed, Proposal {
      */
     function enacted(address _self) public override {
         SampleProposal(_self).incrementCounter();
-        SampleProposal(_self).setGovernor(NEW_GOVERNOR);
+        removeGovernor(REMOVE_GOVERNOR);
+        setGovernor(NEW_GOVERNOR);
     }
 
     /** Function to test the enactment.
      */
-    function incrementCounter() public onlyPolicy {
+    function incrementCounter() public {
         ++counter;
     }
 
     /** Function to set a governor
      */
-    function setGovernor(address newGovernor) public onlyPolicy {
+    function setGovernor(address newGovernor) public {
         governors[newGovernor] = true;
+    }
+
+    /** Function to set a governor
+     */
+    function removeGovernor(address oldGovernor) public {
+        governors[oldGovernor] = false;
     }
 }
