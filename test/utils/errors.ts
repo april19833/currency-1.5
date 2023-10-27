@@ -94,7 +94,8 @@ export const ERRORS = {
   },
   FailureProposal: {
     PROPOSAL_FAILURE_ERROR: 'ImSorry',
-    PROPOSAL_FAILURE_STRING: 'I\'m an annoying error string!',
-    PANIC: 'VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)'
-  }
+    PROPOSAL_FAILURE_STRING: "I'm an annoying error string!",
+    PANIC:
+      'VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)',
+  },
 }

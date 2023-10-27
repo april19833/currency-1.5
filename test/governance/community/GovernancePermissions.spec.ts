@@ -20,7 +20,7 @@ describe('Policy Integration Tests', () => {
     const Policyfact: Policy__factory = new Policy__factory(alice)
 
     const PolicyImpl = await Policyfact.connect(alice).deploy()
-    
+
     const proxy = await new ForwardProxy__factory()
       .connect(alice)
       .deploy(PolicyImpl.address)
@@ -31,7 +31,6 @@ describe('Policy Integration Tests', () => {
   })
 
   it('TODO: integration tests here testing proposals to hit every onlyPolicy function', async () => {
-    const work = 'work work'
+    console.log(governanceImpersonator.address)
   })
-
 })

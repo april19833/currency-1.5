@@ -253,9 +253,7 @@ contract PolicyVotes is VotingPower, TimeUtils {
             _res = Result.Accepted;
 
             //Enact the policy
-            policy.enact(
-                address(proposal)
-            );
+            policy.enact(address(proposal));
         }
 
         emit VoteCompletion(_res);

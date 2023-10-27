@@ -15,11 +15,13 @@ contract SampleProposal is Policy, Proposal {
 
     /** Address to confirm is false (alice)
      */
-    address public constant REMOVE_GOVERNOR = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address public constant REMOVE_GOVERNOR =
+        0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     /** Constant to set as a new governor address
      */
-    address public constant NEW_GOVERNOR = 0x0000000000000000000000000000000000001101;
+    address public constant NEW_GOVERNOR =
+        0x0000000000000000000000000000000000001101;
 
     /** The name of the proposal.
      */
