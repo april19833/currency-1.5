@@ -42,14 +42,12 @@ contract Policy is ForwardTarget, ERC1820Client {
 
     /**
      * emits when enaction happens to keep record of enaction
-     * @param proposalId the proposal lookup that got successfully enacted
+     * @param proposal the proposal address that got successfully enacted
      * @param governor the contract which was the source of the proposal, source for looking up the calldata
-     * @param successes the return success values from each of the calls to the targets in order
      */
     event EnactedGovernanceProposal(
-        bytes32 proposalId,
-        address governor,
-        bool[] successes
+        address proposal,
+        address governor
     );
 
     /**
@@ -67,7 +65,7 @@ contract Policy is ForwardTarget, ERC1820Client {
      * see if we need this
      */
     modifier onlySelf() {
-        if (!msg.sender != address(this)) {
+        if (!(msg.sender != address(this))) {
             revert OnlySelf();
         }
         _;
@@ -85,23 +83,14 @@ contract Policy is ForwardTarget, ERC1820Client {
     }
 
     function enact(
-        bytes32 proposalId,
-        address[] calldata targets,
-        bytes4[] calldata signatures,
-        bytes[] memory calldatas
+        address proposal
     ) external virtual onlyGovernerRole {
-        // the array lengths have all been vetted already by the proposal-making process
-        // upstream is just trusted
-        for (uint256 i = 0; i < targets.length; i++) {
-            (bool success, bytes memory returnData) = targets[i].call(
-                abi.encodePacked(signatures[i], calldatas[i])
-            );
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool _success, ) = proposal.delegatecall(
+            abi.encodeWithSignature("enacted(address)", proposal)
+        );
+        require(_success, "Command failed during delegatecall");
 
-            if (!success) {
-                revert FailedProposalSubcall(targets[i], string(returnData));
-            }
-        }
-
-        emit EnactedGovernanceProposal(proposalId, msg.sender);
+        emit EnactedGovernanceProposal(proposal, msg.sender);
     }
 }
