@@ -27,11 +27,10 @@ contract Policy is ForwardTarget {
     error OnlySelf();
 
     /**
-     * for when a part of enacting a proposal reverts
+     * for when a part of enacting a proposal reverts without a readable error
      * @param proposal the proposal address that got reverted during enaction
-     * @param reason the string reason given for the revert
      */
-    error FailedProposal(address proposal, string reason);
+    error FailedProposal(address proposal);
 
     /**
      * emits when the governor permissions are changed
@@ -62,10 +61,10 @@ contract Policy is ForwardTarget {
 
     /**
      * @dev Modifier for faux internal calls
-     * see if we need this
+     * needed for function to be called only during delegate call
      */
     modifier onlySelf() {
-        if (!(msg.sender != address(this))) {
+        if (msg.sender != address(this)) {
             revert OnlySelf();
         }
         _;
@@ -77,7 +76,7 @@ contract Policy is ForwardTarget {
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can govern, false = cannot govern
      */
-    function updateGovernors(address _key, bool _value) internal {
+    function updateGovernors(address _key, bool _value) public onlySelf() {
         governors[_key] = _value;
         emit UpdatedGovernors(_key, _value);
     }
@@ -86,11 +85,14 @@ contract Policy is ForwardTarget {
         address proposal
     ) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, bytes memory returnData) = proposal.delegatecall(
+        (bool _success, bytes memory returndata) = proposal.delegatecall(
             abi.encodeWithSignature("enacted(address)", proposal)
         );
         if(!_success) {
-            revert FailedProposal(proposal, string(returnData));
+            if (returndata.length == 0) revert FailedProposal(proposal);
+            assembly {
+                revert(add(32, returndata), mload(returndata))
+            }
         }
 
         emit EnactedGovernanceProposal(proposal, msg.sender);
