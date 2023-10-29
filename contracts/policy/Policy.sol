@@ -44,10 +44,7 @@ contract Policy is ForwardTarget {
      * @param proposal the proposal address that got successfully enacted
      * @param governor the contract which was the source of the proposal, source for looking up the calldata
      */
-    event EnactedGovernanceProposal(
-        address proposal,
-        address governor
-    );
+    event EnactedGovernanceProposal(address proposal, address governor);
 
     /**
      * @dev Modifier for checking if the sender is a governor
@@ -72,23 +69,21 @@ contract Policy is ForwardTarget {
 
     /**
      * @dev change the governance permissions for an address
-     * internal function 
+     * internal function
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can govern, false = cannot govern
      */
-    function updateGovernors(address _key, bool _value) public onlySelf() {
+    function updateGovernors(address _key, bool _value) public onlySelf {
         governors[_key] = _value;
         emit UpdatedGovernors(_key, _value);
     }
 
-    function enact(
-        address proposal
-    ) external virtual onlyGovernorRole {
+    function enact(address proposal) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
         (bool _success, bytes memory returndata) = proposal.delegatecall(
             abi.encodeWithSignature("enacted(address)", proposal)
         );
-        if(!_success) {
+        if (!_success) {
             if (returndata.length == 0) revert FailedProposal(proposal);
             assembly {
                 revert(add(32, returndata), mload(returndata))
