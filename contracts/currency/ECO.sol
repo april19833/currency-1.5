@@ -78,7 +78,7 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev Modifier for checking if the sender is a rebaser
+     * @dev Modifier for checking if the sender is a snapshotter
      */
     modifier onlySnapshotterRole() {
         if (!snapshotters[msg.sender]) {
