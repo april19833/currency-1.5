@@ -32,6 +32,8 @@ The `PolicyProposals` and `PolicyVotes` contracts handle the vote process. `Poli
 
 ## API
 
+For detailed API documentation see [currency](../../docs/solidity/currency/)
+
 ### VotingPower
 
 - Inherits: `PolicedUtils`

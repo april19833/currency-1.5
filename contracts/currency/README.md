@@ -49,13 +49,15 @@ The currency contracts are intended for deployment on the Ethereum blockchain, u
 
 ## API
 
-### ERC20
+For detailed API documentation see [currency](../../docs/solidity/currency/)
+
+### [ERC20](../../docs/solidity/currency/ERC20.md)
 
 - Inherits: `ERC20Permit`
 
 Other than the `permit` functionality that will be detailed in its associated contract, Eco's implementation of ERC20 differs from the baseline in a few ways. One is that transfers to the zero address are disallowed and the `burn` function must be used instead. The `approve` function disallows approvals to the zero address to make it clear that this is the case. Another difference is that `transferFrom` emits an `Approval` event to denote the fact that the approval amount is changed by its action. Towards clarity and for safety in other use, functions for `decreaseAllowance` and `increaseAllowance` are added. When it comes to return values, functions will revert instead of returning `false`, but will still return `true` on success to remain compatible for integrations that check for success. Finally, the `name` and `symbol` variables are stored as immutable bytes32 and converted to strings by the getter functions.
 
-### ERC20Pausable
+### [ERC20Pausable](../../docs/solidity/currency/ERC20Pausable.md)
 
 - Inherits: `ERC20`, `Pausable`
 
@@ -121,7 +123,7 @@ Sets a new `pauser`. The old `pauser` is overwritten.
 
 - only callable by the `roleAdmin`
 
-### VoteCheckpoints
+### [VoteCheckpoints](../../docs/solidity/currency/VoteCheckpoints.md)
 
 - Inherits: `ERC20Pausable`, `DelegatePermit`
 
@@ -341,7 +343,7 @@ Undelegates a specified amount from an address. Is only available to amounts set
 
 - Will revert if `amount` is greater than the total delegation to the `delegatee`.
 
-### DelegatePermit
+### [DelegatePermit](../../docs/solidity/currency/DelegatePermit.md)
 
 - Inherits: `EIP712`
 
@@ -355,87 +357,158 @@ Arguments:
 
 Returns the current unused nonce for the `owner`.
 
-### InflationCheckpoints
+### [InflationSnapshots](../../docs/solidity/currency/InflationSnapshots.md)
 
-- Inherits: `VoteCheckpoints`, `PolicedUtils`, `IGenerationIncrease`
+#### INITIAL_INFLATION_MULTIPLIER
 
-This contract takes the functionality outlined in `VoteCheckpoints` and adds the effects of linear inflation. The multiplier for inflation is stored in its own checkpoints array that functions the same as the voting power checkpoints in `VoteCheckpoints`. The initial value of the multiplier is stored in the constant `INITIAL_INFLATION_MULTIPLIER` and is 10e18.
+```solidity
+uint256 INITIAL_INFLATION_MULTIPLIER
+```
 
-#### Events
+#### \_inflationMultiplierSnapshot
 
-##### BaseValueTransfer
+```solidity
+struct VoteSnapshots.Snapshot _inflationMultiplierSnapshot
+```
 
-Attributes:
+#### inflationMultiplier
 
-- from (address) - the sender address
-- to (address) - the recipient of the transfer
-- value (uint256) - the amount transferred in the base value, stored in the underlying data structure (does not change with inflation)
+```solidity
+uint256 inflationMultiplier
+```
 
-Used to help external integrations that only use events to build their internal representation of the currency to still be able to track the uninflated values stored for each user. The ERC20 event, Transfer, occurs before the `_beforeTokenTransfer` hook has been called and the values converted from inflation variable values into static base values.
+#### BadRebaseValue
 
-#### getPastLinearInflation
+```solidity
+error BadRebaseValue()
+```
 
-Arguments:
+error for when a rebase attempts to rebase incorrectly
 
-- `blockNumber` (uint256) - the block number at which to check the inflation multiplier
+#### NewInflationMultiplier
 
-Returns the value of the inflation multiplier at the earliest checkpoint before `blockNumber` using a binary search.
+```solidity
+event NewInflationMultiplier(uint256 adjustinginflationMultiplier, uint256 cumulativeInflationMultiplier)
+```
 
-##### Security Notes
+Fired when a proposal with a new inflation multiplier is selected and passed.
+Used to calculate new values for the rebased token.
 
-- Reverts if `blockNumber` is greater than the current block number.
-- If no checkpoint is found before the requested block number, 0 is returned. However, construction writes a checkpoint with the initial multiplier so it will only return zero if a block number before the launch of the currency is used. Specifying a block this early will likely cause a revert on all other functions as the inflation multiplier divides out inputs.
+##### Parameters
+
+| Name                          | Type    | Description                                                   |
+| ----------------------------- | ------- | ------------------------------------------------------------- |
+| adjustinginflationMultiplier  | uint256 | the multiplier that has just been applied to the tokens       |
+| cumulativeInflationMultiplier | uint256 | the total multiplier that is used to convert to and from gons |
+
+#### BaseValueTransfer
+
+```solidity
+event BaseValueTransfer(address from, address to, uint256 value)
+```
+
+#### constructor
+
+```solidity
+constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
+```
+
+Construct a new instance.
+
+Note that it is always necessary to call reAuthorize on the balance store
+after it is first constructed to populate the authorized interface
+contracts cache. These calls are separated to allow the authorized
+contracts to be configured/deployed after the balance store contract.
+
+#### initialize
+
+```solidity
+function initialize(address _self) public virtual
+```
+
+Storage initialization of cloned contract
+
+This is used to initialize the storage of the forwarded contract, and
+should (typically) copy or repeat any work that would normally be
+done in the constructor of the proxied contract.
+
+Implementations of ForwardTarget should override this function,
+and chain to super.initialize(\_self).
+
+##### Parameters
+
+| Name   | Type    | Description                                                                 |
+| ------ | ------- | --------------------------------------------------------------------------- |
+| \_self | address | The address of the original contract instance (the one being forwarded to). |
+
+#### \_rebase
+
+```solidity
+function _rebase(uint256 _inflationMultiplier) internal virtual
+```
+
+#### \_beforeTokenTransfer
+
+```solidity
+function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
+```
+
+Update total supply snapshots before the values are modified. This is implemented
+in the \_beforeTokenTransfer hook, which is executed for_mint, \_burn, and_transfer operations.
+
+#### inflationMultiplierSnapshot
+
+```solidity
+function inflationMultiplierSnapshot() public view returns (uint256)
+```
 
 #### balanceOf
 
-Arguments:
+```solidity
+function balanceOf(address _owner) public view returns (uint256)
+```
 
-- `_owner` (address) - the address for which to get the balance
+Access function to determine the token balance held by some address.
 
-Overrides the `balanceOf` function in `ERC20` to account for inflation. The uninflated value stored in the `ERC20` store is divided by the most recent inflation multiplier before the block when the function is called. This is the value of the balance in ECO.
+#### voteBalanceOf
 
-##### Security Notes
+```solidity
+function voteBalanceOf(address _owner) public view returns (uint256)
+```
 
-- the division is done via deterministic integer division with truncation
+Access function to determine the voting balance (includes delegation) of some address.
 
 #### totalSupply
 
-Arguments: none
+```solidity
+function totalSupply() public view returns (uint256)
+```
 
-Overrides the `totalSupply` function in `ERC20` to account for inflation. The uninflated value stored in the `ERC20` store is divided by the most recent inflation multiplier to the current block when the function is called.
+Returns the total (inflation corrected) token supply
 
-##### Security Notes
+#### totalSupplySnapshot
 
-- the division is done via deterministic integer division with truncation
+```solidity
+function totalSupplySnapshot() public view returns (uint256)
+```
 
-#### totalSupplyAt
+Returns the total (inflation corrected) token supply for the current snapshot
 
-Arguments:
+#### voteBalanceSnapshot
 
-- `_blockNumber` (uint256) - the block number at which to check the total supply.
+```solidity
+function voteBalanceSnapshot(address account) public view returns (uint256)
+```
 
-Overrides the `totalSupplyAt` function in `VoteCheckpoints` to account for inflation. The uninflated value stored in the checkpoint is divided by the most recent inflation multiplier to `_blockNumber`.
+Return snapshotted voting balance (includes delegation) for the current snapshot.
 
-##### Security Notes
+##### Parameters
 
-- the division is done via deterministic integer division with truncation
+| Name    | Type    | Description                        |
+| ------- | ------- | ---------------------------------- |
+| account | address | The account to check the votes of. |
 
-#### getPastVotes
-
-Arguments:
-
-- `_owner` (address) - the address for which to look up the balance
-- `_blockNumber` (uint256) - the block number at which to check the total supply.
-
-Overrides the `getPastVotes` function in `VoteCheckpoints` to account for inflation. The uninflated value stored in the checkpoint is divided by the most recent inflation multiplier to `_blockNumber`.
-
-##### Security Notes
-
-- This is not the same as the user's balance at the time. This is used purely for looking at snapshotted voting power of accounts to account for the delegation decisions of the `account` address.
-- the division is done via deterministic integer division with truncation
-- still reverts for current and future blocks as with `getPastVotes` in `VoteCheckpoints.sol`
-
-### ECO
+### [ECO](../../docs/solidity/currency/ECO.md)
 
 - Inherits: `InflationCheckpoints`
 
@@ -482,7 +555,7 @@ This is part of the generation increase machinery. The `currentGeneration` is in
 
 - Can only be called if the `TimedPolicies` contract has increased its generation compared to the `currentGeneration` stored in this contract.
 
-### ECOx
+### [ECOx](../../docs/solidity/currency/ECOx.md)
 
 - Inherits: `ERC20Pausable`, `PolicedUtils`
 
@@ -539,7 +612,7 @@ See the [main README](../../README.md).
 
 See the [main README](../../README.md). Note that some files in this directory are under different licenses. See file headers for details where applicable.
 
-### TokenInit
+### [TokenInit](../../docs/solidity/currency/TokenInit.md)
 
 Inherits: `Ownable`
 

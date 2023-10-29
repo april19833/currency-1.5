@@ -87,7 +87,7 @@ const config: HardhatUserConfig = {
     // pages: 'single',
     // pages: 'items',
     pages: 'files',
-    exclude: ['governance/community'],
+    // exclude: ['governance/community'],
     collapseNewlines: true,
     pageExtension: '.md',
   },

@@ -83,6 +83,8 @@ Begin by deploying the `PolicyInit` contract. Then, deploy your root policy cont
 
 ## API
 
+For detailed API documentation see [policy](../../docs/solidity/policy/)
+
 ### Policy
 
 - Inherits: `ForwardTarget`, `ERC1820Client`

@@ -54,6 +54,8 @@ The `CurrencyGovernance` contract is cloned to run the decisionmaking process. T
 
 ## API
 
+For detailed API documentation see [monetary](../../../docs/solidity/governance/monetary/)
+
 ### CurrencyGovernance
 
 - Inherits: `PolicedUtils`, `TimeUtils`, `Pausable`
