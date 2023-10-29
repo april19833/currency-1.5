@@ -54,13 +54,6 @@ INFO:Printers:
     - nonces(address) (external)
     - permit(address,address,uint256,uint256,uint8,bytes32,bytes32) (external)
 
-+ Contract Arrays (Most derived contract)
-  - From Arrays
-    - findUpperBound(uint256[],uint256) (internal)
-    - unsafeAccess(address[],uint256) (internal)
-    - unsafeAccess(bytes32[],uint256) (internal)
-    - unsafeAccess(uint256[],uint256) (internal)
-
 + Contract Context
   - From Context
     - _msgData() (internal)
@@ -72,13 +65,6 @@ INFO:Printers:
     - decrement(Counters.Counter) (internal)
     - increment(Counters.Counter) (internal)
     - reset(Counters.Counter) (internal)
-
-+ Contract StorageSlot (Most derived contract)
-  - From StorageSlot
-    - getAddressSlot(bytes32) (internal)
-    - getBooleanSlot(bytes32) (internal)
-    - getBytes32Slot(bytes32) (internal)
-    - getUint256Slot(bytes32) (internal)
 
 + Contract Strings (Most derived contract)
   - From Strings
@@ -885,108 +871,28 @@ INFO:Printers:
     - totalSupplySnapshot() (public)
     - voteBalanceSnapshot(address) (public)
 
-+ Contract VoteSnapshots (Most derived contract)
-  - From ERC20Delegated
-    - _afterTokenTransfer(address,address,uint256) (internal)
-    - _afterVoteTokenTransfer(address,address,uint256) (internal)
-    - _beforeVoteTokenTransfer(address,address,uint256) (internal)
-    - _decreaseVoteAllowance(address,address,uint256) (internal)
-    - _delegate(address,address,uint256) (internal)
-    - _increaseVoteAllowance(address,address,uint256) (internal)
-    - _setPrimaryDelegate(address,address) (internal)
-    - _undelegate(address,address,uint256) (internal)
-    - _undelegateFromAddress(address,address) (internal)
-    - _voteApprove(address,address,uint256) (internal)
-    - _voteBurn(address,uint256) (internal)
-    - _voteMint(address,uint256) (internal)
-    - _voteTransfer(address,address,uint256) (internal)
-    - _voteTransferFrom(address,address,uint256) (internal)
-    - constructor(Policy,string,string,address) (internal)
-    - delegate(address) (public)
-    - delegateAmount(address,uint256) (public)
-    - delegateBySig(address,address,uint256,uint8,bytes32,bytes32) (public)
-    - disableDelegationTo() (public)
-    - enableDelegationTo() (public)
-    - enableVoting() (public)
-    - getPrimaryDelegate(address) (public)
-    - isOwnDelegate(address) (public)
-    - reenableDelegating() (public)
-    - revokeDelegation(address) (public)
-    - undelegate() (public)
-    - undelegateAmountFromAddress(address,uint256) (public)
-    - undelegateFromAddress(address) (public)
-    - voteAllowance(address,address) (internal)
-    - voteApprove(address,uint256) (internal)
-    - voteBalanceOf(address) (public)
-    - voteTransfer(address,uint256) (internal)
-  - From DelegatePermit
-    - _useDelegationNonce(address) (private)
-    - _verifyDelegatePermit(address,address,uint256,uint8,bytes32,bytes32) (internal)
-    - delegationNonce(address) (public)
-  - From EIP712
-    - _buildDomainSeparator(bytes32,bytes32,bytes32) (private)
-    - _domainSeparatorV4() (internal)
-    - _hashTypedDataV4(bytes32) (internal)
-  - From ERC20MintAndBurn
-    - burn(address,uint256) (external)
-    - mint(address,uint256) (external)
-    - updateBurners(address,bool) (public)
-    - updateMinters(address,bool) (public)
-  - From Policed
-    - constructor(Policy) (internal)
-  - From ForwardTarget
-    - constructor() (internal)
-    - implementation() (public)
-    - initialize(address) (public)
-    - setImplementation(address) (internal)
-  - From ERC20Pausable
-    - constructor(string,string,address,address) (public)
-    - pause() (external)
-    - setPauser(address) (public)
-    - unpause() (external)
++ Contract CommunityGovernance (Most derived contract)
+  - From TimeUtils
+    - getTime() (internal)
   - From Pausable
     - _pause() (internal)
     - _requireNotPaused() (internal)
     - _requirePaused() (internal)
     - _unpause() (internal)
+    - constructor() (internal)
     - paused() (public)
   - From Context
     - _msgData() (internal)
     - _msgSender() (internal)
-  - From ERC20
-    - _approve(address,address,uint256) (internal)
-    - _burn(address,uint256) (internal)
-    - _mint(address,uint256) (internal)
-    - _transfer(address,address,uint256) (internal)
-    - allowance(address,address) (public)
-    - approve(address,uint256) (public)
-    - balanceOf(address) (public)
-    - constructor(string,string) (public)
-    - decimals() (public)
-    - decreaseAllowance(address,uint256) (public)
-    - increaseAllowance(address,uint256) (public)
-    - name() (public)
-    - symbol() (public)
-    - totalSupply() (public)
-    - transfer(address,uint256) (public)
-    - transferFrom(address,address,uint256) (public)
-  - From ERC20Permit
-    - DOMAIN_SEPARATOR() (external)
-    - _useNonce(address) (internal)
-    - constructor(string) (internal)
-    - nonces(address) (public)
-    - permit(address,address,uint256,uint256,uint8,bytes32,bytes32) (public)
-  - From VoteSnapshots
-    - _beforeTokenTransfer(address,address,uint256) (internal)
-    - _getCurrentSnapshotId() (internal)
-    - _lastSnapshotId(uint256[]) (private)
-    - _snapshot() (internal)
-    - _updateAccountSnapshot(address) (private)
-    - _updateSnapshot(VoteSnapshots.Snapshots,uint256) (internal)
-    - _updateTotalSupplySnapshot() (private)
-    - _valueAt(uint256,VoteSnapshots.Snapshots) (internal)
-    - balanceOfAt(address,uint256) (public)
-    - totalSupplyAt(uint256) (public)
+  - From Policed
+    - constructor(Policy) (internal)
+  - From ForwardTarget
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From CommunityGovernance
+    - constructor(Policy,address,address,address) (public)
+    - setPauser(address) (public)
 
 + Contract ECOxStaking (Most derived contract)
   - From Policed
@@ -1139,7 +1045,7 @@ INFO:Printers:
     - totalVotingPower() (public)
     - votingPower(address,uint256) (public)
 
-+ Contract Proposal (Most derived contract)
++ Contract Proposal
   - From Proposal
     - description() (external)
     - enacted(address) (external)
@@ -1159,6 +1065,7 @@ INFO:Printers:
   - From CurrencyGovernance
     - _setEnacter(MonetaryPolicyAdapter) (internal)
     - _setTrustedNodes(TrustedNodes) (internal)
+    - abstain() (external)
     - canSupport(address) (public)
     - commit(bytes32) (external)
     - constructor(Policy,TrustedNodes,MonetaryPolicyAdapter) (public)
@@ -1306,7 +1213,7 @@ INFO:Printers:
     - newCohort(uint256,uint256,address[]) (public)
     - updateCurrencyGovernance(CurrencyGovernance) (public)
 
-+ Contract ERC1820Client
++ Contract ERC1820Client (Most derived contract)
 
 + Contract Policed
   - From ForwardTarget
@@ -1317,16 +1224,15 @@ INFO:Printers:
   - From Policed
     - constructor(Policy) (internal)
 
-+ Contract Policy (Most derived contract)
++ Contract Policy
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From Policy
-    - internalCommand(address,bytes32) (public)
-    - removeSelf(bytes32) (external)
-    - setPolicy(bytes32,address,bytes32) (public)
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
 
 + Contract ForwardProxy (Upgradeable Proxy) (Most derived contract)
   - From ForwardProxy
@@ -1380,10 +1286,87 @@ INFO:Printers:
     - constructor(Policy) (public)
     - setValue(uint256) (public)
 
++ Contract FailureProposal (Most derived contract)
+  - From Policy
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From FailureProposal
+    - description() (public)
+    - enacted(address) (public)
+    - name() (public)
+    - url() (public)
+
++ Contract WorseFailureProposal (Most derived contract)
+  - From Policy
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From WorseFailureProposal
+    - description() (public)
+    - enacted(address) (public)
+    - name() (public)
+    - url() (public)
+
++ Contract ClumsyFailureProposal (Most derived contract)
+  - From Policy
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From ClumsyFailureProposal
+    - description() (public)
+    - enacted(address) (public)
+    - name() (public)
+    - url() (public)
+
++ Contract TotalFailureProposal (Most derived contract)
+  - From Policy
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From TotalFailureProposal
+    - description() (public)
+    - enacted(address) (public)
+    - name() (public)
+    - url() (public)
+
++ Contract SampleProposal (Most derived contract)
+  - From Policy
+    - enact(address) (external)
+    - updateGovernors(address,bool) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - initialize(address) (public)
+    - setImplementation(address) (internal)
+  - From SampleProposal
+    - description() (public)
+    - enacted(address) (public)
+    - incrementCounter() (public)
+    - name() (public)
+    - url() (public)
+
 + Contract StageTestCurrencyGovernance (Most derived contract)
   - From CurrencyGovernance
     - _setEnacter(MonetaryPolicyAdapter) (internal)
     - _setTrustedNodes(TrustedNodes) (internal)
+    - abstain() (external)
     - canSupport(address) (public)
     - commit(bytes32) (external)
     - constructor(Policy,TrustedNodes,MonetaryPolicyAdapter) (public)
@@ -1425,4 +1408,4 @@ INFO:Printers:
   - From TimeUtils
     - getTime() (internal)
 
-INFO:Slither:. analyzed (54 contracts)
+INFO:Slither:. analyzed (57 contracts)

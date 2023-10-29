@@ -8,19 +8,7 @@ IERC20Metadata:
 +------+------+------+--------+
 +------+------+------+--------+
 
-Arrays:
-+------+------+------+--------+
-| Name | Type | Slot | Offset |
-+------+------+------+--------+
-+------+------+------+--------+
-
 Counters:
-+------+------+------+--------+
-| Name | Type | Slot | Offset |
-+------+------+------+--------+
-+------+------+------+--------+
-
-StorageSlot:
 +------+------+------+--------+
 | Name | Type | Slot | Offset |
 +------+------+------+--------+
@@ -70,7 +58,7 @@ ECO:
 |         ERC20Delegated._primaryDelegates        |           mapping(address => address)           |  12  |   0    |
 |    ERC20Delegated.delegationToAddressEnabled    |             mapping(address => bool)            |  13  |   0    |
 |   ERC20Delegated.delegationFromAddressDisabled  |             mapping(address => bool)            |  14  |   0    |
-|         VoteSnapshots.currentSnapshotId         |                      uint32                     |  15  |   0    |
+|        VoteSnapshots.currentSnapshotBlock       |                      uint32                     |  15  |   0    |
 |           VoteSnapshots._voteSnapshots          |    mapping(address => VoteSnapshots.Snapshot)   |  16  |   0    |
 |        VoteSnapshots._totalSupplySnapshot       |              VoteSnapshots.Snapshot             |  17  |   0    |
 | InflationSnapshots._inflationMultiplierSnapshot |              VoteSnapshots.Snapshot             |  18  |   0    |
@@ -113,30 +101,13 @@ TokenInit:
 | Ownable._owner | address |  0   |   0    |
 +----------------+---------+------+--------+
 
-VoteSnapshots:
-+----------------------------------------------+-------------------------------------------------+------+--------+
-|                     Name                     |                       Type                      | Slot | Offset |
-+----------------------------------------------+-------------------------------------------------+------+--------+
-|             ERC20Permit._nonces              |       mapping(address => Counters.Counter)      |  0   |   0    |
-|               ERC20._balances                |           mapping(address => uint256)           |  1   |   0    |
-|              ERC20._allowances               | mapping(address => mapping(address => uint256)) |  2   |   0    |
-|              ERC20._totalSupply              |                     uint256                     |  3   |   0    |
-|               Pausable._paused               |                       bool                      |  4   |   0    |
-|             ERC20Pausable.pauser             |                     address                     |  4   |   1    |
-|           ERC20MintAndBurn.minters           |             mapping(address => bool)            |  5   |   0    |
-|           ERC20MintAndBurn.burners           |             mapping(address => bool)            |  6   |   0    |
-|            DelegatePermit._nonces            |       mapping(address => Counters.Counter)      |  7   |   0    |
-|             ERC20Delegated.voter             |             mapping(address => bool)            |  8   |   0    |
-|         ERC20Delegated._voteBalances         |           mapping(address => uint256)           |  9   |   0    |
-|        ERC20Delegated._voteAllowances        | mapping(address => mapping(address => uint256)) |  10  |   0    |
-|     ERC20Delegated._totalVoteAllowances      |           mapping(address => uint256)           |  11  |   0    |
-|       ERC20Delegated._primaryDelegates       |           mapping(address => address)           |  12  |   0    |
-|  ERC20Delegated.delegationToAddressEnabled   |             mapping(address => bool)            |  13  |   0    |
-| ERC20Delegated.delegationFromAddressDisabled |             mapping(address => bool)            |  14  |   0    |
-|    VoteSnapshots._accountBalanceSnapshots    |   mapping(address => VoteSnapshots.Snapshots)   |  15  |   0    |
-|     VoteSnapshots._totalSupplySnapshots      |             VoteSnapshots.Snapshots             |  16  |   0    |
-|       VoteSnapshots._currentSnapshotId       |                 Counters.Counter                |  18  |   0    |
-+----------------------------------------------+-------------------------------------------------+------+--------+
+CommunityGovernance:
++----------------------------+---------+------+--------+
+|            Name            |   Type  | Slot | Offset |
++----------------------------+---------+------+--------+
+|      Pausable._paused      |   bool  |  0   |   0    |
+| CommunityGovernance.pauser | address |  0   |   1    |
++----------------------------+---------+------+--------+
 
 ECOxStaking:
 +-----------------------------------------------+--------------------------------------------------+------+--------+
@@ -189,12 +160,6 @@ PolicyVotes:
 |     PolicyVotes.blockNumber     |                   uint256                   |  8   |   0    |
 +---------------------------------+---------------------------------------------+------+--------+
 
-Proposal:
-+------+------+------+--------+
-| Name | Type | Slot | Offset |
-+------+------+------+--------+
-+------+------+------+--------+
-
 Lockups:
 +------------------------------------+------------------------------------+------+--------+
 |                Name                |                Type                | Slot | Offset |
@@ -243,12 +208,11 @@ TrustedNodesFactory:
 | TrustedNodesFactory.currencyGovernance | CurrencyGovernance |  0   |   0    |
 +----------------------------------------+--------------------+------+--------+
 
-Policy:
-+----------------+--------------------------+------+--------+
-|      Name      |           Type           | Slot | Offset |
-+----------------+--------------------------+------+--------+
-| Policy.setters | mapping(bytes32 => bool) |  0   |   0    |
-+----------------+--------------------------+------+--------+
+ERC1820Client:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
 
 ForwardProxy:
 +------+------+------+--------+
@@ -291,6 +255,47 @@ DummyPoliced:
 | DummyPoliced.value | uint256 |  0   |   0    |
 +--------------------+---------+------+--------+
 
+FailureProposal:
++------------------+--------------------------+------+--------+
+|       Name       |           Type           | Slot | Offset |
++------------------+--------------------------+------+--------+
+|   Policy.__gap   |         uint256          |  0   |   0    |
+| Policy.governors | mapping(address => bool) |  1   |   0    |
++------------------+--------------------------+------+--------+
+
+WorseFailureProposal:
++------------------+--------------------------+------+--------+
+|       Name       |           Type           | Slot | Offset |
++------------------+--------------------------+------+--------+
+|   Policy.__gap   |         uint256          |  0   |   0    |
+| Policy.governors | mapping(address => bool) |  1   |   0    |
++------------------+--------------------------+------+--------+
+
+ClumsyFailureProposal:
++------------------+--------------------------+------+--------+
+|       Name       |           Type           | Slot | Offset |
++------------------+--------------------------+------+--------+
+|   Policy.__gap   |         uint256          |  0   |   0    |
+| Policy.governors | mapping(address => bool) |  1   |   0    |
++------------------+--------------------------+------+--------+
+
+TotalFailureProposal:
++------------------+--------------------------+------+--------+
+|       Name       |           Type           | Slot | Offset |
++------------------+--------------------------+------+--------+
+|   Policy.__gap   |         uint256          |  0   |   0    |
+| Policy.governors | mapping(address => bool) |  1   |   0    |
++------------------+--------------------------+------+--------+
+
+SampleProposal:
++------------------------+--------------------------+------+--------+
+|          Name          |           Type           | Slot | Offset |
++------------------------+--------------------------+------+--------+
+|      Policy.__gap      |         uint256          |  0   |   0    |
+|    Policy.governors    | mapping(address => bool) |  1   |   0    |
+| SampleProposal.counter |         uint256          |  2   |   0    |
++------------------------+--------------------------+------+--------+
+
 StageTestCurrencyGovernance:
 +------------------------------------+-------------------------------------------------------+------+--------+
 |                Name                |                          Type                         | Slot | Offset |
@@ -310,4 +315,4 @@ StringPacker:
 +------+------+------+--------+
 +------+------+------+--------+
 
-INFO:Slither:. analyzed (54 contracts)
+INFO:Slither:. analyzed (57 contracts)

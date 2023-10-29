@@ -12,6 +12,7 @@ The project is organized into components:
 - [The governance system](contracts/governance)
   - [Community governance](contracts/governance/community)
   - [Monetary governance](contracts/governance/monetary)
+- [Testing Framework](test)
 - [The deployment tooling](contracts/deploy) TODO
 
 Each component is documented in a README file in the corresponding contracts directory. See the [Background](#background) section for an overview of how they fit together.
@@ -36,17 +37,31 @@ If you believe the optimizer may be changing the behavior of your code please te
 
 ### Reporting Vulnerabilities
 
-If you believe you've identified a security vulnerability in the Eco Currency contracts or other software, please submit to the Immunefi bounty (link coming soon) or join the Eco Association Discord (<https://discord.eco.org>) and tag or message an Eco Association team member.
+If you believe you've identified a security vulnerability in the Eco Currency contracts or other software, please submit to the Immunefi bounty (link coming soon) or join the [Eco Association Discord](https://discord.eco.org) and tag or message an Eco Association team member.
 
 ## Background
 
 The Eco currency is intended to serve as a decentralized, free-floating alternative to fiat currencies - a currency used for saving and spending. To achieve this goal, Eco uses a governance process which has in-built monetary policy levers (described below) controlled by a group of elected individuals, as well as an overall community governance process for upgrades to the protocol.
 
+## Currency 1.5 Enhancements
+
+Currency 1.5 was inspired by the desire to simplify and modularize the Eco Protocol governance system. The initial implementation of the Eco Protocol is complicated, difficult to upgrade, contains many interdependent components, and an ERC1820 registry system. The goal of this redesign is to accomplish the following:
+
+- Simplify the architecture of the Eco Protocol to invite new contributors
+- Maintain full backward compatibility
+- Maintain flexibility for upgrades
+- Significantly decrease the cognitive overhead for upgrades
+- Decrease dynamism and moving parts
+- Minimize system interdependency
+- Reduce gas costs with only minor changes
+- Increase testability of the design so that contracts can be tested as modules
+- Ensure that downstream contracts are core dependencies of all other contracts, and not dependent on any other contracts.
+
 ### The ECOsystem
 
 The user-facing logic comprises of the `currency` and the `governance`, of which the latter can be further subdivided into `monetary governance` (managed by trustees) and `community governance` (managed by all stakeholders):
 
-#### Tokens (/currency)
+#### Tokens [/currency](./contracts/currency)
 
 ##### The Base Currency
 
@@ -56,15 +71,15 @@ ECO is a variable supply base currency. The token (ECO) implementation provides 
 
 The secondary token (ECOx) is a deflationary supply asset intended to incentivize long-term holders and bootstrap governance and an open market signaling expectations for ECO adoption. It is also an ERC20 token. Its initial main functionality, aside from governance, is being convertible to an amount of ECO proportionally based on percentage of the total supply of each token.
 
-#### The Governance System (/governance)
+#### The Governance System [/governance](./contracts/governance)
 
 The Governance module contains the monetary and community governance submodules, as well as the general governance logic for pushing the ECOsystem into a new generation. Monetary and community governance operate on a timescale defined by this logic.
 
-##### Monetary Governance (/governance/monetary)
+##### Monetary Governance [/governance/monetary](./contracts/governance/monetary)
 
 The monetary governance submodule allows community-elected trustees to make decisions about the monetary supply in the economy. It initially involves 3 possible actions: minting tokens and distributing them at random (Random Inflation), minting tokens and using them as rewards for lockup contracts (Lockups), and re-scaling each account balance equally (Linear Inflation).
 
-##### Community Governance (/governance/community)
+##### Community Governance [/governance/community](./contracts/governance/community)
 
 The community governance submodule allows anyone with tokens (ECO or ECOx) to propose arbitrary changes to contracts and then participate in a vote on those changes, all facilitated to by the policy framework. This allows for the ECOsystem to adapt to changing economic circumstances and evolve to meet users' needs and giving users direct influence over the economy in which they all participate.
 
@@ -72,21 +87,17 @@ The community governance submodule allows anyone with tokens (ECO or ECOx) to pr
 
 Outside of these core modules there are a few major infrastructure components that underlie the system, but whose use is primarily abstracted away from the user:
 
-#### The Policies Framework (/policy)
+#### The Policies Framework [/policy](./contracts/policy)
 
 The policies framework provides the core contract logic that facilitates upgradability, and is used to enforce access control and permissions between contracts. This framework also uses the clone component (/clone) to efficiently deploy clones of core contracts on generation increase.
 
-#### The Proxy Framework (/proxy)
+#### The Proxy Framework [/proxy](./contracts/proxy)
 
 The proxy framework, combined with the ERC1820 registry, allow contracts to be upgraded while keeping their state intact and maintaining accessibility without the need to publicize a new address.
 
-#### The Deployment Tooling (/deploy)
+#### The Deployment Tooling [/deploy](./deploy)
 
-TODO
-
-- Upgrade Process
-
-The deployment tooling is used to bootstrap the other contracts when first deployed to an Ethereum network. It includes the functionality necessary to configure the system, and also provides faucet and cleanup contracts for use in testing.
+TODO - write this section when creating deployments including upgrade process.
 
 ## Install
 
@@ -148,24 +159,26 @@ Coverage reports are generated separated for Solidity and JavaScript code:
 yarn coverage
 ```
 
-Or, aliased for convenience when running both:
+To get an interactive report on [http://localhost:7800](http://localhost:7800) you can install [python](https://www.python.org/downloads/) and run the following command:
 
+```bash
+yarn coverageReport
 ```
-npm run coverage
-```
+
+#### Generating Documentation
+
+Additional document can be generated and is placed in the `docs` folder. Some of these require the installation of [slither](https://github.com/crytic/slither) Following are some commands
+
+- `yarn docgen`: Generate documentation from [solidity natspec comments](https://docs.soliditylang.org/en/latest/natspec-format.html) into [./docs/solidity](./docs/solidity)
+- `yarn callGraph`: Generates a contract call graph into [./docs/slither/call-graph.png](./docs/slither/call-graph.png)
+- `yarn inheritanceGraph`: Generates a contract inheritance graph into [./docs/slither/inheritance-graph.png](./docs/slither/inheritance-graph.png)
+- `yarn variableOrder`: Creates a list of slot usage and offsets, useful to ensure upgradeable contracts use valid memory slots into [./docs/slither/variable-order.txt](./docs/slither/variable-order.txt)
+- `yarn contractSummary`: Creates a summary of all contracts into [./docs/slither/contract-summary.txt](./docs/slither/contract-summary.txt)
+- `yarn vulnerability`: Generates a slithe analysis of high solidity vulnerabilities [./docs/slither/vulnerability.txt](./docs/slither/vulnerability.txt)
 
 ### Running a deployment
 
-Once the repo is cloned and all the libraries are installed, the project can be deployed by running `npm run deploy [path_to_config_file]` from the root directory. Running this deploy command recompiles all contracts and then attempts to deploy them via the deployment script found at `tools/eco.js`. The provided configurations differ by chain, deployed modules, and time windows for governance phases.
-
-`tools/deployConfigs/deployConfigTokensAndGovernanceHelix` serves as a good starting point for any custom configurations, just set the correct webrpc and private key, and input your own initial addresses and trusted nodes.
-
-Common deploy issues and solutions (use verbose flag):
-
-- if the token deploy fails while distributing initial ECOx, you will have to try to redeploy from a different private key. Failure before this point can be remedied by simply running the deploy again, and completion of this step means that the currency was fully deployed.
-- if your config is set to deploy both the currency and governance modules and the deployment fails during the governance module you will need to deploy the governance again without the currency. Make a new config based on one of the provided governance-only configs, turn off the deployCurrency flag, and copy/paste the terminal output from the successful currency deployment at the bottom of the json.
-- if experiencing errors indicating that the gas limit is too low, try slightly increasing the bootstrapGas value (in tools/deploy) and/or the gasMultiplier (in the config or tools/deploy).
-- tracking the deploy address on a block explorer may provide more useful error info, but in the event that the deploy still fails, try again from a private key.
+TODO - Need to write this section including migration.
 
 ## Components
 
@@ -182,10 +195,10 @@ Common deploy issues and solutions (use verbose flag):
 
 Contributions are welcome. Please submit any issues as issues on GitHub, and open a pull request with any contributions.
 
-Please ensure that the test suite passes (run `npm test`) and that the linters run at least as cleanly as they did when you started (run `npm run lint`). Pull requests that do not pass the test suite or that produce significant lint errors will likely not be accepted.
+Please ensure that the test suite passes (run `yarn test`) and that the linters run at least as cleanly as they did when you started (run `yarn lint`). Pull requests that do not pass the test suite or that produce significant lint errors will likely not be accepted.
 
 See the [contributing guide](./CONTRIBUTING.md) for more details.
 
 ## License
 
-[MIT (c) Helix Foundation](./LICENSE)
+[MIT (c) Eco Association](./LICENSE)

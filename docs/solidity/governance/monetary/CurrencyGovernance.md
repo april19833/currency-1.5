@@ -257,6 +257,12 @@ error DuplicateSupport()
 error CannotVoteEmpty()
 ```
 
+### NoAbstainWithCommit
+
+```solidity
+error NoAbstainWithCommit()
+```
+
 ### NoCommitFound
 
 ```solidity
@@ -453,6 +459,14 @@ Records the voter, as well as all of the parameters of the vote cast.
 | voter | address | the trustee who revealed their vote |
 | cycle | uint256 | the cycle when the vote was cast and counted |
 | votes | struct CurrencyGovernance.Vote[] | the array of Vote structs that composed the trustee's ballot |
+
+### Abstain
+
+```solidity
+event Abstain(address voter, uint256 cycle)
+```
+
+Fired when an address choses to abstain
 
 ### VoteResult
 
@@ -697,6 +711,17 @@ calling additional times overwrites previous commitments
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _commitment | bytes32 | the hash commit to check against when revealing the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs |
+
+### abstain
+
+```solidity
+function abstain() external
+```
+
+signal abstainment to the protocol
+does not count as a vote (cannot be revealed to record positive participation for a reward)
+signals the abstainment with an event
+due to a small quirk, forgetting to reveal your vote in the previous round requires you to first call commit with zero data
 
 ### reveal
 

@@ -3,62 +3,110 @@ Copyright (c) 2023 Eco Association
 
 ## Policy
 
-### setters
+### governors
 
 ```solidity
-mapping(bytes32 => bool) setters
+mapping(address => bool) governors
 ```
 
-### onlySetter
+_mapping to store the contracts allowed to call functions_
+
+### OnlyGovernors
 
 ```solidity
-modifier onlySetter(bytes32 _identifier)
+error OnlyGovernors()
 ```
 
-### removeSelf
+_error for when an address tries submit proposal actions without permission_
+
+### OnlySelf
 
 ```solidity
-function removeSelf(bytes32 _interfaceIdentifierHash) external
+error OnlySelf()
 ```
 
-Remove the specified role from the contract calling this function.
-This is for cleanup only, so if another contract has taken the
-role, this does nothing.
+_error for when an address tries to call a pseudo-internal function_
+
+### FailedProposal
+
+```solidity
+error FailedProposal(address proposal)
+```
+
+for when a part of enacting a proposal reverts without a readable error
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _interfaceIdentifierHash | bytes32 | The interface identifier to remove from                                 the registry. |
+| proposal | address | the proposal address that got reverted during enaction |
 
-### setPolicy
+### UpdatedGovernors
 
 ```solidity
-function setPolicy(bytes32 _key, address _implementer, bytes32 _authKey) public
+event UpdatedGovernors(address actor, bool newPermission)
 ```
 
-Set the policy label for a contract
+emits when the governor permissions are changed
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _key | bytes32 | The label to apply to the contract. |
-| _implementer | address | The contract to assume the label. |
-| _authKey | bytes32 |  |
+| actor | address | denotes the new address whose permissions are being updated |
+| newPermission | bool | denotes the new ability of the actor address (true for can govern, false for cannot) |
 
-### internalCommand
+### EnactedGovernanceProposal
 
 ```solidity
-function internalCommand(address _delegate, bytes32 _authKey) public
+event EnactedGovernanceProposal(address proposal, address governor)
 ```
 
-Enact the code of one of the governance contracts.
+emits when enaction happens to keep record of enaction
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _delegate | address | The contract code to delegate execution to. |
-| _authKey | bytes32 |  |
+| proposal | address | the proposal address that got successfully enacted |
+| governor | address | the contract which was the source of the proposal, source for looking up the calldata |
+
+### onlyGovernorRole
+
+```solidity
+modifier onlyGovernorRole()
+```
+
+_Modifier for checking if the sender is a governor_
+
+### onlySelf
+
+```solidity
+modifier onlySelf()
+```
+
+_Modifier for faux internal calls
+needed for function to be called only during delegate call_
+
+### updateGovernors
+
+```solidity
+function updateGovernors(address _key, bool _value) public
+```
+
+_change the governance permissions for an address
+internal function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _key | address | the address to change permissions for |
+| _value | bool | the new permission. true = can govern, false = cannot govern |
+
+### enact
+
+```solidity
+function enact(address proposal) external virtual
+```
 
