@@ -32,7 +32,7 @@ The `PolicyProposals` and `PolicyVotes` contracts handle the vote process. `Poli
 
 ## API
 
-For detailed API documentation see [currency](../../docs/solidity/currency/)
+For detailed API documentation see [community](../../../docs/solidity/governance/community/)
 
 ### VotingPower
 
