@@ -1217,6 +1217,12 @@ describe('CurrencyGovernance', () => {
       await CurrencyGovernance.connect(charlie).commit(zeroBytes)
     })
 
+    it('can abstain', async () => {
+      await expect(CurrencyGovernance.connect(charlie).abstain())
+        .to.emit(CurrencyGovernance, 'Abstain')
+        .withArgs(charlie.address, initialCycle)
+    })
+
     describe('reverts', () => {
       it('must be a trustee', async () => {
         const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
@@ -1246,6 +1252,14 @@ describe('CurrencyGovernance', () => {
         await expect(
           CurrencyGovernance.connect(bob).commit(commitHash)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+      })
+
+      it('cannot abstain with a commitment', async () => {
+        const randomHash = ethers.utils.randomBytes(32)
+        await CurrencyGovernance.connect(charlie).commit(randomHash)
+        await expect(
+          CurrencyGovernance.connect(charlie).abstain()
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_ABSTAIN)
       })
     })
   })
