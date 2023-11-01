@@ -12,6 +12,7 @@ import {
   DummyLever,
   DummyLever__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 const executeSig = ethers.utils
   .solidityKeccak256(['string'], ['execute(uint256,address,bytes32)'])
@@ -70,9 +71,11 @@ describe('MonetaryPolicyAdapter', () => {
       { address: await cgImpersonater.getAddress() } // This allows us to make calls from the address
     )
 
-    Enacter = await new MonetaryPolicyAdapter__factory()
-      .connect(policyImpersonator)
-      .deploy(Fake__Policy.address, Fake__CurrencyGovernance.address)
+    Enacter = (await deploy(
+      policyImpersonator,
+      MonetaryPolicyAdapter__factory,
+      [Fake__Policy.address, Fake__CurrencyGovernance.address]
+    )) as MonetaryPolicyAdapter
 
     DummyLeverFactory = new DummyLever__factory()
     DummyLever1 = await DummyLeverFactory.connect(policyImpersonator).deploy()

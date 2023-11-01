@@ -17,6 +17,7 @@ import {
   Notifier__factory,
   Lever__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 describe('Lever', () => {
   let policyImpersonator: SignerWithAddress
@@ -38,10 +39,12 @@ describe('Lever', () => {
       'Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
-    const leverFactory = new Lever__factory()
-    lever = await leverFactory
-      .connect(policyImpersonator)
-      .deploy(policy.address, constants.AddressZero)
+
+    lever = (await deploy(policyImpersonator, Lever__factory, [
+      policy.address,
+      constants.AddressZero,
+    ])) as Lever
+
     const notifierFactory: MockContractFactory<Notifier__factory> =
       await smock.mock('Notifier')
     notifier = await notifierFactory.deploy(

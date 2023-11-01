@@ -17,6 +17,7 @@ import {
   DummyMonetaryPolicyAdapter,
   Policy,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 const PROPOSE_STAGE_LENGTH = 10 * DAY
 const COMMIT_STAGE_LENGTH = 3 * DAY
@@ -172,9 +173,11 @@ describe('CurrencyGovernance', () => {
       )
     ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
 
-    CurrencyGovernance = await new CurrencyGovernance__factory()
-      .connect(policyImpersonator)
-      .deploy(Fake__Policy.address, TrustedNodes.address, Enacter.address)
+    CurrencyGovernance = (await deploy(
+      policyImpersonator,
+      CurrencyGovernance__factory,
+      [Fake__Policy.address, TrustedNodes.address, Enacter.address]
+    )) as CurrencyGovernance
 
     await TrustedNodes.connect(policyImpersonator).updateCurrencyGovernance(
       CurrencyGovernance.address
@@ -1217,6 +1220,12 @@ describe('CurrencyGovernance', () => {
       await CurrencyGovernance.connect(charlie).commit(zeroBytes)
     })
 
+    it('can abstain', async () => {
+      await expect(CurrencyGovernance.connect(charlie).abstain())
+        .to.emit(CurrencyGovernance, 'Abstain')
+        .withArgs(charlie.address, initialCycle)
+    })
+
     describe('reverts', () => {
       it('must be a trustee', async () => {
         const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
@@ -1246,6 +1255,14 @@ describe('CurrencyGovernance', () => {
         await expect(
           CurrencyGovernance.connect(bob).commit(commitHash)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.WRONG_STAGE)
+      })
+
+      it('cannot abstain with a commitment', async () => {
+        const randomHash = ethers.utils.randomBytes(32)
+        await CurrencyGovernance.connect(charlie).commit(randomHash)
+        await expect(
+          CurrencyGovernance.connect(charlie).abstain()
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_ABSTAIN)
       })
     })
   })

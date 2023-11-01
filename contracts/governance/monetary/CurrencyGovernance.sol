@@ -167,6 +167,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when a reveal is submitted with no votes
     error CannotVoteEmpty();
 
+    // error for when a trustee with a commmitment tries to abstain
+    error NoAbstainWithCommit();
+
     // error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted
     error NoCommitFound();
 
@@ -282,6 +285,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 indexed cycle,
         Vote[] votes
     );
+
+    /** Fired when an address choses to abstain
+     */
+    event Abstain(address indexed voter, uint256 indexed cycle);
 
     /** Fired when vote results are computed, creating a permanent record of vote outcomes.
      * @param cycle the cycle for which this is the vote result
@@ -614,6 +621,18 @@ contract CurrencyGovernance is Policed, TimeUtils {
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
         commitments[msg.sender] = _commitment;
         emit VoteCommit(msg.sender, getCurrentCycle());
+    }
+
+    /** signal abstainment to the protocol
+     * does not count as a vote (cannot be revealed to record positive participation for a reward)
+     * signals the abstainment with an event
+     * due to a small quirk, forgetting to reveal your vote in the previous round requires you to first call commit with zero data
+     */
+    function abstain() external onlyTrusted duringVotePhase {
+        if (commitments[msg.sender] != bytes32(0)) {
+            revert NoAbstainWithCommit();
+        }
+        emit Abstain(msg.sender, getCurrentCycle());
     }
 
     /** reveal a committed vote

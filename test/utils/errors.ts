@@ -24,6 +24,7 @@ export const ERRORS = {
     BAD_SCORE: 'InvalidVoteBadScore', // one arg: the vote with the score that duplicates or overlaps poorly with the support of another score, including underflow
     FINAL_SCORES_INVALID: 'InvalidVotesOutOfBounds',
     OUTDATED_ENACT: 'EnactCycleNotCurrent',
+    BAD_ABSTAIN: 'NoAbstainWithCommit',
   },
   MonetaryPolicyAdapter: {
     CURRENCYGOVERNANCE_ONLY: 'CurrencyGovernanceOnlyFunction',
