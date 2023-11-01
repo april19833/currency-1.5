@@ -73,14 +73,14 @@ describe('TrustedNodes', () => {
       policy.address
     )
 
-    trustedNodes = await deploy(policyImpersonator, TrustedNodes__factory, [
-        policy.address,
-        currencyGovernance.address,
-        ecoX.address,
-        initialTermLength,
-        initialReward,
-        [alice.address, bob.address]
-    ]) as TrustedNodes
+    trustedNodes = (await deploy(policyImpersonator, TrustedNodes__factory, [
+      policy.address,
+      currencyGovernance.address,
+      ecoX.address,
+      initialTermLength,
+      initialReward,
+      [alice.address, bob.address],
+    ])) as TrustedNodes
 
     await ecoX.setVariable(`_balances`, { [trustedNodes.address]: 1000 })
   })

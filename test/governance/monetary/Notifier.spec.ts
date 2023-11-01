@@ -70,13 +70,13 @@ describe('notifier', () => {
       .connect(policyImpersonator)
       .deploy(policy.address, constants.AddressZero, eco.address)
 
-    notifier = await deploy(policyImpersonator, Notifier__factory, [
+    notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
       rebase.address, // lever
       [downstream.address], // targets
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
-      [12341234] // gasCosts
-    ]) as Notifier
+      [12341234], // gasCosts
+    ])) as Notifier
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
   })

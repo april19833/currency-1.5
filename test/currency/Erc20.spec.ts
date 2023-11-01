@@ -4,12 +4,7 @@ import { smock, FakeContract } from '@defi-wonderland/smock'
 import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
-import {
-  ECO,
-  ECO__factory,
-  ForwardProxy__factory,
-  Policy,
-} from '../../typechain-types'
+import { ECO, ECO__factory, Policy } from '../../typechain-types'
 import { createPermitMessageData, permit } from '../utils/permit'
 import { BigNumberish } from 'ethers'
 import { deployProxy } from '../../deploy/utils'
@@ -52,7 +47,7 @@ describe('Erc20', () => {
       'Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
-    
+
     const ecoDeployParams = [
       Fake__Policy.address,
       PLACEHOLDER_ADDRESS1,
@@ -60,7 +55,7 @@ describe('Erc20', () => {
       bob.address,
     ]
 
-    ECOproxy = await deployProxy(alice, ECO__factory, ecoDeployParams) as ECO
+    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams)) as ECO
 
     // set impersonator permissions
     await ECOproxy.connect(policyImpersonator).updateRebasers(

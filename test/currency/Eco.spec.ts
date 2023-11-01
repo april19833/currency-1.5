@@ -3,11 +3,7 @@ import { expect } from 'chai'
 import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
-import {
-  ECO,
-  ECO__factory,
-  Policy,
-} from '../../typechain-types'
+import { ECO, ECO__factory, Policy } from '../../typechain-types'
 import { deployProxy } from '../../deploy/utils'
 import { BigNumber, BigNumberish } from 'ethers'
 import { delegateBySig } from '../utils/permit'
@@ -63,7 +59,7 @@ describe('ECO', () => {
       bob.address,
     ]
 
-    ECOproxy = await deployProxy(alice, ECO__factory, ecoDeployParams) as ECO
+    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams)) as ECO
 
     // set impersonator roles
     await ECOproxy.connect(policyImpersonator).updateMinters(

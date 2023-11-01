@@ -3,11 +3,7 @@ import { expect } from 'chai'
 import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
-import {
-  ECOx,
-  ECOx__factory,
-  Policy,
-} from '../../typechain-types'
+import { ECOx, ECOx__factory, Policy } from '../../typechain-types'
 import { deployProxy } from '../../deploy/utils'
 
 describe('EcoX', () => {
@@ -33,10 +29,14 @@ describe('EcoX', () => {
     const ecoXDeployParams = [
       Fake__Policy.address, // policy
       fakeExchange.address, // ecoxexchange
-      bob.address // pauser
+      bob.address, // pauser
     ]
 
-    ecoXProxy = await deployProxy(policyImpersonator, ECOx__factory, ecoXDeployParams) as ECOx
+    ecoXProxy = (await deployProxy(
+      policyImpersonator,
+      ECOx__factory,
+      ecoXDeployParams
+    )) as ECOx
   })
 
   describe('initialization', async () => {

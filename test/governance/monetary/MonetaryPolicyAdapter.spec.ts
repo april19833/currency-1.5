@@ -71,7 +71,11 @@ describe('MonetaryPolicyAdapter', () => {
       { address: await cgImpersonater.getAddress() } // This allows us to make calls from the address
     )
 
-    Enacter = await deploy(policyImpersonator, MonetaryPolicyAdapter__factory, [Fake__Policy.address, Fake__CurrencyGovernance.address]) as MonetaryPolicyAdapter
+    Enacter = (await deploy(
+      policyImpersonator,
+      MonetaryPolicyAdapter__factory,
+      [Fake__Policy.address, Fake__CurrencyGovernance.address]
+    )) as MonetaryPolicyAdapter
 
     DummyLeverFactory = new DummyLever__factory()
     DummyLever1 = await DummyLeverFactory.connect(policyImpersonator).deploy()

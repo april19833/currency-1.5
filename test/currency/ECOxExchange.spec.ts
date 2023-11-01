@@ -83,7 +83,12 @@ describe('ECOxExchange', () => {
       pauser.address // initial pauser
     )
 
-    ecoXExchange = await deploy(policyImpersonator, ECOxExchange__factory, [Fake__Policy.address, ECOx.address, eco.address, INITIAL_SUPPLY]) as ECOxExchange
+    ecoXExchange = (await deploy(policyImpersonator, ECOxExchange__factory, [
+      Fake__Policy.address,
+      ECOx.address,
+      eco.address,
+      INITIAL_SUPPLY,
+    ])) as ECOxExchange
 
     await ECOx.connect(policyImpersonator).updateECOxExchange(
       ecoXExchange.address

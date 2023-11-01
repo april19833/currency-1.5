@@ -15,7 +15,6 @@ import {
   ECOxStaking,
   ECOxStaking__factory,
   ECOx__factory,
-  ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
 import { deployProxy } from '../../deploy/utils'
@@ -75,10 +74,10 @@ describe('ECOxStaking', () => {
       ecoXStakingFact.deploy(Fake__Policy.address, ethers.constants.AddressZero)
     ).to.be.revertedWith(ERRORS.ECOxStaking.CONSTRUCTOR_ZERO_ECOX_ADDRESS)
 
-    ecoXStaking = await deployProxy(policyImpersonater, ECOxStaking__factory, [
+    ecoXStaking = (await deployProxy(policyImpersonater, ECOxStaking__factory, [
       Fake__Policy.address,
-      ecoX.address
-    ]) as ECOxStaking
+      ecoX.address,
+    ])) as ECOxStaking
 
     // set approvals
     await ecoX.connect(alice).approve(ecoXStaking.address, stakeX)

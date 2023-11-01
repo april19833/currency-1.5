@@ -173,7 +173,11 @@ describe('CurrencyGovernance', () => {
       )
     ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
 
-    CurrencyGovernance = await deploy(policyImpersonator, CurrencyGovernance__factory, [Fake__Policy.address, TrustedNodes.address, Enacter.address]) as CurrencyGovernance
+    CurrencyGovernance = (await deploy(
+      policyImpersonator,
+      CurrencyGovernance__factory,
+      [Fake__Policy.address, TrustedNodes.address, Enacter.address]
+    )) as CurrencyGovernance
 
     await TrustedNodes.connect(policyImpersonator).updateCurrencyGovernance(
       CurrencyGovernance.address

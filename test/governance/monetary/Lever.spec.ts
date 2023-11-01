@@ -40,7 +40,10 @@ describe('Lever', () => {
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
-    lever = await deploy(policyImpersonator, Lever__factory,[policy.address, constants.AddressZero]) as Lever
+    lever = (await deploy(policyImpersonator, Lever__factory, [
+      policy.address,
+      constants.AddressZero,
+    ])) as Lever
 
     const notifierFactory: MockContractFactory<Notifier__factory> =
       await smock.mock('Notifier')

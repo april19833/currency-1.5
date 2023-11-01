@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
+import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../utils/errors'
@@ -25,7 +25,9 @@ describe('Policed', () => {
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
-    DummyPoliced = await deploy(policyImpersonator, DummyPoliced__factory, [Fake__Policy.address]) as DummyPoliced
+    DummyPoliced = (await deploy(policyImpersonator, DummyPoliced__factory, [
+      Fake__Policy.address,
+    ])) as DummyPoliced
   })
 
   describe('role get/set', () => {

@@ -75,12 +75,12 @@ describe('Lockups', () => {
     )
     await eco.setVariable('inflationMultiplier', BASE)
 
-    lockups = await deploy(policyImpersonator, Lockups__factory, [
+    lockups = (await deploy(policyImpersonator, Lockups__factory, [
       policy.address,
       constants.AddressZero, // notifier
       eco.address,
-      depositWindow
-    ]) as Lockups
+      depositWindow,
+    ])) as Lockups
 
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
     await eco.connect(policyImpersonator).updateMinters(lockups.address, true)

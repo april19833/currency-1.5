@@ -57,8 +57,12 @@ describe('Rebase', () => {
       policy.address // initial pauser
     )
 
-    rebase = await deploy(policyImpersonator, Rebase__factory, [policy.address, constants.AddressZero, eco.address]) as Rebase
-  
+    rebase = (await deploy(policyImpersonator, Rebase__factory, [
+      policy.address,
+      constants.AddressZero,
+      eco.address,
+    ])) as Rebase
+
     const notifierFactory: MockContractFactory<Notifier__factory> =
       await smock.mock('Notifier')
     notifier = await notifierFactory.deploy(

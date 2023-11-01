@@ -4,7 +4,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../../utils/errors'
 
-import { getABI } from '../../utils/getABI'
 import {
   TrustedNodes,
   TrustedNodes__factory,
@@ -57,7 +56,11 @@ describe('TrustedNodesFactory', () => {
       { address: ecoXImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
-    trustedNodesFactory = await deploy(alice, TrustedNodesFactory__factory, [policy.address, currencyGovernance.address, ecoX.address]) as TrustedNodesFactory
+    trustedNodesFactory = (await deploy(alice, TrustedNodesFactory__factory, [
+      policy.address,
+      currencyGovernance.address,
+      ecoX.address,
+    ])) as TrustedNodesFactory
   })
 
   it('constructs successfully', async () => {
