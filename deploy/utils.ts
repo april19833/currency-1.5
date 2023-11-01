@@ -1,7 +1,5 @@
 import { Contract, ContractFactory, Signer } from 'ethers'
-import {
-    ForwardProxy__factory,
-} from '../typechain-types'
+import { ForwardProxy__factory } from '../typechain-types'
 
 /**
  * Deploy a contract with the given factory from a certain address
@@ -9,10 +7,10 @@ import {
  */
 export async function deploy<F extends ContractFactory>(
   from: Signer,
-  factoryType: { new(from: Signer): F ;},
+  FactoryType: { new (from: Signer): F },
   params?: any[]
 ): Promise<Contract> {
-  const factory = new factoryType(from)
+  const factory = new FactoryType(from)
   return params ? factory.deploy(...params) : factory.deploy()
 }
 
@@ -22,11 +20,11 @@ export async function deploy<F extends ContractFactory>(
  */
 export async function deployProxy<F extends ContractFactory>(
   from: Signer,
-  factoryType: { new(from: Signer): F ;},
+  FactoryType: { new (from: Signer): F },
   params?: any[]
 ): Promise<Contract> {
-  const factory = new factoryType(from)
+  const factory = new FactoryType(from)
   const base = params ? await factory.deploy(...params) : await factory.deploy()
-  const proxy = await (new ForwardProxy__factory(from)).deploy(base.address)
+  const proxy = await new ForwardProxy__factory(from).deploy(base.address)
   return factory.attach(proxy.address)
 }
