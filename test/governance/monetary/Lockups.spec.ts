@@ -18,6 +18,7 @@ import {
   ECO__factory,
   Lockups__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
@@ -73,13 +74,14 @@ describe('Lockups', () => {
       policy.address // initial pauser
     )
     await eco.setVariable('inflationMultiplier', BASE)
-    const lockupsFactory = new Lockups__factory()
-    lockups = await lockupsFactory.connect(policyImpersonator).deploy(
+
+    lockups = await deploy(policyImpersonator, Lockups__factory, [
       policy.address,
       constants.AddressZero, // notifier
       eco.address,
       depositWindow
-    )
+    ]) as Lockups
+
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
     await eco.connect(policyImpersonator).updateMinters(lockups.address, true)
 

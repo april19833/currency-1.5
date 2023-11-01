@@ -6,9 +6,9 @@ import { ERRORS } from '../utils/errors'
 import {
   ECOx,
   ECOx__factory,
-  ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
+import { deployProxy } from '../../deploy/utils'
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
@@ -21,7 +21,6 @@ describe('EcoX', () => {
       await ethers.getSigners()
   })
 
-  let ecoXImpl: ECOx
   let ecoXProxy: ECOx
   let Fake__Policy: FakeContract<Policy>
 
@@ -31,33 +30,20 @@ describe('EcoX', () => {
       { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
-    const EcoXFact = new ECOx__factory(alice)
-
-    ecoXImpl = await EcoXFact.connect(policyImpersonator).deploy(
+    const ecoXDeployParams = [
       Fake__Policy.address, // policy
       fakeExchange.address, // ecoxexchange
       bob.address // pauser
-    )
+    ]
 
-    const proxy = await new ForwardProxy__factory()
-      .connect(policyImpersonator)
-      .deploy(ecoXImpl.address)
-
-    ecoXProxy = EcoXFact.attach(proxy.address)
-
-    expect(ecoXProxy.address === proxy.address).to.be.true
+    ecoXProxy = await deployProxy(policyImpersonator, ECOx__factory, ecoXDeployParams) as ECOx
   })
 
-  describe('construction + initialization', async () => {
-    it('constructs', async () => {
-      expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
-      expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
-      expect(await ecoXImpl.pauser()).to.eq(bob.address)
-    })
+  describe('initialization', async () => {
     it('initializes', async () => {
-      expect(await ecoXImpl.policy()).to.eq(Fake__Policy.address)
-      expect(await ecoXImpl.ecoXExchange()).to.eq(fakeExchange.address)
-      expect(await ecoXImpl.pauser()).to.eq(bob.address)
+      expect(await ecoXProxy.policy()).to.eq(Fake__Policy.address)
+      expect(await ecoXProxy.ecoXExchange()).to.eq(fakeExchange.address)
+      expect(await ecoXProxy.pauser()).to.eq(bob.address)
     })
   })
 

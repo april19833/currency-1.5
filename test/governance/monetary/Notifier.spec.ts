@@ -21,6 +21,7 @@ import {
   ECO,
   ECO__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 describe('notifier', () => {
   let policyImpersonator: SignerWithAddress
@@ -68,13 +69,14 @@ describe('notifier', () => {
     rebase = await rebaseFactory
       .connect(policyImpersonator)
       .deploy(policy.address, constants.AddressZero, eco.address)
-    notifier = await notifierFactory.connect(policyImpersonator).deploy(
+
+    notifier = await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
       rebase.address, // lever
       [downstream.address], // targets
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
       [12341234] // gasCosts
-    )
+    ]) as Notifier
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
   })

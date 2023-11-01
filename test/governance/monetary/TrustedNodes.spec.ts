@@ -21,6 +21,7 @@ import {
   ECOxExchange,
 } from '../../../typechain-types'
 import { DAY } from '../../utils/constants'
+import { deploy } from '../../../deploy/utils'
 
 describe('TrustedNodes', () => {
   let policyImpersonator: SignerWithAddress
@@ -72,17 +73,14 @@ describe('TrustedNodes', () => {
       policy.address
     )
 
-    const trustedNodesFactory = new TrustedNodes__factory()
-    trustedNodes = await trustedNodesFactory
-      .connect(policyImpersonator)
-      .deploy(
+    trustedNodes = await deploy(policyImpersonator, TrustedNodes__factory, [
         policy.address,
         currencyGovernance.address,
         ecoX.address,
         initialTermLength,
         initialReward,
         [alice.address, bob.address]
-      )
+    ]) as TrustedNodes
 
     await ecoX.setVariable(`_balances`, { [trustedNodes.address]: 1000 })
   })

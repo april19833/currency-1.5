@@ -19,6 +19,7 @@ import {
   ECO,
   ECO__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 describe('Rebase', () => {
   let policyImpersonator: SignerWithAddress
@@ -55,10 +56,9 @@ describe('Rebase', () => {
       1000, // initial supply
       policy.address // initial pauser
     )
-    const rebaseFactory = new Rebase__factory()
-    rebase = await rebaseFactory
-      .connect(policyImpersonator)
-      .deploy(policy.address, constants.AddressZero, eco.address)
+
+    rebase = await deploy(policyImpersonator, Rebase__factory, [policy.address, constants.AddressZero, eco.address]) as Rebase
+  
     const notifierFactory: MockContractFactory<Notifier__factory> =
       await smock.mock('Notifier')
     notifier = await notifierFactory.deploy(

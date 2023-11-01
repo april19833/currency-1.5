@@ -17,6 +17,7 @@ import {
   DummyMonetaryPolicyAdapter,
   Policy,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 const PROPOSE_STAGE_LENGTH = 10 * DAY
 const COMMIT_STAGE_LENGTH = 3 * DAY
@@ -172,9 +173,7 @@ describe('CurrencyGovernance', () => {
       )
     ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
 
-    CurrencyGovernance = await new CurrencyGovernance__factory()
-      .connect(policyImpersonator)
-      .deploy(Fake__Policy.address, TrustedNodes.address, Enacter.address)
+    CurrencyGovernance = await deploy(policyImpersonator, CurrencyGovernance__factory, [Fake__Policy.address, TrustedNodes.address, Enacter.address]) as CurrencyGovernance
 
     await TrustedNodes.connect(policyImpersonator).updateCurrencyGovernance(
       CurrencyGovernance.address

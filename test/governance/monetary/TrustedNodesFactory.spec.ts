@@ -14,6 +14,7 @@ import {
   TrustedNodesFactory,
   TrustedNodesFactory__factory,
 } from '../../../typechain-types'
+import { deploy } from '../../../deploy/utils'
 
 describe('TrustedNodesFactory', () => {
   let policyImpersonator: SignerWithAddress
@@ -30,10 +31,6 @@ describe('TrustedNodesFactory', () => {
   const initialReward: number = 100
   const initialTermLength: number = 3600 * 24
 
-  const trustedNodesFactoryABI = getABI(
-    'artifacts/contracts/governance/monetary/TrustedNodesFactory.sol/TrustedNodesFactory.json'
-  )
-
   before(async () => {
     ;[
       policyImpersonator,
@@ -44,10 +41,6 @@ describe('TrustedNodesFactory', () => {
     ] = await ethers.getSigners()
   })
 
-  const trustedNodesFactoryFactory = new TrustedNodesFactory__factory(
-    trustedNodesFactoryABI.abi,
-    trustedNodesFactoryABI.bytecode
-  )
   let trustedNodesFactory: TrustedNodesFactory
 
   beforeEach(async () => {
@@ -64,9 +57,7 @@ describe('TrustedNodesFactory', () => {
       { address: ecoXImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
-    trustedNodesFactory = await trustedNodesFactoryFactory
-      .connect(alice)
-      .deploy(policy.address, currencyGovernance.address, ecoX.address)
+    trustedNodesFactory = await deploy(alice, TrustedNodesFactory__factory, [policy.address, currencyGovernance.address, ecoX.address]) as TrustedNodesFactory
   })
 
   it('constructs successfully', async () => {

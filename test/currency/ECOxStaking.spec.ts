@@ -18,6 +18,7 @@ import {
   ForwardProxy__factory,
   Policy,
 } from '../../typechain-types'
+import { deployProxy } from '../../deploy/utils'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 const one = ethers.utils.parseEther('1')
@@ -74,18 +75,10 @@ describe('ECOxStaking', () => {
       ecoXStakingFact.deploy(Fake__Policy.address, ethers.constants.AddressZero)
     ).to.be.revertedWith(ERRORS.ECOxStaking.CONSTRUCTOR_ZERO_ECOX_ADDRESS)
 
-    const ecoXStakingImpl = await ecoXStakingFact.deploy(
+    ecoXStaking = await deployProxy(policyImpersonater, ECOxStaking__factory, [
       Fake__Policy.address,
       ecoX.address
-    )
-
-    const proxy = await new ForwardProxy__factory()
-      .connect(policyImpersonater)
-      .deploy(ecoXStakingImpl.address)
-
-    ecoXStaking = ecoXStakingFact.attach(proxy.address)
-
-    expect(ecoXStaking.address === proxy.address).to.be.true
+    ]) as ECOxStaking
 
     // set approvals
     await ecoX.connect(alice).approve(ecoXStaking.address, stakeX)
