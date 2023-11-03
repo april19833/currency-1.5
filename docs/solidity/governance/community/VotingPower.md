@@ -1,4 +1,5 @@
 # Eco Association
+
 Copyright (c) 2023 Eco Association
 
 ## VotingPower
@@ -44,4 +45,3 @@ function votingPower(address _who, uint256 _snapshotBlock) public view returns (
 ```solidity
 function getXStaking() internal view returns (contract ECOxStaking)
 ```
-

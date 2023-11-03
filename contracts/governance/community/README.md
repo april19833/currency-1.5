@@ -34,7 +34,7 @@ The `PolicyProposals` and `PolicyVotes` contracts handle the vote process. `Poli
 
 For detailed API documentation see [community](../../../docs/solidity/governance/community/)
 
-### VotingPower
+### [VotingPower](../../../docs/solidity/governance/community/VotingPower.md)
 
 - Inherits: `PolicedUtils`
 
