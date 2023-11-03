@@ -87,7 +87,7 @@ Another key goal of this redesign is to get rid of the monolithic generation tim
 
 In this section we will consider the changes for the Monetary Governance process employed by the Trustees to influence Eco stability. Below is a diagram of the current setup of the core contracts that run this process. The numbers indicate how a generation is incremented. Please note that the diagram excludes calls to the ERC1820 contract for legibility.
 
-![Image 1](../docs/assets/1.png "Image 1")
+![Monetary Governance 1.0](../docs/assets/monetary-governance-1-0.png "Monetary Governance 1.0")
 
 Below is the proposed redesign. The redesign makes the following key changes:
 
