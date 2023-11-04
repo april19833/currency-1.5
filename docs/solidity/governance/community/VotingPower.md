@@ -45,3 +45,4 @@ function votingPower(address _who, uint256 _snapshotBlock) public view returns (
 ```solidity
 function getXStaking() internal view returns (contract ECOxStaking)
 ```
+
