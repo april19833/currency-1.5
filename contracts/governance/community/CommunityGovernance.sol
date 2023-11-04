@@ -15,6 +15,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 cycle;
         address proposer;
         uint256 totalSupport;
+        uint256 refund;
         mapping(address => uint256) support;
         // considering putting these into a double mapping cycle -> address -> votes in CommunityGovernance, will check gas on this later
         mapping(address => uint256) enactVotes;
@@ -79,6 +80,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice cost in ECO to submit a proposal */
     uint256 public proposalFee;
 
+    /** @notice percent of proposal fee to be refunded if proposal is not enacted */
+    uint256 public refundPercent;
+
     /** @notice the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
 
@@ -90,15 +94,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice the proposal being voted on this cycle */
     address public selectedProposal;
-
-    // /** @notice mapping of an address to its votes to enact the selected proposal */
-    // mapping(address => uint256) votesEnact;
-
-    // /** @notice mapping of an address to its votes to reject the selected proposal */
-    // mapping(address => uint256) votesReject;
-
-    // /** @notice mapping of an address to its votes to abstain from voting on the selected proposal */
-    // mapping(address => uint256) votesAbstain;
 
     /** @notice total votes to enact the selected proposal*/
     uint256 public totalEnactVotes;
@@ -145,9 +140,27 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when vote is called with a vote type other than enact, reject, abstain */
     error BadVoteType();
 
+    /**
+     * @notice thrown when refund is called on a proposal for which no refund is available
+     * @param proposal the proposal whose refund was attempted
+     */
+    error NoRefundAvailable(address proposal);
+
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
+
+    /**
+     * @notice event indicating the pauser was updated
+     * @param pauser The new pauser
+     */
+    event PauserAssignment(address indexed pauser);
+
+    /**
+     * @notice event indicating a change in the community governance stage
+     * @param stage the new stage
+     */
+    event StageUpdated(Stage stage);
 
     /**
      * @notice An event indicating a proposal has been registered
@@ -174,10 +187,31 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     );
 
     /**
-     * @notice event indicating the pauser was updated
-     * @param pauser The new pauser
+     * @notice An event indicating a vote cast on a proposal
+     * @param voter The address casting votes
+     * @param enactVotes The votes to enact
+     * @param rejectVotes The votes to reject
+     * @param abstainVotes The votes to abstain
      */
-    event PauserAssignment(address indexed pauser);
+    event VoteCast(
+        address voter,
+        uint256 enactVotes,
+        uint256 rejectVotes,
+        uint256 abstainVotes
+    );
+
+    /**
+     @notice An event indicating that the proposal selected for this governance cycle was successfully executed
+     @param proposal The proposal that was executed
+     */
+    event ExecutionComplete(address proposal);
+
+    /**
+     @notice An event indicating that the fee for a proposal was refunded
+     @param proposal The address of the proposal being refunded
+     @param proposer The address that registered the proposal
+     */
+    event FeeRefunded(address proposal, address proposer);
 
     modifier onlyPauser() {
         require(msg.sender == pauser, "ERC20Pausable: not pauser");
@@ -251,10 +285,17 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             } else if (stage == Stage.Delay) {
                 // delay period ended, time to execute
                 stage = Stage.Execution;
-                currentStageEnd = cycleStart + CYCLE_LENGTH;
+                //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
+                currentStageEnd = cycleStart + CYCLE_LENGTH + 3 days;
+            } else if (stage == Stage.Execution) {
+                // if the execution stage timed out, the proposal was not enacted in time
+                // either nobody called it, or the proposal failed during execution.
+                // this assumes the latter case, the former has been addressed in the end time of the execution stage
             } else {
                 nextCycle();
             }
+
+            emit StageUpdated(stage);
         }
     }
 
@@ -295,13 +336,15 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
-        if (!paused()) {
-            ecoToken.transferFrom(msg.sender, address(this), proposalFee);
-        }
 
         PropData storage prop = proposals[address(_proposal)];
         prop.cycle = cycleCount;
         prop.proposer = msg.sender;
+
+        if (!paused()) {
+            ecoToken.transferFrom(msg.sender, address(this), proposalFee);
+            prop.refund = (proposalFee * refundPercent) / 100;
+        }
 
         emit ProposalRegistration(msg.sender, _proposal);
     }
@@ -422,55 +465,61 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             (cycleTotalVotingPower * supportThresholdPercent) / 100
         ) {
             selectedProposal = proposal;
+            prop.refund = proposalFee;
             stage = Stage.Voting;
             currentStageEnd = getTime() + VOTING_LENGTH;
         }
     }
 
     /**
-     * @notice allows an address to vote to enact, reject or abstain on a proposal
+     * @notice allows an address to vote to enact, reject or abstain on a proposal with their full voting power
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
-        updateStage();
-        if (stage != Stage.Voting) {
-            revert WrongStage();
+        if (choice == Vote.Enact) {
+            _vote(msg.sender, votingPower(msg.sender, snapshotBlock), 0, 0);
+        } else if (choice == Vote.Reject) {
+            _vote(msg.sender, 0, votingPower(msg.sender, snapshotBlock), 0);
+        } else if (choice == Vote.Abstain) {
+            _vote(msg.sender, 0, 0, votingPower(msg.sender, snapshotBlock));
+        } else {
+            revert BadVoteType();
         }
-
-        _vote(msg.sender, choice, votingPower(msg.sender, snapshotBlock));
     }
 
     /**
      * @notice allows an address to split their voting power allocation between enact, reject and abstain
-     * @param _votes the array of votes
-     * @param _votes the array of voting power allocations
+     * @param enactVotes votes to enact
+     * @param rejectVotes votes to reject
+     * @param abstainVotes votes to abstain
      */
     function votePartial(
-        Vote[] memory _votes,
-        uint256[] memory _allocations
+        uint256 enactVotes,
+        uint256 rejectVotes,
+        uint256 abstainVotes
     ) public {
         updateStage();
         if (stage != Stage.Voting) {
             revert WrongStage();
         }
-        if (_votes.length != 3 || _allocations.length != 3) {
-            revert ArrayLengthMismatch();
-        }
         if (
-            _allocations[1] + _allocations[2] + _allocations[3] >
+            enactVotes + rejectVotes + abstainVotes >
             votingPower(msg.sender, snapshotBlock)
         ) {
             revert BadVotingPowerSum();
         }
-        for (uint256 i = 0; i < 3; i++) {
-            _vote(msg.sender, _votes[i], _allocations[i]);
-        }
+        _vote(msg.sender, enactVotes, rejectVotes, abstainVotes);
     }
 
-    function _vote(address voter, Vote choice, uint256 amount) internal {
-        if (uint(choice) > 2) {
-            // enums are assigned uint values
-            revert BadVoteType();
+    function _vote(
+        address voter,
+        uint256 _enactVotes,
+        uint256 _rejectVotes,
+        uint256 _abstainVotes
+    ) internal {
+        updateStage();
+        if (stage != Stage.Voting) {
+            revert WrongStage();
         }
 
         PropData storage prop = proposals[selectedProposal];
@@ -480,29 +529,25 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 abstainVotes = prop.abstainVotes[voter];
 
         totalEnactVotes -= enactVotes;
-        delete enactVotes;
         totalRejectVotes -= rejectVotes;
-        delete rejectVotes;
         totalAbstainVotes -= abstainVotes;
-        delete abstainVotes;
 
-        if (choice == Vote.Enact) {
-            enactVotes = amount;
-            totalEnactVotes += amount;
-        } else if (choice == Vote.Reject) {
-            rejectVotes = amount;
-            totalRejectVotes += amount;
-        } else {
-            abstainVotes = amount;
-            totalAbstainVotes += amount;
-        }
+        enactVotes = _enactVotes;
+        rejectVotes = _rejectVotes;
+        abstainVotes = _abstainVotes;
+
+        totalEnactVotes += enactVotes;
+        totalRejectVotes += rejectVotes;
+        totalAbstainVotes += abstainVotes;
+
+        emit VoteCast(voter, enactVotes, rejectVotes, abstainVotes);
 
         if (
             (totalEnactVotes) >
             (cycleTotalVotingPower * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
-            currentStageEnd = getTime() + VOTING_LENGTH;
+            currentStageEnd = cycleStart + CYCLE_LENGTH + 3 days;
         }
     }
 
@@ -520,5 +565,21 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         //     0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f
         // );
         executed = true;
+
+        emit ExecutionComplete(selectedProposal);
+    }
+
+    function refund(address proposal) public {
+        PropData storage prop = proposals[proposal];
+        if (prop.cycle < cycleCount) {
+            if (prop.refund > 0) {
+                ecoToken.transfer(prop.proposer, prop.refund);
+                prop.refund = 0;
+
+                emit FeeRefunded(proposal, prop.proposer);
+            } else {
+                revert NoRefundAvailable(proposal);
+            }
+        }
     }
 }

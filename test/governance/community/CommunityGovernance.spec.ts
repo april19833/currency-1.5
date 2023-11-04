@@ -62,11 +62,14 @@ describe('Community Governance', () => {
         ecoXStaking.address,
         alice.address // pauser
       )
+    await eco
+      .connect(policyImpersonator)
+      .updateSnapshotters(communityGovernance.address, true)
   })
 
   it('Constructs', async () => {
     expect(await communityGovernance.policy()).to.eq(policy.address)
-    expect(await communityGovernance.eco()).to.eq(eco.address)
+    expect(await communityGovernance.ecoToken()).to.eq(eco.address)
     expect(await communityGovernance.ecoXStaking()).to.eq(ecoXStaking.address)
     expect(await communityGovernance.pauser()).to.eq(alice.address)
   })
