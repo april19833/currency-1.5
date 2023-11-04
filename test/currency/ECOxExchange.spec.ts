@@ -18,6 +18,7 @@ import {
 } from '../../typechain-types'
 import { BigNumber } from 'ethers'
 import { BigDecimal, RoundingMode } from 'bigdecimal'
+import { deploy } from '../../deploy/utils'
 
 const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 
@@ -82,13 +83,12 @@ describe('ECOxExchange', () => {
       pauser.address // initial pauser
     )
 
-    const exchangeFactory: ECOxExchange__factory = new ECOxExchange__factory(
-      alice
-    )
-
-    ecoXExchange = await exchangeFactory
-      .connect(policyImpersonator)
-      .deploy(Fake__Policy.address, ECOx.address, eco.address, INITIAL_SUPPLY)
+    ecoXExchange = (await deploy(policyImpersonator, ECOxExchange__factory, [
+      Fake__Policy.address,
+      ECOx.address,
+      eco.address,
+      INITIAL_SUPPLY,
+    ])) as ECOxExchange
 
     await ECOx.connect(policyImpersonator).updateECOxExchange(
       ecoXExchange.address

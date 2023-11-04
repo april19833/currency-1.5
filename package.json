@@ -9,11 +9,11 @@
   "scripts": {
     "format": "concurrently 'npm:format:*'",
     "format:prettier": "prettier --write 'contracts/**/*.sol'",
-    "format:eslint": "eslint --fix 'test/**/**.ts'",
+    "format:eslint": "eslint --fix 'test/**/**.ts' 'deploy/**/**.ts'",
     "lint": "concurrently 'npm:lint:*'",
     "lint:depcheck": "depcheck --ignore-bin-package --ignores @openzeppelin/contracts,prettier-plugin-solidity,solhint-plugin-eco,concurrently,@types/mocha",
     "lint:solhint": "solhint 'contracts/**/*.sol'",
-    "lint:eslint": "eslint 'test/**/**.ts'",
+    "lint:eslint": "eslint 'test/**/**.ts' 'deploy/**/**.ts'",
     "lint:prettier": "prettier --check 'contracts/**/*.sol'",
     "build": "hardhat compile",
     "compile": "hardhat compile",
