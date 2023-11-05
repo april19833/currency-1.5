@@ -89,4 +89,16 @@ export const ERRORS = {
     CONSTRUCTOR_ZERO_ECOX_ADDRESS: 'NoZeroECOx',
     ATTEMPTED_TRANSFER: 'NonTransferrable',
   },
+  COMMUNITYGOVERNANCE: {
+    SAME_PAUSER: 'SamePauser',
+    WRONG_STAGE: 'WrongStage',
+    CYCLE_IN_PROGRESS: 'CycleInProgress',
+    DUPLICATE_PROPOSAL: 'DuplicateProposal',
+    ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
+    BAD_VOTING_POWER_SUM: 'BadVotingPowerSum',
+    NO_SUPPORT_TO_REVOKE: 'NoSupportToRevoke',
+    BAD_VOTE_TYPE: 'BadVoteType',
+    EXECUTION_ALREADY_COMPLETE: 'ExecutionAlreadyComplete',
+    NO_REFUND_AVAILABLE: 'NoRefundAvailable',
+  },
 }

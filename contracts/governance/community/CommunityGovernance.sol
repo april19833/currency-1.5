@@ -60,7 +60,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     address public pauser;
 
     /** @notice reference any proposal by its address*/
-    mapping(address => PropData) proposals;
+    mapping(address => PropData) public proposals;
 
     /** @notice number of voting cycles since launch */
     uint256 public cycleCount;
@@ -106,6 +106,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice whether the selected proposal has been executed */
     bool public executed;
+
+    /** @notice redeemable tokens from fees  */
+    uint256 public pot;
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
@@ -116,20 +119,20 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when setPauser is called with the existing pauser address as an argument */
     error SamePauser();
 
+    /** @notice thrown when a call is made during the wrong stage of Community Governance */
+    error WrongStage();
+
     /** @notice thrown when nextCycle is called while the current cycle is still in progress */
     error CycleInProgress();
 
-    /** @notice thrown when address attempts to support the same proposal twice */
-    error NoDoubleSupport();
+    /** @notice thrown when a proposal that already exists is proposed again */
+    error DuplicateProposal();
 
-    /** @notice thrown when execute is called and the proposal has already been executed */
-    error ExecutionAlreadyComplete();
+    // /** @notice thrown when address attempts to support the same proposal more than once */
+    // error RepeatSupport();
 
     /** @notice thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
-
-    /** @notice thrown when a call is made during the wrong stage of Community Governance */
-    error WrongStage();
 
     /** @notice thrown when the total voting power of a support action is too high */
     error BadVotingPowerSum();
@@ -139,6 +142,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice thrown when vote is called with a vote type other than enact, reject, abstain */
     error BadVoteType();
+
+    /** @notice thrown when execute is called and the proposal has already been executed */
+    error ExecutionAlreadyComplete();
 
     /**
      * @notice thrown when refund is called on a proposal for which no refund is available
@@ -201,10 +207,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     );
 
     /**
-     @notice An event indicating that the proposal selected for this governance cycle was successfully executed
-     @param proposal The proposal that was executed
+     * @notice An event indicating that the proposal selected for this governance cycle was successfully executed
+     * @param proposal The proposal that was executed
      */
     event ExecutionComplete(address proposal);
+
+    /**
+     * @notice An event indicating that a new cycle has begun
+     * @param cycleNumber the cycle number
+     */
+    event NewCycle(uint256 cycleNumber);
 
     /**
      @notice An event indicating that the fee for a proposal was refunded
@@ -212,6 +224,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      @param proposer The address that registered the proposal
      */
     event FeeRefunded(address proposal, address proposer);
+
+    /**
+     * @notice An event indicating that the leftover funds from fees were swept to a recipient address
+     * @param recipient the recipient address
+     */
+    event Sweep(address recipient)
 
     modifier onlyPauser() {
         require(msg.sender == pauser, "ERC20Pausable: not pauser");
@@ -234,9 +252,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         ecoXStaking = ECOxStaking(_ecoXStaking);
         pauser = _pauser;
 
-        cycleStart = getTime() - CYCLE_LENGTH;
         cycleCount = 1000;
-        nextCycle();
+        // cycleStart = getTime() - CYCLE_LENGTH;
+        // nextCycle();
     }
 
     /**
@@ -270,10 +288,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 stage = Stage.Done;
                 currentStageEnd = cycleStart + CYCLE_LENGTH;
             } else if (stage == Stage.Voting) {
-                if (
-                    totalEnactVotes > totalRejectVotes &&
-                    totalEnactVotes > totalAbstainVotes
-                ) {
+                if (totalEnactVotes > totalRejectVotes) {
                     // vote passes
                     stage = Stage.Delay;
                     currentStageEnd = time + DELAY_LENGTH;
@@ -291,6 +306,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 // if the execution stage timed out, the proposal was not enacted in time
                 // either nobody called it, or the proposal failed during execution.
                 // this assumes the latter case, the former has been addressed in the end time of the execution stage
+                nextCycle();
             } else {
                 nextCycle();
             }
@@ -303,6 +319,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     function nextCycle() internal {
         if (stage != Stage.Done) {
             revert WrongStage();
+        }
+        if (cycleStart == 0) {
+            cycleStart = getTime() - CYCLE_LENGTH;
         }
 
         uint256 elapsed = getTime() - cycleStart;
@@ -323,6 +342,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         snapshotBlock = block.number;
         cycleTotalVotingPower = totalVotingPower();
         delete selectedProposal;
+
+        emit NewCycle(cycleCount);
     }
 
     /**
@@ -338,6 +359,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[address(_proposal)];
+        if (prop.proposer != address(0)) {
+            revert DuplicateProposal();
+        }
         prop.cycle = cycleCount;
         prop.proposer = msg.sender;
 
@@ -551,6 +575,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
     }
 
+    /**
+     * @notice allows an address to enact a selected proposal that has passed the vote
+     * @dev it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
+     * @dev the community will have a minimum of 3 days 8 hours to enact the proposal.
+     */
     function execute() public {
         updateStage();
         if (stage != Stage.Execution) {
@@ -569,6 +598,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         emit ExecutionComplete(selectedProposal);
     }
 
+    /**
+     * @notice allows redemption of proposal registration fees
+     * @param proposal the proposal whose fee is being redeemed
+     * @dev the fee will be refunded to the proposer of the proposal, regardless of who calls refund
+     */
     function refund(address proposal) public {
         PropData storage prop = proposals[proposal];
         if (prop.cycle < cycleCount) {
@@ -581,5 +615,14 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 revert NoRefundAvailable(proposal);
             }
         }
+    }
+
+    /**
+     * @notice allows the leftover registration fees to be drained from the contract
+     * @param recipient the address receiving the tokens
+     * @dev only the policy contract can call this
+     */
+    function sweep(address recipient) public onlyPolicy {
+        ecoToken.transfer(recipient, pot);
     }
 }
