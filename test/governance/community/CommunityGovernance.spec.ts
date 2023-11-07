@@ -19,6 +19,7 @@ import {
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
 const INITIAL_SUPPLY = ethers.utils.parseEther('100')
+const INIT_BALANCE = 20000
 
 // enum values
 const DONE = 0
@@ -27,7 +28,7 @@ const VOTING = 2
 const DELAY = 3
 const EXECUTION = 4
 
-describe('Community Governance', () => {
+describe.only('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -60,10 +61,10 @@ describe('Community Governance', () => {
     await eco
       .connect(policyImpersonator)
       .updateMinters(policyImpersonator.address, true)
-    await eco.connect(policyImpersonator).mint(alice.address, 20000)
-    await eco.connect(policyImpersonator).mint(bob.address, 20000)
-    await eco.connect(policyImpersonator).mint(charlie.address, 20000)
-    await eco.connect(policyImpersonator).mint(dave.address, 20000)
+    await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(dave.address, INIT_BALANCE)
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -174,6 +175,7 @@ describe('Community Governance', () => {
     })
     describe('proposing', () => {
       it('registers a proposal and its data correctly', async () => {
+        await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await expect(cg.connect(alice).propose(A1))
           .to.emit(cg, 'ProposalRegistration')
           .withArgs(alice.address, A1)
@@ -183,21 +185,40 @@ describe('Community Governance', () => {
         expect((await cg.proposals(A1)).refund).to.eq(
           (await cg.proposalFee()).mul(await cg.refundPercent()).div(100)
         )
+        expect(await eco.balanceOf(alice.address)).to.eq(INIT_BALANCE - await(cg.proposalFee()))
       })
       it('doesnt allow submitting duplicate proposals', async () => {
+        await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await cg.connect(alice).propose(A1)
 
+        await eco.connect(bob).approve(cg.address, await cg.proposalFee())
         await expect(cg.connect(bob).propose(A1)).to.be.revertedWith(
           ERRORS.COMMUNITYGOVERNANCE.DUPLICATE_PROPOSAL
         )
       })
       it('allows the same address to submit multiple proposals in a cycle', async () => {
+        await eco.connect(alice).approve(cg.address, (await cg.proposalFee()).mul(2))
         await cg.connect(alice).propose(A1)
         await cg.connect(alice).propose(A2)
       })
     })
     describe('Supporting', () => {
-
+        beforeEach( async () => {
+            await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+            await eco.connect(bob).approve(cg.address, await cg.proposalFee())
+            await cg.connect(alice).propose(A1)
+            await cg.connect(bob).propose(A2)
+        })
+        xit('performs a single support correctly', async () => {
+            // const snapshotBlock = 
+            console.log(await cg.votingPower(alice.address, await cg.snapshotBlock()))
+            // await expect(
+            //     cg.connect(alice).support(A1)
+            // ).to.emit(cg, 'SupportChanged')
+            // .withArgs(alice.address, A1, 0, vp)
+            // expect((await cg.proposals(A1)).support[alice.address]) = vp
+            // expect((await cg.proposals(A1)).totalSupport) = vp
+        })
     })
   })
 

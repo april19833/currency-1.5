@@ -78,10 +78,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     uint256 public snapshotBlock;
 
     /** @notice cost in ECO to submit a proposal */
-    uint256 public proposalFee;
+    uint256 public proposalFee = 10000;
 
     /** @notice percent of proposal fee to be refunded if proposal is not enacted */
-    uint256 public refundPercent;
+    uint256 public refundPercent = 50;
 
     /** @notice the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
@@ -229,7 +229,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @notice An event indicating that the leftover funds from fees were swept to a recipient address
      * @param recipient the recipient address
      */
-    event Sweep(address recipient)
+    event Sweep(address recipient);
 
     modifier onlyPauser() {
         require(msg.sender == pauser, "ERC20Pausable: not pauser");
@@ -522,10 +522,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 rejectVotes,
         uint256 abstainVotes
     ) public {
-        updateStage();
-        if (stage != Stage.Voting) {
-            revert WrongStage();
-        }
         if (
             enactVotes + rejectVotes + abstainVotes >
             votingPower(msg.sender, snapshotBlock)
