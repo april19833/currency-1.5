@@ -89,11 +89,10 @@ export async function deployMonetary(
 ): Promise<MonetaryGovernanceContracts> {
   const lockupsContract = (await deploy(wallet, Lockups__factory, [
     base.policy.address,
-    PLACEHOLDER_ADDRESS,
     base.eco.address,
     LOCKUP_DEPOSIT_WINDOW,
   ])) as Lockups
-  
+
   const lockupsNotifier = (await deploy(wallet, Notifier__factory, [
     base.policy.address,
     lockupsContract.address,
@@ -104,7 +103,6 @@ export async function deployMonetary(
 
   const rebaseContract = (await deploy(wallet, Rebase__factory, [
     base.policy.address,
-    PLACEHOLDER_ADDRESS,
     base.eco.address,
   ])) as Rebase
 
