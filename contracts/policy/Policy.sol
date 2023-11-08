@@ -12,14 +12,14 @@ contract Policy is ForwardTarget {
     uint256 private __gap; // to cover setters mapping
 
     /**
-     * @dev mapping to store the contracts allowed to call functions
+     * @dev the contract allowed enact proposals
      */
-    mapping(address => bool) public governors;
+    address public governor;
 
     /**
      * @dev error for when an address tries submit proposal actions without permission
      */
-    error OnlyGovernors();
+    error OnlyGovernor();
 
     /**
      * @dev error for when an address tries to call a pseudo-internal function
@@ -34,10 +34,10 @@ contract Policy is ForwardTarget {
 
     /**
      * emits when the governor permissions are changed
-     * @param actor denotes the new address whose permissions are being updated
-     * @param newPermission denotes the new ability of the actor address (true for can govern, false for cannot)
+     * @param oldGovernor denotes the old address whose permissions are being removed
+     * @param newGovernor denotes the new address whose permissions are being added
      */
-    event UpdatedGovernors(address actor, bool newPermission);
+    event UpdatedGovernor(address oldGovernor, address newGovernor);
 
     /**
      * emits when enaction happens to keep record of enaction
@@ -50,8 +50,8 @@ contract Policy is ForwardTarget {
      * @dev Modifier for checking if the sender is a governor
      */
     modifier onlyGovernorRole() {
-        if (!governors[msg.sender]) {
-            revert OnlyGovernors();
+        if (msg.sender != governor) {
+            revert OnlyGovernor();
         }
         _;
     }
@@ -68,14 +68,12 @@ contract Policy is ForwardTarget {
     }
 
     /**
-     * @dev change the governance permissions for an address
-     * internal function
-     * @param _key the address to change permissions for
-     * @param _value the new permission. true = can govern, false = cannot govern
+     * @dev pass the governance permissions to another address
+     * @param _newGovernor the address to make the new governor
      */
-    function updateGovernors(address _key, bool _value) public onlySelf {
-        governors[_key] = _value;
-        emit UpdatedGovernors(_key, _value);
+    function updateGovernor(address _newGovernor) public onlySelf {
+        emit UpdatedGovernor(governor, _newGovernor);
+        governor = _newGovernor;
     }
 
     function enact(address proposal) external virtual onlyGovernorRole {

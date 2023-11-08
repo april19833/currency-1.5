@@ -36,7 +36,7 @@ export const ERRORS = {
   },
   Policy: {
     ENACTION_UNSPECIFIED_REVERT: 'FailedProposal',
-    GOVERNOR_ONLY: 'OnlyGovernors',
+    GOVERNOR_ONLY: 'OnlyGovernor',
   },
   TrustedNodes: {
     CG_ONLY: 'GovernanceOnlyFunction',
