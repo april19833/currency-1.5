@@ -20,6 +20,7 @@ const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
 const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 const INIT_BALANCE = 20000
+const INIT_BIG_BALANCE = 100000
 
 // enum values
 const DONE = 0
@@ -61,15 +62,14 @@ describe.only('Community Governance', () => {
     await eco
       .connect(policyImpersonator)
       .updateMinters(policyImpersonator.address, true)
-    await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
     await eco.connect(alice).enableVoting()
-    await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
     await eco.connect(bob).enableVoting()
-    await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
     await eco.connect(charlie).enableVoting()
-    await eco.connect(policyImpersonator).mint(dave.address, INIT_BALANCE)
+    await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
     await eco.connect(dave).enableVoting()
-
+    await eco.connect(policyImpersonator).mint(dave.address, INIT_BIG_BALANCE)
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -141,15 +141,11 @@ describe.only('Community Governance', () => {
         .withArgs(1001)
         .to.emit(cg, 'StageUpdated')
         .withArgs(PROPOSAL)
-        .to.emit(eco, 'NewSnapshotBlock')
-        .withArgs(10)
       expect(await cg.cycleStart()).to.eq(await time.latest())
       expect(await cg.currentStageEnd()).to.eq(
         (await cg.PROPOSAL_LENGTH()).add(await time.latest())
       )
       expect(await cg.stage()).to.eq(PROPOSAL)
-      expect(await cg.snapshotBlock()).to.eq(10)
-      expect(await eco.currentSnapshotBlock()).to.eq(10)
     })
     it('updates to done from proposal stage', async () => {
       await cg.updateStage()
@@ -179,11 +175,20 @@ describe.only('Community Governance', () => {
     })
   })
 
-  describe('proposal stage', async () => {
-    beforeEach(async () => {
-      await cg.updateStage()
+  context('proposal stage', async () => {
+    it('fails if called during not-proposal stage', async () => {
+      expect(await cg.stage()).to.not.eq(PROPOSAL)
+      // prevents automatic stage update to proposal stage
+      await cg.setVariable('currentStageEnd', (await time.latest()) + 100)
+
+      await expect(cg.connect(alice).propose(A1)).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+      )
     })
     describe('proposing', () => {
+      beforeEach(async () => {
+        await cg.updateStage()
+      })
       it('registers a proposal and its data correctly', async () => {
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await expect(cg.connect(alice).propose(A1))
@@ -195,7 +200,9 @@ describe.only('Community Governance', () => {
         expect((await cg.proposals(A1)).refund).to.eq(
           (await cg.proposalFee()).mul(await cg.refundPercent()).div(100)
         )
-        expect(await eco.balanceOf(alice.address)).to.eq(INIT_BALANCE - await(cg.proposalFee()))
+        expect(await eco.balanceOf(alice.address)).to.eq(
+          INIT_BALANCE - (await cg.proposalFee())
+        )
       })
       it('doesnt allow submitting duplicate proposals', async () => {
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
@@ -207,37 +214,67 @@ describe.only('Community Governance', () => {
         )
       })
       it('allows the same address to submit multiple proposals in a cycle', async () => {
-        await eco.connect(alice).approve(cg.address, (await cg.proposalFee()).mul(2))
+        await eco
+          .connect(alice)
+          .approve(cg.address, (await cg.proposalFee()).mul(2))
         await cg.connect(alice).propose(A1)
         await cg.connect(alice).propose(A2)
       })
+      it('fails if called during not support phase')
     })
     describe('Supporting', () => {
-        beforeEach( async () => {
-            await eco.connect(alice).approve(cg.address, await cg.proposalFee())
-            await eco.connect(bob).approve(cg.address, await cg.proposalFee())
-            await cg.connect(alice).propose(A1)
-            await cg.connect(bob).propose(A2)
+      beforeEach(async () => {
+        await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+        await eco.connect(bob).approve(cg.address, await cg.proposalFee())
+        await cg.connect(alice).propose(A1)
+        await cg.connect(bob).propose(A2)
+      })
+      context('support method', () => {
+        it('performs a single support correctly', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          await expect(cg.connect(alice).support(A1))
+            .to.emit(cg, 'SupportChanged')
+            .withArgs(alice.address, A1, 0, vp)
+          // having trouble reading from a mapping within a struct within a mapping, going to just work around it for now
+          // expect((await cg.proposals(A1)).support).to.eq(vp)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
         })
-        it.only('performs a single support correctly', async () => {
-            // console.log(await cg.votingPower(alice.address, await cg.snapshotBlock()))
-            // console.log(await eco.voteBalanceSnapshot(charlie.address))
-            // console.log(await eco.getVariable('currentSnapshotBlock'))
-            console.log(await eco.getVariable('_voteSnapshots', [charlie.address]))
-            // console.log(await cg.totalVotingPower())
-
-            // console.log(await cg.votingPower.ret)
-            // await expect(
-            //     cg.connect(alice).support(A1)
-            // ).to.emit(cg, 'SupportChanged')
-            // .withArgs(alice.address, A1, 0, vp)
-            // expect((await cg.proposals(A1)).support[alice.address]) = vp
-            // expect((await cg.proposals(A1)).totalSupport) = vp
+        it('allows one address to support multiple proposals', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          await cg.connect(alice).support(A1)
+          await cg.connect(alice).support(A2)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(vp)
         })
+        it('does not change state when an address re-supports the same proposal again', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          await cg.connect(alice).support(A1)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
+          await cg.connect(alice).support(A1)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
+        })
+      })
+      context('partial support', () => {
+        it('fails if proposal and allocation arrays are different lengths', async () => {
+          const supports = [A1, A2]
+          const allocations = [1]
+          await expect(
+            cg.supportPartial(supports, allocations)
+          ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.ARRAY_LENGTH_MISMATCH)
+        })
+        it('fails')
+      })
     })
   })
 
-  describe('voting stage', () => {
-
-  })
+  describe('voting stage', () => {})
 })

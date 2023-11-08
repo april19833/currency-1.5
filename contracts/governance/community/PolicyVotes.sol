@@ -76,7 +76,11 @@ contract PolicyVotes is VotingPower, TimeUtils {
     /** This constructor just passes the call to the super constructor
      */
     // solhint-disable-next-line no-empty-blocks
-    constructor(Policy _policy, ECO _ecoAddr) VotingPower(_policy, _ecoAddr) {}
+    constructor(
+        Policy _policy,
+        ECO _ecoAddr,
+        ECOxStaking _ecoXStakingAddr
+    ) VotingPower(_policy, _ecoAddr, _ecoXStakingAddr) {}
 
     /** Submit your yes/no support
      *

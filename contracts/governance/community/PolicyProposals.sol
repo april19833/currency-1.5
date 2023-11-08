@@ -164,8 +164,9 @@ contract PolicyProposals is VotingPower, TimeUtils {
     constructor(
         Policy _policy,
         PolicyVotes _policyvotes,
-        ECO _ecoAddr
-    ) VotingPower(_policy, _ecoAddr) {
+        ECO _ecoAddr,
+        ECOxStaking _ecoXStakingAddr
+    ) VotingPower(_policy, _ecoAddr, _ecoXStakingAddr) {
         require(
             address(_policyvotes) != address(0),
             "Unrecoverable: do not set the _policyvotes as the zero address"

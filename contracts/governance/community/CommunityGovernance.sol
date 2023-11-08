@@ -53,9 +53,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice the duration of the execution delay */
     uint256 public constant DELAY_LENGTH = 1 days;
 
-    /** @notice ECOxStaking contract */
-    ECOxStaking public immutable ecoXStaking;
-
     /** @notice address allowed to pause community governance */
     address public pauser;
 
@@ -248,8 +245,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address _eco,
         address _ecoXStaking,
         address _pauser
-    ) VotingPower(policy, ECO(_eco)) {
-        ecoXStaking = ECOxStaking(_ecoXStaking);
+    ) VotingPower(policy, ECO(_eco), ECOxStaking(_ecoXStaking)) {
         pauser = _pauser;
 
         cycleCount = 1000;
@@ -378,27 +374,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function support(address _proposal) public {
-        updateStage();
-        if (stage != Stage.Proposal) {
-            revert WrongStage();
-        }
-        // PropData storage prop = proposals[_proposal];
         uint256 vp = votingPower(msg.sender, snapshotBlock);
-
         _changeSupport(msg.sender, _proposal, vp);
-
-        // if (prop.support(msg.sender) == 0) {
-        //     prop.support[msg.sender] = vp;
-        //     prop.totalSupport += vp;
-
-        //     if (prop.totalSupport > cycleTotalVotingPower * supportThresholdPercent / 100) {
-        //         selectedProposal = _proposal;
-        //         stage = Stage.Voting;
-        //         currentStageEnd = getTime() + VOTING_LENGTH;
-        //     }
-        // } else {
-        //     revert NoDoubleSupport();
-        // }
     }
 
     /**
@@ -410,10 +387,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address[] memory _proposals,
         uint256[] memory _allocations
     ) public {
-        updateStage();
-        if (stage != Stage.Proposal) {
-            revert WrongStage();
-        }
         uint256 length = _proposals.length;
         if (length != _allocations.length) {
             revert ArrayLengthMismatch();
@@ -425,26 +398,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             sumSupport += support;
             _changeSupport(msg.sender, _proposals[i], support);
         }
-        // for (uint256 i = 0; i < length; i++) {
-        //     address propAddress = _proposals[i];
-        //     uint256 vp = _allocations[i];
-        //     PropData storage prop = proposals[propAddress];
-        //     uint256 currentSupport = prop.support(msg.sender);
 
-        //     if (currentSupport > 0) {
-        //         prop.totalSupport -= currentSupport;
-        //         prop.support[msg.sender] = 0;
-        //     }
-        //     prop.support[msg.sender] = vp;
-        //     prop.totalSupport += vp;
-        //     sumSupport += vp;
-
-        //     if (prop.totalSupport > cycleTotalVotingPower * supportThresholdPercent / 100) {
-        //         selectedProposal = propAddress;
-        //         stage = Stage.Voting;
-        //         currentStageEnd = getTime() + VOTING_LENGTH;
-        //     }
-        // }
         if (sumSupport > votingPower(msg.sender, snapshotBlock)) {
             revert BadVotingPowerSum();
         }
@@ -472,17 +426,24 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address proposal,
         uint256 amount
     ) internal {
+        updateStage();
+        if (stage != Stage.Proposal) {
+            revert WrongStage();
+        }
+
         PropData storage prop = proposals[proposal];
         uint256 vp = votingPower(supporter, snapshotBlock);
 
-        uint256 support = prop.support[supporter];
-        uint256 totalSupport = prop.totalSupport;
+        emit SupportChanged(
+            supporter,
+            Proposal(proposal),
+            prop.support[supporter],
+            amount
+        );
 
-        emit SupportChanged(supporter, Proposal(proposal), support, amount);
-
-        totalSupport -= support;
-        support = amount;
-        totalSupport += support;
+        prop.totalSupport -= prop.support[supporter];
+        prop.support[supporter] = amount;
+        prop.totalSupport += prop.support[supporter];
 
         if (
             prop.totalSupport >
