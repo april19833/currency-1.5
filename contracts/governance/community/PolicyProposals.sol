@@ -328,11 +328,11 @@ contract PolicyProposals is VotingPower, TimeUtils {
             totalECOxSnapshot,
             excludedVotingPower
         );
-        policy.setPolicy(
-            0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f,
-            address(pv),
-            0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a
-        );
+        // policy.setPolicy(
+        //     0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f,
+        //     address(pv),
+        //     0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a
+        // );
 
         emit VoteStart(pv);
     }
@@ -391,9 +391,9 @@ contract PolicyProposals is VotingPower, TimeUtils {
 
         require(totalProposals == 0, "Must refund all missed proposals first");
 
-        policy.removeSelf(
-            0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a
-        );
+        // policy.removeSelf(
+        //     0x331e3a11698d428947c09d6cfecc92b2ccbc4a527e4e795d850152babfaff37a
+        // );
 
         require(
             ecoToken.transfer(
