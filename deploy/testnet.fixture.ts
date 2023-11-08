@@ -113,7 +113,7 @@ export async function deployBase(
     pauser: string,
     initialECOxSupply: string,
 ): Promise<BaseContracts> {
-    const policy = await deployProxy(wallet, Policy__factory) as Policy
+    const policy = await deployProxy(wallet, Policy__factory, [await wallet.getAddress()]) as Policy
     const eco = await deployProxy(wallet, ECO__factory, [policy.address, pauser]) as ECO
     const ecox = await deployProxy(wallet, ECOx__factory, [policy.address, PLACEHOLDER_ADDRESS, pauser]) as ECOx
     const ecoXExchange = await deploy(wallet, ECOxExchange__factory, [policy.address, ecox.address, eco.address, initialECOxSupply]) as ECOxExchange
