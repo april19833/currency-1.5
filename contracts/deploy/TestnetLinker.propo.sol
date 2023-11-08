@@ -5,6 +5,7 @@ import "../governance/community/proposals/Proposal.sol";
 import "../policy/Policy.sol";
 import "../currency/ECO.sol";
 import "../currency/ECOx.sol";
+import "../currency/ECOxExchange.sol";
 import "../governance/monetary/Lockups.sol";
 import "../governance/monetary/Rebase.sol";
 import "../governance/monetary/Notifier.sol";
@@ -47,34 +48,29 @@ contract TestnetLinker is Policy, Proposal {
     uint256 public immutable initialECOxSupply;
 
     constructor(
-        ECO _eco,
-        ECOx _ecox,
         address _communityGovernance,
-        address _ecoXExchange,
-        Lockups _lockups,
+        ECOxExchange _ecoXExchange,
         Notifier _lockupsNotifier,
-        Rebase _rebase,
         Notifier _rebaseNotifier,
-        MonetaryPolicyAdapter _monetaryPolicyAdapter,
-        CurrencyGovernance _currencyGovernance,
         TrustedNodes _trustedNodes,
-        uint256 _initialECOSupply,
-        uint256 _initialECOxSupply
+        uint256 _initialECOSupply
     ) Policy(address(0x0)) {
         distributor = msg.sender;
-        eco = _eco;
-        ecox = _ecox;
         communityGovernance = _communityGovernance;
-        ecoXExchange = _ecoXExchange;
-        lockups = _lockups;
+        ecoXExchange = address(_ecoXExchange);
         lockupsNotifier = _lockupsNotifier;
-        rebase = _rebase;
         rebaseNotifier = _rebaseNotifier;
-        monetaryPolicyAdapter = _monetaryPolicyAdapter;
-        currencyGovernance = _currencyGovernance;
         trustedNodes = _trustedNodes;
+
+        eco = _ecoXExchange.eco();
+        ecox = _ecoXExchange.ecox();
+        lockups = Lockups(_lockupsNotifier.lever());
+        rebase = Rebase(_rebaseNotifier.lever());
+        currencyGovernance = _trustedNodes.currencyGovernance();
+        monetaryPolicyAdapter = currencyGovernance.enacter();
+
         initialECOSupply = _initialECOSupply;
-        initialECOxSupply = _initialECOxSupply;
+        initialECOxSupply = _ecoXExchange.initialSupply();
     }
 
     /** The name of the proposal.
