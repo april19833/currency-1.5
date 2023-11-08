@@ -1,48 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import "../proxy/ForwardTarget.sol";
+import "./ERC1820Client.sol"; // this will become a storage gap
 
 /** @title The policy contract that oversees other contracts
  *
  * Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
-contract Policy is ForwardTarget {
-    uint256 private __gap; // to cover setters mapping
+contract Policy is ForwardTarget, ERC1820Client {
+    mapping(bytes32 => bool) public setters;
 
-    /**
-     * @dev mapping to store the contracts allowed to call functions
-     */
-    mapping(address => bool) public governors;
+    modifier onlySetter(bytes32 _identifier) {
+        require(
+            setters[_identifier],
+            "Identifier hash is not authorized for this action"
+        );
 
-    /**
-     * @dev error for when an address tries submit proposal actions without permission
-     */
-    error OnlyGovernors();
+        require(
+            ERC1820REGISTRY.getInterfaceImplementer(
+                address(this),
+                _identifier
+            ) == msg.sender,
+            "Caller is not the authorized address for identifier"
+        );
 
-    /**
-     * @dev error for when an address tries to call a pseudo-internal function
-     */
-    error OnlySelf();
+        _;
+    }
 
-    /**
-     * for when a part of enacting a proposal reverts without a readable error
-     * @param proposal the proposal address that got reverted during enaction
-     */
-    error FailedProposal(address proposal);
-
-    /**
-     * emits when the governor permissions are changed
-     * @param actor denotes the new address whose permissions are being updated
-     * @param newPermission denotes the new ability of the actor address (true for can govern, false for cannot)
-     */
-    event UpdatedGovernors(address actor, bool newPermission);
-
-    /**
-     * emits when enaction happens to keep record of enaction
-     * @param proposal the proposal address that got successfully enacted
-     * @param governor the contract which was the source of the proposal, source for looking up the calldata
+    /** Remove the specified role from the contract calling this function.
+     * This is for cleanup only, so if another contract has taken the
+     * role, this does nothing.
+     *
+     * @param _interfaceIdentifierHash The interface identifier to remove from
+     *                                 the registry.
      */
     event EnactedGovernanceProposal(address proposal, address governor);
 
@@ -64,7 +57,6 @@ contract Policy is ForwardTarget {
         if (msg.sender != address(this)) {
             revert OnlySelf();
         }
-        _;
     }
 
     /**
@@ -80,8 +72,8 @@ contract Policy is ForwardTarget {
 
     function enact(address proposal) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, bytes memory returndata) = proposal.delegatecall(
-            abi.encodeWithSignature("enacted(address)", proposal)
+        (bool _success, ) = _delegate.delegatecall(
+            abi.encodeWithSignature("enacted(address)", _delegate)
         );
         if (!_success) {
             if (returndata.length == 0) revert FailedProposal(proposal);

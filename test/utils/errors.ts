@@ -34,10 +34,6 @@ export const ERRORS = {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
   },
-  Policy: {
-    ENACTION_UNSPECIFIED_REVERT: 'FailedProposal',
-    GOVERNOR_ONLY: 'OnlyGovernors',
-  },
   TrustedNodes: {
     CG_ONLY: 'GovernanceOnlyFunction',
     DUPLICATE_TRUST: 'NodeAlreadyTrusted', // one arg: the existing trustee number of the address
