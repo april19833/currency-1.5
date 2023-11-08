@@ -57,7 +57,6 @@ describe('Rebase', () => {
 
     rebase = (await deploy(policyImpersonator, Rebase__factory, [
       policy.address,
-      constants.AddressZero,
       eco.address,
     ])) as Rebase
 

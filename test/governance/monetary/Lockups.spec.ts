@@ -75,7 +75,6 @@ describe('Lockups', () => {
 
     lockups = (await deploy(policyImpersonator, Lockups__factory, [
       policy.address,
-      constants.AddressZero, // notifier
       eco.address,
       depositWindow,
     ])) as Lockups

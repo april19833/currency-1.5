@@ -66,7 +66,7 @@ describe('notifier', () => {
       await smock.mock('Rebase')
     rebase = await rebaseFactory
       .connect(policyImpersonator)
-      .deploy(policy.address, constants.AddressZero, eco.address)
+      .deploy(policy.address, eco.address)
 
     notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,

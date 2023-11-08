@@ -13,9 +13,9 @@ import "./Lever.sol";
 contract Rebase is Lever {
     ECO public immutable eco;
 
-    uint256 constant INFLATION_FLOOR = 0;
+    uint256 public constant INFLATION_FLOOR = 0;
 
-    uint256 constant INFLATION_CEILING = 1E19;
+    uint256 public constant INFLATION_CEILING = 1E19;
 
     error BadInflationMultiplier(uint256 rate);
 
@@ -23,9 +23,8 @@ contract Rebase is Lever {
 
     constructor(
         Policy policy,
-        Notifier notifier,
         ECO _eco
-    ) Lever(policy, notifier) {
+    ) Lever(policy) {
         eco = _eco;
     }
 
