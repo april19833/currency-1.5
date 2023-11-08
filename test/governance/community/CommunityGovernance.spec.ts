@@ -62,9 +62,14 @@ describe.only('Community Governance', () => {
       .connect(policyImpersonator)
       .updateMinters(policyImpersonator.address, true)
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
+    await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
+    await eco.connect(bob).enableVoting()
     await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
+    await eco.connect(charlie).enableVoting()
     await eco.connect(policyImpersonator).mint(dave.address, INIT_BALANCE)
+    await eco.connect(dave).enableVoting()
+
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -89,6 +94,7 @@ describe.only('Community Governance', () => {
       ecoXStaking.address,
       alice.address // pauser
     )
+    // await cg.setVariable()
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
   describe('constructor', async () => {
@@ -135,11 +141,15 @@ describe.only('Community Governance', () => {
         .withArgs(1001)
         .to.emit(cg, 'StageUpdated')
         .withArgs(PROPOSAL)
+        .to.emit(eco, 'NewSnapshotBlock')
+        .withArgs(10)
       expect(await cg.cycleStart()).to.eq(await time.latest())
       expect(await cg.currentStageEnd()).to.eq(
         (await cg.PROPOSAL_LENGTH()).add(await time.latest())
       )
       expect(await cg.stage()).to.eq(PROPOSAL)
+      expect(await cg.snapshotBlock()).to.eq(10)
+      expect(await eco.currentSnapshotBlock()).to.eq(10)
     })
     it('updates to done from proposal stage', async () => {
       await cg.updateStage()
@@ -209,9 +219,14 @@ describe.only('Community Governance', () => {
             await cg.connect(alice).propose(A1)
             await cg.connect(bob).propose(A2)
         })
-        xit('performs a single support correctly', async () => {
-            // const snapshotBlock = 
-            console.log(await cg.votingPower(alice.address, await cg.snapshotBlock()))
+        it.only('performs a single support correctly', async () => {
+            // console.log(await cg.votingPower(alice.address, await cg.snapshotBlock()))
+            // console.log(await eco.voteBalanceSnapshot(charlie.address))
+            // console.log(await eco.getVariable('currentSnapshotBlock'))
+            console.log(await eco.getVariable('_voteSnapshots', [charlie.address]))
+            // console.log(await cg.totalVotingPower())
+
+            // console.log(await cg.votingPower.ret)
             // await expect(
             //     cg.connect(alice).support(A1)
             // ).to.emit(cg, 'SupportChanged')
