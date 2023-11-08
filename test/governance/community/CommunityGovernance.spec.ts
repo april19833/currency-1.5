@@ -34,9 +34,10 @@ describe.only('Community Governance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
-  let dave: SignerWithAddress
+  let bigboy: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bob, charlie, dave] = await ethers.getSigners()
+    ;[policyImpersonator, alice, bob, charlie, bigboy] =
+      await ethers.getSigners()
   })
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
@@ -68,8 +69,8 @@ describe.only('Community Governance', () => {
     await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
     await eco.connect(charlie).enableVoting()
     await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
-    await eco.connect(dave).enableVoting()
-    await eco.connect(policyImpersonator).mint(dave.address, INIT_BIG_BALANCE)
+    await eco.connect(bigboy).enableVoting()
+    await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -176,18 +177,19 @@ describe.only('Community Governance', () => {
   })
 
   context('proposal stage', async () => {
-    it('fails if called during not-proposal stage', async () => {
-      expect(await cg.stage()).to.not.eq(PROPOSAL)
-      // prevents automatic stage update to proposal stage
-      await cg.setVariable('currentStageEnd', (await time.latest()) + 100)
-
-      await expect(cg.connect(alice).propose(A1)).to.be.revertedWith(
-        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
-      )
-    })
     describe('proposing', () => {
       beforeEach(async () => {
         await cg.updateStage()
+      })
+      it('fails if called during not-proposal stage', async () => {
+        await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
+
+        await cg.updateStage()
+        expect(await cg.stage()).to.not.eq(PROPOSAL)
+
+        await expect(cg.connect(alice).propose(A1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+        )
       })
       it('registers a proposal and its data correctly', async () => {
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
@@ -220,16 +222,15 @@ describe.only('Community Governance', () => {
         await cg.connect(alice).propose(A1)
         await cg.connect(alice).propose(A2)
       })
-      it('fails if called during not support phase')
     })
-    describe('Supporting', () => {
+    describe('supporting', () => {
       beforeEach(async () => {
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await eco.connect(bob).approve(cg.address, await cg.proposalFee())
         await cg.connect(alice).propose(A1)
         await cg.connect(bob).propose(A2)
       })
-      context('support method', () => {
+      context('support', () => {
         it('performs a single support correctly', async () => {
           const vp = await cg.votingPower(
             alice.address,
@@ -238,8 +239,8 @@ describe.only('Community Governance', () => {
           await expect(cg.connect(alice).support(A1))
             .to.emit(cg, 'SupportChanged')
             .withArgs(alice.address, A1, 0, vp)
-          // having trouble reading from a mapping within a struct within a mapping, going to just work around it for now
-          // expect((await cg.proposals(A1)).support).to.eq(vp)
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
         })
         it('allows one address to support multiple proposals', async () => {
@@ -258,20 +259,129 @@ describe.only('Community Governance', () => {
             await cg.snapshotBlock()
           )
           await cg.connect(alice).support(A1)
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
           await cg.connect(alice).support(A1)
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
         })
       })
-      context('partial support', () => {
+      context('supportPartial', () => {
         it('fails if proposal and allocation arrays are different lengths', async () => {
-          const supports = [A1, A2]
+          const proposals = [A1, A2]
           const allocations = [1]
           await expect(
-            cg.supportPartial(supports, allocations)
+            cg.supportPartial(proposals, allocations)
           ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.ARRAY_LENGTH_MISMATCH)
         })
-        it('fails')
+        it('fails if sum of support allocations is greater than senders vp', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          const proposals = [A1, A2]
+          const allocations = [vp.div(2), vp.div(2).add(1)]
+          await expect(
+            cg.supportPartial(proposals, allocations)
+          ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER_SUM)
+        })
+        it('works if sum <= senders vp', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          const proposals = [A1, A2]
+          const vp1 = vp.div(2).sub(1)
+          const vp2 = vp.div(2).add(1)
+          const allocations = [vp1, vp2]
+
+          await expect(cg.connect(alice).supportPartial(proposals, allocations))
+            .to.emit(cg, 'SupportChanged')
+            .withArgs(alice.address, A1, 0, vp1)
+            .to.emit(cg, 'SupportChanged')
+            .withArgs(alice.address, A2, 0, vp2)
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp1)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp1)
+          expect(await cg.getSupport(alice.address, A2)).to.eq(vp2)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(vp2)
+        })
+        it('overwrites previous supports as expected', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          const proposals = [A1, A2]
+          const vp1 = vp.div(2).sub(1)
+          const vp2 = vp.div(2).add(1)
+          let allocations = [vp1, vp2]
+
+          await cg.connect(alice).supportPartial(proposals, allocations)
+
+          allocations = [vp2, vp1]
+          await cg.connect(alice).supportPartial(proposals, allocations)
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp2)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp2)
+          expect(await cg.getSupport(alice.address, A2)).to.eq(vp1)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(vp1)
+        })
+      })
+      context('unsupporting', () => {
+        it('fails if no support to begin with', async () => {
+          expect(await cg.getSupport(charlie.address, A1)).to.eq(0)
+
+          await expect(cg.connect(charlie).unsupport(A1)).to.be.revertedWith(
+            ERRORS.COMMUNITYGOVERNANCE.NO_SUPPORT_TO_REVOKE
+          )
+        })
+        it('revokes support if there is any, and removes it from the supporting VP', async () => {
+          await cg.connect(alice).support(A1)
+          await cg.connect(bob).supportPartial([A1, A2], [15, 20])
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(INIT_BALANCE)
+          expect(await cg.getSupport(bob.address, A1)).to.eq(15)
+          expect(await cg.getSupport(bob.address, A2)).to.eq(20)
+
+          expect((await cg.proposals(A1)).totalSupport).to.eq(INIT_BALANCE + 15)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(20)
+
+          await expect(cg.connect(bob).unsupport(A1))
+            .to.emit(cg, 'SupportChanged')
+            .withArgs(bob.address, A1, 15, 0)
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(INIT_BALANCE)
+          expect(await cg.getSupport(bob.address, A1)).to.eq(0)
+          expect(await cg.getSupport(bob.address, A2)).to.eq(20)
+
+          expect((await cg.proposals(A1)).totalSupport).to.eq(INIT_BALANCE)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(20)
+        })
+      })
+      it('fails to support if called during not-proposal stage', async () => {
+        await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
+        await cg.updateStage()
+
+        expect(await cg.stage()).to.not.eq(PROPOSAL)
+
+        await expect(cg.connect(alice).support(A1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+        )
+        await expect(
+          cg.connect(alice).supportPartial([A1], [123])
+        ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE)
+      })
+      it('moves to vote stage if support is above threshold', async () => {
+        expect(await cg.stage()).to.eq(PROPOSAL)
+
+        await cg.connect(alice).support(A1)
+        expect(await cg.stage()).to.eq(PROPOSAL)
+
+        await expect(cg.connect(bigboy).support(A2))
+          .to.emit(cg, 'StageUpdated')
+          .withArgs(VOTING)
+        expect(await cg.stage()).to.eq(VOTING)
+        expect(await cg.selectedProposal()).to.eq(A2)
       })
     })
   })

@@ -382,6 +382,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @notice allows an address to register partial support for a set of proposals
      * @param _proposals the array of proposals to be supported
      * @param _allocations the respective voting power to put behind those proposals
+     * @dev _changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support
      */
     function supportPartial(
         address[] memory _proposals,
@@ -453,7 +454,21 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             prop.refund = proposalFee;
             stage = Stage.Voting;
             currentStageEnd = getTime() + VOTING_LENGTH;
+
+            emit StageUpdated(stage);
         }
+    }
+
+    /**
+     * @notice fetches the voting power with which a given address supports a given proposal
+     * @param supporter the supporting address
+     * @param proposal the proposal
+     */
+    function getSupport(
+        address supporter,
+        address proposal
+    ) public view returns (uint256 support) {
+        return proposals[proposal].support[supporter];
     }
 
     /**
@@ -529,7 +544,31 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         ) {
             stage = Stage.Execution;
             currentStageEnd = cycleStart + CYCLE_LENGTH + 3 days;
+
+            emit StageUpdated(stage);
         }
+    }
+
+    /**
+     * @notice fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
+     * @param voter the supporting address
+     */
+    function getVotes(
+        address voter
+    )
+        public
+        view
+        returns (uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes)
+    {
+        if (stage != Stage.Voting) {
+            revert WrongStage();
+        }
+        PropData storage prop = proposals[selectedProposal];
+        return (
+            prop.enactVotes[voter],
+            prop.rejectVotes[voter],
+            prop.abstainVotes[voter]
+        );
     }
 
     /**
