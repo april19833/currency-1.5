@@ -51,7 +51,6 @@ describe('TrustedNodes', () => {
 
   let trustedNodes: TrustedNodes
   let ecoX: MockContract<ECOx>
-  let ecoXExchange: FakeContract<ECOxExchange>
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
@@ -62,14 +61,12 @@ describe('TrustedNodes', () => {
       'CurrencyGovernance',
       { address: currencyGovernanceImpersonator.address }
     )
-    ecoXExchange = await smock.fake<ECOxExchange>('ECOxExchange')
 
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
       'ECOx'
     )
     ecoX = await ecoXFactory.deploy(
       policy.address,
-      ecoXExchange.address,
       policy.address
     )
 
