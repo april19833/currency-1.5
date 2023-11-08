@@ -93,6 +93,7 @@ export async function deployMonetary(
     base.eco.address,
     LOCKUP_DEPOSIT_WINDOW,
   ])) as Lockups
+  
   const lockupsNotifier = (await deploy(wallet, Notifier__factory, [
     base.policy.address,
     lockupsContract.address,
@@ -100,11 +101,13 @@ export async function deployMonetary(
     [],
     [],
   ])) as Notifier
+
   const rebaseContract = (await deploy(wallet, Rebase__factory, [
     base.policy.address,
     PLACEHOLDER_ADDRESS,
     base.eco.address,
   ])) as Rebase
+
   const rebaseNotifier = (await deploy(wallet, Notifier__factory, [
     base.policy.address,
     rebaseContract.address,
@@ -112,15 +115,18 @@ export async function deployMonetary(
     [],
     [],
   ])) as Notifier
+
   const adapter = (await deploy(wallet, MonetaryPolicyAdapter__factory, [
     base.policy.address,
     PLACEHOLDER_ADDRESS,
   ])) as MonetaryPolicyAdapter
+
   const governance = (await deploy(wallet, CurrencyGovernance__factory, [
     base.policy.address,
     PLACEHOLDER_ADDRESS,
     adapter.address,
   ])) as CurrencyGovernance
+
   const trustedNodes = (await deploy(wallet, TrustedNodes__factory, [
     base.policy.address,
     governance.address,
@@ -153,21 +159,25 @@ export async function deployBase(
   const policy = (await deployProxy(wallet, Policy__factory, [
     await wallet.getAddress(),
   ])) as Policy
+
   const eco = (await deployProxy(wallet, ECO__factory, [
     policy.address,
     pauser,
   ])) as ECO
+
   const ecox = (await deployProxy(wallet, ECOx__factory, [
     policy.address,
     PLACEHOLDER_ADDRESS,
     pauser,
   ])) as ECOx
+
   const ecoXExchange = (await deploy(wallet, ECOxExchange__factory, [
     policy.address,
     ecox.address,
     eco.address,
     initialECOxSupply,
   ])) as ECOxExchange
+
   const ecoXStaking = (await deployProxy(wallet, ECOxStaking__factory, [
     policy.address,
     ecox.address,
