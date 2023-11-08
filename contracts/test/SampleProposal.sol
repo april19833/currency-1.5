@@ -18,6 +18,9 @@ contract SampleProposal is Policy, Proposal {
     address public constant NEW_GOVERNOR =
         0x0000000000000000000000000000000000001101;
 
+    // required for compilation
+    constructor() Policy(address(0x0)) {}
+
     /** The name of the proposal.
      */
     function name() public pure override returns (string memory) {

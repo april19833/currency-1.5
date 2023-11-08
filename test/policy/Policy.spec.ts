@@ -1,9 +1,4 @@
 import { ethers } from 'hardhat'
-import {
-  smock,
-  MockContract,
-  MockContractFactory,
-} from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../utils/errors'
@@ -21,6 +16,7 @@ import {
   ClumsyFailureProposal,
   ClumsyFailureProposal__factory,
 } from '../../typechain-types'
+import { deployProxy } from '../../deploy/utils'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
@@ -31,27 +27,21 @@ describe('Policy', () => {
     ;[governanceImpersonator, alice] = await ethers.getSigners()
   })
 
-  let Policy: MockContract<Policy>
+  let policy: Policy
 
   beforeEach(async () => {
-    const Policyfact: MockContractFactory<Policy__factory> = await smock.mock(
-      'Policy'
-    )
-
-    Policy = await Policyfact.deploy()
-
-    await Policy.setVariable('governor', governanceImpersonator.address)
+    policy = await deployProxy(alice, Policy__factory, [governanceImpersonator.address]) as Policy
   })
 
   describe('governor role', () => {
     it('checkable', async () => {
-      const gorvernor = await Policy.governor()
+      const gorvernor = await policy.governor()
       expect(gorvernor).to.eq(governanceImpersonator.address)
     })
 
     it('enact is governor gated', async () => {
       await expect(
-        Policy.connect(alice).enact(PLACEHOLDER_ADDRESS1)
+        policy.connect(alice).enact(PLACEHOLDER_ADDRESS1)
       ).to.be.revertedWith(ERRORS.Policy.GOVERNOR_ONLY)
     })
 
@@ -62,21 +52,21 @@ describe('Policy', () => {
         Proposal = await new SampleProposal__factory().connect(alice).deploy()
       })
 
-      it('SamplePolicy does anything', async () => {
+      it('Samplepolicy does anything', async () => {
         expect(await Proposal.counter()).to.eq(0)
 
-        await Policy.connect(governanceImpersonator).enact(Proposal.address)
+        await policy.connect(governanceImpersonator).enact(Proposal.address)
 
         expect(await Proposal.counter()).to.eq(1)
       })
 
       it('enacting emits an event', async () => {
         await expect(
-          Policy.connect(governanceImpersonator).enact(Proposal.address)
+          policy.connect(governanceImpersonator).enact(Proposal.address)
         )
-          .to.emit(Policy, 'EnactedGovernanceProposal')
+          .to.emit(policy, 'EnactedGovernanceProposal')
           .withArgs(Proposal.address, governanceImpersonator.address)
-          .to.emit(Policy, 'UpdatedGovernor')
+          .to.emit(policy, 'UpdatedGovernor')
           .withArgs(
             governanceImpersonator.address,
             await Proposal.NEW_GOVERNOR()
@@ -85,11 +75,11 @@ describe('Policy', () => {
 
       context('with the policy enacted', () => {
         beforeEach(async () => {
-          await Policy.connect(governanceImpersonator).enact(Proposal.address)
+          await policy.connect(governanceImpersonator).enact(Proposal.address)
         })
 
         it('can be changed by the policy', async () => {
-          expect(await Policy.governor()).to.eq(await Proposal.NEW_GOVERNOR())
+          expect(await policy.governor()).to.eq(await Proposal.NEW_GOVERNOR())
         })
       })
     })
@@ -101,7 +91,7 @@ describe('Policy', () => {
           .deploy()
 
         await expect(
-          Policy.connect(governanceImpersonator).enact(Proposal.address)
+          policy.connect(governanceImpersonator).enact(Proposal.address)
         ).to.be.revertedWith(ERRORS.FailureProposal.PROPOSAL_FAILURE_ERROR)
       })
 
@@ -110,7 +100,7 @@ describe('Policy', () => {
           await new WorseFailureProposal__factory().connect(alice).deploy()
 
         await expect(
-          Policy.connect(governanceImpersonator).enact(Proposal.address)
+          policy.connect(governanceImpersonator).enact(Proposal.address)
         ).to.be.revertedWith(ERRORS.FailureProposal.PROPOSAL_FAILURE_STRING)
       })
       it('handles panics', async () => {
@@ -118,7 +108,7 @@ describe('Policy', () => {
           await new ClumsyFailureProposal__factory().connect(alice).deploy()
 
         await expect(
-          Policy.connect(governanceImpersonator).enact(Proposal.address)
+          policy.connect(governanceImpersonator).enact(Proposal.address)
         ).to.be.revertedWith(ERRORS.FailureProposal.PANIC)
       })
       it('handles reverts', async () => {
@@ -126,7 +116,7 @@ describe('Policy', () => {
           await new TotalFailureProposal__factory().connect(alice).deploy()
 
         await expect(
-          Policy.connect(governanceImpersonator).enact(Proposal.address)
+          policy.connect(governanceImpersonator).enact(Proposal.address)
         ).to.be.revertedWith(ERRORS.Policy.ENACTION_UNSPECIFIED_REVERT)
       })
     })
