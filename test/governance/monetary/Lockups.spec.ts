@@ -69,8 +69,6 @@ describe('Lockups', () => {
     )
     eco = await ecoFactory.deploy(
       policy.address,
-      policy.address, // distributor
-      1000, // initial supply
       policy.address // initial pauser
     )
     await eco.setVariable('inflationMultiplier', BASE)

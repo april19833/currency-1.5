@@ -42,8 +42,6 @@ describe('Community Governance', () => {
       await smock.mock<ECO__factory>('ECO')
     ).deploy(
       policy.address,
-      PLACEHOLDER_ADDRESS1, // distributor - can we take this variable out?
-      INITIAL_SUPPLY, // initialSupply - can we take this variable out?
       alice.address // pauser
     )
 

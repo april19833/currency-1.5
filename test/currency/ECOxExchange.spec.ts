@@ -69,8 +69,6 @@ describe('ECOxExchange', () => {
     )
     eco = await ecoFactory.deploy(
       Fake__Policy.address,
-      PLACEHOLDER_ADDRESS1, // distributor
-      INITIAL_SUPPLY.mul(10), // initial supply of eco is 10x that of ecox --> 1000
       pauser.address // initial pauser
     )
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
@@ -97,6 +95,10 @@ describe('ECOxExchange', () => {
       policyImpersonator.address,
       true
     )
+    await eco.connect(policyImpersonator).updateMinters(
+      policyImpersonator.address,
+      true
+    )
     await ECOx.connect(policyImpersonator).updateBurners(
       policyImpersonator.address,
       true
@@ -108,6 +110,10 @@ describe('ECOxExchange', () => {
     await ECOx.connect(policyImpersonator).mint(
       policyImpersonator.address,
       INITIAL_SUPPLY
+    )
+    await eco.connect(policyImpersonator).mint(
+      policyImpersonator.address,
+      INITIAL_SUPPLY.mul(10)
     )
 
     await eco
