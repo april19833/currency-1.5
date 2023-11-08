@@ -31,7 +31,7 @@ Each component is documented in a README file in the corresponding contracts dir
 
 ### Note on Solidity Optimizations
 
-This repository has non-default compiler optimizations turned on! This can, in some cases, result in unexpected behavior. The test suites are designed to be run with optimizations configured as they are for deployment and will not detect changes in behavior caused by the optimizer.
+This repository has default compiler optimizations turned on! This can, in some cases, result in unexpected behavior. The test suites are designed to be run with optimizations configured as they are for deployment and will not detect changes in behavior caused by the optimizer.
 
 If you believe the optimizer may be changing the behavior of your code please test with the optimizer disabled to verify and discuss with the team.
 
@@ -103,7 +103,13 @@ TODO - write this section when creating deployments including upgrade process.
 
 To use the code you'll need the proper tools. Make sure you have a recent version of [Node.JS](https://nodejs.org), a recent version of [NPM](https://npmjs.com), and [YARN](https://classic.yarnpkg.com/lang/en/).
 
-Once Node, NPM and YARN are installed you can use the `yarn` command to install additional dependencies:
+Once Node, NPM and YARN are installed you can set your node version using
+
+```bash
+nvm use
+```
+
+then use the `yarn` command to install additional dependencies:
 
 ```bash
 yarn install
@@ -118,7 +124,7 @@ These contracts are intended for deployment to the Ethereum blockchain. Once dep
 To compile the contracts run
 
 ```bash
-yarn compile
+yarn build
 ```
 
 ### Running the Linter, Tests and Coverage Report
@@ -139,7 +145,7 @@ and
 yarn format
 ```
 
-respectively.
+`yarn lint` displays all the linting and formatting issues wheres `yarn format` resolves them by updating the files.
 
 #### Testing
 
@@ -174,7 +180,7 @@ Additional document can be generated and is placed in the `docs` folder. Some of
 - `yarn inheritanceGraph`: Generates a contract inheritance graph into [./docs/slither/inheritance-graph.png](./docs/slither/inheritance-graph.png)
 - `yarn variableOrder`: Creates a list of slot usage and offsets, useful to ensure upgradeable contracts use valid memory slots into [./docs/slither/variable-order.txt](./docs/slither/variable-order.txt)
 - `yarn contractSummary`: Creates a summary of all contracts into [./docs/slither/contract-summary.txt](./docs/slither/contract-summary.txt)
-- `yarn vulnerability`: Generates a slithe analysis of high solidity vulnerabilities [./docs/slither/vulnerability.txt](./docs/slither/vulnerability.txt)
+- `yarn vulnerability`: Generates a slither analysis of high solidity vulnerabilities [./docs/slither/vulnerability.txt](./docs/slither/vulnerability.txt)
 
 ### Running a deployment
 
