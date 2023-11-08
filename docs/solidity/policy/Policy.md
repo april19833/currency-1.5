@@ -4,18 +4,18 @@ Copyright (c) 2023 Eco Association
 
 ## Policy
 
-### governors
+### governor
 
 ```solidity
-mapping(address => bool) governors
+address governor
 ```
 
-_mapping to store the contracts allowed to call functions_
+_the contract allowed enact proposals_
 
-### OnlyGovernors
+### OnlyGovernor
 
 ```solidity
-error OnlyGovernors()
+error OnlyGovernor()
 ```
 
 _error for when an address tries submit proposal actions without permission_
@@ -42,10 +42,10 @@ for when a part of enacting a proposal reverts without a readable error
 | ---- | ---- | ----------- |
 | proposal | address | the proposal address that got reverted during enaction |
 
-### UpdatedGovernors
+### UpdatedGovernor
 
 ```solidity
-event UpdatedGovernors(address actor, bool newPermission)
+event UpdatedGovernor(address oldGovernor, address newGovernor)
 ```
 
 emits when the governor permissions are changed
@@ -54,8 +54,8 @@ emits when the governor permissions are changed
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| actor | address | denotes the new address whose permissions are being updated |
-| newPermission | bool | denotes the new ability of the actor address (true for can govern, false for cannot) |
+| oldGovernor | address | denotes the old address whose permissions are being removed |
+| newGovernor | address | denotes the new address whose permissions are being added |
 
 ### EnactedGovernanceProposal
 
@@ -89,21 +89,19 @@ modifier onlySelf()
 _Modifier for faux internal calls
 needed for function to be called only during delegate call_
 
-### updateGovernors
+### updateGovernor
 
 ```solidity
-function updateGovernors(address _key, bool _value) public
+function updateGovernor(address _newGovernor) public
 ```
 
-_change the governance permissions for an address
-internal function_
+_pass the governance permissions to another address_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _key | address | the address to change permissions for |
-| _value | bool | the new permission. true = can govern, false = cannot govern |
+| _newGovernor | address | the address to make the new governor |
 
 ### enact
 

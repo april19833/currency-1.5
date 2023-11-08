@@ -12,14 +12,6 @@ uint256 counter
 
 State variable to test
 
-### REMOVE_GOVERNOR
-
-```solidity
-address REMOVE_GOVERNOR
-```
-
-Address to confirm is false (alice)
-
 ### NEW_GOVERNOR
 
 ```solidity

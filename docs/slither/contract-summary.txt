@@ -1232,7 +1232,7 @@ INFO:Printers:
     - setImplementation(address) (internal)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
 
 + Contract ForwardProxy (Upgradeable Proxy) (Most derived contract)
   - From ForwardProxy
@@ -1289,7 +1289,7 @@ INFO:Printers:
 + Contract FailureProposal (Most derived contract)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1304,7 +1304,7 @@ INFO:Printers:
 + Contract WorseFailureProposal (Most derived contract)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1319,7 +1319,7 @@ INFO:Printers:
 + Contract ClumsyFailureProposal (Most derived contract)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1334,7 +1334,7 @@ INFO:Printers:
 + Contract TotalFailureProposal (Most derived contract)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1349,7 +1349,7 @@ INFO:Printers:
 + Contract SampleProposal (Most derived contract)
   - From Policy
     - enact(address) (external)
-    - updateGovernors(address,bool) (public)
+    - updateGovernor(address) (public)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)

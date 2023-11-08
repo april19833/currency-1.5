@@ -40,16 +40,13 @@ describe('Policy', () => {
 
     Policy = await Policyfact.deploy()
 
-    const governing: any = {}
-    governing[governanceImpersonator.address] = true
-
-    await Policy.setVariable('governors', governing)
+    await Policy.setVariable('governor', governanceImpersonator.address)
   })
 
   describe('governor role', () => {
     it('checkable', async () => {
-      const gorverning = await Policy.governors(governanceImpersonator.address)
-      expect(gorverning).to.be.true
+      const gorvernor = await Policy.governor()
+      expect(gorvernor).to.eq(governanceImpersonator.address)
     })
 
     it('enact is governor gated', async () => {
@@ -66,9 +63,6 @@ describe('Policy', () => {
       })
 
       it('SamplePolicy does anything', async () => {
-        expect(await Proposal.REMOVE_GOVERNOR()).to.eq(
-          governanceImpersonator.address
-        )
         expect(await Proposal.counter()).to.eq(0)
 
         await Policy.connect(governanceImpersonator).enact(Proposal.address)
@@ -82,10 +76,11 @@ describe('Policy', () => {
         )
           .to.emit(Policy, 'EnactedGovernanceProposal')
           .withArgs(Proposal.address, governanceImpersonator.address)
-          .to.emit(Policy, 'UpdatedGovernors')
-          .withArgs(governanceImpersonator.address, false)
-          .to.emit(Policy, 'UpdatedGovernors')
-          .withArgs(await Proposal.NEW_GOVERNOR(), true)
+          .to.emit(Policy, 'UpdatedGovernor')
+          .withArgs(
+            governanceImpersonator.address,
+            await Proposal.NEW_GOVERNOR()
+          )
       })
 
       context('with the policy enacted', () => {
@@ -93,14 +88,8 @@ describe('Policy', () => {
           await Policy.connect(governanceImpersonator).enact(Proposal.address)
         })
 
-        it('can be removed by the policy', async () => {
-          expect(await Policy.governors(governanceImpersonator.address)).to.be
-            .false
-        })
-
-        it('can be added by the policy', async () => {
-          expect(await Policy.governors(await Proposal.NEW_GOVERNOR())).to.be
-            .true
+        it('can be changed by the policy', async () => {
+          expect(await Policy.governor()).to.eq(await Proposal.NEW_GOVERNOR())
         })
       })
     })

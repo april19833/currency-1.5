@@ -1,41 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import "../proxy/ForwardTarget.sol";
-import "./ERC1820Client.sol"; // this will become a storage gap
 
 /** @title The policy contract that oversees other contracts
  *
  * Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
-contract Policy is ForwardTarget, ERC1820Client {
-    mapping(bytes32 => bool) public setters;
+contract Policy is ForwardTarget {
+    uint256 private __gap; // to cover setters mapping
 
-    modifier onlySetter(bytes32 _identifier) {
-        require(
-            setters[_identifier],
-            "Identifier hash is not authorized for this action"
-        );
+    /**
+     * @dev the contract allowed enact proposals
+     */
+    address public governor;
 
-        require(
-            ERC1820REGISTRY.getInterfaceImplementer(
-                address(this),
-                _identifier
-            ) == msg.sender,
-            "Caller is not the authorized address for identifier"
-        );
+    /**
+     * @dev error for when an address tries submit proposal actions without permission
+     */
+    error OnlyGovernor();
 
-        _;
-    }
+    /**
+     * @dev error for when an address tries to call a pseudo-internal function
+     */
+    error OnlySelf();
 
-    /** Remove the specified role from the contract calling this function.
-     * This is for cleanup only, so if another contract has taken the
-     * role, this does nothing.
-     *
-     * @param _interfaceIdentifierHash The interface identifier to remove from
-     *                                 the registry.
+    /**
+     * for when a part of enacting a proposal reverts without a readable error
+     * @param proposal the proposal address that got reverted during enaction
+     */
+    error FailedProposal(address proposal);
+
+    /**
+     * emits when the governor permissions are changed
+     * @param oldGovernor denotes the old address whose permissions are being removed
+     * @param newGovernor denotes the new address whose permissions are being added
+     */
+    event UpdatedGovernor(address oldGovernor, address newGovernor);
+
+    /**
+     * emits when enaction happens to keep record of enaction
+     * @param proposal the proposal address that got successfully enacted
+     * @param governor the contract which was the source of the proposal, source for looking up the calldata
      */
     event EnactedGovernanceProposal(address proposal, address governor);
 
@@ -43,8 +50,8 @@ contract Policy is ForwardTarget, ERC1820Client {
      * @dev Modifier for checking if the sender is a governor
      */
     modifier onlyGovernorRole() {
-        if (!governors[msg.sender]) {
-            revert OnlyGovernors();
+        if (msg.sender != governor) {
+            revert OnlyGovernor();
         }
         _;
     }
@@ -57,23 +64,22 @@ contract Policy is ForwardTarget, ERC1820Client {
         if (msg.sender != address(this)) {
             revert OnlySelf();
         }
+        _;
     }
 
     /**
-     * @dev change the governance permissions for an address
-     * internal function
-     * @param _key the address to change permissions for
-     * @param _value the new permission. true = can govern, false = cannot govern
+     * @dev pass the governance permissions to another address
+     * @param _newGovernor the address to make the new governor
      */
-    function updateGovernors(address _key, bool _value) public onlySelf {
-        governors[_key] = _value;
-        emit UpdatedGovernors(_key, _value);
+    function updateGovernor(address _newGovernor) public onlySelf {
+        emit UpdatedGovernor(governor, _newGovernor);
+        governor = _newGovernor;
     }
 
     function enact(address proposal) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, ) = _delegate.delegatecall(
-            abi.encodeWithSignature("enacted(address)", _delegate)
+        (bool _success, bytes memory returndata) = proposal.delegatecall(
+            abi.encodeWithSignature("enacted(address)", proposal)
         );
         if (!_success) {
             if (returndata.length == 0) revert FailedProposal(proposal);

@@ -16,7 +16,6 @@
     "lint:eslint": "eslint 'test/**/**.ts' 'deploy/**/**.ts'",
     "lint:prettier": "prettier --check 'contracts/**/*.sol'",
     "build": "hardhat compile",
-    "compile": "hardhat compile",
     "test": "hardhat test",
     "docgen": "hardhat docgen",
     "testGas": "ENABLE_GAS_REPORT=1 hardhat test",
