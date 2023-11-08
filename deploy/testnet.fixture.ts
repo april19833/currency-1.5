@@ -32,7 +32,6 @@ import { DAY } from '../test/utils/constants'
 const TRUSTEE_TERM = 365 * DAY
 const VOTE_REWARD = 1000 // TODO: MAKE REAL
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
-const PLACEHOLDER_ADDRESS = '0x1111111111111111111111111111111111111111'
 
 export type BaseContracts = {
   policy: Policy
@@ -120,7 +119,6 @@ export async function deployMonetary(
 
   const governance = (await deploy(wallet, CurrencyGovernance__factory, [
     base.policy.address,
-    PLACEHOLDER_ADDRESS,
     adapter.address,
   ])) as CurrencyGovernance
 
@@ -164,7 +162,6 @@ export async function deployBase(
 
   const ecox = (await deployProxy(wallet, ECOx__factory, [
     policy.address,
-    PLACEHOLDER_ADDRESS,
     pauser,
   ])) as ECOx
 

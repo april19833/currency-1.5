@@ -47,11 +47,8 @@ contract ECOx is ERC20MintAndBurn {
 
     constructor(
         Policy _policy,
-        address _ecoXExchange,
         address _pauser
-    ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {
-        ecoXExchange = _ecoXExchange;
-    }
+    ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {}
 
     /**
      * unlikely this will need to be used again since the proxy has already been initialized.
@@ -63,7 +60,6 @@ contract ECOx is ERC20MintAndBurn {
 
         // policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
-        ecoXExchange = ECOx(_self).ecoXExchange();
     }
 
     /**
