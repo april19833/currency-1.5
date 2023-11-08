@@ -18,7 +18,6 @@ import {
   ECOx,
   ECOx__factory,
   CurrencyGovernance,
-  ECOxExchange,
 } from '../../../typechain-types'
 import { DAY } from '../../utils/constants'
 import { deploy } from '../../../deploy/utils'
@@ -65,10 +64,7 @@ describe('TrustedNodes', () => {
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
       'ECOx'
     )
-    ecoX = await ecoXFactory.deploy(
-      policy.address,
-      policy.address
-    )
+    ecoX = await ecoXFactory.deploy(policy.address, policy.address)
 
     trustedNodes = (await deploy(policyImpersonator, TrustedNodes__factory, [
       policy.address,

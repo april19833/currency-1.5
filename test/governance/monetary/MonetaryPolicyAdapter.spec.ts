@@ -77,7 +77,9 @@ describe('MonetaryPolicyAdapter', () => {
       [Fake__Policy.address]
     )) as MonetaryPolicyAdapter
 
-    Enacter.connect(policyImpersonator).setCurrencyGovernance(Fake__CurrencyGovernance.address)
+    Enacter.connect(policyImpersonator).setCurrencyGovernance(
+      Fake__CurrencyGovernance.address
+    )
 
     DummyLeverFactory = new DummyLever__factory()
     DummyLever1 = await DummyLeverFactory.connect(policyImpersonator).deploy()

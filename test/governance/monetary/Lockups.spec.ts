@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { BigNumber, constants } from 'ethers'
+import { BigNumber } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,

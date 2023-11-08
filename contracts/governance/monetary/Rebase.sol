@@ -21,10 +21,7 @@ contract Rebase is Lever {
 
     event Rebased(uint256 newInflation);
 
-    constructor(
-        Policy policy,
-        ECO _eco
-    ) Lever(policy) {
+    constructor(Policy policy, ECO _eco) Lever(policy) {
         eco = _eco;
     }
 

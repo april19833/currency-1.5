@@ -47,7 +47,7 @@ describe('ECOxExchange', () => {
   let alice: SignerWithAddress // default signer
   let policyImpersonator: SignerWithAddress
   let pauser: SignerWithAddress
-  const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
+
   before(async () => {
     ;[alice, policyImpersonator, pauser] = await ethers.getSigners()
   })

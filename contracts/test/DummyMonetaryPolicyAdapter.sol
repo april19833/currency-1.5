@@ -15,9 +15,7 @@ contract DummyMonetaryPolicyAdapter is MonetaryPolicyAdapter {
         bytes[] calldatas
     );
 
-    constructor(
-        Policy _policy
-    ) MonetaryPolicyAdapter(_policy) {}
+    constructor(Policy _policy) MonetaryPolicyAdapter(_policy) {}
 
     function enact(
         bytes32 proposalId,
