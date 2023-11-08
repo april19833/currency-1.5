@@ -46,7 +46,6 @@ contract FailureProposal is Policy, Proposal {
  * A proposal used for testing proposal failures.
  */
 contract WorseFailureProposal is Policy, Proposal {
-
     // required for compilation
     constructor() Policy(address(0x0)) {}
 
@@ -80,7 +79,6 @@ contract WorseFailureProposal is Policy, Proposal {
  * A proposal used for testing proposal failures.
  */
 contract ClumsyFailureProposal is Policy, Proposal {
-
     // required for compilation
     constructor() Policy(address(0x0)) {}
 
@@ -116,7 +114,6 @@ contract ClumsyFailureProposal is Policy, Proposal {
  * A proposal used for testing proposal failures.
  */
 contract TotalFailureProposal is Policy, Proposal {
-
     // required for compilation
     constructor() Policy(address(0x0)) {}
 

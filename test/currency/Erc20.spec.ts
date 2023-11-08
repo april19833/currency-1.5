@@ -48,10 +48,7 @@ describe('Erc20', () => {
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
-    const ecoDeployParams = [
-      Fake__Policy.address,
-      bob.address,
-    ]
+    const ecoDeployParams = [Fake__Policy.address, bob.address]
 
     ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams)) as ECO
 

@@ -67,9 +67,7 @@ contract Policy is ForwardTarget {
         _;
     }
 
-    constructor(
-        address _governor
-    ) {
+    constructor(address _governor) {
         governor = _governor;
     }
 
@@ -83,7 +81,6 @@ contract Policy is ForwardTarget {
 
         governor = Policy(_self).governor();
     }
-
 
     /**
      * @dev pass the governance permissions to another address

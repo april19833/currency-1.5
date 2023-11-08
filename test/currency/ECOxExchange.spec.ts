@@ -95,10 +95,9 @@ describe('ECOxExchange', () => {
       policyImpersonator.address,
       true
     )
-    await eco.connect(policyImpersonator).updateMinters(
-      policyImpersonator.address,
-      true
-    )
+    await eco
+      .connect(policyImpersonator)
+      .updateMinters(policyImpersonator.address, true)
     await ECOx.connect(policyImpersonator).updateBurners(
       policyImpersonator.address,
       true
@@ -111,10 +110,9 @@ describe('ECOxExchange', () => {
       policyImpersonator.address,
       INITIAL_SUPPLY
     )
-    await eco.connect(policyImpersonator).mint(
-      policyImpersonator.address,
-      INITIAL_SUPPLY.mul(10)
-    )
+    await eco
+      .connect(policyImpersonator)
+      .mint(policyImpersonator.address, INITIAL_SUPPLY.mul(10))
 
     await eco
       .connect(policyImpersonator)
