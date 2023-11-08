@@ -16,9 +16,8 @@ contract DummyMonetaryPolicyAdapter is MonetaryPolicyAdapter {
     );
 
     constructor(
-        Policy _policy,
-        CurrencyGovernance _currencyGovernance
-    ) MonetaryPolicyAdapter(_policy, _currencyGovernance) {}
+        Policy _policy
+    ) MonetaryPolicyAdapter(_policy) {}
 
     function enact(
         bytes32 proposalId,

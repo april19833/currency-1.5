@@ -116,7 +116,6 @@ export async function deployMonetary(
 
   const adapter = (await deploy(wallet, MonetaryPolicyAdapter__factory, [
     base.policy.address,
-    PLACEHOLDER_ADDRESS,
   ])) as MonetaryPolicyAdapter
 
   const governance = (await deploy(wallet, CurrencyGovernance__factory, [
