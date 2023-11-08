@@ -1,87 +1,93 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import "../proxy/ForwardTarget.sol";
-import "./ERC1820Client.sol"; // this will become a storage gap
 
 /** @title The policy contract that oversees other contracts
  *
  * Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
-contract Policy is ForwardTarget, ERC1820Client {
-    mapping(bytes32 => bool) public setters;
+contract Policy is ForwardTarget {
+    uint256 private __gap; // to cover setters mapping
 
-    modifier onlySetter(bytes32 _identifier) {
-        require(
-            setters[_identifier],
-            "Identifier hash is not authorized for this action"
-        );
+    /**
+     * @dev the contract allowed enact proposals
+     */
+    address public governor;
 
-        require(
-            ERC1820REGISTRY.getInterfaceImplementer(
-                address(this),
-                _identifier
-            ) == msg.sender,
-            "Caller is not the authorized address for identifier"
-        );
+    /**
+     * @dev error for when an address tries submit proposal actions without permission
+     */
+    error OnlyGovernor();
 
+    /**
+     * @dev error for when an address tries to call a pseudo-internal function
+     */
+    error OnlySelf();
+
+    /**
+     * for when a part of enacting a proposal reverts without a readable error
+     * @param proposal the proposal address that got reverted during enaction
+     */
+    error FailedProposal(address proposal);
+
+    /**
+     * emits when the governor permissions are changed
+     * @param oldGovernor denotes the old address whose permissions are being removed
+     * @param newGovernor denotes the new address whose permissions are being added
+     */
+    event UpdatedGovernor(address oldGovernor, address newGovernor);
+
+    /**
+     * emits when enaction happens to keep record of enaction
+     * @param proposal the proposal address that got successfully enacted
+     * @param governor the contract which was the source of the proposal, source for looking up the calldata
+     */
+    event EnactedGovernanceProposal(address proposal, address governor);
+
+    /**
+     * @dev Modifier for checking if the sender is a governor
+     */
+    modifier onlyGovernorRole() {
+        if (msg.sender != governor) {
+            revert OnlyGovernor();
+        }
         _;
     }
 
-    /** Remove the specified role from the contract calling this function.
-     * This is for cleanup only, so if another contract has taken the
-     * role, this does nothing.
-     *
-     * @param _interfaceIdentifierHash The interface identifier to remove from
-     *                                 the registry.
+    /**
+     * @dev Modifier for faux internal calls
+     * needed for function to be called only during delegate call
      */
-    function removeSelf(bytes32 _interfaceIdentifierHash) external {
-        address old = ERC1820REGISTRY.getInterfaceImplementer(
-            address(this),
-            _interfaceIdentifierHash
-        );
-
-        if (old == msg.sender) {
-            ERC1820REGISTRY.setInterfaceImplementer(
-                address(this),
-                _interfaceIdentifierHash,
-                address(0)
-            );
+    modifier onlySelf() {
+        if (msg.sender != address(this)) {
+            revert OnlySelf();
         }
+        _;
     }
 
-    /** Set the policy label for a contract
-     *
-     * @param _key The label to apply to the contract.
-     *
-     * @param _implementer The contract to assume the label.
+    /**
+     * @dev pass the governance permissions to another address
+     * @param _newGovernor the address to make the new governor
      */
-    function setPolicy(
-        bytes32 _key,
-        address _implementer,
-        bytes32 _authKey
-    ) public onlySetter(_authKey) {
-        ERC1820REGISTRY.setInterfaceImplementer(
-            address(this),
-            _key,
-            _implementer
-        );
+    function updateGovernor(address _newGovernor) public onlySelf {
+        emit UpdatedGovernor(governor, _newGovernor);
+        governor = _newGovernor;
     }
 
-    /** Enact the code of one of the governance contracts.
-     *
-     * @param _delegate The contract code to delegate execution to.
-     */
-    function internalCommand(
-        address _delegate,
-        bytes32 _authKey
-    ) public onlySetter(_authKey) {
+    function enact(address proposal) external virtual onlyGovernorRole {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool _success, ) = _delegate.delegatecall(
-            abi.encodeWithSignature("enacted(address)", _delegate)
+        (bool _success, bytes memory returndata) = proposal.delegatecall(
+            abi.encodeWithSignature("enacted(address)", proposal)
         );
-        require(_success, "Command failed during delegatecall");
+        if (!_success) {
+            if (returndata.length == 0) revert FailedProposal(proposal);
+            assembly {
+                revert(add(32, returndata), mload(returndata))
+            }
+        }
+
+        emit EnactedGovernanceProposal(proposal, msg.sender);
     }
 }
