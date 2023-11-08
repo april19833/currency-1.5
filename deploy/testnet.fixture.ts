@@ -23,6 +23,8 @@ import {
   Policy__factory,
   Rebase,
   Rebase__factory,
+  TestnetLinker,
+  TestnetLinker__factory,
   TrustedNodes,
   TrustedNodes__factory,
 } from '../typechain-types'
@@ -152,7 +154,7 @@ export async function deployBase(
   initialECOxSupply: string
 ): Promise<BaseContracts> {
   const policy = (await deployProxy(wallet, Policy__factory, [
-    await wallet.getAddress(),
+    await wallet.getAddress(), // sets the wallet as the governor until the linker proposal is run
   ])) as Policy
 
   const eco = (await deployProxy(wallet, ECO__factory, [
@@ -209,7 +211,9 @@ export async function testnetFixture(
     pauser
   )
 
-  const linker: any = {} // proposal placeholder for the proposal that links the dependency tree
+  const linker = await deploy(wallet, TestnetLinker__factory, [community.communityGovernance.address, base.ecoXExchange.address, monetary.lockups.notifier.address, monetary.rebase.notifier.address, monetary.trustedNodes.address, initialECOSupply]) as TestnetLinker
+
+  await base.policy.connect(wallet).enact(linker.address)
 
   return {
     base,
