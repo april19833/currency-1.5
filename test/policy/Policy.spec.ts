@@ -24,7 +24,7 @@ import {
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
-describe.only('Policy', () => {
+describe('Policy', () => {
   let alice: SignerWithAddress
   let governanceImpersonator: SignerWithAddress
   before(async () => {
@@ -77,7 +77,10 @@ describe.only('Policy', () => {
           .to.emit(Policy, 'EnactedGovernanceProposal')
           .withArgs(Proposal.address, governanceImpersonator.address)
           .to.emit(Policy, 'UpdatedGovernor')
-          .withArgs(governanceImpersonator.address, await Proposal.NEW_GOVERNOR())
+          .withArgs(
+            governanceImpersonator.address,
+            await Proposal.NEW_GOVERNOR()
+          )
       })
 
       context('with the policy enacted', () => {
