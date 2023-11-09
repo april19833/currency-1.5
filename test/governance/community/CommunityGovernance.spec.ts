@@ -239,7 +239,7 @@ describe.only('Community Governance', () => {
 
         await expect(eco.connect(alice).transfer(bob.address, 10)).to.be
           .reverted
-        
+
         await cg.connect(alice).pause()
         await cg.connect(alice).propose(A1)
 
