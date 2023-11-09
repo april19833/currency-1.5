@@ -483,6 +483,27 @@ describe.only('Community Governance', () => {
           cg.votePartial(enactVotes, rejectVotes, abstainVotes)
         ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER_SUM)
       })
+      it('suceeds if allocations total to less than senders voting power', async () => {
+        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const enactVotes = vp / 4
+        const rejectVotes = vp / 2
+        const abstainVotes = vp / 4
+
+        await expect(
+          cg.connect(alice).votePartial(enactVotes, rejectVotes, abstainVotes)
+        )
+          .to.emit(cg, 'VotesChanged')
+          .withArgs(alice.address, enactVotes, rejectVotes, abstainVotes)
+
+        const votes = await cg.getVotes(alice.address)
+        expect(votes.enactVotes).to.eq(enactVotes)
+        expect(votes.rejectVotes).to.eq(rejectVotes)
+        expect(votes.abstainVotes).to.eq(abstainVotes)
+
+        expect(await cg.totalEnactVotes()).to.eq(enactVotes)
+        expect(await cg.totalRejectVotes()).to.eq(rejectVotes)
+        expect(await cg.totalAbstainVotes()).to.eq(abstainVotes)
+      })
     })
   })
 })
