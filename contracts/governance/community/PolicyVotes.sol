@@ -257,15 +257,12 @@ contract PolicyVotes is VotingPower, TimeUtils {
             _res = Result.Accepted;
 
             //Enact the policy
-            policy.internalCommand(
-                address(proposal),
-                0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f
-            );
+            policy.enact(address(proposal));
         }
 
         emit VoteCompletion(_res);
-        policy.removeSelf(
-            0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f
-        );
+        // policy.removeSelf(
+        //     0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f
+        // );
     }
 }

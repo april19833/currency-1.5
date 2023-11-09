@@ -34,6 +34,10 @@ export const ERRORS = {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
   },
+  Policy: {
+    ENACTION_UNSPECIFIED_REVERT: 'FailedProposal',
+    GOVERNOR_ONLY: 'OnlyGovernor',
+  },
   TrustedNodes: {
     CG_ONLY: 'GovernanceOnlyFunction',
     DUPLICATE_TRUST: 'NodeAlreadyTrusted', // one arg: the existing trustee number of the address
@@ -88,6 +92,12 @@ export const ERRORS = {
   ECOxStaking: {
     CONSTRUCTOR_ZERO_ECOX_ADDRESS: 'NoZeroECOx',
     ATTEMPTED_TRANSFER: 'NonTransferrable',
+  },
+  FailureProposal: {
+    PROPOSAL_FAILURE_ERROR: 'ImSorry',
+    PROPOSAL_FAILURE_STRING: "I'm an annoying error string!",
+    PANIC:
+      'VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)',
   },
   COMMUNITYGOVERNANCE: {
     ONLY_PAUSER: 'OnlyPauser',
