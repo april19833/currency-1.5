@@ -103,7 +103,7 @@ describe.only('Community Governance', () => {
     // await cg.setVariable()
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
-  describe('constructor', async () => {
+  describe('constructor', () => {
     it('Constructs', async () => {
       expect(await cg.policy()).to.eq(policy.address)
       expect(await cg.ecoToken()).to.eq(eco.address)
@@ -151,7 +151,7 @@ describe.only('Community Governance', () => {
     })
   })
 
-  describe('updateStage', async () => {
+  describe('updateStage', () => {
     it('works fine right after deployment with cycleStart = 0', async () => {
       await expect(cg.updateStage())
         .to.emit(cg, 'NewCycle')
@@ -192,7 +192,7 @@ describe.only('Community Governance', () => {
     })
   })
 
-  context('proposal stage', async () => {
+  context('proposal stage', () => {
     describe('proposing', () => {
       it('fails if called during not-proposal stage', async () => {
         await cg.setVariable('currentStageEnd', (await time.latest()) + 100)
@@ -555,5 +555,28 @@ describe.only('Community Governance', () => {
       )
       expect(await cg.stage()).to.eq(EXECUTION)
     })
+  })
+
+  describe('execution stage', () => {
+    beforeEach(async () => {
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+      await cg.connect(bigboy).vote(ENACT)
+    })
+    it('fails to execute during not execution stage', async () => {
+      await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
+      await cg.updateStage()
+
+      expect(await cg.stage()).to.not.eq(EXECUTION)
+
+      await expect(cg.execute()).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+      )
+    })
+    it('executes properly', async () => {
+      // still
+    })
+    it('does not allow repeat execution', async () => {})
   })
 })

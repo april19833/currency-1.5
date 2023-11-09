@@ -310,8 +310,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 // if the execution stage timed out, the proposal was not enacted in time
                 // either nobody called it, or the proposal failed during execution.
                 // this assumes the latter case, the former has been addressed in the end time of the execution stage
+                stage = Stage.Done;
                 nextCycle();
-            } else {
+            } else if (stage == Stage.Done) {
                 nextCycle();
             }
 
