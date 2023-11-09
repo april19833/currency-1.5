@@ -213,6 +213,9 @@ describe.only('Community Governance', () => {
         expect((await cg.proposals(A1)).refund).to.eq(
           (await cg.proposalFee()).mul(await cg.refundPercent()).div(100)
         )
+        expect(await cg.pot()).to.eq(
+          (await cg.proposalFee()) - (await cg.proposals(A1)).refund
+        )
         expect(await eco.balanceOf(alice.address)).to.eq(
           INIT_BALANCE - (await cg.proposalFee())
         )
@@ -396,6 +399,8 @@ describe.only('Community Governance', () => {
       })
       it('moves to vote stage if support is above threshold', async () => {
         expect(await cg.stage()).to.eq(PROPOSAL)
+        const initialPot = await cg.pot()
+        const initialRefund = (await cg.proposals(A1)).refund
 
         await cg.connect(alice).support(A1)
         expect(await cg.stage()).to.eq(PROPOSAL)
@@ -404,7 +409,17 @@ describe.only('Community Governance', () => {
           .to.emit(cg, 'StageUpdated')
           .withArgs(VOTING)
         expect(await cg.stage()).to.eq(VOTING)
+        expect(await cg.currentStageEnd()).to.eq(
+          (await cg.VOTING_LENGTH()).add(await time.latest())
+        )
         expect(await cg.selectedProposal()).to.eq(A2)
+
+        expect((await cg.proposals(await cg.selectedProposal())).refund).to.eq(
+          await cg.proposalFee()
+        )
+        expect(await cg.pot()).to.eq(
+          initialPot - ((await cg.proposalFee()) - initialRefund)
+        )
       })
     })
   })
@@ -414,16 +429,6 @@ describe.only('Community Governance', () => {
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
-    })
-    it('doesnt allow voting in not voting stage', async () => {
-      await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
-      await cg.updateStage()
-
-      expect(await cg.stage()).to.not.eq(VOTING)
-
-      await expect(cg.connect(alice).vote(ENACT)).to.be.revertedWith(
-        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
-      )
     })
     context('vote', () => {
       it('votes correctly', async () => {
@@ -485,25 +490,70 @@ describe.only('Community Governance', () => {
       })
       it('suceeds if allocations total to less than senders voting power', async () => {
         const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
-        const enactVotes = vp / 4
-        const rejectVotes = vp / 2
-        const abstainVotes = vp / 4
+        const votes1 = vp / 4
+        const votes2 = vp / 2
+        const votes3 = vp / 4
 
-        await expect(
-          cg.connect(alice).votePartial(enactVotes, rejectVotes, abstainVotes)
-        )
+        await expect(cg.connect(alice).votePartial(votes1, votes2, votes3))
           .to.emit(cg, 'VotesChanged')
-          .withArgs(alice.address, enactVotes, rejectVotes, abstainVotes)
+          .withArgs(alice.address, votes1, votes2, votes3)
 
         const votes = await cg.getVotes(alice.address)
-        expect(votes.enactVotes).to.eq(enactVotes)
-        expect(votes.rejectVotes).to.eq(rejectVotes)
-        expect(votes.abstainVotes).to.eq(abstainVotes)
+        expect(votes.enactVotes).to.eq(votes1)
+        expect(votes.rejectVotes).to.eq(votes2)
+        expect(votes.abstainVotes).to.eq(votes3)
 
-        expect(await cg.totalEnactVotes()).to.eq(enactVotes)
-        expect(await cg.totalRejectVotes()).to.eq(rejectVotes)
-        expect(await cg.totalAbstainVotes()).to.eq(abstainVotes)
+        expect(await cg.totalEnactVotes()).to.eq(votes1)
+        expect(await cg.totalRejectVotes()).to.eq(votes2)
+        expect(await cg.totalAbstainVotes()).to.eq(votes3)
       })
+      it('overwrites votes properly when voting a second time in same cycle', async () => {
+        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const votes1 = vp / 5
+        const votes2 = vp / 10
+        const votes3 = vp / 20
+
+        await cg.connect(alice).votePartial(votes1, votes2, votes3)
+        let votes = await cg.getVotes(alice.address)
+
+        expect(votes.enactVotes).to.eq(votes1)
+        expect(votes.rejectVotes).to.eq(votes2)
+        expect(votes.abstainVotes).to.eq(votes3)
+        expect(await cg.totalEnactVotes()).to.eq(votes1)
+        expect(await cg.totalRejectVotes()).to.eq(votes2)
+        expect(await cg.totalAbstainVotes()).to.eq(votes3)
+
+        await cg.connect(alice).votePartial(votes2, votes3, votes1)
+        votes = await cg.getVotes(alice.address)
+
+        expect(votes.enactVotes).to.eq(votes2)
+        expect(votes.rejectVotes).to.eq(votes3)
+        expect(votes.abstainVotes).to.eq(votes1)
+        expect(await cg.totalEnactVotes()).to.eq(votes2)
+        expect(await cg.totalRejectVotes()).to.eq(votes3)
+        expect(await cg.totalAbstainVotes()).to.eq(votes1)
+      })
+    })
+    it('doesnt allow voting in not voting stage', async () => {
+      await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
+      await cg.updateStage()
+
+      expect(await cg.stage()).to.not.eq(VOTING)
+
+      await expect(cg.connect(alice).vote(ENACT)).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+      )
+    })
+    it('pushes to execute stage if there are more than voteThreshold enacting votes', async () => {
+      await expect(cg.connect(bigboy).vote(ENACT))
+        .to.emit(cg, 'StageUpdated')
+        .withArgs(EXECUTION)
+
+      expect(await cg.currentStageEnd()).to.be.closeTo(
+        (await cg.EXECUTION_LENGTH()).add(await time.latest()),
+        5
+      )
+      expect(await cg.stage()).to.eq(EXECUTION)
     })
   })
 })

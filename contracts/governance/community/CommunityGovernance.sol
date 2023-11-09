@@ -44,6 +44,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice the duration of the community governance cycle */
     uint256 public constant CYCLE_LENGTH = 14 days;
 
+    /**
+     * @notice cycle length plus three days to ensure execution
+     * @dev a proposal that has enough enact votes must be executed by days past the cycle's end
+     */
+    uint256 public constant EXECUTION_LENGTH = CYCLE_LENGTH + 3 days;
+
     /** @notice the duration of the proposal stage */
     uint256 public constant PROPOSAL_LENGTH = 9 days + 16 hours;
 
@@ -299,7 +305,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 // delay period ended, time to execute
                 stage = Stage.Execution;
                 //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
-                currentStageEnd = cycleStart + CYCLE_LENGTH + 3 days;
+                currentStageEnd = cycleStart + EXECUTION_LENGTH;
             } else if (stage == Stage.Execution) {
                 // if the execution stage timed out, the proposal was not enacted in time
                 // either nobody called it, or the proposal failed during execution.
@@ -366,6 +372,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         if (!paused()) {
             ecoToken.transferFrom(msg.sender, address(this), proposalFee);
             prop.refund = (proposalFee * refundPercent) / 100;
+            pot += proposalFee - prop.refund;
         }
 
         emit ProposalRegistration(msg.sender, _proposal);
@@ -453,6 +460,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             (cycleTotalVotingPower * supportThresholdPercent) / 100
         ) {
             selectedProposal = proposal;
+            pot -= (proposalFee - prop.refund);
             prop.refund = proposalFee;
             stage = Stage.Voting;
             currentStageEnd = getTime() + VOTING_LENGTH;
@@ -541,7 +549,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             (cycleTotalVotingPower * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
-            currentStageEnd = cycleStart + CYCLE_LENGTH + 3 days;
+            currentStageEnd = cycleStart + EXECUTION_LENGTH;
 
             emit StageUpdated(stage);
         }
