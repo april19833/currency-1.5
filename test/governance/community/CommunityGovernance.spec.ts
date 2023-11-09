@@ -22,12 +22,17 @@ const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 const INIT_BALANCE = 20000
 const INIT_BIG_BALANCE = 100000
 
-// enum values
+// Stage enums
 const DONE = 0
 const PROPOSAL = 1
 const VOTING = 2
 const DELAY = 3
 const EXECUTION = 4
+
+// Vote enums
+const ENACT = 0
+const REJECT = 1
+const ABSTAIN = 2
 
 describe.only('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
@@ -133,6 +138,17 @@ describe.only('Community Governance', () => {
       )
       await cg.connect(policyImpersonator).sweep(alice.address)
     })
+    it('only lets pauser pause', async () => {
+      expect(await cg.paused()).to.be.false
+
+      await expect(cg.pause()).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.ONLY_PAUSER
+      )
+      expect(await cg.paused()).to.be.false
+
+      await cg.connect(alice).pause()
+      expect(await cg.paused()).to.be.true
+    })
   })
 
   describe('updateStage', async () => {
@@ -178,13 +194,8 @@ describe.only('Community Governance', () => {
 
   context('proposal stage', async () => {
     describe('proposing', () => {
-      beforeEach(async () => {
-        await cg.updateStage()
-      })
       it('fails if called during not-proposal stage', async () => {
-        await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
-
-        await cg.updateStage()
+        await cg.setVariable('currentStageEnd', (await time.latest()) + 100)
         expect(await cg.stage()).to.not.eq(PROPOSAL)
 
         await expect(cg.connect(alice).propose(A1)).to.be.revertedWith(
@@ -221,6 +232,18 @@ describe.only('Community Governance', () => {
           .approve(cg.address, (await cg.proposalFee()).mul(2))
         await cg.connect(alice).propose(A1)
         await cg.connect(alice).propose(A2)
+      })
+      it('still allows for proposal when eco and cg are paused', async () => {
+        await eco.connect(alice).pause()
+        expect(await eco.paused()).to.be.true
+
+        await expect(eco.connect(alice).transfer(bob.address, 10)).to.be
+          .reverted
+        
+        await cg.connect(alice).pause()
+        await cg.connect(alice).propose(A1)
+
+        expect((await cg.proposals(A1)).refund).to.eq(0)
       })
     })
     describe('supporting', () => {
@@ -386,5 +409,80 @@ describe.only('Community Governance', () => {
     })
   })
 
-  describe('voting stage', () => {})
+  describe('voting stage', () => {
+    beforeEach(async () => {
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+    })
+    it('doesnt allow voting in not voting stage', async () => {
+      await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
+      await cg.updateStage()
+
+      expect(await cg.stage()).to.not.eq(VOTING)
+
+      await expect(cg.connect(alice).vote(ENACT)).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+      )
+    })
+    context('vote', () => {
+      it('votes correctly', async () => {
+        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+
+        const votes = await cg.getVotes(alice.address)
+        expect(votes.enactVotes).to.eq(0)
+        expect(votes.rejectVotes).to.eq(0)
+        expect(votes.abstainVotes).to.eq(0)
+
+        expect(await cg.totalEnactVotes()).to.eq(0)
+
+        await expect(cg.connect(alice).vote(ENACT))
+          .to.emit(cg, 'VotesChanged')
+          .withArgs(alice.address, vp, 0, 0)
+
+        const votesNow = await cg.getVotes(alice.address)
+        expect(votesNow.enactVotes).to.eq(vp)
+        expect(votesNow.rejectVotes).to.eq(0)
+        expect(votesNow.abstainVotes).to.eq(0)
+
+        expect(await cg.totalEnactVotes()).to.eq(vp)
+      })
+
+      it('votes again correctly', async () => {
+        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        await cg.connect(alice).vote(ABSTAIN)
+
+        const votes = await cg.getVotes(alice.address)
+        expect(votes.enactVotes).to.eq(0)
+        expect(votes.rejectVotes).to.eq(0)
+        expect(votes.abstainVotes).to.eq(vp)
+
+        expect(await cg.totalAbstainVotes()).to.eq(vp)
+        expect(await cg.totalRejectVotes()).to.eq(0)
+
+        await expect(cg.connect(alice).vote(REJECT))
+          .to.emit(cg, 'VotesChanged')
+          .withArgs(alice.address, 0, vp, 0)
+
+        const votesNow = await cg.getVotes(alice.address)
+        expect(votesNow.enactVotes).to.eq(0)
+        expect(votesNow.rejectVotes).to.eq(vp)
+        expect(votesNow.abstainVotes).to.eq(0)
+
+        expect(await cg.totalAbstainVotes()).to.eq(0)
+        expect(await cg.totalRejectVotes()).to.eq(vp)
+      })
+    })
+    context('votePartial', () => {
+      it('fails if sum of allocations > voting power', async () => {
+        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const enactVotes = vp / 2
+        const rejectVotes = vp / 2
+        const abstainVotes = 1
+        await expect(
+          cg.votePartial(enactVotes, rejectVotes, abstainVotes)
+        ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER_SUM)
+      })
+    })
+  })
 })

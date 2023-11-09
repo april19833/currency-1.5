@@ -110,7 +110,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    /** @notice thrown when non-pauser tries to call methods without permission */
+    /** @notice thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
     /** @notice thrown when setPauser is called with the existing pauser address as an argument */
@@ -196,7 +196,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param rejectVotes The votes to reject
      * @param abstainVotes The votes to abstain
      */
-    event VoteCast(
+    event VotesChanged(
         address voter,
         uint256 enactVotes,
         uint256 rejectVotes,
@@ -229,7 +229,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     event Sweep(address recipient);
 
     modifier onlyPauser() {
-        require(msg.sender == pauser, "ERC20Pausable: not pauser");
+        if (msg.sender != pauser) {
+            revert OnlyPauser();
+        }
         _;
     }
 
@@ -520,23 +522,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         PropData storage prop = proposals[selectedProposal];
 
-        uint256 enactVotes = prop.enactVotes[voter];
-        uint256 rejectVotes = prop.rejectVotes[voter];
-        uint256 abstainVotes = prop.abstainVotes[voter];
+        totalEnactVotes -= prop.enactVotes[voter];
+        totalRejectVotes -= prop.rejectVotes[voter];
+        totalAbstainVotes -= prop.abstainVotes[voter];
 
-        totalEnactVotes -= enactVotes;
-        totalRejectVotes -= rejectVotes;
-        totalAbstainVotes -= abstainVotes;
+        prop.enactVotes[voter] = _enactVotes;
+        prop.rejectVotes[voter] = _rejectVotes;
+        prop.abstainVotes[voter] = _abstainVotes;
 
-        enactVotes = _enactVotes;
-        rejectVotes = _rejectVotes;
-        abstainVotes = _abstainVotes;
+        totalEnactVotes += prop.enactVotes[voter];
+        totalRejectVotes += prop.rejectVotes[voter];
+        totalAbstainVotes += prop.abstainVotes[voter];
 
-        totalEnactVotes += enactVotes;
-        totalRejectVotes += rejectVotes;
-        totalAbstainVotes += abstainVotes;
-
-        emit VoteCast(voter, enactVotes, rejectVotes, abstainVotes);
+        emit VotesChanged(voter, _enactVotes, _rejectVotes, _abstainVotes);
 
         if (
             (totalEnactVotes) >

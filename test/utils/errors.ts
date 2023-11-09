@@ -90,6 +90,7 @@ export const ERRORS = {
     ATTEMPTED_TRANSFER: 'NonTransferrable',
   },
   COMMUNITYGOVERNANCE: {
+    ONLY_PAUSER: 'OnlyPauser',
     SAME_PAUSER: 'SamePauser',
     WRONG_STAGE: 'WrongStage',
     CYCLE_IN_PROGRESS: 'CycleInProgress',
