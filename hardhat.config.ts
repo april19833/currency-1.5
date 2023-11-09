@@ -9,6 +9,7 @@ import 'solidity-coverage'
 
 import '@nomiclabs/hardhat-ethers'
 import '@openzeppelin/hardhat-upgrades'
+import 'solidity-docgen'
 
 dotenv.config()
 
@@ -28,6 +29,7 @@ const config: HardhatUserConfig = {
             //     optimizerSteps: "u",
             //   },
             // },
+            // runs: 4294967295,
           },
           // viaIR: true,
         },
@@ -77,6 +79,17 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 50000,
+  },
+  docgen: {
+    outputDir: 'docs/solidity',
+    templates: './templates',
+    theme: 'markdown',
+    // pages: 'single',
+    // pages: 'items',
+    pages: 'files',
+    // exclude: ['governance/community'],
+    collapseNewlines: true,
+    pageExtension: '.md',
   },
   gasReporter: {
     enabled: !!process.env.ENABLE_GAS_REPORT,

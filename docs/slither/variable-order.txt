@@ -1,0 +1,318 @@
+'npx hardhat clean' running (wd: /Users/john/eco/currency-1.5)
+'npx hardhat clean --global' running (wd: /Users/john/eco/currency-1.5)
+'npx hardhat compile --force' running (wd: /Users/john/eco/currency-1.5)
+INFO:Printers:
+IERC20Metadata:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+Counters:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+Strings:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+ECDSA:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+IERC1820Registry:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+Math:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+ECO:
++-------------------------------------------------+-------------------------------------------------+------+--------+
+|                       Name                      |                       Type                      | Slot | Offset |
++-------------------------------------------------+-------------------------------------------------+------+--------+
+|               ERC20Permit._nonces               |       mapping(address => Counters.Counter)      |  0   |   0    |
+|                 ERC20._balances                 |           mapping(address => uint256)           |  1   |   0    |
+|                ERC20._allowances                | mapping(address => mapping(address => uint256)) |  2   |   0    |
+|                ERC20._totalSupply               |                     uint256                     |  3   |   0    |
+|                 Pausable._paused                |                       bool                      |  4   |   0    |
+|               ERC20Pausable.pauser              |                     address                     |  4   |   1    |
+|             ERC20MintAndBurn.minters            |             mapping(address => bool)            |  5   |   0    |
+|             ERC20MintAndBurn.burners            |             mapping(address => bool)            |  6   |   0    |
+|              DelegatePermit._nonces             |       mapping(address => Counters.Counter)      |  7   |   0    |
+|               ERC20Delegated.voter              |             mapping(address => bool)            |  8   |   0    |
+|           ERC20Delegated._voteBalances          |           mapping(address => uint256)           |  9   |   0    |
+|          ERC20Delegated._voteAllowances         | mapping(address => mapping(address => uint256)) |  10  |   0    |
+|       ERC20Delegated._totalVoteAllowances       |           mapping(address => uint256)           |  11  |   0    |
+|         ERC20Delegated._primaryDelegates        |           mapping(address => address)           |  12  |   0    |
+|    ERC20Delegated.delegationToAddressEnabled    |             mapping(address => bool)            |  13  |   0    |
+|   ERC20Delegated.delegationFromAddressDisabled  |             mapping(address => bool)            |  14  |   0    |
+|        VoteSnapshots.currentSnapshotBlock       |                      uint32                     |  15  |   0    |
+|           VoteSnapshots._voteSnapshots          |    mapping(address => VoteSnapshots.Snapshot)   |  16  |   0    |
+|        VoteSnapshots._totalSupplySnapshot       |              VoteSnapshots.Snapshot             |  17  |   0    |
+| InflationSnapshots._inflationMultiplierSnapshot |              VoteSnapshots.Snapshot             |  18  |   0    |
+|      InflationSnapshots.inflationMultiplier     |                     uint256                     |  19  |   0    |
+|                   ECO.rebasers                  |             mapping(address => bool)            |  20  |   0    |
+|                 ECO.snapshotters                |             mapping(address => bool)            |  21  |   0    |
++-------------------------------------------------+-------------------------------------------------+------+--------+
+
+ECOx:
++--------------------------+-------------------------------------------------+------+--------+
+|           Name           |                       Type                      | Slot | Offset |
++--------------------------+-------------------------------------------------+------+--------+
+|   ERC20Permit._nonces    |       mapping(address => Counters.Counter)      |  0   |   0    |
+|     ERC20._balances      |           mapping(address => uint256)           |  1   |   0    |
+|    ERC20._allowances     | mapping(address => mapping(address => uint256)) |  2   |   0    |
+|    ERC20._totalSupply    |                     uint256                     |  3   |   0    |
+|     Pausable._paused     |                       bool                      |  4   |   0    |
+|   ERC20Pausable.pauser   |                     address                     |  4   |   1    |
+| ERC20MintAndBurn.minters |             mapping(address => bool)            |  5   |   0    |
+| ERC20MintAndBurn.burners |             mapping(address => bool)            |  6   |   0    |
+|    ECOx.ecoXExchange     |                     address                     |  7   |   0    |
++--------------------------+-------------------------------------------------+------+--------+
+
+ECOxExchange:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+IECO:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+TokenInit:
++----------------+---------+------+--------+
+|      Name      |   Type  | Slot | Offset |
++----------------+---------+------+--------+
+| Ownable._owner | address |  0   |   0    |
++----------------+---------+------+--------+
+
+CommunityGovernance:
++----------------------------+---------+------+--------+
+|            Name            |   Type  | Slot | Offset |
++----------------------------+---------+------+--------+
+|      Pausable._paused      |   bool  |  0   |   0    |
+| CommunityGovernance.pauser | address |  0   |   1    |
++----------------------------+---------+------+--------+
+
+ECOxStaking:
++-----------------------------------------------+--------------------------------------------------+------+--------+
+|                      Name                     |                       Type                       | Slot | Offset |
++-----------------------------------------------+--------------------------------------------------+------+--------+
+|              ERC20Permit._nonces              |       mapping(address => Counters.Counter)       |  0   |   0    |
+|                ERC20._balances                |           mapping(address => uint256)            |  1   |   0    |
+|               ERC20._allowances               | mapping(address => mapping(address => uint256))  |  2   |   0    |
+|               ERC20._totalSupply              |                     uint256                      |  3   |   0    |
+|                Pausable._paused               |                       bool                       |  4   |   0    |
+|              ERC20Pausable.pauser             |                     address                      |  4   |   1    |
+|             DelegatePermit._nonces            |       mapping(address => Counters.Counter)       |  5   |   0    |
+|           VoteCheckpoints._delegates          | mapping(address => mapping(address => uint256))  |  6   |   0    |
+|        VoteCheckpoints._delegatedTotals       |           mapping(address => uint256)            |  7   |   0    |
+|       VoteCheckpoints._primaryDelegates       |           mapping(address => address)            |  8   |   0    |
+|   VoteCheckpoints.delegationToAddressEnabled  |             mapping(address => bool)             |  9   |   0    |
+| VoteCheckpoints.delegationFromAddressDisabled |             mapping(address => bool)             |  10  |   0    |
+|          VoteCheckpoints.checkpoints          | mapping(address => VoteCheckpoints.Checkpoint[]) |  11  |   0    |
+|    VoteCheckpoints._totalSupplyCheckpoints    |           VoteCheckpoints.Checkpoint[]           |  12  |   0    |
++-----------------------------------------------+--------------------------------------------------+------+--------+
+
+PolicyProposals:
++--------------------------------------+-----------------------------------------------+------+--------+
+|                 Name                 |                      Type                     | Slot | Offset |
++--------------------------------------+-----------------------------------------------+------+--------+
+|    VotingPower.totalECOxSnapshot     |                    uint256                    |  0   |   0    |
+|   VotingPower.excludedVotingPower    |                    uint256                    |  1   |   0    |
+|      PolicyProposals.proposals       | mapping(Proposal => PolicyProposals.PropData) |  2   |   0    |
+|    PolicyProposals.totalProposals    |                    uint256                    |  3   |   0    |
+|   PolicyProposals.proposalSelected   |                      bool                     |  4   |   0    |
+| PolicyProposals.proposalToConfigure  |                    Proposal                   |  4   |   1    |
+| PolicyProposals.totalVotingThreshold |                    uint256                    |  5   |   0    |
+|     PolicyProposals.proposalEnds     |                    uint256                    |  6   |   0    |
+|     PolicyProposals.blockNumber      |                    uint256                    |  7   |   0    |
+|   PolicyProposals.policyVotesImpl    |                  PolicyVotes                  |  8   |   0    |
++--------------------------------------+-----------------------------------------------+------+--------+
+
+PolicyVotes:
++---------------------------------+---------------------------------------------+------+--------+
+|               Name              |                     Type                    | Slot | Offset |
++---------------------------------+---------------------------------------------+------+--------+
+|  VotingPower.totalECOxSnapshot  |                   uint256                   |  0   |   0    |
+| VotingPower.excludedVotingPower |                   uint256                   |  1   |   0    |
+|       PolicyVotes.proposal      |                   Proposal                  |  2   |   0    |
+|       PolicyVotes.proposer      |                   address                   |  3   |   0    |
+|     PolicyVotes.votePartials    | mapping(address => PolicyVotes.VotePartial) |  4   |   0    |
+|      PolicyVotes.totalStake     |                   uint256                   |  5   |   0    |
+|       PolicyVotes.yesStake      |                   uint256                   |  6   |   0    |
+|       PolicyVotes.voteEnds      |                   uint256                   |  7   |   0    |
+|     PolicyVotes.blockNumber     |                   uint256                   |  8   |   0    |
++---------------------------------+---------------------------------------------+------+--------+
+
+Lockups:
++------------------------------------+------------------------------------+------+--------+
+|                Name                |                Type                | Slot | Offset |
++------------------------------------+------------------------------------+------+--------+
+|          Lever.authorized          |      mapping(address => bool)      |  0   |   0    |
+|           Lever.notifier           |              Notifier              |  1   |   0    |
+|           Lockups.nextId           |              uint256               |  2   |   0    |
+|       Lockups.depositWindow        |              uint256               |  3   |   0    |
+| Lockups.currentInflationMultiplier |              uint256               |  4   |   0    |
+|          Lockups.lockups           | mapping(uint256 => Lockups.Lockup) |  5   |   0    |
+|         Lockups.penalties          |              uint256               |  6   |   0    |
++------------------------------------+------------------------------------+------+--------+
+
+Notifier:
++-----------------------+------------------------+------+--------+
+|          Name         |          Type          | Slot | Offset |
++-----------------------+------------------------+------+--------+
+| Notifier.totalGasCost |        uint256         |  0   |   0    |
+|     Notifier.lever    |        address         |  1   |   0    |
+| Notifier.transactions | Notifier.Transaction[] |  2   |   0    |
++-----------------------+------------------------+------+--------+
+
+Rebase:
++------------------+--------------------------+------+--------+
+|       Name       |           Type           | Slot | Offset |
++------------------+--------------------------+------+--------+
+| Lever.authorized | mapping(address => bool) |  0   |   0    |
+|  Lever.notifier  |         Notifier         |  1   |   0    |
++------------------+--------------------------+------+--------+
+
+TrustedNodes:
++---------------------------------+-----------------------------+------+--------+
+|               Name              |             Type            | Slot | Offset |
++---------------------------------+-----------------------------+------+--------+
+| TrustedNodes.currencyGovernance |      CurrencyGovernance     |  0   |   0    |
+|   TrustedNodes.trusteeNumbers   | mapping(address => uint256) |  1   |   0    |
+|      TrustedNodes.trustees      |          address[]          |  2   |   0    |
+|    TrustedNodes.votingRecord    | mapping(address => uint256) |  3   |   0    |
+|   TrustedNodes.lastWithdrawals  | mapping(address => uint256) |  4   |   0    |
++---------------------------------+-----------------------------+------+--------+
+
+TrustedNodesFactory:
++----------------------------------------+--------------------+------+--------+
+|                  Name                  |        Type        | Slot | Offset |
++----------------------------------------+--------------------+------+--------+
+| TrustedNodesFactory.currencyGovernance | CurrencyGovernance |  0   |   0    |
++----------------------------------------+--------------------+------+--------+
+
+ERC1820Client:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+ForwardProxy:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+DummyDownstream:
++--------------------------+------+------+--------+
+|           Name           | Type | Slot | Offset |
++--------------------------+------+------+--------+
+| DummyDownstream.notified | bool |  0   |   0    |
+| DummyDownstream.pigsFly  | bool |  0   |   1    |
++--------------------------+------+------+--------+
+
+DummyLever:
++--------------------------------------------+---------+------+--------+
+|                    Name                    |   Type  | Slot | Offset |
++--------------------------------------------+---------+------+--------+
+|          DummyLever.executeMarker          | uint256 |  0   |   0    |
+|    DummyLever.executeFunctionSignature     |  bytes4 |  1   |   0    |
+|   DummyLever.alwaysPassFunctionSignature   |  bytes4 |  1   |   4    |
+| DummyLever.datalessPasserFunctionSignature |  bytes4 |  1   |   8    |
+|  DummyLever.alwaysRevertFunctionSignature  |  bytes4 |  1   |   12   |
+| DummyLever.veryExpensiveFunctionSignature  |  bytes4 |  1   |   16   |
++--------------------------------------------+---------+------+--------+
+
+DummyMonetaryPolicyAdapter:
++------------------------------------------+--------------------+------+--------+
+|                   Name                   |        Type        | Slot | Offset |
++------------------------------------------+--------------------+------+--------+
+| MonetaryPolicyAdapter.currencyGovernance | CurrencyGovernance |  0   |   0    |
+|    DummyMonetaryPolicyAdapter.enacted    |        bool        |  0   |   20   |
++------------------------------------------+--------------------+------+--------+
+
+DummyPoliced:
++--------------------+---------+------+--------+
+|        Name        |   Type  | Slot | Offset |
++--------------------+---------+------+--------+
+| DummyPoliced.value | uint256 |  0   |   0    |
++--------------------+---------+------+--------+
+
+FailureProposal:
++-----------------+---------+------+--------+
+|       Name      |   Type  | Slot | Offset |
++-----------------+---------+------+--------+
+|   Policy.__gap  | uint256 |  0   |   0    |
+| Policy.governor | address |  1   |   0    |
++-----------------+---------+------+--------+
+
+WorseFailureProposal:
++-----------------+---------+------+--------+
+|       Name      |   Type  | Slot | Offset |
++-----------------+---------+------+--------+
+|   Policy.__gap  | uint256 |  0   |   0    |
+| Policy.governor | address |  1   |   0    |
++-----------------+---------+------+--------+
+
+ClumsyFailureProposal:
++-----------------+---------+------+--------+
+|       Name      |   Type  | Slot | Offset |
++-----------------+---------+------+--------+
+|   Policy.__gap  | uint256 |  0   |   0    |
+| Policy.governor | address |  1   |   0    |
++-----------------+---------+------+--------+
+
+TotalFailureProposal:
++-----------------+---------+------+--------+
+|       Name      |   Type  | Slot | Offset |
++-----------------+---------+------+--------+
+|   Policy.__gap  | uint256 |  0   |   0    |
+| Policy.governor | address |  1   |   0    |
++-----------------+---------+------+--------+
+
+SampleProposal:
++------------------------+---------+------+--------+
+|          Name          |   Type  | Slot | Offset |
++------------------------+---------+------+--------+
+|      Policy.__gap      | uint256 |  0   |   0    |
+|    Policy.governor     | address |  1   |   0    |
+| SampleProposal.counter | uint256 |  2   |   0    |
++------------------------+---------+------+--------+
+
+StageTestCurrencyGovernance:
++------------------------------------+-------------------------------------------------------+------+--------+
+|                Name                |                          Type                         | Slot | Offset |
++------------------------------------+-------------------------------------------------------+------+--------+
+|  CurrencyGovernance.trustedNodes   |                      TrustedNodes                     |  0   |   0    |
+|     CurrencyGovernance.enacter     |                 MonetaryPolicyAdapter                 |  1   |   0    |
+|    CurrencyGovernance.proposals    | mapping(bytes32 => CurrencyGovernance.MonetaryPolicy) |  2   |   0    |
+| CurrencyGovernance.trusteeSupports |              mapping(address => uint256)              |  3   |   0    |
+|   CurrencyGovernance.commitments   |              mapping(address => bytes32)              |  4   |   0    |
+|     CurrencyGovernance.scores      |              mapping(bytes32 => uint256)              |  5   |   0    |
+|     CurrencyGovernance.leader      |                        bytes32                        |  6   |   0    |
++------------------------------------+-------------------------------------------------------+------+--------+
+
+StringPacker:
++------+------+------+--------+
+| Name | Type | Slot | Offset |
++------+------+------+--------+
++------+------+------+--------+
+
+INFO:Slither:. analyzed (57 contracts)

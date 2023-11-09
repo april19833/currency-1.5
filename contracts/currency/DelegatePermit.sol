@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 
 /**
  * @dev Abstract contract including helper functions to allow delegation by signature using
- * https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
+ * [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612).
  *
  * Adds the {_verifyDelegatePermit} internal method, verifies a signature specifying permission to receive delegation power
  *
