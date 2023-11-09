@@ -13,7 +13,6 @@ import "../governance/monetary/MonetaryPolicyAdapter.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 import "../governance/monetary/TrustedNodes.sol";
 
-
 /** @title Testnet Linking Proposal
  *
  * A proposal used to link upwards permissions for all necessary contracts and mint tokens
@@ -98,14 +97,14 @@ contract TestnetLinker is Policy, Proposal {
         this.updateGovernor(communityGovernance);
 
         // mint initial eco
-        eco.updateMinters(address(this),true);
+        eco.updateMinters(address(this), true);
         eco.mint(distributor, initialECOSupply);
-        eco.updateMinters(address(this),false);
+        eco.updateMinters(address(this), false);
 
         // mint initial ecox
-        ecox.updateMinters(address(this),true);
+        ecox.updateMinters(address(this), true);
         ecox.mint(distributor, initialECOxSupply);
-        ecox.updateMinters(address(this),false);
+        ecox.updateMinters(address(this), false);
 
         // link ecox
         ecox.updateECOxExchange(ecoXExchange);
@@ -122,7 +121,7 @@ contract TestnetLinker is Policy, Proposal {
         lockups.setNotifier(lockupsNotifier);
         rebase.setAuthorized(address(monetaryPolicyAdapter), true);
         rebase.setNotifier(rebaseNotifier);
-        
+
         // link adapter
         monetaryPolicyAdapter.setCurrencyGovernance(currencyGovernance);
 

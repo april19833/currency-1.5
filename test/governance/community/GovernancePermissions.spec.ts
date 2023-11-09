@@ -21,5 +21,6 @@ describe('Policy Integration Tests', () => {
 
   it('TODO: integration tests here testing proposals to hit every onlyPolicy function', async () => {
     console.log(governanceImpersonator.address)
+    console.log(policy.address)
   })
 })

@@ -211,7 +211,14 @@ export async function testnetFixture(
     pauser
   )
 
-  const linker = await deploy(wallet, TestnetLinker__factory, [community.communityGovernance.address, base.ecoXExchange.address, monetary.lockups.notifier.address, monetary.rebase.notifier.address, monetary.trustedNodes.address, initialECOSupply]) as TestnetLinker
+  const linker = (await deploy(wallet, TestnetLinker__factory, [
+    community.communityGovernance.address,
+    base.ecoXExchange.address,
+    monetary.lockups.notifier.address,
+    monetary.rebase.notifier.address,
+    monetary.trustedNodes.address,
+    initialECOSupply,
+  ])) as TestnetLinker
 
   await base.policy.connect(wallet).enact(linker.address)
 
