@@ -6,6 +6,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 // import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
+import { deploy } from '../../../deploy/utils'
 import {
   CommunityGovernance,
   CommunityGovernance__factory,
@@ -14,6 +15,8 @@ import {
   ECO__factory,
   ECOxStaking,
   ECOxStaking__factory,
+  SampleProposal,
+  SampleProposal__factory,
 } from '../../../typechain-types'
 
 const A1 = '0x1111111111111111111111111111111111111111'
@@ -47,6 +50,7 @@ describe.only('Community Governance', () => {
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
   let ecoXStaking: MockContract<ECOxStaking>
+  let realProp: SampleProposal
 
   //   let cg: CommunityGovernance
   let cg: MockContract<CommunityGovernance>
@@ -100,7 +104,7 @@ describe.only('Community Governance', () => {
       ecoXStaking.address,
       alice.address // pauser
     )
-    // await cg.setVariable()
+
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
   describe('constructor', () => {
@@ -559,9 +563,10 @@ describe.only('Community Governance', () => {
 
   describe('execution stage', () => {
     beforeEach(async () => {
+      realProp = await deploy(alice, SampleProposal__factory, [])
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
-      await cg.connect(alice).propose(A1)
-      await cg.connect(bigboy).support(A1)
+      await cg.connect(alice).propose(realProp.address)
+      await cg.connect(bigboy).support(realProp.address)
       await cg.connect(bigboy).vote(ENACT)
     })
     it('fails to execute during not execution stage', async () => {
@@ -575,8 +580,41 @@ describe.only('Community Governance', () => {
       )
     })
     it('executes properly', async () => {
-      // still
+      expect(await cg.executed()).to.be.false
+      // not able to get the prop itself to work, need to look into why enact isnt doing what its supposed to
+      await cg.execute()
+      expect(await cg.executed()).to.be.true
     })
-    it('does not allow repeat execution', async () => {})
+    it('does not allow repeat execution', async () => {
+      await cg.execute()
+      await expect(cg.execute()).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.EXECUTION_ALREADY_COMPLETE
+      )
+    })
+  })
+  context('refund', () => {
+    beforeEach(async () => {
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await eco.connect(bob).approve(cg.address, await cg.proposalFee())
+      await cg.connect(bob).propose(A2)
+      await cg.connect(bigboy).support(A1)
+    })
+    it('doesnt allow refund during same cycle', async () => {
+      await expect(cg.connect(bob).refund(A2)).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.NO_REFUND_DURING_CYCLE
+      )
+    })
+    it('refunds properly in later cycle', async () => {
+      await cg.setVariable('cycleCount', (await cg.cycleCount()) + 1)
+      const propRefund = (await cg.proposals(A2)).refund
+
+      await expect(cg.connect(bob).refund(A2))
+        .to.emit(cg, 'FeeRefunded')
+        .withArgs(A2, bob.address, propRefund)
+
+      const newRefund = (await cg.proposals(A2)).refund
+      expect(newRefund).to.eq(0)
+    })
   })
 })

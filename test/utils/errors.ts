@@ -111,5 +111,6 @@ export const ERRORS = {
     BAD_VOTE_TYPE: 'BadVoteType',
     EXECUTION_ALREADY_COMPLETE: 'ExecutionAlreadyComplete',
     NO_REFUND_AVAILABLE: 'NoRefundAvailable',
+    NO_REFUND_DURING_CYCLE: 'NoRefundDuringCycle',
   },
 }

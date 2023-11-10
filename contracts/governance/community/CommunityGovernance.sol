@@ -155,6 +155,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     error NoRefundAvailable(address proposal);
 
+    /**
+     * @notice thrown when refund is called on a proposal that was submitted in the current cycle
+     * @param proposal the proposal whose refund was attempted
+     */
+    error NoRefundDuringCycle(address proposal);
+
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -225,8 +231,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      @notice An event indicating that the fee for a proposal was refunded
      @param proposal The address of the proposal being refunded
      @param proposer The address that registered the proposal
+     @param refund The amount of tokens refunded to proposer
      */
-    event FeeRefunded(address proposal, address proposer);
+    event FeeRefunded(address proposal, address proposer, uint256 refund);
 
     /**
      * @notice An event indicating that the leftover funds from fees were swept to a recipient address
@@ -591,6 +598,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         if (executed) {
             revert ExecutionAlreadyComplete();
         }
+        policy.enact(selectedProposal);
         //Enact the policy
         // policy.internalCommand(
         //     address(selectedProposal),
@@ -608,15 +616,18 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function refund(address proposal) public {
         PropData storage prop = proposals[proposal];
-        if (prop.cycle < cycleCount) {
-            if (prop.refund > 0) {
+        if (prop.refund > 0) {
+            if (prop.cycle < cycleCount) {
                 ecoToken.transfer(prop.proposer, prop.refund);
-                prop.refund = 0;
 
-                emit FeeRefunded(proposal, prop.proposer);
+                emit FeeRefunded(proposal, prop.proposer, prop.refund);
+
+                prop.refund = 0;
             } else {
-                revert NoRefundAvailable(proposal);
+                revert NoRefundDuringCycle(proposal);
             }
+        } else {
+            revert NoRefundAvailable(proposal);
         }
     }
 
