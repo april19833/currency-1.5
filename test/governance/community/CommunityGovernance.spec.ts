@@ -15,7 +15,10 @@ import {
   ECOxStaking__factory,
   SampleProposal,
   SampleProposal__factory,
+  Policy__factory,
 } from '../../../typechain-types'
+import { Signer } from 'ethers'
+import { TransactionRequest } from '@ethersproject/abstract-provider'
 
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
@@ -36,16 +39,17 @@ const REJECT = 1
 const ABSTAIN = 2
 
 describe('Community Governance', () => {
-  let policyImpersonator: SignerWithAddress
+  let funder: SignerWithAddress
+  let policyImpersonator: Signer
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let bigboy: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bob, charlie, bigboy] =
-      await ethers.getSigners()
+    ;[funder, alice, bob, charlie, bigboy] = await ethers.getSigners()
   })
-  let policy: FakeContract<Policy>
+  //   let policy: FakeContract<Policy>
+  let policy: MockContract<Policy>
   let eco: MockContract<ECO>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
@@ -54,10 +58,19 @@ describe('Community Governance', () => {
   let cg: MockContract<CommunityGovernance>
 
   beforeEach(async () => {
-    policy = await smock.fake<Policy>(
-      'Policy',
-      { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
-    )
+    // policy = await smock.fake<Policy>(
+    //   'Policy',
+    //   { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
+    // )
+    policy = await (
+      await smock.mock<Policy__factory>('Policy', { signer: funder })
+    ).deploy()
+    // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
+    // console.log(`funderBalance: ${await funder.getBalance()}`)
+    // const val = (await funder.getBalance()).div(2)
+    // await funder.sendTransaction({ to: policy.address, value: val })
+    // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
+
     eco = await (
       await smock.mock<ECO__factory>('ECO')
     ).deploy(
@@ -66,18 +79,17 @@ describe('Community Governance', () => {
       INITIAL_SUPPLY, // initialSupply - can we take this variable out?
       alice.address // pauser
     )
-
-    await eco
-      .connect(policyImpersonator)
-      .updateMinters(policyImpersonator.address, true)
+    console.log(funder.address)
+    console.log(policy.address)
+    await eco.connect(policy.wallet).updateMinters(policy.address, true)
     await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
-    await eco.connect(bob).enableVoting()
-    await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
-    await eco.connect(charlie).enableVoting()
-    await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
-    await eco.connect(bigboy).enableVoting()
-    await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
+    // await eco.connect(bob).enableVoting()
+    // await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
+    // await eco.connect(charlie).enableVoting()
+    // await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
+    // await eco.connect(bigboy).enableVoting()
+    // await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -709,5 +721,9 @@ describe('Community Governance', () => {
       const newRefund = (await cg.proposals(A2)).refund
       expect(newRefund).to.eq(0)
     })
+  })
+  it.only('testing stuff', async () => {
+    console.log(policy.address)
+    console.log(policyImpersonator.address)
   })
 })
