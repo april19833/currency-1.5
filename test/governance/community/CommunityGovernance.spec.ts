@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { expect } from 'chai'
+import { expect, use } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
@@ -15,8 +15,9 @@ import {
   ECOxStaking__factory,
   SampleProposal,
   SampleProposal__factory,
-  Policy__factory,
 } from '../../../typechain-types'
+
+use(smock.matchers)
 
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
@@ -36,8 +37,7 @@ const ENACT = 0
 const REJECT = 1
 const ABSTAIN = 2
 
-describe.only('Community Governance', () => {
-  //   let funder: SignerWithAddress
+describe('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -48,12 +48,10 @@ describe.only('Community Governance', () => {
       await ethers.getSigners()
   })
   let policy: FakeContract<Policy>
-  //   let policy: MockContract<Policy>
   let eco: MockContract<ECO>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
 
-  //   let cg: CommunityGovernance
   let cg: MockContract<CommunityGovernance>
 
   beforeEach(async () => {
@@ -61,15 +59,6 @@ describe.only('Community Governance', () => {
       'Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
-    // policy = await (await smock.mock<Policy__factory>('Policy')).deploy()
-    // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
-    // console.log(`funderBalance: ${await funder.getBalance()}`)
-    // const val = (await funder.getBalance()).div(2)
-    // const tx = await funder.sendTransaction({
-    //   to: await policy.wallet.getAddress(),
-    //   value: val,
-    // })
-    // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
 
     eco = await (
       await smock.mock<ECO__factory>('ECO')
@@ -79,8 +68,6 @@ describe.only('Community Governance', () => {
       INITIAL_SUPPLY, // initialSupply - can we take this variable out?
       alice.address // pauser
     )
-    // console.log(funder.address)
-    // console.log(policy.address)
     await eco.connect(policyImpersonator).updateMinters(policy.address, true)
     await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
@@ -684,10 +671,12 @@ describe.only('Community Governance', () => {
         ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
       )
     })
-    it.only('executes properly', async () => {
+    it('executes properly', async () => {
       expect(await cg.executed()).to.be.false
-      expect(policy.enact).to.have.not.been.calledOnce
+      expect(policy.enact).to.have.not.been.called
+
       await cg.execute()
+
       expect(await cg.executed()).to.be.true
       expect(policy.enact).to.have.been.calledOnce
     })
@@ -722,9 +711,5 @@ describe.only('Community Governance', () => {
       const newRefund = (await cg.proposals(A2)).refund
       expect(newRefund).to.eq(0)
     })
-  })
-  it('testing stuff', async () => {
-    console.log(policy.address)
-    console.log(policyImpersonator.address)
   })
 })

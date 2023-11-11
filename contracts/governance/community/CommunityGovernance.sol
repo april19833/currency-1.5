@@ -112,6 +112,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice redeemable tokens from fees  */
     uint256 public pot;
+
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
@@ -130,9 +131,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
-
-    // /** @notice thrown when address attempts to support the same proposal more than once */
-    // error RepeatSupport();
 
     /** @notice thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
@@ -262,10 +260,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address _pauser
     ) VotingPower(policy, ECO(_eco), ECOxStaking(_ecoXStaking)) {
         pauser = _pauser;
-
         cycleCount = 1000;
-        // cycleStart = getTime() - CYCLE_LENGTH;
-        // nextCycle();
     }
 
     /**
@@ -599,11 +594,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             revert ExecutionAlreadyComplete();
         }
         policy.enact(selectedProposal);
-        //Enact the policy
-        // policy.internalCommand(
-        //     address(selectedProposal),
-        //     0x65474dbc3934a157baaaa893dea8c73453f0cc9c47a4f857047e8f0c8b54888f
-        // );
         executed = true;
 
         emit ExecutionComplete(selectedProposal);
