@@ -685,7 +685,7 @@ describe('Community Governance', () => {
       )
     })
   })
-  context('refund', () => {
+  describe('refund', () => {
     beforeEach(async () => {
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
@@ -698,8 +698,8 @@ describe('Community Governance', () => {
         ERRORS.COMMUNITYGOVERNANCE.NO_REFUND_DURING_CYCLE
       )
     })
-    it('refunds properly in later cycle', async () => {
-      await cg.setVariable('cycleCount', (await cg.cycleCount()) + 1)
+    it.only('refunds properly in later cycle', async () => {
+      await cg.setVariable('cycleCount', (await cg.cycleCount()).add(1))
       const propRefund = (await cg.proposals(A2)).refund
 
       await expect(cg.connect(bob).refund(A2))
