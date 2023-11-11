@@ -17,8 +17,6 @@ import {
   SampleProposal__factory,
   Policy__factory,
 } from '../../../typechain-types'
-import { Signer } from 'ethers'
-import { TransactionRequest } from '@ethersproject/abstract-provider'
 
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
@@ -38,18 +36,19 @@ const ENACT = 0
 const REJECT = 1
 const ABSTAIN = 2
 
-describe('Community Governance', () => {
-  let funder: SignerWithAddress
-  let policyImpersonator: Signer
+describe.only('Community Governance', () => {
+  //   let funder: SignerWithAddress
+  let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let bigboy: SignerWithAddress
   before(async () => {
-    ;[funder, alice, bob, charlie, bigboy] = await ethers.getSigners()
+    ;[policyImpersonator, alice, bob, charlie, bigboy] =
+      await ethers.getSigners()
   })
-  //   let policy: FakeContract<Policy>
-  let policy: MockContract<Policy>
+  let policy: FakeContract<Policy>
+  //   let policy: MockContract<Policy>
   let eco: MockContract<ECO>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
@@ -58,17 +57,18 @@ describe('Community Governance', () => {
   let cg: MockContract<CommunityGovernance>
 
   beforeEach(async () => {
-    // policy = await smock.fake<Policy>(
-    //   'Policy',
-    //   { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
-    // )
-    policy = await (
-      await smock.mock<Policy__factory>('Policy', { signer: funder })
-    ).deploy()
+    policy = await smock.fake<Policy>(
+      'Policy',
+      { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
+    )
+    // policy = await (await smock.mock<Policy__factory>('Policy')).deploy()
     // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
     // console.log(`funderBalance: ${await funder.getBalance()}`)
     // const val = (await funder.getBalance()).div(2)
-    // await funder.sendTransaction({ to: policy.address, value: val })
+    // const tx = await funder.sendTransaction({
+    //   to: await policy.wallet.getAddress(),
+    //   value: val,
+    // })
     // console.log(`policybalance: ${await policy.wallet.getBalance()}`)
 
     eco = await (
@@ -79,17 +79,17 @@ describe('Community Governance', () => {
       INITIAL_SUPPLY, // initialSupply - can we take this variable out?
       alice.address // pauser
     )
-    console.log(funder.address)
-    console.log(policy.address)
-    await eco.connect(policy.wallet).updateMinters(policy.address, true)
+    // console.log(funder.address)
+    // console.log(policy.address)
+    await eco.connect(policyImpersonator).updateMinters(policy.address, true)
     await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
-    // await eco.connect(bob).enableVoting()
-    // await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
-    // await eco.connect(charlie).enableVoting()
-    // await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
-    // await eco.connect(bigboy).enableVoting()
-    // await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
+    await eco.connect(bob).enableVoting()
+    await eco.connect(policyImpersonator).mint(bob.address, INIT_BALANCE)
+    await eco.connect(charlie).enableVoting()
+    await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
+    await eco.connect(bigboy).enableVoting()
+    await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>('ECOxStaking')
@@ -684,11 +684,12 @@ describe('Community Governance', () => {
         ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
       )
     })
-    it('executes properly', async () => {
+    it.only('executes properly', async () => {
       expect(await cg.executed()).to.be.false
-      // not able to get the prop itself to work, need to look into why enact isnt doing what its supposed to
+      expect(policy.enact).to.have.not.been.calledOnce
       await cg.execute()
       expect(await cg.executed()).to.be.true
+      expect(policy.enact).to.have.been.calledOnce
     })
     it('does not allow repeat execution', async () => {
       await cg.execute()
@@ -722,7 +723,7 @@ describe('Community Governance', () => {
       expect(newRefund).to.eq(0)
     })
   })
-  it.only('testing stuff', async () => {
+  it('testing stuff', async () => {
     console.log(policy.address)
     console.log(policyImpersonator.address)
   })
