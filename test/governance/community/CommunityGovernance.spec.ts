@@ -698,7 +698,7 @@ describe('Community Governance', () => {
         ERRORS.COMMUNITYGOVERNANCE.NO_REFUND_DURING_CYCLE
       )
     })
-    it.only('refunds properly in later cycle', async () => {
+    it('refunds properly in later cycle', async () => {
       await cg.setVariable('cycleCount', (await cg.cycleCount()).add(1))
       const propRefund = (await cg.proposals(A2)).refund
 
