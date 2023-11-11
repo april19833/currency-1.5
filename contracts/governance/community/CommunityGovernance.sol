@@ -638,5 +638,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function sweep(address recipient) public onlyPolicy {
         ecoToken.transfer(recipient, pot);
+        pot = 0;
+        emit Sweep(recipient);
     }
 }

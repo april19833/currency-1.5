@@ -1,10 +1,8 @@
 import { ethers } from 'hardhat'
-// import { constants } from 'ethers'
 import { expect } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
-// import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import {
@@ -37,7 +35,7 @@ const ENACT = 0
 const REJECT = 1
 const ABSTAIN = 2
 
-describe.only('Community Governance', () => {
+describe('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -136,12 +134,6 @@ describe.only('Community Governance', () => {
         .withArgs(policyImpersonator.address)
       expect(await cg.pauser()).to.eq(policyImpersonator.address)
     })
-    it('only lets Policy drain the pot', async () => {
-      await expect(cg.connect(alice).sweep(alice.address)).to.be.revertedWith(
-        ERRORS.Policed.POLICY_ONLY
-      )
-      await cg.connect(policyImpersonator).sweep(alice.address)
-    })
     it('only lets pauser pause', async () => {
       expect(await cg.paused()).to.be.false
 
@@ -153,10 +145,30 @@ describe.only('Community Governance', () => {
       await cg.connect(alice).pause()
       expect(await cg.paused()).to.be.true
     })
+    it('only lets policy sweep', async () => {
+      await eco.connect(alice).transfer(cg.address, 20000)
+      expect(await eco.balanceOf(alice.address)).to.eq(0)
+      expect(await eco.balanceOf(cg.address)).to.eq(20000)
+
+      await cg.setVariable('pot', 1234)
+
+      await expect(cg.connect(alice).sweep(alice.address)).to.be.revertedWith(
+        ERRORS.Policed.POLICY_ONLY
+      )
+
+      await expect(cg.connect(policyImpersonator).sweep(alice.address))
+        .to.emit(cg, 'Sweep')
+        .withArgs(alice.address)
+
+      expect(await eco.balanceOf(alice.address)).to.eq(1234)
+      expect(await eco.balanceOf(cg.address)).to.eq(20000 - 1234)
+      expect(await cg.pot()).to.eq(0)
+    })
   })
 
   describe('updateStage', () => {
-    it('works fine right after deployment with cycleStart = 0', async () => {
+    it('works fine right after deployment with cycleStart = 0, moves from done to proposal', async () => {
+      expect(await cg.stage()).to.eq(DONE)
       await expect(cg.updateStage())
         .to.emit(cg, 'NewCycle')
         .withArgs(1001)
@@ -179,20 +191,101 @@ describe.only('Community Governance', () => {
         (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
       )
     })
-    xit('updates to delay from voting if there are more enact votes', async () => {
+    it('updates to delay from voting if there are more enact votes than reject', async () => {
+      // manually get to voting stage
       await cg.updateStage()
-      await time.increaseTo(await cg.currentStageEnd())
+
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+
+      expect(await cg.stage()).to.eq(VOTING)
 
       await cg.setVariable('totalEnactVotes', 10)
+      await cg.setVariable('totalRejectVotes', 9)
       // abstain votes dont matter but lets prove it
       await cg.setVariable('totalAbstainVotes', 100)
 
+      await time.increaseTo(await cg.currentStageEnd())
       await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DELAY)
 
       expect(await cg.stage()).to.eq(DELAY)
       expect(await cg.currentStageEnd()).to.eq(
-        (await cg.cycleStart()).add(await cg.DELAY_LENGTH())
+        (await cg.DELAY_LENGTH()).add(await time.latest())
       )
+    })
+    it('updates to done from voting if there are fewer enact votes than reject', async () => {
+      // manually get to voting stage
+      await cg.updateStage()
+
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+
+      expect(await cg.stage()).to.eq(VOTING)
+
+      await cg.setVariable('totalEnactVotes', 9)
+      await cg.setVariable('totalRejectVotes', 10)
+      // abstain votes dont matter but lets prove it
+      await cg.setVariable('totalAbstainVotes', 0)
+
+      await time.increaseTo(await cg.currentStageEnd())
+      await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DONE)
+
+      expect(await cg.stage()).to.eq(DONE)
+      expect(await cg.currentStageEnd()).to.eq(
+        (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
+      )
+    })
+    it('updates stage to execution from delay', async () => {
+      // manually get to DELAY stage
+      await cg.updateStage()
+
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+
+      await cg.connect(alice).vote(ENACT)
+      await time.increaseTo(await cg.currentStageEnd())
+      await cg.updateStage()
+
+      expect(await cg.stage()).to.eq(DELAY)
+
+      await time.increaseTo(await cg.currentStageEnd())
+      await expect(cg.updateStage())
+        .to.emit(cg, 'StageUpdated')
+        .withArgs(EXECUTION)
+
+      expect(await cg.stage()).to.eq(EXECUTION)
+      expect(await cg.currentStageEnd()).to.eq(
+        (await cg.cycleStart()).add(await cg.EXECUTION_LENGTH())
+      )
+    })
+    it('starts a new cycle if updateStage is called at the end of execution', async () => {
+      // manually get to EXECUTION stage
+      await cg.updateStage()
+      await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+      await cg.connect(alice).propose(A1)
+      await cg.connect(bigboy).support(A1)
+
+      await cg.connect(bigboy).vote(ENACT)
+
+      expect(await cg.stage()).to.eq(EXECUTION)
+
+      const cycle = await cg.cycleCount()
+
+      await time.increaseTo(await cg.currentStageEnd())
+      await expect(cg.updateStage())
+        .to.emit(cg, 'StageUpdated')
+        .withArgs(PROPOSAL)
+        .to.emit(cg, 'NewCycle')
+        .withArgs(await cg.cycleCount())
+
+      expect(await cg.stage()).to.eq(PROPOSAL)
+      expect(await cg.currentStageEnd()).to.eq(
+        (await cg.cycleStart()).add(await cg.PROPOSAL_LENGTH())
+      )
+      expect(await cg.cycleCount()).to.eq(cycle.add(1))
     })
   })
 
