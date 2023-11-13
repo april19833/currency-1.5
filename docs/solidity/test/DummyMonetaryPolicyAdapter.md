@@ -19,7 +19,7 @@ event EnactionParameterCheck(address[] targets, bytes4[] signatures, bytes[] cal
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance) public
+constructor(contract Policy _policy) public
 ```
 
 ### enact

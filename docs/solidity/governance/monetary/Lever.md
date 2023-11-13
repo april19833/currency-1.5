@@ -43,7 +43,7 @@ modifier onlyAuthorized()
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract Notifier _notifier) public
+constructor(contract Policy _policy) public
 ```
 
 ### setAuthorized

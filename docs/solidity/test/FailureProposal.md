@@ -12,6 +12,12 @@ error ImSorry()
 
 Apologize in case of failure
 
+### constructor
+
+```solidity
+constructor() public
+```
+
 ### name
 
 ```solidity
@@ -45,6 +51,12 @@ function enacted(address _self) public
 Enact the proposal.
 
 ## WorseFailureProposal
+
+### constructor
+
+```solidity
+constructor() public
+```
 
 ### name
 
@@ -80,6 +92,12 @@ Enact the proposal.
 
 ## ClumsyFailureProposal
 
+### constructor
+
+```solidity
+constructor() public
+```
+
 ### name
 
 ```solidity
@@ -113,6 +131,12 @@ function enacted(address _self) public
 Enact the proposal.
 
 ## TotalFailureProposal
+
+### constructor
+
+```solidity
+constructor() public
+```
 
 ### name
 

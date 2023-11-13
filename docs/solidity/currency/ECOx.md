@@ -39,7 +39,7 @@ emits when the ECOxExchange address is changed
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, address _ecoXExchange, address _pauser) public
+constructor(contract Policy _policy, address _pauser) public
 ```
 
 ### initialize

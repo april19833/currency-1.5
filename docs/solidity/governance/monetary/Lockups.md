@@ -171,7 +171,7 @@ withdrawal made from lockup
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract Notifier _notifier, contract ECO _eco, uint256 _depositWindow) public
+constructor(contract Policy _policy, contract ECO _eco, uint256 _depositWindow) public
 ```
 
 constructor
@@ -181,7 +181,6 @@ constructor
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _policy | contract Policy | the owning policy address for the contract |
-| _notifier | contract Notifier | the notifier handling downstream calls from this contract |
 | _eco | contract ECO | the ECO contract |
 | _depositWindow | uint256 | length of the deposit window |
 

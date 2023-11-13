@@ -519,7 +519,7 @@ modifier cycleComplete(uint256 cycle)
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract TrustedNodes _trustedNodes, contract MonetaryPolicyAdapter _enacter) public
+constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter) public
 ```
 
 constructor
@@ -529,7 +529,6 @@ constructor
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _policy | contract Policy | the owning policy address for the contract |
-| _trustedNodes | contract TrustedNodes | the contract to manage what addresses are trustees |
 | _enacter | contract MonetaryPolicyAdapter |  |
 
 ### setTrustedNodes
