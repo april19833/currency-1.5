@@ -14,7 +14,8 @@ import 'solidity-docgen'
 dotenv.config()
 
 const privateKey = process.env.PRIVATE_KEY || '0x' + '11'.repeat(32) // this is to avoid hardhat error
-const deploy = process.env.DEPLOY_DIRECTORY || 'deploy'
+const apiKey = process.env.RPCKEY || ''
+const etherscanKey = process.env.ETHERSCAN_API_KEY || ''
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -47,33 +48,14 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    'optimism-mainnet': {
-      chainId: 10,
-      url: 'https://mainnet.optimism.io',
-      accounts: [privateKey],
-    },
-    goerliOptimism: {
-      chainId: 420,
-      url: process.env.OPTIMISM_GOERLI_URL || '',
-      gasPrice: 100,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    'base-goerli': {
-      chainId: 84531,
-      url: 'https://goerli.base.org',
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     goerli: {
       chainId: 5,
-      url: process.env.GOERLI_URL || '',
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: `https://goerli.infura.io/v3/${apiKey}`,
+      accounts: [privateKey],
     },
     mainnet: {
       chainId: 1,
-      url: process.env.CONTRACTS_RPC_URL || '',
+      url: `https://mainnet.infura.io/v3/${apiKey}`,
       accounts: [privateKey],
     },
   },
@@ -99,31 +81,9 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY || '',
-      goerliOptimism: process.env.OPTIMISM_ETHERSCAN_API_KEY || '',
-      goerli: process.env.ETHERSCAN_API_KEY || '',
-      optimisticEthereum: process.env.OPTIMISM_ETHERSCAN_API_KEY || '',
-      // Basescan doesn't require an API key, however Hardhat still expects an arbitrary string to be provided.
-      'base-goerli': 'PLACEHOLDER_STRING',
+      mainnet: etherscanKey,
+      goerli: etherscanKey,
     },
-    customChains: [
-      {
-        network: 'goerliOptimism',
-        chainId: 420,
-        urls: {
-          apiURL: 'https://api-goerli-optimism.etherscan.io/api',
-          browserURL: 'https://goerli-optimism.etherscan.io',
-        },
-      },
-      {
-        network: 'base-goerli',
-        chainId: 84531,
-        urls: {
-          apiURL: 'https://api-goerli.basescan.org/api',
-          browserURL: 'https://goerli.basescan.org',
-        },
-      },
-    ],
   },
 }
 
