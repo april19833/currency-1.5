@@ -229,7 +229,3 @@ export async function testnetFixture(
   }
 }
 
-// const deployReceipt = await (await trustedNodesFactory.newCohort(TRUSTEE_TERM, VOTE_REWARD, trustees)).wait()
-// const args = deployReceipt.events?.find(event => event.event === 'NewCohort')?.args
-// const [ trustedNodesAddress ] = args ? args : [ undefined ]
-// const trustedNodes = await ethers.getContractAt('TrustedNodes', trustedNodesAddress) as TrustedNodes
