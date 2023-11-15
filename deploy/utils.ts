@@ -25,6 +25,7 @@ export async function deployProxy<F extends ContractFactory>(
 ): Promise<Contract> {
   const factory = new FactoryType(from)
   const base = params ? await factory.deploy(...params) : await factory.deploy()
+  await base.deployed()
   const proxy = await new ForwardProxy__factory(from).deploy(base.address)
   return factory.attach(proxy.address)
 }
