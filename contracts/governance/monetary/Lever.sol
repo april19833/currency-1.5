@@ -27,9 +27,7 @@ contract Lever is Policed {
         _;
     }
 
-    constructor(Policy _policy, Notifier _notifier) Policed(_policy) {
-        notifier = _notifier;
-    }
+    constructor(Policy _policy) Policed(_policy) {}
 
     /**
      * @notice Changes the authorized status of an address.

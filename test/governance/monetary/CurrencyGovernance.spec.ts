@@ -156,35 +156,35 @@ describe('CurrencyGovernance', () => {
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
+    Enacter = await (
+      await smock.mock<DummyMonetaryPolicyAdapter__factory>(
+        'DummyMonetaryPolicyAdapter'
+      )
+    ).deploy(Fake__Policy.address)
+
+    CurrencyGovernance = (await deploy(
+      policyImpersonator,
+      CurrencyGovernance__factory,
+      [Fake__Policy.address, Enacter.address]
+    )) as CurrencyGovernance
+
     TrustedNodes = await (
       await smock.mock<TrustedNodes__factory>('TrustedNodes')
     ).deploy(
       Fake__Policy.address,
-      PLACEHOLDER_ADDRESS1,
-      PLACEHOLDER_ADDRESS2,
+      CurrencyGovernance.address,
+      PLACEHOLDER_ADDRESS1, // ecox address not necessary for test
       1000 * DAY,
       1,
       [bob.address, charlie.address, dave.address, niko.address, mila.address]
     )
 
-    Enacter = await (
-      await smock.mock<DummyMonetaryPolicyAdapter__factory>(
-        'DummyMonetaryPolicyAdapter'
-      )
-    ).deploy(Fake__Policy.address, PLACEHOLDER_ADDRESS1)
-
-    CurrencyGovernance = (await deploy(
-      policyImpersonator,
-      CurrencyGovernance__factory,
-      [Fake__Policy.address, TrustedNodes.address, Enacter.address]
-    )) as CurrencyGovernance
-
-    await TrustedNodes.connect(policyImpersonator).updateCurrencyGovernance(
+    await Enacter.connect(policyImpersonator).setCurrencyGovernance(
       CurrencyGovernance.address
     )
 
-    await Enacter.connect(policyImpersonator).setCurrencyGovernance(
-      CurrencyGovernance.address
+    await CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
+      TrustedNodes.address
     )
   })
 

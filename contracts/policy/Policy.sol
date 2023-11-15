@@ -67,6 +67,21 @@ contract Policy is ForwardTarget {
         _;
     }
 
+    constructor(address _governor) {
+        governor = _governor;
+    }
+
+    /**
+     * initializes the governor
+     */
+    function initialize(
+        address _self
+    ) public virtual override onlyConstruction {
+        super.initialize(_self);
+
+        governor = Policy(_self).governor();
+    }
+
     /**
      * @dev pass the governance permissions to another address
      * @param _newGovernor the address to make the new governor

@@ -51,7 +51,6 @@ describe('ECOxStaking', () => {
     )
     ecoX = await EcoXFact.connect(policyImpersonater).deploy(
       Fake__Policy.address,
-      PLACEHOLDER_ADDRESS1,
       PLACEHOLDER_ADDRESS1
     )
 

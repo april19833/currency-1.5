@@ -56,12 +56,7 @@ contract MonetaryPolicyAdapter is Policed {
         _;
     }
 
-    constructor(
-        Policy _policy,
-        CurrencyGovernance _currencyGovernance
-    ) Policed(_policy) {
-        _setCurrencyGovernance(_currencyGovernance);
-    }
+    constructor(Policy _policy) Policed(_policy) {}
 
     /** setter function for currencyGovernance var
      * only available to the owning policy contract

@@ -360,14 +360,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
-     * @param _trustedNodes the contract to manage what addresses are trustees
      */
     constructor(
         Policy _policy,
-        TrustedNodes _trustedNodes,
         MonetaryPolicyAdapter _enacter
     ) Policed(_policy) {
-        _setTrustedNodes(_trustedNodes);
         _setEnacter(_enacter);
         governanceStartTime = getTime();
     }

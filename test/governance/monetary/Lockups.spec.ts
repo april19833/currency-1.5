@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { BigNumber, constants } from 'ethers'
+import { BigNumber } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -69,15 +69,12 @@ describe('Lockups', () => {
     )
     eco = await ecoFactory.deploy(
       policy.address,
-      policy.address, // distributor
-      1000, // initial supply
       policy.address // initial pauser
     )
     await eco.setVariable('inflationMultiplier', BASE)
 
     lockups = (await deploy(policyImpersonator, Lockups__factory, [
       policy.address,
-      constants.AddressZero, // notifier
       eco.address,
       depositWindow,
     ])) as Lockups

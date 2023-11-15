@@ -89,6 +89,20 @@ modifier onlySelf()
 _Modifier for faux internal calls
 needed for function to be called only during delegate call_
 
+### constructor
+
+```solidity
+constructor(address _governor) public
+```
+
+### initialize
+
+```solidity
+function initialize(address _self) public virtual
+```
+
+initializes the governor
+
 ### updateGovernor
 
 ```solidity

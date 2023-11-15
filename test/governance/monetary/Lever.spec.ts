@@ -42,7 +42,6 @@ describe('Lever', () => {
 
     lever = (await deploy(policyImpersonator, Lever__factory, [
       policy.address,
-      constants.AddressZero,
     ])) as Lever
 
     const notifierFactory: MockContractFactory<Notifier__factory> =

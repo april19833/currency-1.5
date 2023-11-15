@@ -20,6 +20,12 @@ address NEW_GOVERNOR
 
 Constant to set as a new governor address
 
+### constructor
+
+```solidity
+constructor() public
+```
+
 ### name
 
 ```solidity

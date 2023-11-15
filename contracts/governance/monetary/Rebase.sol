@@ -13,19 +13,15 @@ import "./Lever.sol";
 contract Rebase is Lever {
     ECO public immutable eco;
 
-    uint256 constant INFLATION_FLOOR = 0;
+    uint256 public constant INFLATION_FLOOR = 0;
 
-    uint256 constant INFLATION_CEILING = 1E19;
+    uint256 public constant INFLATION_CEILING = 1E19;
 
     error BadInflationMultiplier(uint256 rate);
 
     event Rebased(uint256 newInflation);
 
-    constructor(
-        Policy policy,
-        Notifier notifier,
-        ECO _eco
-    ) Lever(policy, notifier) {
+    constructor(Policy policy, ECO _eco) Lever(policy) {
         eco = _eco;
     }
 

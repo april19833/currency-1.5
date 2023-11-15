@@ -72,7 +72,7 @@ Restrict method access to the root policy instance only.
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance) public
+constructor(contract Policy _policy) public
 ```
 
 ### setCurrencyGovernance
