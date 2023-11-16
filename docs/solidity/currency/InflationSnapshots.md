@@ -107,6 +107,15 @@ in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _trans
 function inflationMultiplierSnapshot() public view returns (uint256)
 ```
 
+### getPastLinearInflation
+
+```solidity
+function getPastLinearInflation(uint256) public view returns (uint256)
+```
+
+wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
+no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability
+
 ### balanceOf
 
 ```solidity
