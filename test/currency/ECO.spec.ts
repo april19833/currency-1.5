@@ -2190,6 +2190,35 @@ describe('ECO', () => {
             )
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
           })
+
+          it('old linear inflation interface still mostly operable', async () => {
+            await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+            const snapshotInflationMult =
+              await ECOproxy.inflationMultiplierSnapshot()
+            expect(await ECOproxy.getPastLinearInflation(1234567)).to.eq(
+              snapshotInflationMult
+            )
+
+            const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
+            const digits10to19 = Math.floor(Math.random() * 10000000000)
+            const newInflationMult = ethers.BigNumber.from(
+              `${digits10to19}${digits1to9}`
+            )
+            const cumulativeInflationMult = newInflationMult
+              .mul(globalInflationMult)
+              .div(DENOMINATOR)
+            await ECOproxy.connect(rebaserImpersonator).rebase(newInflationMult)
+
+            await ECOproxy.connect(snapshotterImpersonator).snapshot()
+
+            expect(cumulativeInflationMult).to.eq(
+              await ECOproxy.inflationMultiplierSnapshot()
+            )
+            expect(cumulativeInflationMult).to.eq(
+              await ECOproxy.getPastLinearInflation(1111111)
+            )
+          })
         })
       })
     })
