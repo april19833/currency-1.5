@@ -99,6 +99,14 @@ abstract contract InflationSnapshots is VoteSnapshots {
         }
     }
 
+    /**
+     * wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
+     * no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability
+     */
+    function getPastLinearInflation(uint256) public view returns (uint256) {
+        return inflationMultiplierSnapshot();
+    }
+
     /** Access function to determine the token balance held by some address.
      */
     function balanceOf(address _owner) public view override returns (uint256) {
