@@ -91,13 +91,13 @@ In this section we will consider the changes for the Monetary Governance process
 
 Below is the proposed redesign. The redesign makes the following key changes:
 
-- Replace proxies with system of Getter / Setters
-  - As described in the section on permission based authorization, almost all contracts (other than ECO, ECOx and the Root Policy Address) will be de-proxied and converted into the permission based authorization model.
+- Replace proxies with a system of Getter / Setters
+  - As described in the section on permission-based authorization, almost all contracts (other than ECO, ECOx and the Root Policy Address) will be de-proxied and converted into the permission-based authorization model.
   - All core contracts will have “getter” and “setter” functions. “Getter” functions will allow external contracts and EOAs to read the neighbors of contracts. “Setter” functions will allow an authorized setter (almost always the Root Policy Address), to set the downstream dependencies for various specified function calls.
-  - All contracts will have a “Only Policy” and “Only Policy” function, which will specify the designated contract that can change any role in the contract.
-- Eliminate Currency Timer → TrusteeGovernance maintains bi-weekly cycle through internal timelocks
+  - All contracts will have an “Only Policy” and “Only Policy” function, which will specify the designated contract that can change any role in the contract.
+- Eliminate Currency Timer → TrusteeGovernance maintains a bi-weekly cycle through internal timelocks
   - Instead of maintaining a monolithic generation timer, this architecture proposes the Monetary Governance timer to be managed independently of the Currency Governance timer.
-  - This specification proposes that this is done using an internal enumeration in the TrusteeGovernance contract, which cycles through the stages each Monetary Policy cycle. All other contracts will be agnostic to this cycle, and not need to know about the specific timing of the cycle.
+  - This specification proposes that this is done using an internal enumeration in the TrusteeGovernance contract, which cycles through the stages of each Monetary Policy cycle. All other contracts will be agnostic to this cycle, and not need to know about the specific timing of the cycle.
   - This also means that the concept of a “generation” for a Monetary Policy cycle will not be unique, but internal to each TrusteeGovernance contract, which will contain its own monotonic counter that will act as a sort of “generation” counter for that contract.
   - Each TrustedNodes Contract holds one cohort
     Instead of requiring the TrustedNodes contract to track multiple cohorts (or elected Trustee groups), the Permission-Based authorization model allows for each cohort to be deployed and elected with a new contract.
@@ -110,7 +110,7 @@ Below is the proposed redesign. The redesign makes the following key changes:
     - Alternatively, the TrusteeGovernance contract could contain a whitelist of addresses that would define which downstream contracts were allowed to be called by the TrusteeGovernance contract.
     - Either implementation makes the monetary policy functions toolkit flexible enough to accommodate different governance entities responsible for each function. For example, Trustees could control rebasing and lockups, and a specific fiscal policy group could control random inflation.
 - Orchestrators are “per policy”
-  - Each policy comes with its own orchestrator. This makes it easy to swap out orchestrators, and to deploy new policy levers without dealing with old ones.
+  - Each policy comes with its own orchestrator. This makes it easy to swap out orchestrators and to deploy new policy levers without dealing with old ones.
 - Pausing only lives on Eco
   - In this architecture, pausing lives in the Eco contracts and upstream contracts are agnostic to whether Eco is paused or not. In this situation, Eco gracefully returns a falsy value to the monetary policy levers if it is paused, and TrusteeGovernance continues as usual.
   - In this sense, “pausing” Eco would only pause the rebase, mint, burn, and transfer (and transferVotingPower) functions in Eco
@@ -126,9 +126,9 @@ The responsibility of TrustedNodes in this system is to manage the current cohor
 - Keeps track of a given cohort of Trustees
 - Sets the Trustee term
 - Allows addition or removal of individual Trustees from the cohort
-- Allows for claiming of ECOx rewards, and correctly gates them from the voting record.
+- Allows for claiming of ECOx rewards and correctly gates them from the voting record.
 - Keeps track of each Trustees voting record
-- Contains appropriate getter / setters for downstream callers
+- Contains appropriate getters/setters for downstream callers
 
 Below is a diagram of the TrustedNodes contract with its neighbor, TrusteeGovernance. TrustedNodes only needs Getter/Setter functions for the “Only Policy” role, which is authorized to change any other roles, and “Record Vote” role, which is authorized to call the “recordVote” function.
 
@@ -136,19 +136,19 @@ Below is a diagram of the TrustedNodes contract with its neighbor, TrusteeGovern
 
 #### TrusteeGovernance
 
-The TrusteeGovernance contract is responsible for tracking the Monetary Governance cycle and facilitating the voting process for Trustees. It is also responsible for calling the downstream monetary policy functions, and recording the result of the cycle in the policy archive. Specifically, the TrusteeGovernance contract:
+The TrusteeGovernance contract is responsible for tracking the Monetary Governance cycle and facilitating the voting process for Trustees. It is also responsible for calling the downstream monetary policy functions and recording the result of the cycle in the policy archive. Specifically, the TrusteeGovernance contract:
 
 - Keeps track of the voting stage in an enum
 - Contain an internal monotonic counter to track the internal voting cycle number
 - Allows Trustees to submit and withdraw proposals. Proposals contain an array of downstream function calls that Trustees vote on.
 - Allows Trustees to “support” proposals, per the change to the Borda Process being implemented now.
 - Allows Trustees to vote on proposals in a commit stage (like we have now). Commits are hashes, to prevent tactical voting on behalf of the other Trustees. Commits can be overwritten until the reveal phase.
-- Allows Trustees to reveal their actual votes, which also cross references the hash of their commits.
+- Allows Trustees to reveal their actual votes, which also cross-references the hash of their commits.
 - Calculate the winner of the vote, using the modified Borda Count process (that accounts for support transactions).
 - Enacts the results of the Trustee voting using a supervisor function. This supervisor function would replace notifyGenerationIncrement.
   - Care should be taken if any downstream function call reverts. It should still increment the counter and reset the voting, in case there is an issue with a downstream lever.
 
-![Trustee Governance](../docs/assets/trustee-governance.png "Trusted Governance")
+![Trustee Governance](../docs/assets/trustee-governance.png "Trustee Governance")
 
 Above is a diagram of the TrusteeGovernance contract with its neighbors, TrustedNodes, PolicyArchive and the Monetary Policy Functions. The TrusteeGovernance contract needs Getter/Setter functions for the “Only Policy” role, which is authorized to change any other roles, the “Policy Archive” role, and the “TrustedNodes” role.
 
@@ -239,25 +239,6 @@ The responsibility of the RootPolicy contract in this system is to manage the co
 ![Root Policy](../docs/assets/root-policy.png "Root Policy")
 
 The main changes in this implementation are:
-
-- Compound Bravo-Like Governance
-
-  - Instead of uploading arbitrary bytecode per proposal, which increases the complexity and danger of executing proposals, ECO 1.5 proposes that Eco Upgrade Proposals are submitted like [Compound Bravo](https://docs.compound.finance/v2/governance/) proposals. Each proposal would contain a couple arrays that would define the specific downstream functions and contracts to call in sequence.
-  - [Here](https://docs.compound.finance/v2/governance/#propose) is how [Compound Bravo](https://github.com/compound-finance/compound-protocol/tree/master/contracts/Governance) passes in proposal arguments:
-
-  ```solidity
-    function propose(address[] memory targets, uint[] memory values, string[] memory signatures,
-
-  - bytes[] memory calldatas, string memory description) returns (uint)
-  targets: The ordered list of target addresses for calls to be made during proposal execution. This array must be the same length as all other array parameters in this function.
-  - values: The ordered list of values (i.e. msg.value) to be passed to the calls made during proposal execution. This array must be the same length as all other array parameters in this function.
-  - signatures: The ordered list of function signatures to be passed during execution. This array must be the same length as all other array parameters in this function.
-  - calldatas: The ordered list of data to be passed to each individual function call during proposal execution. This array must be the same length as all other array parameters in this function.
-  - description: A human readable description of the proposal and the changes it will enact.
-  - RETURN: The ID of the newly created proposal.
-  ```
-
-  - So similar to the above, EcoGovernance Proposals would pass in vectors that define downstream contracts, inputs, signatures and calldata.
 
 - Add getter/setter functions for EcoGovernance
   - Root policy only needs one getter/setter role to define who can call functions for it to execute.
@@ -477,22 +458,7 @@ Making this system flash loan proof can be done in 2 ways.
    1. Proposers can't propose random inflation if a snapshot is occurring soon (would require linkage between EcoGovernance and Inflation contract, which is unideal)
    2. Inform proposers they will get rugged, and adjust the supervisor to not challenge if snapshot is coming up (prefer this)
 
-   **Further Improving this in Eco 2.0**
-
-   I don’t want to add this to 1.5, but this idea could work in 2.0. Right now, the standard ERC20Votes implementation does not track voting power if you don’t delegate. This means to vote, you have to delegate to yourself.
-
-   ![After Token Transfer](../docs/assets/after-token-transfer.png "After Token Transfer")
-
-   ![After Token Transfer](../docs/assets/after-token-transfer-1.png "After Token Transfer")
-
-   We could implement this same feature into the system above. In addition, we would give all “untracked voting power” to “tracked voting power” members. You are essentially choosing to have more expensive transfers, but you are rewarded with the voting power of accounts who don’t want their voting power. The benefits of this potential approach are:
-
-   - No delegate means transfers are cheaper but you have no voice.
-   - Distribute voting power from voters who don't care --> voters who care
-   - Contracts by default have no delegate, therefore contract interactions are cheaper. Contracts don’t become “sinks” for voting power, and the protocol can’t get “stuck” easily.
-   - Below the 3 main stages are shown in this system. In most cases, a user is paying significantly less than the initial Eco implementation, and they are given the ability to choose cheaper transfers or more voice.
-
-   ![Transfer Flow](../docs/assets/transfer-flow.png "Transfer Flow")
+Furthermore, tracking voting power is becoming opt-in for ECO 1.5. This further reduces the cost for mainnet transfers and swaps unless an individual chooses to do so.
 
 ### Open Questions
 
@@ -500,13 +466,12 @@ Making this system flash loan proof can be done in 2 ways.
    1. There is a compromise where we whitelist functions and we use if / match statements to call functions in a loop.
 2. Should we consider dropping the support threshold each generation if a proposal doesn’t pass muster?
 3. Where else can we compact values using uint256 compaction?
-4. Should we have variable length timing in EcoGovernance?
-5. Do we need Getter / Setters for proxied contracts?
+4. Do we need Getters/Setters for proxied contracts?
 
 ### Additional Open
 
 1. Default proposal option for proposals?
-2. Should Trustees overwrite their proposals / commits / votes each stage to save gas?
+2. Should Trustees overwrite their proposals/commits/ votes each stage to save gas?
 3. Should we change or optimize the policy levers with this change or no? Some potential optimizations: Random inflation (1 claim), Rebasing drip, Lockups with a longer entry period, etc.
 4. Where should orchestrators live?
 5. How should we deal with upgrades that need to be correctly timed?
