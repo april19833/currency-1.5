@@ -93,17 +93,6 @@ INFO:Printers:
     - _hashTypedDataV4(bytes32) (internal)
     - constructor(string,string) (internal)
 
-+ Contract IERC1820Registry (Most derived contract)
-  - From IERC1820Registry
-    - getInterfaceImplementer(address,bytes32) (external)
-    - getManager(address) (external)
-    - implementsERC165Interface(address,bytes4) (external)
-    - implementsERC165InterfaceNoCache(address,bytes4) (external)
-    - interfaceHash(string) (external)
-    - setInterfaceImplementer(address,bytes32,address) (external)
-    - setManager(address,address) (external)
-    - updateERC165Cache(address,bytes4) (external)
-
 + Contract Math (Most derived contract)
   - From Math
     - average(uint256,uint256) (internal)
@@ -234,7 +223,7 @@ INFO:Printers:
     - nonces(address) (public)
     - permit(address,address,uint256,uint256,uint8,bytes32,bytes32) (public)
   - From ECO
-    - constructor(Policy,address,uint256,address) (public)
+    - constructor(Policy,address) (public)
     - initialize(address) (public)
     - rebase(uint256) (public)
     - snapshot() (public)
@@ -298,7 +287,7 @@ INFO:Printers:
     - _domainSeparatorV4() (internal)
     - _hashTypedDataV4(bytes32) (internal)
   - From ECOx
-    - constructor(Policy,address,address) (public)
+    - constructor(Policy,address) (public)
     - initialize(address) (public)
     - updateECOxExchange(address) (public)
 
@@ -871,6 +860,23 @@ INFO:Printers:
     - totalSupplySnapshot() (public)
     - voteBalanceSnapshot(address) (public)
 
++ Contract TestnetLinker (Most derived contract)
+  - From Policy
+    - constructor(address) (public)
+    - enact(address) (external)
+    - initialize(address) (public)
+    - updateGovernor(address) (public)
+  - From ForwardTarget
+    - constructor() (internal)
+    - implementation() (public)
+    - setImplementation(address) (internal)
+  - From TestnetLinker
+    - constructor(address,ECOxExchange,Notifier,Notifier,TrustedNodes,uint256) (public)
+    - description() (public)
+    - enacted(address) (public)
+    - name() (public)
+    - url() (public)
+
 + Contract CommunityGovernance (Most derived contract)
   - From TimeUtils
     - getTime() (internal)
@@ -1068,7 +1074,7 @@ INFO:Printers:
     - abstain() (external)
     - canSupport(address) (public)
     - commit(bytes32) (external)
-    - constructor(Policy,TrustedNodes,MonetaryPolicyAdapter) (public)
+    - constructor(Policy,MonetaryPolicyAdapter) (public)
     - enact(uint256) (external)
     - getCurrentCycle() (public)
     - getCurrentStage() (public)
@@ -1085,15 +1091,13 @@ INFO:Printers:
     - unsupportProposal(bytes32) (external)
 
 + Contract Lever
-  - From Policed
-    - constructor(Policy) (internal)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From Lever
-    - constructor(Policy,Notifier) (public)
+    - constructor(Policy) (public)
     - setAuthorized(address,bool) (public)
     - setNotifier(Notifier) (public)
 
@@ -1101,11 +1105,9 @@ INFO:Printers:
   - From TimeUtils
     - getTime() (internal)
   - From Lever
-    - constructor(Policy,Notifier) (public)
+    - constructor(Policy) (public)
     - setAuthorized(address,bool) (public)
     - setNotifier(Notifier) (public)
-  - From Policed
-    - constructor(Policy) (internal)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1114,7 +1116,7 @@ INFO:Printers:
   - From Lockups
     - _deposit(uint256,address,uint256) (internal)
     - _withdraw(uint256,address) (internal)
-    - constructor(Policy,Notifier,ECO,uint256) (public)
+    - constructor(Policy,ECO,uint256) (public)
     - createLockup(uint256,uint256) (external)
     - deposit(uint256,uint256) (external)
     - depositFor(uint256,address,uint256) (external)
@@ -1128,8 +1130,6 @@ INFO:Printers:
     - withdrawFor(uint256,address) (external)
 
 + Contract MonetaryPolicyAdapter
-  - From Policed
-    - constructor(Policy) (internal)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
@@ -1137,7 +1137,7 @@ INFO:Printers:
     - setImplementation(address) (internal)
   - From MonetaryPolicyAdapter
     - _setCurrencyGovernance(CurrencyGovernance) (internal)
-    - constructor(Policy,CurrencyGovernance) (public)
+    - constructor(Policy) (public)
     - enact(bytes32,address[],bytes4[],bytes[]) (external)
     - setCurrencyGovernance(CurrencyGovernance) (public)
 
@@ -1158,18 +1158,16 @@ INFO:Printers:
 
 + Contract Rebase (Most derived contract)
   - From Lever
-    - constructor(Policy,Notifier) (public)
+    - constructor(Policy) (public)
     - setAuthorized(address,bool) (public)
     - setNotifier(Notifier) (public)
-  - From Policed
-    - constructor(Policy) (internal)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From Rebase
-    - constructor(Policy,Notifier,ECO) (public)
+    - constructor(Policy,ECO) (public)
     - execute(uint256) (public)
 
 + Contract TrustedNodes (Most derived contract)
@@ -1213,8 +1211,6 @@ INFO:Printers:
     - newCohort(uint256,uint256,address[]) (public)
     - updateCurrencyGovernance(CurrencyGovernance) (public)
 
-+ Contract ERC1820Client (Most derived contract)
-
 + Contract Policed
   - From ForwardTarget
     - constructor() (internal)
@@ -1228,10 +1224,11 @@ INFO:Printers:
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
 
 + Contract ForwardProxy (Upgradeable Proxy) (Most derived contract)
@@ -1265,15 +1262,13 @@ INFO:Printers:
   - From MonetaryPolicyAdapter
     - _setCurrencyGovernance(CurrencyGovernance) (internal)
     - setCurrencyGovernance(CurrencyGovernance) (public)
-  - From Policed
-    - constructor(Policy) (internal)
   - From ForwardTarget
     - constructor() (internal)
     - implementation() (public)
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From DummyMonetaryPolicyAdapter
-    - constructor(Policy,CurrencyGovernance) (public)
+    - constructor(Policy) (public)
     - enact(bytes32,address[],bytes4[],bytes[]) (external)
 
 + Contract DummyPoliced (Most derived contract)
@@ -1288,14 +1283,15 @@ INFO:Printers:
 
 + Contract FailureProposal (Most derived contract)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
   - From ForwardTarget
-    - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From FailureProposal
+    - constructor() (public)
     - description() (public)
     - enacted(address) (public)
     - name() (public)
@@ -1303,14 +1299,15 @@ INFO:Printers:
 
 + Contract WorseFailureProposal (Most derived contract)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
   - From ForwardTarget
-    - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From WorseFailureProposal
+    - constructor() (public)
     - description() (public)
     - enacted(address) (public)
     - name() (public)
@@ -1318,14 +1315,15 @@ INFO:Printers:
 
 + Contract ClumsyFailureProposal (Most derived contract)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
   - From ForwardTarget
-    - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From ClumsyFailureProposal
+    - constructor() (public)
     - description() (public)
     - enacted(address) (public)
     - name() (public)
@@ -1333,14 +1331,15 @@ INFO:Printers:
 
 + Contract TotalFailureProposal (Most derived contract)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
   - From ForwardTarget
-    - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From TotalFailureProposal
+    - constructor() (public)
     - description() (public)
     - enacted(address) (public)
     - name() (public)
@@ -1348,14 +1347,15 @@ INFO:Printers:
 
 + Contract SampleProposal (Most derived contract)
   - From Policy
+    - constructor(address) (public)
     - enact(address) (external)
+    - initialize(address) (public)
     - updateGovernor(address) (public)
   - From ForwardTarget
-    - constructor() (internal)
     - implementation() (public)
-    - initialize(address) (public)
     - setImplementation(address) (internal)
   - From SampleProposal
+    - constructor() (public)
     - description() (public)
     - enacted(address) (public)
     - incrementCounter() (public)
@@ -1369,7 +1369,7 @@ INFO:Printers:
     - abstain() (external)
     - canSupport(address) (public)
     - commit(bytes32) (external)
-    - constructor(Policy,TrustedNodes,MonetaryPolicyAdapter) (public)
+    - constructor(Policy,MonetaryPolicyAdapter) (public)
     - enact(uint256) (external)
     - getCurrentCycle() (public)
     - getCurrentStage() (public)
@@ -1408,4 +1408,4 @@ INFO:Printers:
   - From TimeUtils
     - getTime() (internal)
 
-INFO:Slither:. analyzed (57 contracts)
+INFO:Slither:. analyzed (56 contracts)
