@@ -16,6 +16,7 @@ module.exports = {
     ecmaVersion: 12,
   },
   rules: {
+    'no-useless-constructor': 0,
     'no-unused-expressions': 0,
     'no-plusplus': 0,
     'prefer-destructuring': 0,
