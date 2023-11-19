@@ -85,14 +85,6 @@ describe('Community Governance', () => {
       A2 // ECOx
     )
 
-    // cg = await new CommunityGovernance__factory()
-    //   .connect(policyImpersonator)
-    //   .deploy(
-    //     policy.address,
-    //     eco.address,
-    //     ecoXStaking.address,
-    //     alice.address // pauser
-    //   )
     cg = await (
       await smock.mock<CommunityGovernance__factory>('CommunityGovernance')
     ).deploy(
@@ -286,6 +278,41 @@ describe('Community Governance', () => {
       )
       expect(await cg.cycleCount()).to.eq(cycle.add(1))
     })
+    context('newCycle', () => {
+      it('resets everything', async () => {
+        // manually get to DONE stage
+        await cg.updateStage()
+        await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+
+        const realProp = await deploy(alice, SampleProposal__factory, [])
+
+        await cg.connect(alice).propose(realProp.address)
+        await cg.connect(bigboy).support(realProp.address)
+
+        await cg.connect(bigboy).vote(ENACT)
+
+        await cg.connect(bigboy).execute()
+        expect(await cg.stage()).to.eq(DONE)
+
+        await cg.setVariable('totalRejectVotes', 12)
+        await cg.setVariable('totalAbstainVotes', 12)
+
+        expect(await cg.selectedProposal()).to.not.eq(
+          ethers.constants.AddressZero
+        )
+        expect(await cg.totalEnactVotes()).to.not.eq(0)
+        expect(await cg.totalRejectVotes()).to.not.eq(0)
+        expect(await cg.totalAbstainVotes()).to.not.eq(0)
+
+        await time.increaseTo(await cg.currentStageEnd())
+        await cg.updateStage()
+
+        expect(await cg.selectedProposal()).to.eq(ethers.constants.AddressZero)
+        expect(await cg.totalEnactVotes()).to.eq(0)
+        expect(await cg.totalRejectVotes()).to.eq(0)
+        expect(await cg.totalAbstainVotes()).to.eq(0)
+      })
+    })
   })
 
   context('proposal stage', () => {
@@ -306,9 +333,7 @@ describe('Community Governance', () => {
         expect((await cg.proposals(A1)).cycle).to.eq(await cg.cycleCount())
         expect((await cg.proposals(A1)).proposer).to.eq(alice.address)
         expect((await cg.proposals(A1)).totalSupport).to.eq(0)
-        expect((await cg.proposals(A1)).refund).to.eq(
-          (await cg.proposalFee()).mul(await cg.refundPercent()).div(100)
-        )
+        expect((await cg.proposals(A1)).refund).to.eq(await cg.feeRefund())
         expect(await cg.pot()).to.eq(
           (await cg.proposalFee()) - (await cg.proposals(A1)).refund
         )
@@ -396,24 +421,24 @@ describe('Community Governance', () => {
             cg.supportPartial(proposals, allocations)
           ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.ARRAY_LENGTH_MISMATCH)
         })
-        it('fails if sum of support allocations is greater than senders vp', async () => {
+        it('fails if support allocations are greater than senders vp', async () => {
           const vp = await cg.votingPower(
             alice.address,
             await cg.snapshotBlock()
           )
           const proposals = [A1, A2]
-          const allocations = [vp.div(2), vp.div(2).add(1)]
+          const allocations = [vp.mul(2), vp.mul(2).add(1)]
           await expect(
             cg.supportPartial(proposals, allocations)
-          ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER_SUM)
+          ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER)
         })
-        it('works if sum <= senders vp', async () => {
+        it('works if sum > senders vp', async () => {
           const vp = await cg.votingPower(
             alice.address,
             await cg.snapshotBlock()
           )
           const proposals = [A1, A2]
-          const vp1 = vp.div(2).sub(1)
+          const vp1 = vp.div(2).add(1)
           const vp2 = vp.div(2).add(1)
           const allocations = [vp1, vp2]
 
@@ -582,7 +607,7 @@ describe('Community Governance', () => {
         const abstainVotes = 1
         await expect(
           cg.votePartial(enactVotes, rejectVotes, abstainVotes)
-        ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER_SUM)
+        ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER)
       })
       it('suceeds if allocations total to less than senders voting power', async () => {
         const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
@@ -672,18 +697,18 @@ describe('Community Governance', () => {
       )
     })
     it('executes properly', async () => {
-      expect(await cg.executed()).to.be.false
+      expect(await cg.stage()).to.eq(EXECUTION)
       expect(policy.enact).to.have.not.been.called
 
       await cg.execute()
 
-      expect(await cg.executed()).to.be.true
+      expect(await cg.stage()).to.eq(DONE)
       expect(policy.enact).to.have.been.calledOnce
     })
     it('does not allow repeat execution', async () => {
       await cg.execute()
       await expect(cg.execute()).to.be.revertedWith(
-        ERRORS.COMMUNITYGOVERNANCE.EXECUTION_ALREADY_COMPLETE
+        ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
       )
     })
   })

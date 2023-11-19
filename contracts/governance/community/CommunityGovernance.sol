@@ -83,13 +83,17 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice cost in ECO to submit a proposal */
     uint256 public proposalFee = 10000;
 
-    /** @notice percent of proposal fee to be refunded if proposal is not enacted */
-    uint256 public refundPercent = 50;
+    // /** @notice percent of proposal fee to be refunded if proposal is not enacted */
+    // uint256 public refundPercent = 50;
+
+    /** @notice proposal fee to be refunded if proposal is not enacted */
+    uint256 public feeRefund = 5000;
+
 
     /** @notice the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
 
-    /** @notice the percent of total VP that must be supporting a proposal in order to enact t immediately */
+    /** @notice the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
     uint256 public voteThresholdPercent = 50;
 
     /** @notice total voting power for the cycle */
@@ -107,9 +111,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice total votes to abstain from voting on the selected proposal*/
     uint256 public totalAbstainVotes;
 
-    /** @notice whether the selected proposal has been executed */
-    bool public executed;
-
     /** @notice redeemable tokens from fees  */
     uint256 public pot;
 
@@ -120,14 +121,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
-    /** @notice thrown when setPauser is called with the existing pauser address as an argument */
-    error SamePauser();
-
     /** @notice thrown when a call is made during the wrong stage of Community Governance */
     error WrongStage();
-
-    /** @notice thrown when nextCycle is called while the current cycle is still in progress */
-    error CycleInProgress();
 
     /** @notice thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
@@ -135,17 +130,14 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
 
-    /** @notice thrown when the total voting power of a support action is too high */
-    error BadVotingPowerSum();
+    /** @notice thrown when the voting power of a support or vote action is invalid */
+    error BadVotingPower();
 
     /** @notice thrown when unsupport is called without the caller having supported the proposal */
     error NoSupportToRevoke();
 
     /** @notice thrown when vote is called with a vote type other than enact, reject, abstain */
     error BadVoteType();
-
-    /** @notice thrown when execute is called and the proposal has already been executed */
-    error ExecutionAlreadyComplete();
 
     /**
      * @notice thrown when refund is called on a proposal for which no refund is available
@@ -181,8 +173,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param proposal The address of the proposal contract instance that was added
      */
     event ProposalRegistration(
-        address indexed proposer,
-        Proposal indexed proposal
+        address proposer,
+        Proposal proposal
     );
 
     /**
@@ -207,7 +199,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param abstainVotes The votes to abstain
      */
     event VotesChanged(
-        address voter,
+        address indexed voter,
         uint256 enactVotes,
         uint256 rejectVotes,
         uint256 abstainVotes
@@ -255,10 +247,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     constructor(
         Policy policy,
-        address _eco,
-        address _ecoXStaking,
+        ECO _eco,
+        ECOxStaking _ecoXStaking,
         address _pauser
-    ) VotingPower(policy, ECO(_eco), ECOxStaking(_ecoXStaking)) {
+    ) VotingPower(policy, _eco, _ecoXStaking) {
         pauser = _pauser;
         cycleCount = 1000;
     }
@@ -268,9 +260,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _pauser the new pauser
      */
     function setPauser(address _pauser) public onlyPolicy {
-        if (pauser == _pauser) {
-            revert SamePauser();
-        }
         pauser = _pauser;
         emit PauserAssignment(_pauser);
     }
@@ -339,16 +328,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         cycleCount += cycles;
 
         if (cycleTime < PROPOSAL_LENGTH) {
+            ecoToken.snapshot();
             stage = Stage.Proposal;
             currentStageEnd = cycleStart + PROPOSAL_LENGTH;
         } else {
             stage = Stage.Done;
             currentStageEnd = cycleStart + CYCLE_LENGTH;
         }
-        ecoToken.snapshot();
         snapshotBlock = block.number;
         cycleTotalVotingPower = totalVotingPower();
         delete selectedProposal;
+        delete totalEnactVotes;
+        delete totalRejectVotes;
+        delete totalAbstainVotes;
 
         emit NewCycle(cycleCount);
     }
@@ -374,7 +366,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         if (!paused()) {
             ecoToken.transferFrom(msg.sender, address(this), proposalFee);
-            prop.refund = (proposalFee * refundPercent) / 100;
+            prop.refund = feeRefund;
             pot += proposalFee - prop.refund;
         }
 
@@ -405,15 +397,14 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             revert ArrayLengthMismatch();
         }
 
-        uint256 sumSupport = 0;
+        // uint256 sumSupport = 0;
+        uint256 vp = votingPower(msg.sender, snapshotBlock);
         for (uint256 i = 0; i < length; i++) {
             uint256 support = _allocations[i];
-            sumSupport += support;
+            if(support > vp) {
+                revert BadVotingPower();
+            }
             _changeSupport(msg.sender, _proposals[i], support);
-        }
-
-        if (sumSupport > votingPower(msg.sender, snapshotBlock)) {
-            revert BadVotingPowerSum();
         }
     }
 
@@ -445,7 +436,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[proposal];
-        uint256 vp = votingPower(supporter, snapshotBlock);
 
         emit SupportChanged(
             supporter,
@@ -515,7 +505,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             enactVotes + rejectVotes + abstainVotes >
             votingPower(msg.sender, snapshotBlock)
         ) {
-            revert BadVotingPowerSum();
+            revert BadVotingPower();
         }
         _vote(msg.sender, enactVotes, rejectVotes, abstainVotes);
     }
@@ -590,11 +580,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         if (stage != Stage.Execution) {
             revert WrongStage();
         }
-        if (executed) {
-            revert ExecutionAlreadyComplete();
-        }
+
         policy.enact(selectedProposal);
-        executed = true;
+        stage = Stage.Done;
 
         emit ExecutionComplete(selectedProposal);
     }
