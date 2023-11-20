@@ -93,25 +93,23 @@ function main() {
     console.log('Contract copy completed!')
   })
   // Move the contact abis to the lib
-  glob(rootAbiDir + '/**/*.json', {}, (err, files) => {
-    const abiFiles = files.filter(
-      (filePath) =>
-        filePath.indexOf('dbg') == -1 && filePath.indexOf('test') == -1
-    )
-    abiFiles.forEach((json, i) => {
-      path.basename(json)
-      fs.copyFile(
-        json,
-        path.join(abiDir, '/' + path.basename(json)),
-        function (err: any) {
-          if (err) {
-            return console.log(err)
-          }
+  globSync(
+    rootAbiDir + '/**/*.json',
+    { ignore: [rootAbiDir + '/test/**', rootAbiDir + '/**/*.dbg.json']},
+  ).forEach((json, i) => {
+    path.basename(json)
+    fs.copyFile(
+      json,
+      path.join(abiDir, '/' + path.basename(json)),
+      function (err: any) {
+        if (err) {
+          return console.log(err)
         }
-      )
-    })
-    console.log('Abi copy completed!')
+      }
+    )
   })
+  
+  console.log('Abi copy completed!')
 
   // Move the typechain types
   fsExtra.copy(rootTypechainDir, typechainDir, function (err) {
@@ -129,3 +127,7 @@ function main() {
 }
 
 main()
+function globIterate(arg0: string, arg1: {}, arg2: (err: any, files: any) => void) {
+  throw new Error('Function not implemented.')
+}
+
