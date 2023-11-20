@@ -44,14 +44,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice the duration of the community governance cycle */
     uint256 public constant CYCLE_LENGTH = 14 days;
 
-    /**
-     * @notice cycle length plus three days to ensure execution
-     * @dev a proposal that has enough enact votes must be executed by days past the cycle's end
-     */
-    uint256 public constant EXECUTION_LENGTH = CYCLE_LENGTH + 3 days;
-
     /** @notice the duration of the proposal stage */
-    uint256 public constant PROPOSAL_LENGTH = 9 days + 16 hours;
+    uint256 public constant PROPOSAL_LENGTH = 9 days;
 
     /** @notice the duration of the voting stage */
     uint256 public constant VOTING_LENGTH = 3 days;
@@ -88,7 +82,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice proposal fee to be refunded if proposal is not enacted */
     uint256 public feeRefund = 5000;
-
 
     /** @notice the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
@@ -172,10 +165,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param proposer The address that submitted the proposal
      * @param proposal The address of the proposal contract instance that was added
      */
-    event ProposalRegistration(
-        address proposer,
-        Proposal proposal
-    );
+    event ProposalRegistration(address proposer, Proposal proposal);
 
     /**
      * @notice An event indicating a change in support for a proposal
@@ -296,7 +286,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 // delay period ended, time to execute
                 stage = Stage.Execution;
                 //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
-                currentStageEnd = cycleStart + EXECUTION_LENGTH;
+                currentStageEnd = cycleStart + CYCLE_LENGTH;
             } else if (stage == Stage.Execution) {
                 // if the execution stage timed out, the proposal was not enacted in time
                 // either nobody called it, or the proposal failed during execution.
@@ -401,7 +391,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 vp = votingPower(msg.sender, snapshotBlock);
         for (uint256 i = 0; i < length; i++) {
             uint256 support = _allocations[i];
-            if(support > vp) {
+            if (support > vp) {
                 revert BadVotingPower();
             }
             _changeSupport(msg.sender, _proposals[i], support);
@@ -438,14 +428,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         PropData storage prop = proposals[proposal];
         uint256 support = prop.support[supporter];
 
-        emit SupportChanged(
-            supporter,
-            Proposal(proposal),
-            support,
-            amount
-        );
-
-
+        emit SupportChanged(supporter, Proposal(proposal), support, amount);
 
         prop.totalSupport -= support;
         prop.support[supporter] = amount;
@@ -545,7 +528,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             (cycleTotalVotingPower * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
-            currentStageEnd = cycleStart + EXECUTION_LENGTH;
+            currentStageEnd = cycleStart + CYCLE_LENGTH;
 
             emit StageUpdated(Stage.Execution);
         }

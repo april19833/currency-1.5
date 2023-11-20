@@ -27,10 +27,12 @@ contract VotingPower is Policed {
         ECO _ecoAddr,
         ECOxStaking _ecoXStakingAddr
     ) Policed(_policy) {
-        require(
-            address(_ecoAddr) != address(0),
-            "Unrecoverable: do not set the _ecoAddr as the zero address"
-        );
+        if (address(_ecoAddr) == address(0)) {
+            revert NonZeroContractAddr("ECO");
+        }
+        if (address(_ecoXStakingAddr) == address(0)) {
+            revert NonZeroContractAddr("ECOxStaking");
+        }
         ecoToken = _ecoAddr;
         ecoXStaking = _ecoXStakingAddr;
     }

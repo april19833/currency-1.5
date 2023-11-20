@@ -37,7 +37,7 @@ const REJECT = 0
 const ENACT = 1
 const ABSTAIN = 2
 
-describe('Community Governance', () => {
+describe.only('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -109,6 +109,27 @@ describe('Community Governance', () => {
       expect(await cg.cycleStart()).to.eq(0)
       expect(await cg.currentStageEnd()).to.eq(0)
       expect(await cg.stage()).to.eq(DONE)
+    })
+    it('bricks when eco or ecoxstaking is 0 address', async () => {
+      const cgmocker = await smock.mock<CommunityGovernance__factory>(
+        'CommunityGovernance'
+      )
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          ethers.constants.AddressZero,
+          ecoXStaking.address,
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ethers.constants.AddressZero,
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
     })
   })
   describe('permissions', () => {
@@ -249,7 +270,7 @@ describe('Community Governance', () => {
 
       expect(await cg.stage()).to.eq(EXECUTION)
       expect(await cg.currentStageEnd()).to.eq(
-        (await cg.cycleStart()).add(await cg.EXECUTION_LENGTH())
+        (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
       )
     })
     it('starts a new cycle if updateStage is called at the end of execution', async () => {
@@ -688,7 +709,7 @@ describe('Community Governance', () => {
         .withArgs(EXECUTION)
 
       expect(await cg.currentStageEnd()).to.be.closeTo(
-        (await cg.EXECUTION_LENGTH()).add(await time.latest()),
+        (await cg.CYCLE_LENGTH()).add(await time.latest()),
         5
       )
       expect(await cg.stage()).to.eq(EXECUTION)

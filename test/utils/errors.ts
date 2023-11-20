@@ -33,6 +33,7 @@ export const ERRORS = {
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
+    NON_ZERO_CONTRACT_ADDRESS: 'NonZeroContractAddr',
   },
   Policy: {
     ENACTION_UNSPECIFIED_REVERT: 'FailedProposal',
