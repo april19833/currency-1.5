@@ -103,6 +103,7 @@ export const ERRORS = {
   COMMUNITYGOVERNANCE: {
     ONLY_PAUSER: 'OnlyPauser',
     WRONG_STAGE: 'WrongStage',
+    BAD_CYCLE_START: 'BadCycleStart',
     DUPLICATE_PROPOSAL: 'DuplicateProposal',
     ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
     BAD_VOTING_POWER: 'BadVotingPower',

@@ -77,9 +77,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice cost in ECO to submit a proposal */
     uint256 public proposalFee = 10000;
 
-    // /** @notice percent of proposal fee to be refunded if proposal is not enacted */
-    // uint256 public refundPercent = 50;
-
     /** @notice proposal fee to be refunded if proposal is not enacted */
     uint256 public feeRefund = 5000;
 
@@ -113,6 +110,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** @notice thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
+
+    /** @notice thrown when _cycleStart value in constructor is before current time */
+    error BadCycleStart();
 
     /** @notice thrown when a call is made during the wrong stage of Community Governance */
     error WrongStage();
@@ -234,15 +234,18 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _eco the ECO contract address
      * @param _ecoXStaking the ECOxStaking contract address
      * @param _pauser the new pauser
+     * @param _cycleStart the time that the first cycle should begin
      */
     constructor(
         Policy policy,
         ECO _eco,
         ECOxStaking _ecoXStaking,
+        uint256 _cycleStart,
         address _pauser
     ) VotingPower(policy, _eco, _ecoXStaking) {
         pauser = _pauser;
         cycleCount = 1000;
+        currentStageEnd = _cycleStart;
     }
 
     /**

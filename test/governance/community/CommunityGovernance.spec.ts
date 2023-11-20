@@ -37,7 +37,7 @@ const REJECT = 0
 const ENACT = 1
 const ABSTAIN = 2
 
-describe.only('Community Governance', () => {
+describe('Community Governance', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -51,6 +51,7 @@ describe.only('Community Governance', () => {
   let eco: MockContract<ECO>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
+  let currentStageEnd: Number
 
   let cg: MockContract<CommunityGovernance>
 
@@ -85,12 +86,15 @@ describe.only('Community Governance', () => {
       A2 // ECOx
     )
 
+    currentStageEnd = await time.latest()
+
     cg = await (
       await smock.mock<CommunityGovernance__factory>('CommunityGovernance')
     ).deploy(
       policy.address,
       eco.address,
       ecoXStaking.address,
+      currentStageEnd,
       alice.address // pauser
     )
 
@@ -107,7 +111,7 @@ describe.only('Community Governance', () => {
     it('has correct values for cycleCount, cycleStart, stage, currentStageEnd', async () => {
       expect(await cg.cycleCount()).to.eq(1000)
       expect(await cg.cycleStart()).to.eq(0)
-      expect(await cg.currentStageEnd()).to.eq(0)
+      expect(await cg.currentStageEnd()).to.eq(currentStageEnd)
       expect(await cg.stage()).to.eq(DONE)
     })
     it('bricks when eco or ecoxstaking is 0 address', async () => {
@@ -119,6 +123,7 @@ describe.only('Community Governance', () => {
           policy.address,
           ethers.constants.AddressZero,
           ecoXStaking.address,
+          currentStageEnd,
           alice.address
         )
       ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
@@ -127,6 +132,7 @@ describe.only('Community Governance', () => {
           policy.address,
           eco.address,
           ethers.constants.AddressZero,
+          currentStageEnd,
           alice.address
         )
       ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
@@ -188,7 +194,7 @@ describe.only('Community Governance', () => {
         .withArgs(PROPOSAL)
       expect(await cg.cycleStart()).to.eq(await time.latest())
       expect(await cg.currentStageEnd()).to.eq(
-        (await cg.PROPOSAL_LENGTH()).add(await time.latest())
+        (await cg.PROPOSAL_LENGTH()).add(await cg.cycleStart())
       )
       expect(await cg.stage()).to.eq(PROPOSAL)
     })
@@ -710,7 +716,7 @@ describe.only('Community Governance', () => {
 
       expect(await cg.currentStageEnd()).to.be.closeTo(
         (await cg.CYCLE_LENGTH()).add(await time.latest()),
-        5
+        10
       )
       expect(await cg.stage()).to.eq(EXECUTION)
     })
@@ -774,5 +780,46 @@ describe.only('Community Governance', () => {
       const newRefund = (await cg.proposals(A2)).refund
       expect(newRefund).to.eq(0)
     })
+  })
+  it('E2E', async () => {
+    realProp = await deploy(alice, SampleProposal__factory, [])
+    await eco.connect(alice).approve(cg.address, await cg.proposalFee())
+    await cg.connect(alice).propose(realProp.address)
+    await eco.connect(bob).approve(cg.address, await cg.proposalFee())
+    await cg.connect(bob).propose(A1)
+
+    const currCycle = await cg.cycleCount()
+
+    const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+
+    await cg
+      .connect(bob)
+      .supportPartial([realProp.address, A1], [5, vp.div(3).mul(2)])
+    await cg.connect(bob).unsupport(A1)
+    expect(await cg.getSupport(bob.address, A1)).to.eq(0)
+    await cg.connect(bigboy).support(realProp.address)
+    await expect(cg.connect(charlie).support(A1)).to.be.revertedWith(
+      ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+    )
+    await cg.connect(bob).vote(REJECT)
+    await cg.connect(alice).votePartial(2, 3, 500)
+    await cg.connect(bigboy).vote(ENACT)
+    await expect(cg.connect(charlie).vote(REJECT)).to.be.revertedWith(
+      ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
+    )
+
+    // console.log(currCycle)
+    await cg.execute()
+    await time.increaseTo((await cg.cycleStart()).add(await cg.CYCLE_LENGTH()))
+    await expect(cg.updateStage()).to.emit(cg, 'NewCycle').withArgs(1002)
+
+    expect(await cg.stage()).to.eq(PROPOSAL)
+    expect(await cg.cycleCount()).to.eq(currCycle.add(1))
+    expect(await cg.selectedProposal()).to.eq(ethers.constants.AddressZero)
+    expect(await cg.totalEnactVotes()).to.eq(0)
+    expect(await cg.totalRejectVotes()).to.eq(0)
+    expect(await cg.totalAbstainVotes()).to.eq(0)
+
+    await cg.connect(bob).refund(A1)
   })
 })
