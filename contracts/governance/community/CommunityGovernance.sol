@@ -32,8 +32,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     enum Vote {
-        Enact,
         Reject,
+        Enact,
         Abstain
     }
 
@@ -436,17 +436,20 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[proposal];
+        uint256 support = prop.support[supporter];
 
         emit SupportChanged(
             supporter,
             Proposal(proposal),
-            prop.support[supporter],
+            support,
             amount
         );
 
-        prop.totalSupport -= prop.support[supporter];
+
+
+        prop.totalSupport -= support;
         prop.support[supporter] = amount;
-        prop.totalSupport += prop.support[supporter];
+        prop.totalSupport += amount;
 
         if (
             prop.totalSupport >
@@ -458,7 +461,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             stage = Stage.Voting;
             currentStageEnd = getTime() + VOTING_LENGTH;
 
-            emit StageUpdated(stage);
+            emit StageUpdated(Stage.Voting);
         }
     }
 
@@ -531,9 +534,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         prop.rejectVotes[voter] = _rejectVotes;
         prop.abstainVotes[voter] = _abstainVotes;
 
-        totalEnactVotes += prop.enactVotes[voter];
-        totalRejectVotes += prop.rejectVotes[voter];
-        totalAbstainVotes += prop.abstainVotes[voter];
+        totalEnactVotes += _enactVotes;
+        totalRejectVotes += _rejectVotes;
+        totalAbstainVotes += _abstainVotes;
 
         emit VotesChanged(voter, _enactVotes, _rejectVotes, _abstainVotes);
 
@@ -544,7 +547,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             stage = Stage.Execution;
             currentStageEnd = cycleStart + EXECUTION_LENGTH;
 
-            emit StageUpdated(stage);
+            emit StageUpdated(Stage.Execution);
         }
     }
 
@@ -593,14 +596,15 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @dev the fee will be refunded to the proposer of the proposal, regardless of who calls refund
      */
     function refund(address proposal) public {
-        PropData storage prop = proposals[proposal];
-        if (prop.refund > 0) {
-            if (prop.cycle < cycleCount) {
-                ecoToken.transfer(prop.proposer, prop.refund);
+        uint256 propRefund = proposals[proposal].refund;
+        address proposer = proposals[proposal].proposer;
+        if (propRefund > 0) {
+            if (proposals[proposal].cycle < cycleCount) {
+                ecoToken.transfer(proposer, propRefund);
 
-                emit FeeRefunded(proposal, prop.proposer, prop.refund);
+                emit FeeRefunded(proposal, proposer, propRefund);
 
-                prop.refund = 0;
+                proposals[proposal].refund = 0;
             } else {
                 revert NoRefundDuringCycle(proposal);
             }

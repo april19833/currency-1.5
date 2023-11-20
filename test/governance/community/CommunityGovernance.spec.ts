@@ -33,8 +33,8 @@ const DELAY = 3
 const EXECUTION = 4
 
 // Vote enums
-const ENACT = 0
-const REJECT = 1
+const REJECT = 0
+const ENACT = 1
 const ABSTAIN = 2
 
 describe('Community Governance', () => {
@@ -472,6 +472,23 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp2)
           expect(await cg.getSupport(alice.address, A2)).to.eq(vp1)
           expect((await cg.proposals(A2)).totalSupport).to.eq(vp1)
+        })
+        it('handles double supporting well in the same supportPartial', async () => {
+          const vp = await cg.votingPower(
+            alice.address,
+            await cg.snapshotBlock()
+          )
+          const proposals = [A1, A2, A1, A1]
+          const vp1 = vp.div(2).sub(1)
+          const vp2 = vp.div(2).add(1)
+          const allocations = [vp1, vp2, vp1, vp2]
+
+          await cg.connect(alice).supportPartial(proposals, allocations)
+
+          expect(await cg.getSupport(alice.address, A1)).to.eq(vp2)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(vp2)
+          expect(await cg.getSupport(alice.address, A2)).to.eq(vp2)
+          expect((await cg.proposals(A2)).totalSupport).to.eq(vp2)
         })
       })
       context('unsupporting', () => {
