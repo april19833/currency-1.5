@@ -153,10 +153,17 @@ export async function deployCommunity(
     console.log('deploying communityGovernance')
   }
 
+  const now = new Date()
   const communityGovernance = (await deploy(
     wallet,
     CommunityGovernance__factory,
-    [base.policy.address, base.eco.address, base.ecoXStaking.address, pauser]
+    [
+      base.policy.address,
+      base.eco.address,
+      base.ecoXStaking.address,
+      Math.floor(now.getTime() / 1000),
+      pauser,
+    ]
   )) as CommunityGovernance
 
   return new CommunityGovernanceContracts(communityGovernance)
