@@ -11,10 +11,8 @@ describe('EcoX', () => {
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let policyImpersonator: SignerWithAddress
-  let fakeExchange: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonator, fakeExchange] =
-      await ethers.getSigners()
+    ;[alice, bob, charlie, policyImpersonator] = await ethers.getSigners()
   })
 
   let ecoXProxy: ECOx
@@ -28,7 +26,6 @@ describe('EcoX', () => {
 
     const ecoXDeployParams = [
       Fake__Policy.address, // policy
-      fakeExchange.address, // ecoxexchange
       bob.address, // pauser
     ]
 
@@ -42,7 +39,6 @@ describe('EcoX', () => {
   describe('initialization', async () => {
     it('initializes', async () => {
       expect(await ecoXProxy.policy()).to.eq(Fake__Policy.address)
-      expect(await ecoXProxy.ecoXExchange()).to.eq(fakeExchange.address)
       expect(await ecoXProxy.pauser()).to.eq(bob.address)
     })
   })

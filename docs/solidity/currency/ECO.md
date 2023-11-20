@@ -4,22 +4,6 @@ Copyright (c) 2023 Eco Association
 
 ## ECO
 
-### distributor
-
-```solidity
-address distributor
-```
-
-the address of the contract for initial distribution
-
-### initialSupply
-
-```solidity
-uint256 initialSupply
-```
-
-the initial amount of tokens distributed
-
 ### rebasers
 
 ```solidity
@@ -101,7 +85,7 @@ _Modifier for checking if the sender is a rebaser_
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, address _distributor, uint256 _initialSupply, address _initialPauser) public
+constructor(contract Policy _policy, address _initialPauser) public
 ```
 
 ### initialize

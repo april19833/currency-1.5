@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -52,14 +51,11 @@ describe('Rebase', () => {
     )
     eco = await ecoFactory.deploy(
       policy.address,
-      policy.address, // distributor
-      1000, // initial supply
       policy.address // initial pauser
     )
 
     rebase = (await deploy(policyImpersonator, Rebase__factory, [
       policy.address,
-      constants.AddressZero,
       eco.address,
     ])) as Rebase
 

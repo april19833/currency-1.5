@@ -11,7 +11,6 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
     constructor()
         CurrencyGovernance(
             Policy(address(0x11)),
-            TrustedNodes(address(0x12)),
             MonetaryPolicyAdapter(address(0x13))
         )
     {}

@@ -65,8 +65,6 @@ describe('Community Governance', () => {
       await smock.mock<ECO__factory>('ECO')
     ).deploy(
       policy.address,
-      A1, // distributor - can we take this variable out?
-      INITIAL_SUPPLY, // initialSupply - can we take this variable out?
       alice.address // pauser
     )
     await eco.connect(policyImpersonator).updateMinters(policy.address, true)

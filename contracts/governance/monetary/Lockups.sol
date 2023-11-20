@@ -118,16 +118,14 @@ contract Lockups is Lever, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
-     * @param _notifier the notifier handling downstream calls from this contract
      * @param _eco the ECO contract
      * @param _depositWindow length of the deposit window
      */
     constructor(
         Policy _policy,
-        Notifier _notifier,
         ECO _eco,
         uint256 _depositWindow
-    ) Lever(_policy, _notifier) {
+    ) Lever(_policy) {
         eco = _eco;
         depositWindow = _depositWindow;
         currentInflationMultiplier = eco.inflationMultiplier();

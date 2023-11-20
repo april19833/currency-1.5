@@ -37,7 +37,7 @@ event Rebased(uint256 newInflation)
 ### constructor
 
 ```solidity
-constructor(contract Policy policy, contract Notifier notifier, contract ECO _eco) public
+constructor(contract Policy policy, contract ECO _eco) public
 ```
 
 ### execute

@@ -13,16 +13,6 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * the address of the contract for initial distribution
-     */
-    address public immutable distributor;
-
-    /**
-     * the initial amount of tokens distributed
-     */
-    uint256 public immutable initialSupply;
-
-    /**
      * @dev Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public rebasers;
@@ -93,13 +83,8 @@ contract ECO is InflationSnapshots {
 
     constructor(
         Policy _policy,
-        address _distributor,
-        uint256 _initialSupply,
         address _initialPauser
-    ) InflationSnapshots(_policy, "ECO", "ECO", _initialPauser) {
-        distributor = _distributor;
-        initialSupply = _initialSupply;
-    }
+    ) InflationSnapshots(_policy, "ECO", "ECO", _initialPauser) {}
 
     //////////////////////////////////////////////
     ///////////////// INITIALIZER ////////////////
@@ -110,7 +95,6 @@ contract ECO is InflationSnapshots {
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
-        _mint(distributor, initialSupply);
     }
 
     //////////////////////////////////////////////
