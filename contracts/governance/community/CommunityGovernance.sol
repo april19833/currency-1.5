@@ -111,9 +111,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
-    /** @notice thrown when _cycleStart value in constructor is before current time */
-    error BadCycleStart();
-
     /** @notice thrown when a call is made during the wrong stage of Community Governance */
     error WrongStage();
 
