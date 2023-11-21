@@ -10,6 +10,7 @@ contract DummyMonetaryPolicyAdapter is MonetaryPolicyAdapter {
     bool public enacted;
 
     event EnactionParameterCheck(
+        bytes32 proposalId,
         address[] targets,
         bytes4[] signatures,
         bytes[] calldatas
@@ -24,6 +25,6 @@ contract DummyMonetaryPolicyAdapter is MonetaryPolicyAdapter {
         bytes[] memory calldatas
     ) external override onlyCurrencyGovernance {
         enacted = true;
-        emit EnactionParameterCheck(targets, signatures, calldatas);
+        emit EnactionParameterCheck(proposalId, targets, signatures, calldatas);
     }
 }
