@@ -80,3 +80,11 @@ typechain/
 package
 lib
 libTest
+
+# Slither generated artifacts
+docs/slither/contract-summary.txt
+docs/slither/variable-order.txt
+docs/slither/vulnerability.txt
+
+# Gas Reports
+docs/gasReport.txt

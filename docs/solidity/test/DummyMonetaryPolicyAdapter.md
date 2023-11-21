@@ -13,7 +13,7 @@ bool enacted
 ### EnactionParameterCheck
 
 ```solidity
-event EnactionParameterCheck(address[] targets, bytes4[] signatures, bytes[] calldatas)
+event EnactionParameterCheck(bytes32 proposalId, address[] targets, bytes4[] signatures, bytes[] calldatas)
 ```
 
 ### constructor
