@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { Fixture, testnetFixture } from '../../deploy/testnet.fixture'
+import { Fixture, testnetFixture } from '../../deploy/standalone.fixture'
 import { DAY } from '../utils/constants'
 
 const INITIAL_ECO = ethers.constants.WeiPerEther.mul(10000).toString()
