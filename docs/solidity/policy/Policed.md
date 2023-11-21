@@ -12,20 +12,35 @@ contract Policy policy
 
 The address of the root policy instance overseeing this instance.
 
-This address can be used for ERC1820 lookup of other components, ERC1820
-lookup of role policies, and interaction with the policy hierarchy.
-
 ### NonZeroPolicyAddr
 
 ```solidity
 error NonZeroPolicyAddr()
 ```
 
+If the policy address is set to zero, the contract is unrecoverably ungovernable
+
+### NonZeroContractAddr
+
+```solidity
+error NonZeroContractAddr(string contractName)
+```
+
+If this address is set to zero the contract is an unusable state
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| contractName | string | the name of the contract that was given as the zero address |
+
 ### PolicyOnlyFunction
 
 ```solidity
 error PolicyOnlyFunction()
 ```
+
+For if a non-policy address tries to access policy role gated functionality
 
 ### NewPolicy
 

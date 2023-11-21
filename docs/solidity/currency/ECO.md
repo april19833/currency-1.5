@@ -80,7 +80,7 @@ _Modifier for checking if the sender is a rebaser_
 modifier onlySnapshotterRole()
 ```
 
-_Modifier for checking if the sender is a rebaser_
+_Modifier for checking if the sender is a snapshotter_
 
 ### constructor
 

@@ -22,10 +22,16 @@ uint256 excludedVotingPower
 contract ECO ecoToken
 ```
 
+### ecoXStaking
+
+```solidity
+contract ECOxStaking ecoXStaking
+```
+
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract ECO _ecoAddr) public
+constructor(contract Policy _policy, contract ECO _ecoAddr, contract ECOxStaking _ecoXStakingAddr) public
 ```
 
 ### totalVotingPower
@@ -38,11 +44,5 @@ function totalVotingPower() public view returns (uint256)
 
 ```solidity
 function votingPower(address _who, uint256 _snapshotBlock) public view returns (uint256)
-```
-
-### getXStaking
-
-```solidity
-function getXStaking() internal view returns (contract ECOxStaking)
 ```
 

@@ -892,6 +892,10 @@ INFO:Printers:
   - From Context
     - _msgData() (internal)
     - _msgSender() (internal)
+  - From VotingPower
+    - constructor(Policy,ECO,ECOxStaking) (public)
+    - totalVotingPower() (public)
+    - votingPower(address,uint256) (public)
   - From Policed
     - constructor(Policy) (internal)
   - From ForwardTarget
@@ -899,8 +903,24 @@ INFO:Printers:
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From CommunityGovernance
-    - constructor(Policy,address,address,address) (public)
+    - _changeSupport(address,address,uint256) (internal)
+    - _vote(address,uint256,uint256,uint256) (internal)
+    - constructor(Policy,ECO,ECOxStaking,uint256,address) (public)
+    - execute() (public)
+    - getSupport(address,address) (public)
+    - getVotes(address) (public)
+    - nextCycle() (internal)
+    - pause() (external)
+    - propose(Proposal) (public)
+    - refund(address) (public)
     - setPauser(address) (public)
+    - support(address) (public)
+    - supportPartial(address[],uint256[]) (public)
+    - sweep(address) (public)
+    - unsupport(address) (public)
+    - updateStage() (public)
+    - vote(CommunityGovernance.Vote) (public)
+    - votePartial(uint256,uint256,uint256) (public)
 
 + Contract ECOxStaking (Most derived contract)
   - From Policed
@@ -993,52 +1013,6 @@ INFO:Printers:
     - votingECOx(address,uint256) (external)
     - withdraw(uint256) (external)
 
-+ Contract PolicyProposals (Most derived contract)
-  - From TimeUtils
-    - getTime() (internal)
-  - From VotingPower
-    - constructor(Policy,ECO) (public)
-    - getXStaking() (internal)
-    - totalVotingPower() (public)
-    - votingPower(address,uint256) (public)
-  - From Policed
-    - constructor(Policy) (internal)
-  - From ForwardTarget
-    - constructor() (internal)
-    - implementation() (public)
-    - setImplementation(address) (internal)
-  - From PolicyProposals
-    - configure(uint256,uint256) (external)
-    - constructor(Policy,PolicyVotes,ECO) (public)
-    - deployProposalVoting() (external)
-    - destruct() (external)
-    - initialize(address) (public)
-    - refund(Proposal) (external)
-    - registerProposal(Proposal) (external)
-    - support(Proposal) (external)
-    - unsupport(Proposal) (external)
-
-+ Contract PolicyVotes (Most derived contract)
-  - From TimeUtils
-    - getTime() (internal)
-  - From VotingPower
-    - getXStaking() (internal)
-    - totalVotingPower() (public)
-    - votingPower(address,uint256) (public)
-  - From Policed
-    - constructor(Policy) (internal)
-  - From ForwardTarget
-    - constructor() (internal)
-    - implementation() (public)
-    - setImplementation(address) (internal)
-  - From PolicyVotes
-    - configure(Proposal,address,uint256,uint256,uint256) (external)
-    - constructor(Policy,ECO) (public)
-    - execute() (external)
-    - initialize(address) (public)
-    - vote(bool) (external)
-    - voteSplit(uint256,uint256) (external)
-
 + Contract VotingPower
   - From Policed
     - constructor(Policy) (internal)
@@ -1048,8 +1022,7 @@ INFO:Printers:
     - initialize(address) (public)
     - setImplementation(address) (internal)
   - From VotingPower
-    - constructor(Policy,ECO) (public)
-    - getXStaking() (internal)
+    - constructor(Policy,ECO,ECOxStaking) (public)
     - totalVotingPower() (public)
     - votingPower(address,uint256) (public)
 
@@ -1410,4 +1383,4 @@ INFO:Printers:
   - From TimeUtils
     - getTime() (internal)
 
-INFO:Slither:. analyzed (56 contracts)
+INFO:Slither:. analyzed (54 contracts)

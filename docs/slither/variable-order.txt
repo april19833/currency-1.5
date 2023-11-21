@@ -104,12 +104,30 @@ TestnetLinker:
 +-----------------+---------+------+--------+
 
 CommunityGovernance:
-+----------------------------+---------+------+--------+
-|            Name            |   Type  | Slot | Offset |
-+----------------------------+---------+------+--------+
-|      Pausable._paused      |   bool  |  0   |   0    |
-| CommunityGovernance.pauser | address |  0   |   1    |
-+----------------------------+---------+------+--------+
++---------------------------------------------+--------------------------------------------------+------+--------+
+|                     Name                    |                       Type                       | Slot | Offset |
++---------------------------------------------+--------------------------------------------------+------+--------+
+|        VotingPower.totalECOxSnapshot        |                     uint256                      |  0   |   0    |
+|       VotingPower.excludedVotingPower       |                     uint256                      |  1   |   0    |
+|               Pausable._paused              |                       bool                       |  2   |   0    |
+|          CommunityGovernance.pauser         |                     address                      |  2   |   1    |
+|        CommunityGovernance.proposals        | mapping(address => CommunityGovernance.PropData) |  3   |   0    |
+|        CommunityGovernance.cycleCount       |                     uint256                      |  4   |   0    |
+|        CommunityGovernance.cycleStart       |                     uint256                      |  5   |   0    |
+|          CommunityGovernance.stage          |            CommunityGovernance.Stage             |  6   |   0    |
+|     CommunityGovernance.currentStageEnd     |                     uint256                      |  7   |   0    |
+|      CommunityGovernance.snapshotBlock      |                     uint256                      |  8   |   0    |
+|       CommunityGovernance.proposalFee       |                     uint256                      |  9   |   0    |
+|        CommunityGovernance.feeRefund        |                     uint256                      |  10  |   0    |
+| CommunityGovernance.supportThresholdPercent |                     uint256                      |  11  |   0    |
+|   CommunityGovernance.voteThresholdPercent  |                     uint256                      |  12  |   0    |
+|  CommunityGovernance.cycleTotalVotingPower  |                     uint256                      |  13  |   0    |
+|     CommunityGovernance.selectedProposal    |                     address                      |  14  |   0    |
+|     CommunityGovernance.totalEnactVotes     |                     uint256                      |  15  |   0    |
+|     CommunityGovernance.totalRejectVotes    |                     uint256                      |  16  |   0    |
+|    CommunityGovernance.totalAbstainVotes    |                     uint256                      |  17  |   0    |
+|           CommunityGovernance.pot           |                     uint256                      |  18  |   0    |
++---------------------------------------------+--------------------------------------------------+------+--------+
 
 ECOxStaking:
 +-----------------------------------------------+--------------------------------------------------+------+--------+
@@ -130,37 +148,6 @@ ECOxStaking:
 |          VoteCheckpoints.checkpoints          | mapping(address => VoteCheckpoints.Checkpoint[]) |  11  |   0    |
 |    VoteCheckpoints._totalSupplyCheckpoints    |           VoteCheckpoints.Checkpoint[]           |  12  |   0    |
 +-----------------------------------------------+--------------------------------------------------+------+--------+
-
-PolicyProposals:
-+--------------------------------------+-----------------------------------------------+------+--------+
-|                 Name                 |                      Type                     | Slot | Offset |
-+--------------------------------------+-----------------------------------------------+------+--------+
-|    VotingPower.totalECOxSnapshot     |                    uint256                    |  0   |   0    |
-|   VotingPower.excludedVotingPower    |                    uint256                    |  1   |   0    |
-|      PolicyProposals.proposals       | mapping(Proposal => PolicyProposals.PropData) |  2   |   0    |
-|    PolicyProposals.totalProposals    |                    uint256                    |  3   |   0    |
-|   PolicyProposals.proposalSelected   |                      bool                     |  4   |   0    |
-| PolicyProposals.proposalToConfigure  |                    Proposal                   |  4   |   1    |
-| PolicyProposals.totalVotingThreshold |                    uint256                    |  5   |   0    |
-|     PolicyProposals.proposalEnds     |                    uint256                    |  6   |   0    |
-|     PolicyProposals.blockNumber      |                    uint256                    |  7   |   0    |
-|   PolicyProposals.policyVotesImpl    |                  PolicyVotes                  |  8   |   0    |
-+--------------------------------------+-----------------------------------------------+------+--------+
-
-PolicyVotes:
-+---------------------------------+---------------------------------------------+------+--------+
-|               Name              |                     Type                    | Slot | Offset |
-+---------------------------------+---------------------------------------------+------+--------+
-|  VotingPower.totalECOxSnapshot  |                   uint256                   |  0   |   0    |
-| VotingPower.excludedVotingPower |                   uint256                   |  1   |   0    |
-|       PolicyVotes.proposal      |                   Proposal                  |  2   |   0    |
-|       PolicyVotes.proposer      |                   address                   |  3   |   0    |
-|     PolicyVotes.votePartials    | mapping(address => PolicyVotes.VotePartial) |  4   |   0    |
-|      PolicyVotes.totalStake     |                   uint256                   |  5   |   0    |
-|       PolicyVotes.yesStake      |                   uint256                   |  6   |   0    |
-|       PolicyVotes.voteEnds      |                   uint256                   |  7   |   0    |
-|     PolicyVotes.blockNumber     |                   uint256                   |  8   |   0    |
-+---------------------------------+---------------------------------------------+------+--------+
 
 Lockups:
 +------------------------------------+------------------------------------+------+--------+
@@ -311,4 +298,4 @@ StringPacker:
 +------+------+------+--------+
 +------+------+------+--------+
 
-INFO:Slither:. analyzed (56 contracts)
+INFO:Slither:. analyzed (54 contracts)
