@@ -31,9 +31,9 @@ import {
 import { Signer } from 'ethers'
 import { DAY } from '../test/utils/constants'
 
-const TRUSTEE_TERM = 365 * DAY
-const VOTE_REWARD = 1000 // TODO: MAKE REAL
-const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
+const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
+const DEFAULT_VOTE_REWARD = 1000
+const DEFAULT_LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
 export type BaseAddresses = {
   policy: string
@@ -147,7 +147,8 @@ export async function deployCommunity(
   wallet: Signer,
   base: BaseContracts,
   pauser: string,
-  verbose = false
+  verbose = false,
+  config: any
 ): Promise<CommunityGovernanceContracts> {
   if (verbose) {
     console.log('deploying communityGovernance')
@@ -173,7 +174,8 @@ export async function deployMonetary(
   wallet: Signer,
   base: BaseContracts,
   trustees: string[],
-  verbose = false
+  verbose = false,
+  config: any
 ): Promise<MonetaryGovernanceContracts> {
   if (verbose) {
     console.log('deploying lockups lever')
@@ -182,7 +184,7 @@ export async function deployMonetary(
   const lockupsContract = (await deploy(wallet, Lockups__factory, [
     base.policy.address,
     base.eco.address,
-    LOCKUP_DEPOSIT_WINDOW,
+    config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
   ])) as Lockups
 
   if (verbose) {
@@ -243,8 +245,8 @@ export async function deployMonetary(
     base.policy.address,
     governance.address,
     base.ecox.address,
-    TRUSTEE_TERM,
-    VOTE_REWARD,
+    config.trusteeTerm || DEFAULT_TRUSTEE_TERM,
+    config.voteReward || DEFAULT_VOTE_REWARD,
     trustees,
   ])) as TrustedNodes
 
@@ -267,7 +269,8 @@ export async function deployBase(
   wallet: Signer,
   pauser: string,
   initialECOxSupply: string,
-  verbose = false
+  verbose = false,
+  config: any
 ): Promise<BaseContracts> {
   if (verbose) {
     console.log('deploying policy')
@@ -323,7 +326,8 @@ export async function testnetFixture(
   pauser: string,
   initialECOSupply: string,
   initialECOxSupply: string,
-  verbose = false
+  verbose = false,
+  config: any = {}
 ): Promise<Fixture> {
   const [wallet] = await ethers.getSigners()
 
@@ -335,7 +339,8 @@ export async function testnetFixture(
     wallet,
     pauser,
     initialECOxSupply,
-    verbose
+    verbose,
+    config
   )
 
   if (verbose) {
@@ -346,7 +351,8 @@ export async function testnetFixture(
     wallet,
     base,
     trustees,
-    verbose
+    verbose,
+    config
   )
 
   if (verbose) {
@@ -357,7 +363,8 @@ export async function testnetFixture(
     wallet,
     base,
     pauser,
-    verbose
+    verbose,
+    config
   )
 
   if (verbose) {
