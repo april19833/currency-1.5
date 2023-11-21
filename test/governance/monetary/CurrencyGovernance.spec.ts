@@ -2108,7 +2108,7 @@ describe('CurrencyGovernance', () => {
         it('passes data correctly', async () => {
           await expect(CurrencyGovernance.enact(initialCycle))
             .to.emit(Enacter, 'EnactionParameterCheck')
-            .withArgs(targets, functions, calldatas)
+            .withArgs(charlieProposalId, targets, functions, calldatas)
         })
 
         it('emits result event', async () => {
