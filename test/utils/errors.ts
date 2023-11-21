@@ -33,6 +33,7 @@ export const ERRORS = {
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
     REQUIRE_NON_ZERO_ADDRESS: 'NonZeroPolicyAddr',
+    NON_ZERO_CONTRACT_ADDRESS: 'NonZeroContractAddr',
   },
   Policy: {
     ENACTION_UNSPECIFIED_REVERT: 'FailedProposal',
@@ -98,5 +99,17 @@ export const ERRORS = {
     PROPOSAL_FAILURE_STRING: "I'm an annoying error string!",
     PANIC:
       'VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)',
+  },
+  COMMUNITYGOVERNANCE: {
+    ONLY_PAUSER: 'OnlyPauser',
+    WRONG_STAGE: 'WrongStage',
+    BAD_CYCLE_START: 'BadCycleStart',
+    DUPLICATE_PROPOSAL: 'DuplicateProposal',
+    ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
+    BAD_VOTING_POWER: 'BadVotingPower',
+    NO_SUPPORT_TO_REVOKE: 'NoSupportToRevoke',
+    BAD_VOTE_TYPE: 'BadVoteType',
+    NO_REFUND_AVAILABLE: 'NoRefundAvailable',
+    NO_REFUND_DURING_CYCLE: 'NoRefundDuringCycle',
   },
 }

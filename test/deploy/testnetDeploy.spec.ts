@@ -100,7 +100,7 @@ describe('Deployment tests', () => {
     expect(await contracts.community.communityGovernance.pauser()).to.eq(
       alice.address
     )
-    expect(await contracts.community.communityGovernance.eco()).to.eq(
+    expect(await contracts.community.communityGovernance.ecoToken()).to.eq(
       contracts.base.eco.address
     )
     expect(await contracts.community.communityGovernance.ecoXStaking()).to.eq(

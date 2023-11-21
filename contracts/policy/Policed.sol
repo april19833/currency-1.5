@@ -9,27 +9,32 @@ import "./Policy.sol";
  * A policed contract is any contract managed by a policy.
  */
 abstract contract Policed is ForwardTarget {
-    /** The address of the root policy instance overseeing this instance.
-     *
-     * This address can be used for ERC1820 lookup of other components, ERC1820
-     * lookup of role policies, and interaction with the policy hierarchy.
+    /** @notice The address of the root policy instance overseeing this instance.
      */
     Policy public immutable policy;
 
-    // If the policy address is set to zero, the contract is unrecoverably ungovernable
+    /** @notice If the policy address is set to zero, the contract is unrecoverably ungovernable
+     */
     error NonZeroPolicyAddr();
 
-    // For if a non-policy address tries to access policy role gated functionality
+    /**
+     * @notice If this address is set to zero the contract is an unusable state
+     * @param contractName the name of the contract that was given as the zero address
+     */
+    error NonZeroContractAddr(string contractName);
+
+    /** @notice For if a non-policy address tries to access policy role gated functionality
+     */
     error PolicyOnlyFunction();
 
     /**
-     * emits when the policy contract is changed
+     * @notice emits when the policy contract is changed
      * @param newPolicy denotes the new policy contract address
      * @param oldPolicy denotes the old policy contract address
      */
     event NewPolicy(Policy newPolicy, Policy oldPolicy);
 
-    /** Restrict method access to the root policy instance only.
+    /** @notice Restrict method access to the root policy instance only.
      */
     modifier onlyPolicy() {
         if (msg.sender != address(policy)) {
