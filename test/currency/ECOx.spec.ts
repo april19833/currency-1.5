@@ -33,7 +33,7 @@ describe('EcoX', () => {
       policyImpersonator,
       ECOx__factory,
       ecoXDeployParams
-    )) as ECOx
+    ))[0] as ECOx
   })
 
   describe('initialization', async () => {

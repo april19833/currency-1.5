@@ -37,7 +37,9 @@ const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
 const DEFAULT_LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-const outputFolder = `deploy/deployments/${Date.now()}`
+const buildTime = Date.now()
+const outputStem = path.join(__dirname, `deployments`)
+const outputFolder = `${outputStem}/${buildTime}`
 
 export type BaseAddresses = {
   policy: string
@@ -311,11 +313,13 @@ export async function deployBase(
     await wallet.getAddress(), // sets the wallet as the governor until the linker proposal is run
   ]
 
-  const policy = (await deployProxy(
+  const policyDeploy = (await deployProxy(
     wallet,
     Policy__factory,
     policyParams
-  )) as Policy
+  ))
+
+  const policy = policyDeploy[0] as Policy
 
   if (verbose) {
     console.log('deploying eco')
@@ -323,11 +327,13 @@ export async function deployBase(
 
   const ecoParams = [policy.address, pauser]
 
-  const eco = (await deployProxy(
+  const ecoDeploy = (await deployProxy(
     wallet,
     ECO__factory,
     ecoParams,
-  )) as ECO
+  ))
+
+  const eco = ecoDeploy[0] as ECO
 
   if (verbose) {
     console.log('deploying ecox')
@@ -335,11 +341,13 @@ export async function deployBase(
 
   const ecoxParams = [policy.address, pauser]
 
-  const ecox = (await deployProxy(
+  const ecoxDeploy = (await deployProxy(
     wallet,
     ECOx__factory,
     ecoxParams
-  )) as ECOx
+  ))
+
+  const ecox = ecoxDeploy[0] as ECOx
 
   if (verbose) {
     console.log('deploying ecoXExchange')
@@ -359,11 +367,13 @@ export async function deployBase(
 
   const ecoXStakingParams = [policy.address, ecox.address]
 
-  const ecoXStaking = (await deployProxy(
+  const ecoXStakingDeploy = (await deployProxy(
     wallet,
     ECOxStaking__factory,
     ecoXStakingParams
-  )) as ECOxStaking
+  ))
+
+  const ecoXStaking = ecoXStakingDeploy[0] as ECOxStaking
 
   if(config.verify) {
     const output = {
@@ -374,6 +384,13 @@ export async function deployBase(
       ecoXStakingParams,
     }
     fs.writeFileSync(`${outputFolder}/baseDeployParams.json`, JSON.stringify(output, null, 2))
+    const outputProxyBases = {
+      policyImplementation: policyDeploy[1].address,
+      ecoImplementation: policyDeploy[1].address,
+      ecoxImplementation: policyDeploy[1].address,
+      ecoXStakingImplementation: policyDeploy[1].address,
+    }
+    fs.writeFileSync(`${outputFolder}/baseImplementationAddresses.json`, JSON.stringify(output, null, 2))
   }
 
   return new BaseContracts(policy, eco, ecox, ecoXStaking, ecoXExchange)
@@ -391,15 +408,18 @@ export async function testnetFixture(
 
   if(config.verify) {
     // create outputFolder if it doesn't exist
-    const dir = path.join(__dirname, `./${outputFolder}`)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
+    if (!fs.existsSync(outputFolder)) {
+      if (!fs.existsSync(outputStem)) {
+        fs.mkdirSync(outputStem)
+      }
+      fs.mkdirSync(outputFolder)
     }
   }
 
   const [wallet] = await ethers.getSigners()
 
   if (verbose) {
+    console.log(`building at ${buildTime}`)
     console.log('deploying base contracts')
   }
 
@@ -470,13 +490,3 @@ export async function testnetFixture(
 
   return fixture
 }
-
-// console.log('performing verification')
-
-//   if (config.verify) {
-//     await run('verify:verify', {
-//       address: policy.address,
-//       constructorArguments: policyParams,
-//       noCompile: true,
-//     })
-//   }

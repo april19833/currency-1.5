@@ -32,7 +32,7 @@ describe('Policy', () => {
   beforeEach(async () => {
     policy = (await deployProxy(alice, Policy__factory, [
       governanceImpersonator.address,
-    ])) as Policy
+    ]))[0] as Policy
   })
 
   describe('governor role', () => {

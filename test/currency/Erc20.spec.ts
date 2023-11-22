@@ -50,7 +50,7 @@ describe('Erc20', () => {
 
     const ecoDeployParams = [Fake__Policy.address, bob.address]
 
-    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams)) as ECO
+    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams))[0] as ECO
 
     // set impersonator permissions
     await ECOproxy.connect(policyImpersonator).updateRebasers(

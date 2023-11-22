@@ -26,12 +26,12 @@ export async function deployProxy<F extends ContractFactory>(
   from: Signer,
   FactoryType: { new (from: Signer): F },
   params: any[] = []
-): Promise<Contract> {
+): Promise<[Contract,Contract]> {
   const factory = new FactoryType(from)
   const base = await factory.deploy(...params)
   await base.deployed()
   const proxy = await new ForwardProxy__factory(from).deploy(base.address)
   await proxy.deployed()
 
-  return factory.attach(proxy.address)
+  return [factory.attach(proxy.address),base]
 }

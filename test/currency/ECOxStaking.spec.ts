@@ -76,7 +76,7 @@ describe('ECOxStaking', () => {
     ecoXStaking = (await deployProxy(policyImpersonater, ECOxStaking__factory, [
       Fake__Policy.address,
       ecoX.address,
-    ])) as ECOxStaking
+    ]))[0] as ECOxStaking
 
     // set approvals
     await ecoX.connect(alice).approve(ecoXStaking.address, stakeX)

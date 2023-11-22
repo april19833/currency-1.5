@@ -54,7 +54,7 @@ describe('ECO', () => {
 
     const ecoDeployParams = [Fake__Policy.address, bob.address]
 
-    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams)) as ECO
+    ECOproxy = (await deployProxy(alice, ECO__factory, ecoDeployParams))[0] as ECO
 
     // set impersonator roles
     await ECOproxy.connect(policyImpersonator).updateMinters(
