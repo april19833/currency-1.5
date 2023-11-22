@@ -9,19 +9,12 @@ import { ForwardProxy__factory } from '../typechain-types'
 export async function deploy<F extends ContractFactory>(
   from: Signer,
   FactoryType: { new (from: Signer): F },
-  params: any[] = [],
-  verify: boolean = false,
+  params: any[] = []
 ): Promise<Contract> {
   const factory = new FactoryType(from)
   const contract = await factory.deploy(...params)
-  if (verify) {
-    await contract.deployed()
-    await hre.run('verify:verify', {
-        address: contract.address,
-        constructorArguments: params,
-    })
-  }
-
+  await contract.deployed()
+  
   return contract
 }
 
@@ -32,20 +25,12 @@ export async function deploy<F extends ContractFactory>(
 export async function deployProxy<F extends ContractFactory>(
   from: Signer,
   FactoryType: { new (from: Signer): F },
-  params: any[] = [],
-  verify: boolean = false,
+  params: any[] = []
 ): Promise<Contract> {
   const factory = new FactoryType(from)
   const base = await factory.deploy(...params)
   await base.deployed()
   const proxy = await new ForwardProxy__factory(from).deploy(base.address)
-
-  if (verify) {
-    await hre.run('verify:verify', {
-        address: base.address,
-        constructorArguments: params,
-    })
-  }
 
   return factory.attach(proxy.address)
 }
