@@ -1,4 +1,3 @@
-import hre from 'hardhat'
 import { Contract, ContractFactory, Signer } from 'ethers'
 import { ForwardProxy__factory } from '../typechain-types'
 
@@ -14,7 +13,7 @@ export async function deploy<F extends ContractFactory>(
   const factory = new FactoryType(from)
   const contract = await factory.deploy(...params)
   await contract.deployed()
-  
+
   return contract
 }
 
@@ -26,12 +25,12 @@ export async function deployProxy<F extends ContractFactory>(
   from: Signer,
   FactoryType: { new (from: Signer): F },
   params: any[] = []
-): Promise<[Contract,Contract]> {
+): Promise<[Contract, Contract]> {
   const factory = new FactoryType(from)
   const base = await factory.deploy(...params)
   await base.deployed()
   const proxy = await new ForwardProxy__factory(from).deploy(base.address)
   await proxy.deployed()
 
-  return [factory.attach(proxy.address),base]
+  return [factory.attach(proxy.address), base]
 }

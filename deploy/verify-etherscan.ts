@@ -9,9 +9,9 @@ const monetaryDeployParams = require(`./deployments/${buildNumber}/monetaryDeplo
 const communityDeployParams = require(`./deployments/${buildNumber}/communityDeployParams.json`)
 
 const deployParams = {
-    ...baseDeployParams,
-    ...monetaryDeployParams,
-    ...communityDeployParams,
+  ...baseDeployParams,
+  ...monetaryDeployParams,
+  ...communityDeployParams,
 }
 
 async function main() {
@@ -21,11 +21,11 @@ async function main() {
   addresses.ecoXStaking = baseImplementationAddresses.ecoXStakingImplementation
 
   const contractNames = Object.keys(addresses)
-  
-  for(const contractName of contractNames) {
+
+  for (const contractName of contractNames) {
     await run('verify:verify', {
-        address: addresses[contractName],
-        constructorArguments: deployParams[`${contractName}Params`],
+      address: addresses[contractName],
+      constructorArguments: deployParams[`${contractName}Params`],
     })
   }
 }

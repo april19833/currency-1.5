@@ -73,10 +73,12 @@ describe('ECOxStaking', () => {
       ecoXStakingFact.deploy(Fake__Policy.address, ethers.constants.AddressZero)
     ).to.be.revertedWith(ERRORS.ECOxStaking.CONSTRUCTOR_ZERO_ECOX_ADDRESS)
 
-    ecoXStaking = (await deployProxy(policyImpersonater, ECOxStaking__factory, [
-      Fake__Policy.address,
-      ecoX.address,
-    ]))[0] as ECOxStaking
+    ecoXStaking = (
+      await deployProxy(policyImpersonater, ECOxStaking__factory, [
+        Fake__Policy.address,
+        ecoX.address,
+      ])
+    )[0] as ECOxStaking
 
     // set approvals
     await ecoX.connect(alice).approve(ecoXStaking.address, stakeX)
