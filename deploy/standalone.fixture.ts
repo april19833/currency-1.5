@@ -1,4 +1,6 @@
 import { ethers } from 'hardhat'
+import fs from 'fs'
+import path from 'path'
 import { deploy, deployProxy } from './utils'
 import {
   CommunityGovernance,
@@ -35,6 +37,8 @@ const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
 const DEFAULT_LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
+const outputFolder = `deploy/deployments/${Date.now()}`
+
 export type BaseAddresses = {
   policy: string
   eco: string
@@ -65,46 +69,34 @@ export class BaseContracts {
 
 export type MonetaryGovernanceAddresses = {
   trustedNodes: string
-  governance: string
+  monetaryGovernance: string
   adapter: string
-  lockups: {
-    lever: string
-    notifier: string
-  }
-  rebase: {
-    lever: string
-    notifier: string
-  }
+  lockupsLever: string
+  lockupsNotifier: string
+  rebaseLever: string
+  rebaseNotifier: string
 }
 
 export class MonetaryGovernanceContracts {
   constructor(
     public trustedNodes: TrustedNodes,
-    public governance: CurrencyGovernance,
+    public monetaryGovernance: CurrencyGovernance,
     public adapter: MonetaryPolicyAdapter,
-    public lockups: {
-      lever: Lockups
-      notifier: Notifier
-    },
-    public rebase: {
-      lever: Rebase
-      notifier: Notifier
-    }
+    public lockupsLever: Lockups,
+    public lockupsNotifier: Notifier,
+    public rebaseLever: Rebase,
+    public rebaseNotifier: Notifier,
   ) {}
 
   toAddresses(): MonetaryGovernanceAddresses {
     return {
       trustedNodes: this.trustedNodes.address,
-      governance: this.governance.address,
+      monetaryGovernance: this.monetaryGovernance.address,
       adapter: this.adapter.address,
-      lockups: {
-        lever: this.lockups.lever.address,
-        notifier: this.lockups.notifier.address,
-      },
-      rebase: {
-        lever: this.rebase.lever.address,
-        notifier: this.rebase.notifier.address,
-      },
+      lockupsLever: this.lockupsLever.address,
+      lockupsNotifier: this.lockupsNotifier.address,
+      rebaseLever: this.rebaseLever.address,
+      rebaseNotifier: this.rebaseNotifier.address,
     }
   }
 }
@@ -121,11 +113,10 @@ export class CommunityGovernanceContracts {
   }
 }
 
-export type FixtureAddresses = {
-  base: BaseAddresses
-  monetary: MonetaryGovernanceAddresses
-  community: CommunityGovernanceAddresses
-}
+export type FixtureAddresses = 
+  BaseAddresses &
+  MonetaryGovernanceAddresses &
+  CommunityGovernanceAddresses
 
 export class Fixture {
   constructor(
@@ -136,9 +127,9 @@ export class Fixture {
 
   toAddresses(): FixtureAddresses {
     return {
-      base: this.base.toAddresses(),
-      monetary: this.monetary.toAddresses(),
-      community: this.community.toAddresses(),
+      ...this.base.toAddresses(),
+      ...this.monetary.toAddresses(),
+      ...this.community.toAddresses(),
     }
   }
 }
@@ -154,18 +145,27 @@ export async function deployCommunity(
     console.log('deploying communityGovernance')
   }
 
-  const now = new Date()
+  const now = Date.now()
+  const communityGovernanceParams = [
+    base.policy.address,
+    base.eco.address,
+    base.ecoXStaking.address,
+    Math.floor(now / 1000),
+    pauser,
+  ]
+
   const communityGovernance = (await deploy(
     wallet,
     CommunityGovernance__factory,
-    [
-      base.policy.address,
-      base.eco.address,
-      base.ecoXStaking.address,
-      Math.floor(now.getTime() / 1000),
-      pauser,
-    ]
+    communityGovernanceParams,
   )) as CommunityGovernance
+
+  if(config.verify) {
+    const output = {
+      communityGovernanceParams
+    }
+    fs.writeFileSync(`${outputFolder}/communityDeployParams.json`, JSON.stringify(output, null, 2))
+  }
 
   return new CommunityGovernanceContracts(communityGovernance)
 }
@@ -181,87 +181,118 @@ export async function deployMonetary(
     console.log('deploying lockups lever')
   }
 
-  const lockupsContract = (await deploy(wallet, Lockups__factory, [
+  const lockupsLeverParams = [
     base.policy.address,
     base.eco.address,
     config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
-  ])) as Lockups
+  ]
+
+  const lockupsContract = (await deploy(
+    wallet,
+    Lockups__factory,
+    lockupsLeverParams,
+  )) as Lockups
 
   if (verbose) {
     console.log('deploying lockups notifier')
   }
 
-  const lockupsNotifier = (await deploy(wallet, Notifier__factory, [
-    base.policy.address,
-    lockupsContract.address,
-    [],
-    [],
-    [],
-  ])) as Notifier
+  const lockupsNotifierParams = [base.policy.address, lockupsContract.address, [], [], []]
+
+  const lockupsNotifier = (await deploy(
+    wallet,
+    Notifier__factory,
+    lockupsNotifierParams,
+  )) as Notifier
 
   if (verbose) {
     console.log('deploying rebase lever')
   }
 
-  const rebaseContract = (await deploy(wallet, Rebase__factory, [
-    base.policy.address,
-    base.eco.address,
-  ])) as Rebase
+  const rebaseLeverParams = [base.policy.address, base.eco.address]
+
+  const rebaseContract = (await deploy(
+    wallet,
+    Rebase__factory,
+    rebaseLeverParams,
+  )) as Rebase
 
   if (verbose) {
     console.log('deploying rebase notifier')
   }
 
-  const rebaseNotifier = (await deploy(wallet, Notifier__factory, [
-    base.policy.address,
-    rebaseContract.address,
-    [],
-    [],
-    [],
-  ])) as Notifier
+  const rebaseNotifierParams = [base.policy.address, rebaseContract.address, [], [], []]
+
+  const rebaseNotifier = (await deploy(
+    wallet,
+    Notifier__factory,
+    rebaseNotifierParams,
+  )) as Notifier
 
   if (verbose) {
     console.log('deploying adapter')
   }
 
-  const adapter = (await deploy(wallet, MonetaryPolicyAdapter__factory, [
-    base.policy.address,
-  ])) as MonetaryPolicyAdapter
+  const adapterParams = [base.policy.address]
+
+  const adapter = (await deploy(
+    wallet,
+    MonetaryPolicyAdapter__factory,
+    adapterParams
+  )) as MonetaryPolicyAdapter
 
   if (verbose) {
     console.log('deploying currencyGovernance')
   }
 
-  const governance = (await deploy(wallet, CurrencyGovernance__factory, [
-    base.policy.address,
-    adapter.address,
-  ])) as CurrencyGovernance
+  const monetaryGovernanceParams = [base.policy.address, adapter.address]
+
+  const monetaryGovernance = (await deploy(
+    wallet,
+    CurrencyGovernance__factory,
+    monetaryGovernanceParams
+  )) as CurrencyGovernance
 
   if (verbose) {
     console.log('deploying trustedNodes')
   }
 
-  const trustedNodes = (await deploy(wallet, TrustedNodes__factory, [
+  const trustedNodesParams = [
     base.policy.address,
-    governance.address,
+    monetaryGovernance.address,
     base.ecox.address,
     config.trusteeTerm || DEFAULT_TRUSTEE_TERM,
     config.voteReward || DEFAULT_VOTE_REWARD,
     trustees,
-  ])) as TrustedNodes
+  ]
+
+  const trustedNodes = (await deploy(
+    wallet,
+    TrustedNodes__factory,
+    trustedNodesParams,
+  )) as TrustedNodes
+
+  if(config.verify) {
+    const output = {
+      lockupsLeverParams,
+      lockupsNotifierParams,
+      rebaseLeverParams,
+      rebaseNotifierParams,
+      adapterParams,
+      monetaryGovernanceParams,
+      trustedNodesParams
+    }
+    fs.writeFileSync(`${outputFolder}/monetaryDeployParams.json`, JSON.stringify(output, null, 2))
+  }
 
   return new MonetaryGovernanceContracts(
     trustedNodes,
-    governance,
+    monetaryGovernance,
     adapter,
-    {
-      lever: lockupsContract,
-      notifier: lockupsNotifier,
-    },
-    {
-      lever: rebaseContract,
-      notifier: rebaseNotifier,
-    }
+    lockupsContract,
+    lockupsNotifier,
+    rebaseContract,
+    rebaseNotifier,
   )
 }
 
@@ -276,47 +307,74 @@ export async function deployBase(
     console.log('deploying policy')
   }
 
-  const policy = (await deployProxy(wallet, Policy__factory, [
+  const policyParams = [
     await wallet.getAddress(), // sets the wallet as the governor until the linker proposal is run
-  ])) as Policy
+  ]
+
+  const policy = (await deployProxy(
+    wallet,
+    Policy__factory,
+    policyParams
+  )) as Policy
 
   if (verbose) {
     console.log('deploying eco')
   }
 
-  const eco = (await deployProxy(wallet, ECO__factory, [
-    policy.address,
-    pauser,
-  ])) as ECO
+  const ecoParams = [policy.address, pauser]
+
+  const eco = (await deployProxy(
+    wallet,
+    ECO__factory,
+    ecoParams,
+  )) as ECO
 
   if (verbose) {
     console.log('deploying ecox')
   }
 
-  const ecox = (await deployProxy(wallet, ECOx__factory, [
-    policy.address,
-    pauser,
-  ])) as ECOx
+  const ecoxParams = [policy.address, pauser]
+
+  const ecox = (await deployProxy(
+    wallet,
+    ECOx__factory,
+    ecoxParams
+  )) as ECOx
 
   if (verbose) {
     console.log('deploying ecoXExchange')
   }
 
-  const ecoXExchange = (await deploy(wallet, ECOxExchange__factory, [
-    policy.address,
-    ecox.address,
-    eco.address,
-    initialECOxSupply,
-  ])) as ECOxExchange
+  const ecoXExchangeParams = [policy.address, ecox.address, eco.address, initialECOxSupply]
+
+  const ecoXExchange = (await deploy(
+    wallet,
+    ECOxExchange__factory,
+    ecoXExchangeParams
+  )) as ECOxExchange
 
   if (verbose) {
     console.log('deploying ecoXStaking')
   }
 
-  const ecoXStaking = (await deployProxy(wallet, ECOxStaking__factory, [
-    policy.address,
-    ecox.address,
-  ])) as ECOxStaking
+  const ecoXStakingParams = [policy.address, ecox.address]
+
+  const ecoXStaking = (await deployProxy(
+    wallet,
+    ECOxStaking__factory,
+    ecoXStakingParams
+  )) as ECOxStaking
+
+  if(config.verify) {
+    const output = {
+      policyParams,
+      ecoParams,
+      ecoxParams,
+      ecoXExchangeParams,
+      ecoXStakingParams,
+    }
+    fs.writeFileSync(`${outputFolder}/baseDeployParams.json`, JSON.stringify(output, null, 2))
+  }
 
   return new BaseContracts(policy, eco, ecox, ecoXStaking, ecoXExchange)
 }
@@ -329,6 +387,16 @@ export async function testnetFixture(
   verbose = false,
   config: any = {}
 ): Promise<Fixture> {
+  config.verify = config.verify || false
+
+  if(config.verify) {
+    // create outputFolder if it doesn't exist
+    const dir = path.join(__dirname, `./${outputFolder}`)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir)
+    }
+  }
+
   const [wallet] = await ethers.getSigners()
 
   if (verbose) {
@@ -376,8 +444,8 @@ export async function testnetFixture(
   const linker = (await deploy(wallet, TestnetLinker__factory, [
     community.communityGovernance.address,
     base.ecoXExchange.address,
-    monetary.lockups.notifier.address,
-    monetary.rebase.notifier.address,
+    monetary.lockupsNotifier.address,
+    monetary.rebaseNotifier.address,
     monetary.trustedNodes.address,
     initialECOSupply,
   ])) as TestnetLinker
@@ -394,5 +462,21 @@ export async function testnetFixture(
     console.log('success!')
   }
 
-  return new Fixture(base, monetary, community)
+  const fixture = new Fixture(base, monetary, community)
+
+  if(config.verify) {
+    fs.writeFileSync(`${outputFolder}/addresses.json`, JSON.stringify(fixture.toAddresses(), null, 2))
+  }
+
+  return fixture
 }
+
+// console.log('performing verification')
+
+//   if (config.verify) {
+//     await run('verify:verify', {
+//       address: policy.address,
+//       constructorArguments: policyParams,
+//       noCompile: true,
+//     })
+//   }
