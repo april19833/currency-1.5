@@ -7,7 +7,7 @@ import { DAY } from '../utils/constants'
 const INITIAL_ECO = ethers.constants.WeiPerEther.mul(10000).toString()
 const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(1000).toString()
 
-const TRUSTEE_TERM = 365 * DAY
+const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
