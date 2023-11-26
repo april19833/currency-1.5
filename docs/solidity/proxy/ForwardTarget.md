@@ -33,15 +33,11 @@ done in the constructor of the proxied contract.
 Implementations of ForwardTarget should override this function,
 and chain to super.initialize(_self).
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _self
-    |
-    address
-    |
-    The address of the original contract instance (the one being              forwarded to).
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _self | address | The address of the original contract instance (the one being              forwarded to). |
 
 ### implementation
 

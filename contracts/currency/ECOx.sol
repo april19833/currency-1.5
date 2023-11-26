@@ -6,7 +6,8 @@ import "../policy/Policed.sol";
 import "./ERC20Pausable.sol";
 import "./ERC20MintAndBurn.sol";
 
-/** @title An ERC20 token interface for ECOx
+/**
+ * @title An ERC20 token interface for ECOx
  *
  */
 contract ECOx is ERC20MintAndBurn {
@@ -39,19 +40,25 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * emits when the ECOxExchange address is changed
+     * @dev emits when the ECOxExchange address is changed
      * @param _old old holder of role
      * @param _new new holder of role
      */
     event UpdatedECOxExchange(address _old, address _new);
 
+    /**
+     * @dev Constructor
+     * @param _policy The policy contract that oversees other contracts
+     * @param _pauser The address of the Pauser
+     */
     constructor(
         Policy _policy,
         address _pauser
     ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {}
 
     /**
-     * unlikely this will need to be used again since the proxy has already been initialized.
+     * @dev unlikely this will need to be used again since the proxy has already been initialized.
+     * @param _self the address to initialize
      */
     function initialize(
         address _self

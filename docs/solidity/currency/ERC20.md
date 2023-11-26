@@ -4,7 +4,7 @@ Copyright (c) 2023 Eco Association
 
 ## ERC20
 
-  _Implementation of the {IERC20} interface.
+_Implementation of the {IERC20} interface.
 
 This comment taken from the openzeppelin source contract.
 
@@ -60,7 +60,7 @@ allowances. See {IERC20-approve}._
   event Transfer(address from, address to, uint256 value)
   ```
 
-  _Emitted when `value` tokens are moved from one account (`from`) to
+_Emitted when `value` tokens are moved from one account (`from`) to
 another (`to`).
 
 Note that `value` may be zero._
@@ -71,7 +71,7 @@ Note that `value` may be zero._
   event Approval(address owner, address spender, uint256 value)
   ```
 
-  _Emitted when the allowance of a `spender` for an `owner` is set by
+_Emitted when the allowance of a `spender` for an `owner` is set by
 a call to {approve}. `value` is the new allowance._
 
 ### constructor
@@ -80,7 +80,7 @@ a call to {approve}. `value` is the new allowance._
   constructor(string name_, string symbol_) public
   ```
 
-  _Sets the values for {name} and {symbol}.
+_Sets the values for {name} and {symbol}.
 
 The default value of {decimals} is 18. To select a different value for
 {decimals} you should overload it.
@@ -94,7 +94,7 @@ construction._
   function name() public view virtual returns (string)
   ```
 
-  _Returns the name of the token._
+_Returns the name of the token._
 
 ### symbol
 
@@ -102,7 +102,7 @@ construction._
   function symbol() public view virtual returns (string)
   ```
 
-  _Returns the symbol of the token, usually a shorter version of the
+_Returns the symbol of the token, usually a shorter version of the
 name._
 
 ### decimals
@@ -111,7 +111,7 @@ name._
   function decimals() public view virtual returns (uint8)
   ```
 
-  _Returns the number of decimals used to get its user representation.
+_Returns the number of decimals used to get its user representation.
 For example, if `decimals` equals `2`, a balance of `505` tokens should
 be displayed to a user as `5.05` (`505 / 10 ** 2`).
 
@@ -129,7 +129,7 @@ no way affects any of the arithmetic of the contract, including
   function totalSupply() public view virtual returns (uint256)
   ```
 
-  _See {IERC20-totalSupply}._
+_See {IERC20-totalSupply}._
 
 ### balanceOf
 
@@ -137,7 +137,7 @@ no way affects any of the arithmetic of the contract, including
   function balanceOf(address account) public view virtual returns (uint256)
   ```
 
-  _See {IERC20-balanceOf}._
+_See {IERC20-balanceOf}._
 
 ### transfer
 
@@ -145,7 +145,7 @@ no way affects any of the arithmetic of the contract, including
   function transfer(address recipient, uint256 amount) public virtual returns (bool)
   ```
 
-  _See {IERC20-transfer}.
+_See {IERC20-transfer}.
 
 Requirements:
 
@@ -158,7 +158,7 @@ Requirements:
   function allowance(address owner, address spender) public view virtual returns (uint256)
   ```
 
-  _See {IERC20-allowance}._
+_See {IERC20-allowance}._
 
 ### approve
 
@@ -166,7 +166,7 @@ Requirements:
   function approve(address spender, uint256 amount) public virtual returns (bool)
   ```
 
-  _See {IERC20-approve}.
+_See {IERC20-approve}.
 
 Requirements:
 
@@ -178,7 +178,7 @@ Requirements:
   function transferFrom(address sender, address recipient, uint256 amount) public virtual returns (bool)
   ```
 
-  _See {IERC20-transferFrom}.
+_See {IERC20-transferFrom}.
 
 Emits an {Approval} event indicating the updated allowance. This is not
 required by the EIP. See the note at the beginning of {ERC20}.
@@ -196,7 +196,7 @@ Requirements:
   function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool)
   ```
 
-  _Atomically increases the allowance granted to `spender` by the caller.
+_Atomically increases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -213,7 +213,7 @@ Requirements:
   function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool)
   ```
 
-  _Atomically decreases the allowance granted to `spender` by the caller.
+_Atomically decreases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -232,7 +232,7 @@ Requirements:
   function _transfer(address sender, address recipient, uint256 originalAmount) internal virtual
   ```
 
-  _Moves `amount` of tokens from `sender` to `recipient`.
+_Moves `amount` of tokens from `sender` to `recipient`.
 
 This internal function is equivalent to {transfer}, and can be used to
 e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -251,7 +251,7 @@ Requirements:
   function _mint(address account, uint256 originalAmount) internal virtual returns (uint256)
   ```
 
-  _Creates `amount` tokens and assigns them to `account`, increasing
+_Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
 
 Emits a {Transfer} event with `from` set to the zero address.
@@ -266,7 +266,7 @@ Requirements:
   function _burn(address account, uint256 originalAmount) internal virtual returns (uint256)
   ```
 
-  _Destroys `amount` tokens from `account`, reducing the
+_Destroys `amount` tokens from `account`, reducing the
 total supply.
 
 Emits a {Transfer} event with `to` set to the zero address.
@@ -282,7 +282,7 @@ Requirements:
   function _approve(address owner, address spender, uint256 amount) internal virtual
   ```
 
-  _Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
 This internal function is equivalent to `approve`, and can be used to
 e.g. set automatic allowances for certain subsystems, etc.
@@ -300,7 +300,7 @@ Requirements:
   function _beforeTokenTransfer(address, address, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Hook that is called before any transfer of tokens. This includes
+_Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
@@ -319,7 +319,7 @@ To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hook
   function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
   ```
 
-  _Hook that is called after any transfer of tokens. This includes
+_Hook that is called after any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:

@@ -47,13 +47,9 @@ This will be called from the root policy contract using delegatecall,
 with the direct proposal address passed in as _self so that storage
 data can be accessed if needed.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _self
-    |
-    address
-    |
-    The address of the proposal contract.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _self | address | The address of the proposal contract. |
 

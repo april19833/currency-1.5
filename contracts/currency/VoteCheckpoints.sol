@@ -13,12 +13,12 @@ import "./DelegatePermit.sol";
  * by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Voting
  * power can be queried through the public accessors {getVotingGons} and {getPastVotingGons}.
  *
- * By default, token balance does not account for voting power. This makes transfers cheaper. The downside is that it
+ * By default, token balance does not account for voting power. This makes transfers cheaper. the downside is that it
  * requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
  * Enabling self-delegation can easily be done by overriding the {delegates} function. Keep in mind however that this
  * will significantly increase the base gas cost of transfers.
  *
- * _Available since v4.2._
+ * Available since v4.2.
  */
 abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     // structure for saving past voting balances, accounting for delegation
@@ -33,10 +33,11 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     // a mapping that aggregates the total delegated amounts in the mapping above
     mapping(address => uint256) internal _delegatedTotals;
 
-    /** a mapping that tracks the primaryDelegates of each user
+    /**
+     * @dev a mapping that tracks the primaryDelegates of each user
      *
      * Primary delegates can only be chosen using delegate() which sends the full balance
-     * The exist to maintain the functionality that recieving tokens gives those votes to the delegate
+     * the exist to maintain the functionality that recieving tokens gives those votes to the delegate
      */
     mapping(address => address) internal _primaryDelegates;
 
@@ -54,6 +55,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Emitted when a delegatee is delegated new votes.
+     * @param delegator the delegators address
+     * @param delegatee the delegatee address
+     * @param amount the amount delegated
      */
     event DelegatedVotes(
         address indexed delegator,
@@ -63,11 +67,15 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Emitted when a token transfer or delegate change results in changes to an account's voting power.
+     * @param voter the address of the voter
+     * @param newVotes the new votes amount
      */
     event UpdatedVotes(address indexed voter, uint256 newVotes);
 
     /**
      * @dev Emitted when an account denotes a primary delegate.
+     * @param delegator the delegator address
+     * @param primaryDelegate the primary delegates address
      */
     event NewPrimaryDelegate(
         address indexed delegator,
@@ -91,14 +99,15 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
         return getPastTotalSupply(_blockNumber);
     }
 
-    /** Return historical voting balance (includes delegation) at given block number.
+    /**
+     * @dev Return historical voting balance (includes delegation) at given block number.
      *
      * If the latest block number for the account is before the requested
      * block then the most recent known balance is returned. Otherwise the
      * exact block number requested is returned.
      *
-     * @param _owner The account to check the balance of.
-     * @param _blockNumber The block number to check the balance at the start
+     * @param _owner the account to check the balance of.
+     * @param _blockNumber the block number to check the balance at the start
      *                        of. Must be less than or equal to the present
      *                        block number.
      */
@@ -111,6 +120,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Get number of checkpoints for `account`.
+     * @param account the address of the account
+     * @return number of checkppints for the account
      */
     function numCheckpoints(
         address account
@@ -169,7 +180,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
-     * The primary delegate is the one that is delegated any new funds the address recieves.
+     * the primary delegate is the one that is delegated any new funds the address recieves.
      */
     function getPrimaryDelegate(
         address account
@@ -179,7 +190,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * sets the primaryDelegate and emits an event to track it
+     * @dev sets the primaryDelegate and emits an event to track it
      */
     function _setPrimaryDelegate(
         address delegator,
@@ -195,6 +206,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Gets the current votes balance in gons for `account`
+     * @param account the address of the account
+     * @return the curren votes balance in gons for the acccount
      */
     function getVotingGons(address account) public view returns (uint256) {
         Checkpoint[] memory accountCheckpoints = checkpoints[account];
@@ -208,6 +221,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * Requirements:
      *
      * - `blockNumber` must have been already mined
+     * @param account the address of the account to get the votes for
+     * @param blockNumber the blockNumber to get the votes for
+     * @return the number of votes in gons for the account and block number
      */
     function getPastVotingGons(
         address account,
@@ -227,6 +243,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * Requirements:
      *
      * - `blockNumber` must have been already mined
+     * @param blockNumber the block number to get the past total supply
+     * @return the totalSupply at the end of blockNumber calculated by summing all balances.
      */
     function getPastTotalSupply(
         uint256 blockNumber
@@ -281,6 +299,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * @dev Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "Must have an undelegated amount available to cover delegation" if you do
+     * @param delegatee the address of the delegatee
      */
     function delegate(address delegatee) public {
         require(
@@ -306,6 +325,12 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * @dev Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "Must have an undelegated amount available to cover delegation" if you do
+     * @param delegator The address delegating
+     * @param delegatee The address being delegated to
+     * @param deadline The deadling of the delegation after which it will be invalid
+     * @param v The v part of the signature
+     * @param r The r part of the signature
+     * @param s The s part of the signature
      */
     function delegateBySig(
         address delegator,
@@ -334,6 +359,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Delegate an `amount` of votes from the sender to `delegatee`.
+     * @param delegatee The address being delegated to
+     * @param amount The amount of votes
      */
     function delegateAmount(address delegatee, uint256 amount) public {
         require(delegatee != msg.sender, "Do not delegate to yourself");
@@ -383,6 +410,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Undelegate votes from the `delegatee` back to the sender.
+     * @param delegatee the delegatee address
      */
     function undelegateFromAddress(address delegatee) public {
         _undelegateFromAddress(msg.sender, delegatee);
@@ -404,6 +432,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * @dev Undelegate a specific amount of votes from the `delegatee` back to the sender.
+     * @param delegatee The address being delegated to
+     * @param amount The amount of votes
      */
     function undelegateAmountFromAddress(
         address delegatee,

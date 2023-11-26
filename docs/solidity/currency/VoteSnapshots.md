@@ -4,7 +4,7 @@ Copyright (c) 2023 Eco Association
 
 ## VoteSnapshots
 
-  _Extension of ERC20Delegated to support snapshotting.
+_Extension of ERC20Delegated to support snapshotting.
 
 This extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken.
 Only addresses that have opted into voting are snapshotted._
@@ -30,17 +30,13 @@ struct Snapshot {
   event NewSnapshotBlock(uint256 block)
   ```
 
-  _Emitted by {_snapshot} when a new snapshot is created._
+_Emitted by {_snapshot} when a new snapshot is created._
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    block
-    |
-    uint256
-    |
-    the new value of currentSnapshotBlock
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| block | uint256 | the new value of currentSnapshotBlock |
 
 ### constructor
 
@@ -67,15 +63,11 @@ done in the constructor of the proxied contract.
 Implementations of ForwardTarget should override this function,
 and chain to super.initialize(_self).
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _self
-    |
-    address
-    |
-    The address of the original contract instance (the one being              forwarded to).
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _self | address | The address of the original contract instance (the one being              forwarded to). |
 
 ### voteBalanceSnapshot
 
@@ -83,17 +75,13 @@ and chain to super.initialize(_self).
   function voteBalanceSnapshot(address account) public view virtual returns (uint256)
   ```
 
-  _Retrieve the balance for the snapshot_
+_Retrieve the balance for the snapshot_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    account
-    |
-    address
-    |
-    the address to check vote balances for
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address to check vote balances for |
 
 ### totalSupplySnapshot
 
@@ -101,7 +89,7 @@ and chain to super.initialize(_self).
   function totalSupplySnapshot() public view virtual returns (uint256)
   ```
 
-  _Retrieve the `totalSupply` for the snapshot_
+_Retrieve the `totalSupply` for the snapshot_
 
 ### _snapshot
 
@@ -109,7 +97,7 @@ and chain to super.initialize(_self).
   function _snapshot() internal virtual returns (uint256)
   ```
 
-  _Creates a new snapshot and returns its snapshot id.
+_Creates a new snapshot and returns its snapshot id.
 
 Emits a {NewSnapshotBlock} event that contains the same id._
 

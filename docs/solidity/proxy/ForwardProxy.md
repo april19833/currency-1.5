@@ -14,15 +14,11 @@ Copyright (c) 2023 Eco Association
 
 Construct a new proxy.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _impl
-    |
-    contract ForwardTarget
-    |
-    The default target address.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _impl | contract ForwardTarget | The default target address. |
 
 ### fallback
 

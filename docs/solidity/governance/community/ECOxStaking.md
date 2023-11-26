@@ -33,22 +33,12 @@ Copyright (c) 2023 Eco Association
 The Deposit event indicates that ECOx has been locked up, credited
 to a particular address in a particular amount.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    source
-    |
-    address
-    |
-    The address that a deposit certificate has been issued to.
-    |
-    |
-    amount
-    |
-    uint256
-    |
-    The amount of ECOx tokens deposited.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| source | address | The address that a deposit certificate has been issued to. |
+| amount | uint256 | The amount of ECOx tokens deposited. |
 
 ### Withdrawal
 
@@ -59,22 +49,12 @@ to a particular address in a particular amount.
 The Withdrawal event indicates that a withdrawal has been made to a particular
 address in a particular amount.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    destination
-    |
-    address
-    |
-    The address that has made a withdrawal.
-    |
-    |
-    amount
-    |
-    uint256
-    |
-    The amount in basic unit of 10^{-18} ECOx (weicoX) tokens withdrawn.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| destination | address | The address that has made a withdrawal. |
+| amount | uint256 | The amount in basic unit of 10^{-18} ECOx (weicoX) tokens withdrawn. |
 
 ### constructor
 

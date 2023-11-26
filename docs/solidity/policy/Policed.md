@@ -32,15 +32,11 @@ If the policy address is set to zero, the contract is unrecoverably ungovernable
 
 If this address is set to zero the contract is an unusable state
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    contractName
-    |
-    string
-    |
-    the name of the contract that was given as the zero address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| contractName | string | the name of the contract that was given as the zero address |
 
 ### PolicyOnlyFunction
 
@@ -58,22 +54,12 @@ For if a non-policy address tries to access policy role gated functionality
 
 emits when the policy contract is changed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    newPolicy
-    |
-    contract Policy
-    |
-    denotes the new policy contract address
-    |
-    |
-    oldPolicy
-    |
-    contract Policy
-    |
-    denotes the old policy contract address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newPolicy | contract Policy | denotes the new policy contract address |
+| oldPolicy | contract Policy | denotes the old policy contract address |
 
 ### onlyPolicy
 
@@ -91,13 +77,9 @@ Restrict method access to the root policy instance only.
 
 constructor
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _policy
-    |
-    contract Policy
-    |
-    the address of the owning policy contract
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _policy | contract Policy | the address of the owning policy contract |
 

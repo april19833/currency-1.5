@@ -4,7 +4,7 @@ Copyright (c) 2023 Eco Association
 
 ## ERC20Pausable
 
-  _Implementation of the {IERC20} interface with pausability
+_Implementation of the {IERC20} interface with pausability
 When paused by the pauser admin, transfers revert._
 
 ### roleAdmin
@@ -27,15 +27,11 @@ When paused by the pauser admin, transfers revert._
 
 event indicating the pauser was updated
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    pauser
-    |
-    address
-    |
-    The new pauser
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| pauser | address | The new pauser |
 
 ### constructor
 
@@ -61,7 +57,7 @@ event indicating the pauser was updated
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Hook that is called before any transfer of tokens. This includes
+_Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 If the token is not paused, it will pass through the amount_
@@ -74,7 +70,7 @@ If the token is not paused, it will pass through the amount_
 
 pauses transfers of this token
 
-  _only callable by the pauser_
+_only callable by the pauser_
 
 ### unpause
 
@@ -84,7 +80,7 @@ pauses transfers of this token
 
 unpauses transfers of this token
 
-  _only callable by the pauser_
+_only callable by the pauser_
 
 ### setPauser
 
@@ -94,15 +90,11 @@ unpauses transfers of this token
 
 set the given address as the pauser
 
-  _only the roleAdmin can call this function_
+_only the roleAdmin can call this function_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _pauser
-    |
-    address
-    |
-    The address that can pause this token
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _pauser | address | The address that can pause this token |
 

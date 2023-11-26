@@ -5,7 +5,8 @@ import "../../currency/VoteCheckpoints.sol";
 import "../../currency/ECOx.sol";
 import "../../policy/Policed.sol";
 
-/** @title ECOxStaking
+/**
+ * @title ECOxStaking
  *
  */
 contract ECOxStaking is VoteCheckpoints, Policed {
@@ -18,7 +19,8 @@ contract ECOxStaking is VoteCheckpoints, Policed {
     // error for if any transfer function is attempted to be used
     error NonTransferrable();
 
-    /** The Deposit event indicates that ECOx has been locked up, credited
+    /**
+     * @dev The Deposit event indicates that ECOx has been locked up, credited
      * to a particular address in a particular amount.
      *
      * @param source The address that a deposit certificate has been issued to.
@@ -26,7 +28,8 @@ contract ECOxStaking is VoteCheckpoints, Policed {
      */
     event Deposit(address indexed source, uint256 amount);
 
-    /** The Withdrawal event indicates that a withdrawal has been made to a particular
+    /**
+     * @dev The Withdrawal event indicates that a withdrawal has been made to a particular
      * address in a particular amount.
      *
      * @param destination The address that has made a withdrawal.

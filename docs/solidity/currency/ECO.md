@@ -12,7 +12,7 @@ Copyright (c) 2023 Eco Association
   mapping(address => bool) rebasers
   ```
 
-  _Mapping storing contracts able to rebase the token_
+_Mapping storing contracts able to rebase the token_
 
 ### snapshotters
 
@@ -20,7 +20,7 @@ Copyright (c) 2023 Eco Association
   mapping(address => bool) snapshotters
   ```
 
-  _Mapping storing contracts able to rebase the token_
+_Mapping storing contracts able to rebase the token_
 
 ### OnlyRebasers
 
@@ -28,7 +28,7 @@ Copyright (c) 2023 Eco Association
   error OnlyRebasers()
   ```
 
-error for when an address tries to rebase without permission
+_error for when an address tries to rebase without permission_
 
 ### OnlySnapshotters
 
@@ -36,7 +36,7 @@ error for when an address tries to rebase without permission
   error OnlySnapshotters()
   ```
 
-error for when an address tries to snapshot without permission
+_error for when an address tries to snapshot without permission_
 
 ### UpdatedRebasers
 
@@ -44,24 +44,14 @@ error for when an address tries to snapshot without permission
   event UpdatedRebasers(address actor, bool newPermission)
   ```
 
-emits when the rebasers permissions are changed
+_emits when the rebasers permissions are changed_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    actor
-    |
-    address
-    |
-    denotes the new address whose permissions are being updated
-    |
-    |
-    newPermission
-    |
-    bool
-    |
-    denotes the new ability of the actor address (true for can rebase, false for cannot)
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| actor | address | denotes the new address whose permissions are being updated |
+| newPermission | bool | denotes the new ability of the actor address (true for can rebase, false for cannot) |
 
 ### UpdatedSnapshotters
 
@@ -69,24 +59,14 @@ emits when the rebasers permissions are changed
   event UpdatedSnapshotters(address actor, bool newPermission)
   ```
 
-emits when the snapshotters permissions are changed
+_emits when the snapshotters permissions are changed_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    actor
-    |
-    address
-    |
-    denotes the new address whose permissions are being updated
-    |
-    |
-    newPermission
-    |
-    bool
-    |
-    denotes the new ability of the actor address (true for can snapshot, false for cannot)
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| actor | address | denotes the new address whose permissions are being updated |
+| newPermission | bool | denotes the new ability of the actor address (true for can snapshot, false for cannot) |
 
 ### onlyRebaserRole
 
@@ -94,7 +74,7 @@ emits when the snapshotters permissions are changed
   modifier onlyRebaserRole()
   ```
 
-  _Modifier for checking if the sender is a rebaser_
+_Modifier for checking if the sender is a rebaser_
 
 ### onlySnapshotterRole
 
@@ -102,7 +82,7 @@ emits when the snapshotters permissions are changed
   modifier onlySnapshotterRole()
   ```
 
-  _Modifier for checking if the sender is a snapshotter_
+_Modifier for checking if the sender is a snapshotter_
 
 ### constructor
 
@@ -116,24 +96,13 @@ emits when the snapshotters permissions are changed
   function initialize(address _self) public virtual
   ```
 
-Storage initialization of cloned contract
+_Initialize_
 
-This is used to initialize the storage of the forwarded contract, and
-should (typically) copy or repeat any work that would normally be
-done in the constructor of the proxied contract.
+#### Parameters
 
-Implementations of ForwardTarget should override this function,
-and chain to super.initialize(_self).
-
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _self
-    |
-    address
-    |
-    The address of the original contract instance (the one being              forwarded to).
-    |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _self | address | the address to initialize |
 
 ### rebase
 
@@ -141,11 +110,21 @@ and chain to super.initialize(_self).
   function rebase(uint256 _inflationMultiplier) public
   ```
 
+_Rebase the currency using an inflation multiplier_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _inflationMultiplier | uint256 | the multipler used to rebase the currency |
+
 ### snapshot
 
   ```solidity
   function snapshot() public
   ```
+
+_Creates a new snapshot_
 
 ### updateRebasers
 
@@ -153,25 +132,15 @@ and chain to super.initialize(_self).
   function updateRebasers(address _key, bool _value) public
   ```
 
-  _change the rebasing permissions for an address
+_change the rebasing permissions for an address
 only callable by tokenRoleAdmin_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _key
-    |
-    address
-    |
-    the address to change permissions for
-    |
-    |
-    _value
-    |
-    bool
-    |
-    the new permission. true = can rebase, false = cannot rebase
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _key | address | the address to change permissions for |
+| _value | bool | the new permission. true = can rebase, false = cannot rebase |
 
 ### updateSnapshotters
 
@@ -179,23 +148,13 @@ only callable by tokenRoleAdmin_
   function updateSnapshotters(address _key, bool _value) public
   ```
 
-  _change the rebasing permissions for an address
+_change the rebasing permissions for an address
 only callable by tokenRoleAdmin_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _key
-    |
-    address
-    |
-    the address to change permissions for
-    |
-    |
-    _value
-    |
-    bool
-    |
-    the new permission. true = can snapshot, false = cannot snapshot
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _key | address | the address to change permissions for |
+| _value | bool | the new permission. true = can snapshot, false = cannot snapshot |
 

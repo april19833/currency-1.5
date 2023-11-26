@@ -41,102 +41,102 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
 
-    /** @notice the duration of the community governance cycle */
+    /** @dev the duration of the community governance cycle */
     uint256 public constant CYCLE_LENGTH = 14 days;
 
-    /** @notice the duration of the proposal stage */
+    /** @dev the duration of the proposal stage */
     uint256 public constant PROPOSAL_LENGTH = 9 days;
 
-    /** @notice the duration of the voting stage */
+    /** @dev the duration of the voting stage */
     uint256 public constant VOTING_LENGTH = 3 days;
 
-    /** @notice the duration of the execution delay */
+    /** @dev the duration of the execution delay */
     uint256 public constant DELAY_LENGTH = 1 days;
 
-    /** @notice address allowed to pause community governance */
+    /** @dev address allowed to pause community governance */
     address public pauser;
 
-    /** @notice reference any proposal by its address*/
+    /** @dev reference any proposal by its address*/
     mapping(address => PropData) public proposals;
 
-    /** @notice number of voting cycles since launch */
+    /** @dev number of voting cycles since launch */
     uint256 public cycleCount;
 
-    /** @notice start of the current cycle */
+    /** @dev start of the current cycle */
     uint256 public cycleStart;
 
-    /** @notice current stage in the cycle */
+    /** @dev current stage in the cycle */
     Stage public stage;
 
-    /** @notice end time of current */
+    /** @dev end time of current */
     uint256 public currentStageEnd;
 
-    /** @notice snapshot block for calculating voting power */
+    /** @dev snapshot block for calculating voting power */
     uint256 public snapshotBlock;
 
-    /** @notice cost in ECO to submit a proposal */
+    /** @dev cost in ECO to submit a proposal */
     uint256 public proposalFee = 10000;
 
-    /** @notice proposal fee to be refunded if proposal is not enacted */
+    /** @dev proposal fee to be refunded if proposal is not enacted */
     uint256 public feeRefund = 5000;
 
-    /** @notice the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
+    /** @dev the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
 
-    /** @notice the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
+    /** @dev the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
     uint256 public voteThresholdPercent = 50;
 
-    /** @notice total voting power for the cycle */
+    /** @dev total voting power for the cycle */
     uint256 public cycleTotalVotingPower;
 
-    /** @notice the proposal being voted on this cycle */
+    /** @dev the proposal being voted on this cycle */
     address public selectedProposal;
 
-    /** @notice total votes to enact the selected proposal*/
+    /** @dev total votes to enact the selected proposal*/
     uint256 public totalEnactVotes;
 
-    /** @notice total votes to reject the selected proposal*/
+    /** @dev total votes to reject the selected proposal*/
     uint256 public totalRejectVotes;
 
-    /** @notice total votes to abstain from voting on the selected proposal*/
+    /** @dev total votes to abstain from voting on the selected proposal*/
     uint256 public totalAbstainVotes;
 
-    /** @notice redeemable tokens from fees  */
+    /** @dev redeemable tokens from fees  */
     uint256 public pot;
 
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    /** @notice thrown when non-pauser tries to call pause without permission */
+    /** @dev thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
-    /** @notice thrown when a call is made during the wrong stage of Community Governance */
+    /** @dev thrown when a call is made during the wrong stage of Community Governance */
     error WrongStage();
 
-    /** @notice thrown when a proposal that already exists is proposed again */
+    /** @dev thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
 
-    /** @notice thrown when related argument arrays have differing lengths */
+    /** @dev thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
 
-    /** @notice thrown when the voting power of a support or vote action is invalid */
+    /** @dev thrown when the voting power of a support or vote action is invalid */
     error BadVotingPower();
 
-    /** @notice thrown when unsupport is called without the caller having supported the proposal */
+    /** @dev thrown when unsupport is called without the caller having supported the proposal */
     error NoSupportToRevoke();
 
-    /** @notice thrown when vote is called with a vote type other than enact, reject, abstain */
+    /** @dev thrown when vote is called with a vote type other than enact, reject, abstain */
     error BadVoteType();
 
     /**
-     * @notice thrown when refund is called on a proposal for which no refund is available
+     * @dev thrown when refund is called on a proposal for which no refund is available
      * @param proposal the proposal whose refund was attempted
      */
     error NoRefundAvailable(address proposal);
 
     /**
-     * @notice thrown when refund is called on a proposal that was submitted in the current cycle
+     * @dev thrown when refund is called on a proposal that was submitted in the current cycle
      * @param proposal the proposal whose refund was attempted
      */
     error NoRefundDuringCycle(address proposal);
@@ -146,26 +146,26 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     //////////////////////////////////////////////
 
     /**
-     * @notice event indicating the pauser was updated
+     * @dev event indicating the pauser was updated
      * @param pauser The new pauser
      */
     event PauserAssignment(address indexed pauser);
 
     /**
-     * @notice event indicating a change in the community governance stage
+     * @dev event indicating a change in the community governance stage
      * @param stage the new stage
      */
     event StageUpdated(Stage stage);
 
     /**
-     * @notice An event indicating a proposal has been registered
+     * @dev An event indicating a proposal has been registered
      * @param proposer The address that submitted the proposal
      * @param proposal The address of the proposal contract instance that was added
      */
     event ProposalRegistration(address proposer, Proposal proposal);
 
     /**
-     * @notice An event indicating a change in support for a proposal
+     * @dev An event indicating a change in support for a proposal
      * @param supporter The address that submitted the proposal
      * @param proposal The address of the proposal contract instance that was added
      * @param oldSupport The previous amount of support
@@ -179,7 +179,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     );
 
     /**
-     * @notice An event indicating a vote cast on a proposal
+     * @dev An event indicating a vote cast on a proposal
      * @param voter The address casting votes
      * @param enactVotes The votes to enact
      * @param rejectVotes The votes to reject
@@ -193,19 +193,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     );
 
     /**
-     * @notice An event indicating that the proposal selected for this governance cycle was successfully executed
+     * @dev An event indicating that the proposal selected for this governance cycle was successfully executed
      * @param proposal The proposal that was executed
      */
     event ExecutionComplete(address proposal);
 
     /**
-     * @notice An event indicating that a new cycle has begun
+     * @dev An event indicating that a new cycle has begun
      * @param cycleNumber the cycle number
      */
     event NewCycle(uint256 cycleNumber);
 
     /**
-     @notice An event indicating that the fee for a proposal was refunded
+     @dev An event indicating that the fee for a proposal was refunded
      @param proposal The address of the proposal being refunded
      @param proposer The address that registered the proposal
      @param refund The amount of tokens refunded to proposer
@@ -213,7 +213,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     event FeeRefunded(address proposal, address proposer, uint256 refund);
 
     /**
-     * @notice An event indicating that the leftover funds from fees were swept to a recipient address
+     * @dev An event indicating that the leftover funds from fees were swept to a recipient address
      * @param recipient the recipient address
      */
     event Sweep(address recipient);
@@ -226,7 +226,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice contract constructor
+     * @dev contract constructor
      * @param policy the root policy address
      * @param _eco the ECO contract address
      * @param _ecoXStaking the ECOxStaking contract address
@@ -246,7 +246,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice sets the pauser of community governance
+     * @dev sets the pauser of community governance
      * @param _pauser the new pauser
      */
     function setPauser(address _pauser) public onlyPolicy {
@@ -255,14 +255,14 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice Pauses community governance
+     * @dev Pauses community governance
      */
     function pause() external onlyPauser {
         _pause();
     }
 
     /**
-     * @notice updates the current stage
+     * @dev updates the current stage
      * @dev called by methods propose, vote, and execute.
      */
     function updateStage() public {
@@ -301,7 +301,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
     }
 
-    /** @notice moves community governance to the next cycle */
+    /**
+     * @dev moves community governance to the next cycle
+     */
     function nextCycle() internal {
         if (stage != Stage.Done) {
             revert WrongStage();
@@ -336,7 +338,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows a user to submit a community governance proposal
+     * @dev allows a user to submit a community governance proposal
      * @param _proposal the address of the deployed proposal
      * @dev fee is only levied if community governance is paused - we want to still be usable
      * in the event that ECO transfers are paused.
@@ -364,7 +366,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to register its full voting power in support of a proposal
+     * @dev allows an address to register its full voting power in support of a proposal
      * @param _proposal the address of proposal to be supported
      */
     function support(address _proposal) public {
@@ -373,7 +375,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to register partial support for a set of proposals
+     * @dev allows an address to register partial support for a set of proposals
      * @param _proposals the array of proposals to be supported
      * @param _allocations the respective voting power to put behind those proposals
      * @dev _changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support
@@ -399,7 +401,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to revoke support for a proposal
+     * @dev allows an address to revoke support for a proposal
      * @param _proposal the address of proposal to be supported
      */
     function unsupport(address _proposal) public {
@@ -449,7 +451,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice fetches the voting power with which a given address supports a given proposal
+     * @dev fetches the voting power with which a given address supports a given proposal
      * @param supporter the supporting address
      * @param proposal the proposal
      */
@@ -461,7 +463,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to vote to enact, reject or abstain on a proposal with their full voting power
+     * @dev allows an address to vote to enact, reject or abstain on a proposal with their full voting power
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
@@ -477,7 +479,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to split their voting power allocation between enact, reject and abstain
+     * @dev allows an address to split their voting power allocation between enact, reject and abstain
      * @param enactVotes votes to enact
      * @param rejectVotes votes to reject
      * @param abstainVotes votes to abstain
@@ -535,7 +537,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
+     * @dev fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
      * @param voter the supporting address
      */
     function getVotes(
@@ -557,7 +559,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows an address to enact a selected proposal that has passed the vote
+     * @dev allows an address to enact a selected proposal that has passed the vote
      * @dev it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
      * @dev the community will have a minimum of 3 days 8 hours to enact the proposal.
      */
@@ -574,7 +576,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows redemption of proposal registration fees
+     * @dev allows redemption of proposal registration fees
      * @param proposal the proposal whose fee is being redeemed
      * @dev the fee will be refunded to the proposer of the proposal, regardless of who calls refund
      */
@@ -597,7 +599,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     }
 
     /**
-     * @notice allows the leftover registration fees to be drained from the contract
+     * @dev allows the leftover registration fees to be drained from the contract
      * @param recipient the address receiving the tokens
      * @dev only the policy contract can call this
      */

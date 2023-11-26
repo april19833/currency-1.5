@@ -6,8 +6,9 @@ import "../../currency/ECO.sol";
 import "../../currency/ECOx.sol";
 import "./ECOxStaking.sol";
 
-/** @title VotingPower
- * Compute voting power for user
+/**
+ * @title VotingPower
+ * @dev Compute voting power for user
  */
 contract VotingPower is Policed {
     // ECOx voting power is snapshotted when the contract is cloned

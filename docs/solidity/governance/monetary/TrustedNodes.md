@@ -85,15 +85,11 @@ reward earned per completed and revealed vote
 Redundant node trusting error
 error for when an already trusted node tries to be trusted again
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trusteeNumber
-    |
-    uint256
-    |
-    the existing trustee number for the address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trusteeNumber | uint256 | the existing trustee number for the address |
 
 ### DistrustNotTrusted
 
@@ -115,15 +111,11 @@ error for when an already trusted node tries to be trusted again
 
 Event emitted when a node added to a list of trusted nodes.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trustee
-    |
-    address
-    |
-    the trustee being added
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustee | address | the trustee being added |
 
 ### TrustedNodeRemoval
 
@@ -133,15 +125,11 @@ Event emitted when a node added to a list of trusted nodes.
 
 Event emitted when a node removed from a list of trusted nodes
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trustee
-    |
-    address
-    |
-    the trustee being removed
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustee | address | the trustee being removed |
 
 ### VoteRecorded
 
@@ -151,22 +139,12 @@ Event emitted when a node removed from a list of trusted nodes
 
 Event emitted when a node removed from a list of trusted nodes
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trustee
-    |
-    address
-    |
-    the trustee whose vote was recorded
-    |
-    |
-    newVotingRecord
-    |
-    uint256
-    |
-    the new voting record for the trustee
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustee | address | the trustee whose vote was recorded |
+| newVotingRecord | uint256 | the new voting record for the trustee |
 
 ### VotingRewardRedemption
 
@@ -176,22 +154,12 @@ Event emitted when a node removed from a list of trusted nodes
 
 Event emitted when voting rewards are redeemed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    recipient
-    |
-    address
-    |
-    the address redeeming the rewards
-    |
-    |
-    amount
-    |
-    uint256
-    |
-    the amount being redeemed
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| recipient | address | the address redeeming the rewards |
+| amount | uint256 | the amount being redeemed |
 
 ### CurrencyGovernanceChanged
 
@@ -201,15 +169,11 @@ Event emitted when voting rewards are redeemed
 
 Event emitted when the currencyGovernance role changes
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    newRoleHolder
-    |
-    address
-    |
-    the new holder of the currencyGovernance role
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newRoleHolder | address | the new holder of the currencyGovernance role |
 
 ### onlyCurrencyGovernance
 
@@ -225,50 +189,16 @@ Event emitted when the currencyGovernance role changes
 
 Creates a new trusted node registry, populated with some initial nodes
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _policy
-    |
-    contract Policy
-    |
-    the address of the root policy contract
-    |
-    |
-    _currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    the address of the currencyGovernance contract
-    |
-    |
-    _EcoX
-    |
-    contract ECOx
-    |
-    the address of the EcoX contract
-    |
-    |
-    _termLength
-    |
-    uint256
-    |
-    the length of the trustee term
-    |
-    |
-    _voteReward
-    |
-    uint256
-    |
-    the reward awarded to a trustee for each successfully revealed vote
-    |
-    |
-    _initialTrustees
-    |
-    address[]
-    |
-    the initial cohort of trustees
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _policy | contract Policy | the address of the root policy contract |
+| _currencyGovernance | contract CurrencyGovernance | the address of the currencyGovernance contract |
+| _EcoX | contract ECOx | the address of the EcoX contract |
+| _termLength | uint256 | the length of the trustee term |
+| _voteReward | uint256 | the reward awarded to a trustee for each successfully revealed vote |
+| _initialTrustees | address[] | the initial cohort of trustees |
 
 ### getLastWithdrawal
 
@@ -278,15 +208,11 @@ Creates a new trusted node registry, populated with some initial nodes
 
 Fetches the date of a trustee's last withdrawal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trustee
-    |
-    address
-    |
-    the trustee whose last withdrawal date is being fetched
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustee | address | the trustee whose last withdrawal date is being fetched |
 
 ### updateCurrencyGovernance
 
@@ -296,15 +222,11 @@ Fetches the date of a trustee's last withdrawal
 
 Changes the holder currencyGovernance role
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    the new currencyGovernance role holder
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _currencyGovernance | contract CurrencyGovernance | the new currencyGovernance role holder |
 
 ### trust
 
@@ -316,15 +238,11 @@ Grant trust to a node.
 
 The node is pushed to trustedNodes array.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _node
-    |
-    address
-    |
-    The node to start trusting.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _node | address | The node to start trusting. |
 
 ### _trust
 
@@ -334,15 +252,11 @@ The node is pushed to trustedNodes array.
 
 Helper for trust
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _node
-    |
-    address
-    |
-    The node to start trusting
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _node | address | The node to start trusting |
 
 ### distrust
 
@@ -353,15 +267,11 @@ Helper for trust
 Removes a trustee from the set
 Node to distrust swaped to be a last element in the trustedNodes, then deleted
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _node
-    |
-    address
-    |
-    The trustee to be removed
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _node | address | The trustee to be removed |
 
 ### recordVote
 
@@ -371,15 +281,11 @@ Node to distrust swaped to be a last element in the trustedNodes, then deleted
 
 Incements the counter when the trustee reveals their vote
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _who
-    |
-    address
-    |
-    address whose vote is being recorded
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _who | address | address whose vote is being recorded |
 
 ### numTrustees
 
@@ -397,15 +303,11 @@ Return the number of entries in trustedNodes array.
 
 Checks if a node address is trusted in the current cohort
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _node
-    |
-    address
-    |
-    the address whose trustee status we want to check
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _node | address | the address whose trustee status we want to check |
 
 ### withdraw
 
@@ -448,13 +350,9 @@ which they will be able to withdraw upon vesting
 
 drains all the ECOx in TrustedNodes to a recipient address
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    recipient
-    |
-    address
-    |
-    the address to receive the ECOx
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| recipient | address | the address to receive the ECOx |
 

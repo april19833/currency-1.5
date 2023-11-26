@@ -24,15 +24,11 @@ Copyright (c) 2023 Eco Association
 
 Event emitted when a new cohort is deployed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    trustedNodes
-    |
-    contract TrustedNodes
-    |
-    the address of the deployed cohort
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| trustedNodes | contract TrustedNodes | the address of the deployed cohort |
 
 ### constructor
 
@@ -43,29 +39,13 @@ Event emitted when a new cohort is deployed
 configures the factory to easily deploy
 new TrustedNodes contracts after election
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _policy
-    |
-    contract Policy
-    |
-    the root policy address
-    |
-    |
-    _currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    
-    |
-    |
-    _ecoX
-    |
-    contract ECOx
-    |
-    the ecoX address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _policy | contract Policy | the root policy address |
+| _currencyGovernance | contract CurrencyGovernance |  |
+| _ecoX | contract ECOx | the ecoX address |
 
 ### newCohort
 
@@ -75,29 +55,13 @@ new TrustedNodes contracts after election
 
 Deploys a new TrustedNodes instance
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _termLength
-    |
-    uint256
-    |
-    the length of term for trustees in the new cohort
-    |
-    |
-    _voteReward
-    |
-    uint256
-    |
-    the reward earned by each trustee each time they participate in voting
-    |
-    |
-    _newTrustees
-    |
-    address[]
-    |
-    the new cohort of trustees
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _termLength | uint256 | the length of term for trustees in the new cohort |
+| _voteReward | uint256 | the reward earned by each trustee each time they participate in voting |
+| _newTrustees | address[] | the new cohort of trustees |
 
 ### updateCurrencyGovernance
 
@@ -107,13 +71,9 @@ Deploys a new TrustedNodes instance
 
 Changes the holder currencyGovernance role
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    the new currencyGovernance role holder
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _currencyGovernance | contract CurrencyGovernance | the new currencyGovernance role holder |
 

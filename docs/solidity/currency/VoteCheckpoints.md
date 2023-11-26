@@ -4,19 +4,19 @@ Copyright (c) 2023 Eco Association
 
 ## VoteCheckpoints
 
-  _Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
+_Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
 and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
 
 This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either
 by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}. Voting
 power can be queried through the public accessors {getVotingGons} and {getPastVotingGons}.
 
-By default, token balance does not account for voting power. This makes transfers cheaper. The downside is that it
+By default, token balance does not account for voting power. This makes transfers cheaper. the downside is that it
 requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked.
 Enabling self-delegation can easily be done by overriding the {delegates} function. Keep in mind however that this
 will significantly increase the base gas cost of transfers.
 
-_Available since v4.2.__
+Available since v4.2._
 
 ### Checkpoint
 
@@ -45,10 +45,10 @@ struct Checkpoint {
   mapping(address => address) _primaryDelegates
   ```
 
-a mapping that tracks the primaryDelegates of each user
+_a mapping that tracks the primaryDelegates of each user
 
 Primary delegates can only be chosen using delegate() which sends the full balance
-The exist to maintain the functionality that recieving tokens gives those votes to the delegate
+the exist to maintain the functionality that recieving tokens gives those votes to the delegate_
 
 ### delegationToAddressEnabled
 
@@ -74,7 +74,15 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event DelegatedVotes(address delegator, address delegatee, uint256 amount)
   ```
 
-  _Emitted when a delegatee is delegated new votes._
+_Emitted when a delegatee is delegated new votes._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegator | address | the delegators address |
+| delegatee | address | the delegatee address |
+| amount | uint256 | the amount delegated |
 
 ### UpdatedVotes
 
@@ -82,7 +90,14 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event UpdatedVotes(address voter, uint256 newVotes)
   ```
 
-  _Emitted when a token transfer or delegate change results in changes to an account's voting power._
+_Emitted when a token transfer or delegate change results in changes to an account's voting power._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| voter | address | the address of the voter |
+| newVotes | uint256 | the new votes amount |
 
 ### NewPrimaryDelegate
 
@@ -90,7 +105,14 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event NewPrimaryDelegate(address delegator, address primaryDelegate)
   ```
 
-  _Emitted when an account denotes a primary delegate._
+_Emitted when an account denotes a primary delegate._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegator | address | the delegator address |
+| primaryDelegate | address | the primary delegates address |
 
 ### constructor
 
@@ -112,28 +134,18 @@ Returns the total (inflation corrected) token supply at a specified block number
   function getPastVotes(address _owner, uint256 _blockNumber) public view virtual returns (uint256)
   ```
 
-Return historical voting balance (includes delegation) at given block number.
+_Return historical voting balance (includes delegation) at given block number.
 
 If the latest block number for the account is before the requested
 block then the most recent known balance is returned. Otherwise the
-exact block number requested is returned.
+exact block number requested is returned._
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _owner
-    |
-    address
-    |
-    The account to check the balance of.
-    |
-    |
-    _blockNumber
-    |
-    uint256
-    |
-    The block number to check the balance at the start                        of. Must be less than or equal to the present                        block number.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _owner | address | the account to check the balance of. |
+| _blockNumber | uint256 | the block number to check the balance at the start                        of. Must be less than or equal to the present                        block number. |
 
 ### numCheckpoints
 
@@ -141,7 +153,19 @@ exact block number requested is returned.
   function numCheckpoints(address account) public view virtual returns (uint32)
   ```
 
-  _Get number of checkpoints for `account`._
+_Get number of checkpoints for `account`._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address of the account |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint32 | number of checkppints for the account |
 
 ### enableDelegationTo
 
@@ -149,7 +173,7 @@ exact block number requested is returned.
   function enableDelegationTo() public
   ```
 
-  _Set yourself as willing to recieve delegates._
+_Set yourself as willing to recieve delegates._
 
 ### disableDelegationTo
 
@@ -157,7 +181,7 @@ exact block number requested is returned.
   function disableDelegationTo() public
   ```
 
-  _Set yourself as no longer recieving delegates._
+_Set yourself as no longer recieving delegates._
 
 ### reenableDelegating
 
@@ -165,7 +189,7 @@ exact block number requested is returned.
   function reenableDelegating() public
   ```
 
-  _Set yourself as being able to delegate again.
+_Set yourself as being able to delegate again.
 also disables delegating to you
 NOTE: the condition for this is not easy and cannot be unilaterally achieved_
 
@@ -175,7 +199,7 @@ NOTE: the condition for this is not easy and cannot be unilaterally achieved_
   function isOwnDelegate(address account) public view returns (bool)
   ```
 
-  _Returns true if the user has no amount of their balance delegated, otherwise false._
+_Returns true if the user has no amount of their balance delegated, otherwise false._
 
 ### getPrimaryDelegate
 
@@ -183,8 +207,8 @@ NOTE: the condition for this is not easy and cannot be unilaterally achieved_
   function getPrimaryDelegate(address account) public view virtual returns (address)
   ```
 
-  _Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
-The primary delegate is the one that is delegated any new funds the address recieves._
+_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+the primary delegate is the one that is delegated any new funds the address recieves._
 
 ### _setPrimaryDelegate
 
@@ -192,7 +216,7 @@ The primary delegate is the one that is delegated any new funds the address reci
   function _setPrimaryDelegate(address delegator, address delegatee) internal
   ```
 
-sets the primaryDelegate and emits an event to track it
+_sets the primaryDelegate and emits an event to track it_
 
 ### getVotingGons
 
@@ -200,7 +224,19 @@ sets the primaryDelegate and emits an event to track it
   function getVotingGons(address account) public view returns (uint256)
   ```
 
-  _Gets the current votes balance in gons for `account`_
+_Gets the current votes balance in gons for `account`_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address of the account |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | the curren votes balance in gons for the acccount |
 
 ### getPastVotingGons
 
@@ -208,11 +244,24 @@ sets the primaryDelegate and emits an event to track it
   function getPastVotingGons(address account, uint256 blockNumber) public view returns (uint256)
   ```
 
-  _Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
+_Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
 
 Requirements:
 
 - `blockNumber` must have been already mined_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address of the account to get the votes for |
+| blockNumber | uint256 | the blockNumber to get the votes for |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | the number of votes in gons for the account and block number |
 
 ### getPastTotalSupply
 
@@ -220,12 +269,24 @@ Requirements:
   function getPastTotalSupply(uint256 blockNumber) public view returns (uint256)
   ```
 
-  _Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
+_Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
 It is NOT the sum of all the delegated votes!
 
 Requirements:
 
 - `blockNumber` must have been already mined_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockNumber | uint256 | the block number to get the past total supply |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | the totalSupply at the end of blockNumber calculated by summing all balances. |
 
 ### _checkpointsLookup
 
@@ -233,7 +294,7 @@ Requirements:
   function _checkpointsLookup(struct VoteCheckpoints.Checkpoint[] ckpts, uint256 blockNumber) internal view returns (uint256)
   ```
 
-  _Lookup a value in a list of (sorted) checkpoints._
+_Lookup a value in a list of (sorted) checkpoints._
 
 ### delegate
 
@@ -241,9 +302,15 @@ Requirements:
   function delegate(address delegatee) public
   ```
 
-  _Delegate all votes from the sender to `delegatee`.
+_Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "Must have an undelegated amount available to cover delegation" if you do_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | the address of the delegatee |
 
 ### delegateBySig
 
@@ -251,9 +318,20 @@ It will revert with "Must have an undelegated amount available to cover delegati
   function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
   ```
 
-  _Delegate all votes from the sender to `delegatee`.
+_Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "Must have an undelegated amount available to cover delegation" if you do_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegator | address | The address delegating |
+| delegatee | address | The address being delegated to |
+| deadline | uint256 | The deadling of the delegation after which it will be invalid |
+| v | uint8 | The v part of the signature |
+| r | bytes32 | The r part of the signature |
+| s | bytes32 | The s part of the signature |
 
 ### delegateAmount
 
@@ -261,7 +339,14 @@ It will revert with "Must have an undelegated amount available to cover delegati
   function delegateAmount(address delegatee, uint256 amount) public
   ```
 
-  _Delegate an `amount` of votes from the sender to `delegatee`._
+_Delegate an `amount` of votes from the sender to `delegatee`._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | The address being delegated to |
+| amount | uint256 | The amount of votes |
 
 ### _delegate
 
@@ -269,7 +354,7 @@ It will revert with "Must have an undelegated amount available to cover delegati
   function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
   ```
 
-  _Change delegation for `delegator` to `delegatee`.
+_Change delegation for `delegator` to `delegatee`.
 
 Emits events {NewDelegatedAmount} and {UpdatedVotes}._
 
@@ -279,7 +364,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function undelegate() public
   ```
 
-  _Undelegate all votes from the sender's primary delegate._
+_Undelegate all votes from the sender's primary delegate._
 
 ### undelegateFromAddress
 
@@ -287,7 +372,13 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function undelegateFromAddress(address delegatee) public
   ```
 
-  _Undelegate votes from the `delegatee` back to the sender._
+_Undelegate votes from the `delegatee` back to the sender._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | the delegatee address |
 
 ### _undelegateFromAddress
 
@@ -295,7 +386,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function _undelegateFromAddress(address delegator, address delegatee) internal
   ```
 
-  _Undelegate votes from the `delegatee` back to the delegator._
+_Undelegate votes from the `delegatee` back to the delegator._
 
 ### undelegateAmountFromAddress
 
@@ -303,7 +394,14 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function undelegateAmountFromAddress(address delegatee, uint256 amount) public
   ```
 
-  _Undelegate a specific amount of votes from the `delegatee` back to the sender._
+_Undelegate a specific amount of votes from the `delegatee` back to the sender._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | The address being delegated to |
+| amount | uint256 | The amount of votes |
 
 ### _undelegate
 
@@ -317,7 +415,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function _maxSupply() internal view virtual returns (uint224)
   ```
 
-  _Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1)._
+_Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1)._
 
 ### _mint
 
@@ -325,7 +423,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function _mint(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Snapshots the totalSupply after it has been increased._
+_Snapshots the totalSupply after it has been increased._
 
 ### _burn
 
@@ -333,7 +431,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function _burn(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Snapshots the totalSupply after it has been decreased._
+_Snapshots the totalSupply after it has been decreased._
 
 ### _afterTokenTransfer
 
@@ -341,7 +439,7 @@ Emits events {NewDelegatedAmount} and {UpdatedVotes}._
   function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
   ```
 
-  _Move voting power when tokens are transferred.
+_Move voting power when tokens are transferred.
 
 Emits a {UpdatedVotes} event._
 

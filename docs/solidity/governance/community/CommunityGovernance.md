@@ -273,15 +273,11 @@ thrown when vote is called with a vote type other than enact, reject, abstain
 
 thrown when refund is called on a proposal for which no refund is available
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal whose refund was attempted
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | the proposal whose refund was attempted |
 
 ### NoRefundDuringCycle
 
@@ -291,15 +287,11 @@ thrown when refund is called on a proposal for which no refund is available
 
 thrown when refund is called on a proposal that was submitted in the current cycle
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal whose refund was attempted
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | the proposal whose refund was attempted |
 
 ### PauserAssignment
 
@@ -309,15 +301,11 @@ thrown when refund is called on a proposal that was submitted in the current cyc
 
 event indicating the pauser was updated
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    pauser
-    |
-    address
-    |
-    The new pauser
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| pauser | address | The new pauser |
 
 ### StageUpdated
 
@@ -327,15 +315,11 @@ event indicating the pauser was updated
 
 event indicating a change in the community governance stage
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    stage
-    |
-    enum CommunityGovernance.Stage
-    |
-    the new stage
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| stage | enum CommunityGovernance.Stage | the new stage |
 
 ### ProposalRegistration
 
@@ -345,22 +329,12 @@ event indicating a change in the community governance stage
 
 An event indicating a proposal has been registered
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposer
-    |
-    address
-    |
-    The address that submitted the proposal
-    |
-    |
-    proposal
-    |
-    contract Proposal
-    |
-    The address of the proposal contract instance that was added
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposer | address | The address that submitted the proposal |
+| proposal | contract Proposal | The address of the proposal contract instance that was added |
 
 ### SupportChanged
 
@@ -370,36 +344,14 @@ An event indicating a proposal has been registered
 
 An event indicating a change in support for a proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    supporter
-    |
-    address
-    |
-    The address that submitted the proposal
-    |
-    |
-    proposal
-    |
-    contract Proposal
-    |
-    The address of the proposal contract instance that was added
-    |
-    |
-    oldSupport
-    |
-    uint256
-    |
-    The previous amount of support
-    |
-    |
-    newSupport
-    |
-    uint256
-    |
-    The new amount of support
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| supporter | address | The address that submitted the proposal |
+| proposal | contract Proposal | The address of the proposal contract instance that was added |
+| oldSupport | uint256 | The previous amount of support |
+| newSupport | uint256 | The new amount of support |
 
 ### VotesChanged
 
@@ -409,36 +361,14 @@ An event indicating a change in support for a proposal
 
 An event indicating a vote cast on a proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    voter
-    |
-    address
-    |
-    The address casting votes
-    |
-    |
-    enactVotes
-    |
-    uint256
-    |
-    The votes to enact
-    |
-    |
-    rejectVotes
-    |
-    uint256
-    |
-    The votes to reject
-    |
-    |
-    abstainVotes
-    |
-    uint256
-    |
-    The votes to abstain
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| voter | address | The address casting votes |
+| enactVotes | uint256 | The votes to enact |
+| rejectVotes | uint256 | The votes to reject |
+| abstainVotes | uint256 | The votes to abstain |
 
 ### ExecutionComplete
 
@@ -448,15 +378,11 @@ An event indicating a vote cast on a proposal
 
 An event indicating that the proposal selected for this governance cycle was successfully executed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    The proposal that was executed
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | The proposal that was executed |
 
 ### NewCycle
 
@@ -466,15 +392,11 @@ An event indicating that the proposal selected for this governance cycle was suc
 
 An event indicating that a new cycle has begun
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    cycleNumber
-    |
-    uint256
-    |
-    the cycle number
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| cycleNumber | uint256 | the cycle number |
 
 ### FeeRefunded
 
@@ -495,15 +417,11 @@ An event indicating that the fee for a proposal was refunded
 
 An event indicating that the leftover funds from fees were swept to a recipient address
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    recipient
-    |
-    address
-    |
-    the recipient address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| recipient | address | the recipient address |
 
 ### onlyPauser
 
@@ -519,43 +437,15 @@ An event indicating that the leftover funds from fees were swept to a recipient 
 
 contract constructor
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    policy
-    |
-    contract Policy
-    |
-    the root policy address
-    |
-    |
-    _eco
-    |
-    contract ECO
-    |
-    the ECO contract address
-    |
-    |
-    _ecoXStaking
-    |
-    contract ECOxStaking
-    |
-    the ECOxStaking contract address
-    |
-    |
-    _cycleStart
-    |
-    uint256
-    |
-    the time that the first cycle should begin
-    |
-    |
-    _pauser
-    |
-    address
-    |
-    the new pauser
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| policy | contract Policy | the root policy address |
+| _eco | contract ECO | the ECO contract address |
+| _ecoXStaking | contract ECOxStaking | the ECOxStaking contract address |
+| _cycleStart | uint256 | the time that the first cycle should begin |
+| _pauser | address | the new pauser |
 
 ### setPauser
 
@@ -565,15 +455,11 @@ contract constructor
 
 sets the pauser of community governance
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _pauser
-    |
-    address
-    |
-    the new pauser
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _pauser | address | the new pauser |
 
 ### pause
 
@@ -591,7 +477,7 @@ Pauses community governance
 
 updates the current stage
 
-  _called by methods propose, vote, and execute._
+_called by methods propose, vote, and execute._
 
 ### nextCycle
 
@@ -609,18 +495,14 @@ moves community governance to the next cycle
 
 allows a user to submit a community governance proposal
 
-  _fee is only levied if community governance is paused - we want to still be usable
+_fee is only levied if community governance is paused - we want to still be usable
 in the event that ECO transfers are paused._
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _proposal
-    |
-    contract Proposal
-    |
-    the address of the deployed proposal
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _proposal | contract Proposal | the address of the deployed proposal |
 
 ### support
 
@@ -630,15 +512,11 @@ in the event that ECO transfers are paused._
 
 allows an address to register its full voting power in support of a proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _proposal
-    |
-    address
-    |
-    the address of proposal to be supported
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _proposal | address | the address of proposal to be supported |
 
 ### supportPartial
 
@@ -648,24 +526,14 @@ allows an address to register its full voting power in support of a proposal
 
 allows an address to register partial support for a set of proposals
 
-  __changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support_
+__changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _proposals
-    |
-    address[]
-    |
-    the array of proposals to be supported
-    |
-    |
-    _allocations
-    |
-    uint256[]
-    |
-    the respective voting power to put behind those proposals
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _proposals | address[] | the array of proposals to be supported |
+| _allocations | uint256[] | the respective voting power to put behind those proposals |
 
 ### unsupport
 
@@ -675,15 +543,11 @@ allows an address to register partial support for a set of proposals
 
 allows an address to revoke support for a proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _proposal
-    |
-    address
-    |
-    the address of proposal to be supported
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _proposal | address | the address of proposal to be supported |
 
 ### _changeSupport
 
@@ -699,22 +563,12 @@ allows an address to revoke support for a proposal
 
 fetches the voting power with which a given address supports a given proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    supporter
-    |
-    address
-    |
-    the supporting address
-    |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| supporter | address | the supporting address |
+| proposal | address | the proposal |
 
 ### vote
 
@@ -724,15 +578,11 @@ fetches the voting power with which a given address supports a given proposal
 
 allows an address to vote to enact, reject or abstain on a proposal with their full voting power
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    choice
-    |
-    enum CommunityGovernance.Vote
-    |
-    the address' vote
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| choice | enum CommunityGovernance.Vote | the address' vote |
 
 ### votePartial
 
@@ -742,29 +592,13 @@ allows an address to vote to enact, reject or abstain on a proposal with their f
 
 allows an address to split their voting power allocation between enact, reject and abstain
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    enactVotes
-    |
-    uint256
-    |
-    votes to enact
-    |
-    |
-    rejectVotes
-    |
-    uint256
-    |
-    votes to reject
-    |
-    |
-    abstainVotes
-    |
-    uint256
-    |
-    votes to abstain
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| enactVotes | uint256 | votes to enact |
+| rejectVotes | uint256 | votes to reject |
+| abstainVotes | uint256 | votes to abstain |
 
 ### _vote
 
@@ -780,15 +614,11 @@ allows an address to split their voting power allocation between enact, reject a
 
 fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    voter
-    |
-    address
-    |
-    the supporting address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| voter | address | the supporting address |
 
 ### execute
 
@@ -798,7 +628,7 @@ fetches the votes an address has pledged toward enacting, rejecting, and abstain
 
 allows an address to enact a selected proposal that has passed the vote
 
-  _it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
+_it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
 the community will have a minimum of 3 days 8 hours to enact the proposal._
 
 ### refund
@@ -809,17 +639,13 @@ the community will have a minimum of 3 days 8 hours to enact the proposal._
 
 allows redemption of proposal registration fees
 
-  _the fee will be refunded to the proposer of the proposal, regardless of who calls refund_
+_the fee will be refunded to the proposer of the proposal, regardless of who calls refund_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal whose fee is being redeemed
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | the proposal whose fee is being redeemed |
 
 ### sweep
 
@@ -829,15 +655,11 @@ allows redemption of proposal registration fees
 
 allows the leftover registration fees to be drained from the contract
 
-  _only the policy contract can call this_
+_only the policy contract can call this_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    recipient
-    |
-    address
-    |
-    the address receiving the tokens
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| recipient | address | the address receiving the tokens |
 

@@ -12,7 +12,7 @@ Copyright (c) 2023 Eco Association
   mapping(address => bool) minters
   ```
 
-  _Mapping storing contracts able to mint tokens_
+_Mapping storing contracts able to mint tokens_
 
 ### burners
 
@@ -20,7 +20,7 @@ Copyright (c) 2023 Eco Association
   mapping(address => bool) burners
   ```
 
-  _Mapping storing contracts able to burn tokens_
+_Mapping storing contracts able to burn tokens_
 
 ### OnlyMinters
 
@@ -28,7 +28,7 @@ Copyright (c) 2023 Eco Association
   error OnlyMinters()
   ```
 
-  _error for when an address tries to mint tokens without permission_
+_error for when an address tries to mint tokens without permission_
 
 ### OnlyBurners
 
@@ -36,7 +36,7 @@ Copyright (c) 2023 Eco Association
   error OnlyBurners()
   ```
 
-  _error for when an address tries to burn tokens without permission_
+_error for when an address tries to burn tokens without permission_
 
 ### UpdatedMinters
 
@@ -46,22 +46,12 @@ Copyright (c) 2023 Eco Association
 
 emits when the minters permissions are changed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    actor
-    |
-    address
-    |
-    denotes the new address whose permissions are being updated
-    |
-    |
-    newPermission
-    |
-    bool
-    |
-    denotes the new ability of the actor address (true for can mint, false for cannot)
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| actor | address | denotes the new address whose permissions are being updated |
+| newPermission | bool | denotes the new ability of the actor address (true for can mint, false for cannot) |
 
 ### UpdatedBurners
 
@@ -71,22 +61,12 @@ emits when the minters permissions are changed
 
 emits when the burners permissions are changed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    actor
-    |
-    address
-    |
-    denotes the new address whose permissions are being updated
-    |
-    |
-    newPermission
-    |
-    bool
-    |
-    denotes the new ability of the actor address (true for can burn, false for cannot)
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| actor | address | denotes the new address whose permissions are being updated |
+| newPermission | bool | denotes the new ability of the actor address (true for can burn, false for cannot) |
 
 ### onlyMinterRole
 
@@ -94,7 +74,7 @@ emits when the burners permissions are changed
   modifier onlyMinterRole()
   ```
 
-  _Modifier for checking if the sender is a minter_
+_Modifier for checking if the sender is a minter_
 
 ### onlyBurnerRoleOrSelf
 
@@ -102,18 +82,14 @@ emits when the burners permissions are changed
   modifier onlyBurnerRoleOrSelf(address _from)
   ```
 
-  _Modifier for checking if the sender is allowed to burn
+_Modifier for checking if the sender is allowed to burn
 both burners and the message sender can burn_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _from
-    |
-    address
-    |
-    the address burning tokens
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _from | address | the address burning tokens |
 
 ### constructor
 
@@ -127,25 +103,15 @@ both burners and the message sender can burn_
   function updateMinters(address _key, bool _value) public
   ```
 
-  _change the minting permissions for an address
+_change the minting permissions for an address
 only callable by tokenRoleAdmin_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _key
-    |
-    address
-    |
-    the address to change permissions for
-    |
-    |
-    _value
-    |
-    bool
-    |
-    the new permission. true = can mint, false = cannot mint
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _key | address | the address to change permissions for |
+| _value | bool | the new permission. true = can mint, false = cannot mint |
 
 ### updateBurners
 
@@ -153,25 +119,15 @@ only callable by tokenRoleAdmin_
   function updateBurners(address _key, bool _value) public
   ```
 
-  _change the burning permissions for an address
+_change the burning permissions for an address
 only callable by tokenRoleAdmin_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _key
-    |
-    address
-    |
-    the address to change permissions for
-    |
-    |
-    _value
-    |
-    bool
-    |
-    the new permission. true = can burn, false = cannot burn
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _key | address | the address to change permissions for |
+| _value | bool | the new permission. true = can burn, false = cannot burn |
 
 ### mint
 
@@ -179,24 +135,14 @@ only callable by tokenRoleAdmin_
   function mint(address _to, uint256 _value) external
   ```
 
-  _mints tokens to a given address_
+_mints tokens to a given address_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _to
-    |
-    address
-    |
-    the address receiving tokens
-    |
-    |
-    _value
-    |
-    uint256
-    |
-    the amount of tokens being minted
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _to | address | the address receiving tokens |
+| _value | uint256 | the amount of tokens being minted |
 
 ### burn
 
@@ -204,22 +150,12 @@ only callable by tokenRoleAdmin_
   function burn(address _from, uint256 _value) external
   ```
 
-  _burns tokens to a given address_
+_burns tokens to a given address_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _from
-    |
-    address
-    |
-    the address whose tokens are being burned
-    |
-    |
-    _value
-    |
-    uint256
-    |
-    the amount of tokens being burned
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _from | address | the address whose tokens are being burned |
+| _value | uint256 | the amount of tokens being burned |
 

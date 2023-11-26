@@ -57,7 +57,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event DelegatedVotes(address delegator, address delegatee, uint256 amount)
   ```
 
-  _Emitted when a delegatee is delegated new votes._
+_Emitted when a delegatee is delegated new votes._
 
 ### VoteTransfer
 
@@ -65,7 +65,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event VoteTransfer(address sendingVoter, address recievingVoter, uint256 votes)
   ```
 
-  _Emitted when a token transfer or delegate change results a transfer of voting power._
+_Emitted when a token transfer or delegate change results a transfer of voting power._
 
 ### NewPrimaryDelegate
 
@@ -73,7 +73,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   event NewPrimaryDelegate(address delegator, address primaryDelegate)
   ```
 
-  _Emitted when an account denotes a primary delegate._
+_Emitted when an account denotes a primary delegate._
 
 ### constructor
 
@@ -93,7 +93,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   function enableDelegationTo() public
   ```
 
-  _Set yourself as willing to recieve delegates._
+_Set yourself as willing to recieve delegates._
 
 ### disableDelegationTo
 
@@ -101,7 +101,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   function disableDelegationTo() public
   ```
 
-  _Set yourself as no longer recieving delegates._
+_Set yourself as no longer recieving delegates._
 
 ### reenableDelegating
 
@@ -109,7 +109,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
   function reenableDelegating() public
   ```
 
-  _Set yourself as being able to delegate again.
+_Set yourself as being able to delegate again.
 also disables delegating to you_
 
 ### isOwnDelegate
@@ -118,7 +118,7 @@ also disables delegating to you_
   function isOwnDelegate(address account) public view returns (bool)
   ```
 
-  _Returns true if the user has no amount of their balance delegated, otherwise false._
+_Returns true if the user has no amount of their balance delegated, otherwise false._
 
 ### getPrimaryDelegate
 
@@ -126,7 +126,7 @@ also disables delegating to you_
   function getPrimaryDelegate(address account) public view virtual returns (address)
   ```
 
-  _Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
 The primary delegate is the one that is delegated any new funds the address recieves._
 
 ### _setPrimaryDelegate
@@ -143,7 +143,7 @@ sets the primaryDelegate and emits an event to track it
   function delegate(address delegatee) public
   ```
 
-  _Delegate all votes from the sender to `delegatee`.
+_Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
 
@@ -153,7 +153,7 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
   function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
   ```
 
-  _Delegate all votes from the sender to `delegatee`.
+_Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
 
@@ -163,7 +163,7 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
   function delegateAmount(address delegatee, uint256 amount) public
   ```
 
-  _Delegate an `amount` of votes from the sender to `delegatee`._
+_Delegate an `amount` of votes from the sender to `delegatee`._
 
 ### _delegate
 
@@ -171,7 +171,7 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
   function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
   ```
 
-  _Change delegation for `delegator` to `delegatee`.
+_Change delegation for `delegator` to `delegatee`.
 
 Emits events {NewDelegatedAmount} and {VoteTransfer}._
 
@@ -181,7 +181,7 @@ Emits events {NewDelegatedAmount} and {VoteTransfer}._
   function undelegate() public
   ```
 
-  _Undelegate all votes from the sender's primary delegate._
+_Undelegate all votes from the sender's primary delegate._
 
 ### undelegateFromAddress
 
@@ -189,7 +189,7 @@ Emits events {NewDelegatedAmount} and {VoteTransfer}._
   function undelegateFromAddress(address delegatee) public
   ```
 
-  _Undelegate votes from the `delegatee` back to the sender._
+_Undelegate votes from the `delegatee` back to the sender._
 
 ### revokeDelegation
 
@@ -206,7 +206,7 @@ Useful for allowing yourself to call reenableDelegating after calling disableDel
   function _undelegateFromAddress(address delegator, address delegatee) internal
   ```
 
-  _Undelegate votes from the `delegatee` back to the delegator._
+_Undelegate votes from the `delegatee` back to the delegator._
 
 ### undelegateAmountFromAddress
 
@@ -214,7 +214,7 @@ Useful for allowing yourself to call reenableDelegating after calling disableDel
   function undelegateAmountFromAddress(address delegatee, uint256 amount) public
   ```
 
-  _Undelegate a specific amount of votes from the `delegatee` back to the sender._
+_Undelegate a specific amount of votes from the `delegatee` back to the sender._
 
 ### _undelegate
 
@@ -228,7 +228,7 @@ Useful for allowing yourself to call reenableDelegating after calling disableDel
   function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
   ```
 
-  _Move voting power when tokens are transferred.
+_Move voting power when tokens are transferred.
 
 Emits a {VoteTransfer} event._
 
@@ -238,7 +238,7 @@ Emits a {VoteTransfer} event._
   function voteBalanceOf(address account) public view virtual returns (uint256)
   ```
 
-  _See {IERC20-balanceOf}._
+_See {IERC20-balanceOf}._
 
 ### voteTransfer
 
@@ -246,7 +246,7 @@ Emits a {VoteTransfer} event._
   function voteTransfer(address recipient, uint256 amount) internal virtual returns (bool)
   ```
 
-  _See {IERC20-transfer}.
+_See {IERC20-transfer}.
 
 Requirements:
 
@@ -259,7 +259,7 @@ Requirements:
   function voteAllowance(address owner, address spender) internal view virtual returns (uint256)
   ```
 
-  _See {IERC20-allowance}._
+_See {IERC20-allowance}._
 
 ### voteApprove
 
@@ -267,7 +267,7 @@ Requirements:
   function voteApprove(address spender, uint256 amount) internal virtual returns (bool)
   ```
 
-  _See {IERC20-approve}.
+_See {IERC20-approve}.
 
 Requirements:
 
@@ -288,7 +288,7 @@ is instead more restrictive, only allows for transfers where the recipient owns 
   function _voteTransfer(address sender, address recipient, uint256 amount) internal virtual
   ```
 
-  _Moves `amount` of tokens from `sender` to `recipient`.
+_Moves `amount` of tokens from `sender` to `recipient`.
 
 This internal function is equivalent to {transfer}, and can be used to
 e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -307,7 +307,7 @@ Requirements:
   function _voteMint(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Creates `amount` tokens and assigns them to `account`, increasing
+_Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
 
 Emits a {Transfer} event with `from` set to the zero address.
@@ -322,7 +322,7 @@ Requirements:
   function _voteBurn(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-  _Destroys `amount` tokens from `account`, reducing the
+_Destroys `amount` tokens from `account`, reducing the
 total supply.
 
 Emits a {Transfer} event with `to` set to the zero address.
@@ -338,7 +338,7 @@ Requirements:
   function _voteApprove(address owner, address spender, uint256 amount) internal virtual
   ```
 
-  _Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
 This internal function is equivalent to `approve`, and can be used to
 e.g. set automatic allowances for certain subsystems, etc.
@@ -356,7 +356,7 @@ Requirements:
   function _increaseVoteAllowance(address owner, address spender, uint256 addedValue) internal virtual returns (bool)
   ```
 
-  _Atomically increases the allowance granted to `spender` by the caller.
+_Atomically increases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -373,7 +373,7 @@ Requirements:
   function _decreaseVoteAllowance(address owner, address spender, uint256 subtractedValue) internal virtual returns (bool)
   ```
 
-  _Atomically decreases the allowance granted to `spender` by the caller.
+_Atomically decreases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -392,7 +392,7 @@ Requirements:
   function _beforeVoteTokenTransfer(address, address, uint256 amount) internal virtual
   ```
 
-  _Hook that is called before any transfer of tokens. This includes
+_Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
@@ -411,7 +411,7 @@ To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hook
   function _afterVoteTokenTransfer(address, address, uint256 amount) internal virtual
   ```
 
-  _Hook that is called after any transfer of tokens. This includes
+_Hook that is called after any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:

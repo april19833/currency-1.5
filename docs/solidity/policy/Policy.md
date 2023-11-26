@@ -15,7 +15,7 @@ governance systems for other contracts.**
   address governor
   ```
 
-  _the contract allowed enact proposals_
+_the contract allowed enact proposals_
 
 ### OnlyGovernor
 
@@ -23,7 +23,7 @@ governance systems for other contracts.**
   error OnlyGovernor()
   ```
 
-  _error for when an address tries submit proposal actions without permission_
+_error for when an address tries submit proposal actions without permission_
 
 ### OnlySelf
 
@@ -31,7 +31,7 @@ governance systems for other contracts.**
   error OnlySelf()
   ```
 
-  _error for when an address tries to call a pseudo-internal function_
+_error for when an address tries to call a pseudo-internal function_
 
 ### FailedProposal
 
@@ -41,15 +41,11 @@ governance systems for other contracts.**
 
 for when a part of enacting a proposal reverts without a readable error
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal address that got reverted during enaction
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | the proposal address that got reverted during enaction |
 
 ### UpdatedGovernor
 
@@ -59,22 +55,12 @@ for when a part of enacting a proposal reverts without a readable error
 
 emits when the governor permissions are changed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    oldGovernor
-    |
-    address
-    |
-    denotes the old address whose permissions are being removed
-    |
-    |
-    newGovernor
-    |
-    address
-    |
-    denotes the new address whose permissions are being added
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| oldGovernor | address | denotes the old address whose permissions are being removed |
+| newGovernor | address | denotes the new address whose permissions are being added |
 
 ### EnactedGovernanceProposal
 
@@ -84,22 +70,12 @@ emits when the governor permissions are changed
 
 emits when enaction happens to keep record of enaction
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposal
-    |
-    address
-    |
-    the proposal address that got successfully enacted
-    |
-    |
-    governor
-    |
-    address
-    |
-    the contract which was the source of the proposal, source for looking up the calldata
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | the proposal address that got successfully enacted |
+| governor | address | the contract which was the source of the proposal, source for looking up the calldata |
 
 ### onlyGovernorRole
 
@@ -107,7 +83,7 @@ emits when enaction happens to keep record of enaction
   modifier onlyGovernorRole()
   ```
 
-  _Modifier for checking if the sender is a governor_
+_Modifier for checking if the sender is a governor_
 
 ### onlySelf
 
@@ -115,7 +91,7 @@ emits when enaction happens to keep record of enaction
   modifier onlySelf()
   ```
 
-  _Modifier for faux internal calls
+_Modifier for faux internal calls
 needed for function to be called only during delegate call_
 
 ### constructor
@@ -138,17 +114,13 @@ initializes the governor
   function updateGovernor(address _newGovernor) public
   ```
 
-  _pass the governance permissions to another address_
+_pass the governance permissions to another address_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _newGovernor
-    |
-    address
-    |
-    the address to make the new governor
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _newGovernor | address | the address to make the new governor |
 
 ### enact
 

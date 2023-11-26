@@ -58,22 +58,12 @@ This contract is a generic monetary policy lever and is inherited by all lever i
 
 Changes the authorized status of an address.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _agent
-    |
-    address
-    |
-    The address whose status is changing
-    |
-    |
-    _status
-    |
-    bool
-    |
-    The new status of _agent
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _agent | address | The address whose status is changing |
+| _status | bool | The new status of _agent |
 
 ### setNotifier
 
@@ -83,13 +73,9 @@ Changes the authorized status of an address.
 
 Changes the notifier for the lever.
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _notifier
-    |
-    contract Notifier
-    |
-    The new notifier address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _notifier | contract Notifier | The new notifier address |
 

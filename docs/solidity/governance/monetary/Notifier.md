@@ -99,13 +99,9 @@ struct Transaction {
   function removeTransaction(uint256 index) external
   ```
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    index
-    |
-    uint256
-    |
-    Index of transaction to remove.              Transaction ordering may have changed since adding.
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| index | uint256 | Index of transaction to remove.              Transaction ordering may have changed since adding. |
 

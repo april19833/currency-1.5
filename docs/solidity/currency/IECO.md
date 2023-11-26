@@ -10,7 +10,14 @@ Copyright (c) 2023 Eco Association
   function mint(address to, uint256 amount) external
   ```
 
-Only available to minters
+_Only available to minters_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| to | address | the address to mint to |
+| amount | uint256 | the amount to mint |
 
 ### burn
 
@@ -18,7 +25,14 @@ Only available to minters
   function burn(address from, uint256 amount) external
   ```
 
-Only available to token holders for their own tokens and burners
+_Only available to token holders for their own tokens and burners_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| from | address | the address to burn from |
+| amount | uint256 | the amount to burn |
 
 ### voteBalanceSnapshot
 
@@ -26,17 +40,19 @@ Only available to token holders for their own tokens and burners
   function voteBalanceSnapshot(address account) external view returns (uint256)
   ```
 
-Returns the votes for the current snapshot
+_Returns the votes for the current snapshot_
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    account
-    |
-    address
-    |
-    the address whose vote balance to check
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address whose vote balance to check |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | the balance of the account at the time of the Snapshot |
 
 ### inflationMultiplierSnapshot
 
@@ -44,7 +60,13 @@ Returns the votes for the current snapshot
   function inflationMultiplierSnapshot() external view returns (uint256)
   ```
 
-Returns the inflation multiplier value for the current snapshot
+_Returns the inflation multiplier value for the current snapshot_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | inflation multipler value |
 
 ### totalSupplySnapshot
 
@@ -52,5 +74,11 @@ Returns the inflation multiplier value for the current snapshot
   function totalSupplySnapshot() external view returns (uint256)
   ```
 
-Returns the total supply for the current snapshot
+_Returns the total supply for the current snapshot_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | total supply of the current snapshot |
 

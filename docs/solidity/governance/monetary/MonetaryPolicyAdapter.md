@@ -36,22 +36,12 @@ This module can be replaced, but it eases the difficulty of the potentially more
 
 emits when the currencyGovernance contract is changed
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    newCurrencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    denotes the new currencyGovernance contract address
-    |
-    |
-    oldCurrencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    denotes the old currencyGovernance contract address
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newCurrencyGovernance | contract CurrencyGovernance | denotes the new currencyGovernance contract address |
+| oldCurrencyGovernance | contract CurrencyGovernance | denotes the old currencyGovernance contract address |
 
 ### EnactedMonetaryPolicy
 
@@ -61,29 +51,13 @@ emits when the currencyGovernance contract is changed
 
 emits when enaction happens to keep record of enaction
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    proposalId
-    |
-    bytes32
-    |
-    the proposal lookup that got successfully enacted
-    |
-    |
-    currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    the CurrencyGovernance contract where you can look up the proposal calldata
-    |
-    |
-    successes
-    |
-    bool[]
-    |
-    the return success values from each of the calls to the targets in order
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposalId | bytes32 | the proposal lookup that got successfully enacted |
+| currencyGovernance | contract CurrencyGovernance | the CurrencyGovernance contract where you can look up the proposal calldata |
+| successes | bool[] | the return success values from each of the calls to the targets in order |
 
 ### FailedPolicySubcall
 
@@ -116,15 +90,11 @@ Restrict method access to the root policy instance only.
 setter function for currencyGovernance var
 only available to the owning policy contract
 
-  ####
-  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
-    |
-    _currencyGovernance
-    |
-    contract CurrencyGovernance
-    |
-    the value to set the new currencyGovernance address to, cannot be zero
-    |
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _currencyGovernance | contract CurrencyGovernance | the value to set the new currencyGovernance address to, cannot be zero |
 
 ### _setCurrencyGovernance
 

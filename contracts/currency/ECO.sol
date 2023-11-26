@@ -27,12 +27,12 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * error for when an address tries to rebase without permission
+     * @dev error for when an address tries to rebase without permission
      */
     error OnlyRebasers();
 
     /**
-     * error for when an address tries to snapshot without permission
+     * @dev error for when an address tries to snapshot without permission
      */
     error OnlySnapshotters();
 
@@ -41,14 +41,14 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * emits when the rebasers permissions are changed
+     * @dev emits when the rebasers permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can rebase, false for cannot)
      */
     event UpdatedRebasers(address actor, bool newPermission);
 
     /**
-     * emits when the snapshotters permissions are changed
+     * @dev emits when the snapshotters permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
      */
@@ -102,10 +102,17 @@ contract ECO is InflationSnapshots {
     ////////////////// FUNCTIONS /////////////////
     //////////////////////////////////////////////
 
+    /**
+     * @dev Rebase the currency using an inflation multiplier
+     * @param _inflationMultiplier the multipler used to rebase the currency
+     */
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
         _rebase(_inflationMultiplier);
     }
 
+    /**
+     * @dev Creates a new snapshot
+     */
     function snapshot() public onlySnapshotterRole {
         _snapshot();
     }
