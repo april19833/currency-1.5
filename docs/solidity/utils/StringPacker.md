@@ -6,13 +6,13 @@ Copyright (c) 2023 Eco Association
 
 ### pack
 
-```solidity
-function pack(string unpacked) internal pure returns (bytes32 packed)
-```
+  ```solidity
+  function pack(string unpacked) internal pure returns (bytes32 packed)
+  ```
 
 ### unpack
 
-```solidity
-function unpack(bytes32 packed) internal pure returns (string unpacked)
-```
+  ```solidity
+  function unpack(bytes32 packed) internal pure returns (string unpacked)
+  ```
 

@@ -4,11 +4,14 @@ Copyright (c) 2023 Eco Association
 
 ## TimeUtils
 
+**TimeUtils
+Utility class for time, allowing easy unit testing.**
+
 ### getTime
 
-```solidity
-function getTime() internal view returns (uint256)
-```
+  ```solidity
+  function getTime() internal view returns (uint256)
+  ```
 
 Determine the current time as perceived by the policy timing contract.
 

@@ -4,74 +4,92 @@ Copyright (c) 2023 Eco Association
 
 ## Lever
 
+**Monetary policy lever
+
+This contract is a generic monetary policy lever and is inherited by all lever implementations.**
+
 ### authorized
 
-```solidity
-mapping(address => bool) authorized
-```
+  ```solidity
+  mapping(address => bool) authorized
+  ```
 
 ### notifier
 
-```solidity
-contract Notifier notifier
-```
+  ```solidity
+  contract Notifier notifier
+  ```
 
 ### AuthorizedOnly
 
-```solidity
-error AuthorizedOnly()
-```
+  ```solidity
+  error AuthorizedOnly()
+  ```
 
 ### AuthorizationChanged
 
-```solidity
-event AuthorizationChanged(address agent, bool status)
-```
+  ```solidity
+  event AuthorizationChanged(address agent, bool status)
+  ```
 
 ### NotifierChanged
 
-```solidity
-event NotifierChanged(contract Notifier oldNotifier, contract Notifier newNotifier)
-```
+  ```solidity
+  event NotifierChanged(contract Notifier oldNotifier, contract Notifier newNotifier)
+  ```
 
 ### onlyAuthorized
 
-```solidity
-modifier onlyAuthorized()
-```
+  ```solidity
+  modifier onlyAuthorized()
+  ```
 
 ### constructor
 
-```solidity
-constructor(contract Policy _policy) public
-```
+  ```solidity
+  constructor(contract Policy _policy) public
+  ```
 
 ### setAuthorized
 
-```solidity
-function setAuthorized(address _agent, bool _status) public
-```
+  ```solidity
+  function setAuthorized(address _agent, bool _status) public
+  ```
 
 Changes the authorized status of an address.
 
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _agent | address | The address whose status is changing |
-| _status | bool | The new status of _agent |
+  ####
+  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
+    |
+    _agent
+    |
+    address
+    |
+    The address whose status is changing
+    |
+    |
+    _status
+    |
+    bool
+    |
+    The new status of _agent
+    |
 
 ### setNotifier
 
-```solidity
-function setNotifier(contract Notifier _notifier) public
-```
+  ```solidity
+  function setNotifier(contract Notifier _notifier) public
+  ```
 
 Changes the notifier for the lever.
 
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _notifier | contract Notifier | The new notifier address |
+  ####
+  Parameters | Name | Type | Description | | ---- | ---- | ----------- |
+    |
+    _notifier
+    |
+    contract Notifier
+    |
+    The new notifier address
+    |
 

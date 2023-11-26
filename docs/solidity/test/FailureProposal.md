@@ -4,169 +4,185 @@ Copyright (c) 2023 Eco Association
 
 ## FailureProposal
 
+**FailureProposal
+
+A proposal used for testing proposal failures.**
+
 ### ImSorry
 
-```solidity
-error ImSorry()
-```
+  ```solidity
+  error ImSorry()
+  ```
 
 Apologize in case of failure
 
 ### constructor
 
-```solidity
-constructor() public
-```
+  ```solidity
+  constructor() public
+  ```
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
+  ```solidity
+  function name() public pure returns (string)
+  ```
 
 The name of the proposal.
 
 ### description
 
-```solidity
-function description() public pure returns (string)
-```
+  ```solidity
+  function description() public pure returns (string)
+  ```
 
 A description of what the proposal does.
 
 ### url
 
-```solidity
-function url() public pure returns (string)
-```
+  ```solidity
+  function url() public pure returns (string)
+  ```
 
 A URL for more information.
 
 ### enacted
 
-```solidity
-function enacted(address _self) public
-```
+  ```solidity
+  function enacted(address _self) public
+  ```
 
 Enact the proposal.
 
 ## WorseFailureProposal
 
+**WorseFailureProposal
+
+A proposal used for testing proposal failures.**
+
 ### constructor
 
-```solidity
-constructor() public
-```
+  ```solidity
+  constructor() public
+  ```
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
+  ```solidity
+  function name() public pure returns (string)
+  ```
 
 The name of the proposal.
 
 ### description
 
-```solidity
-function description() public pure returns (string)
-```
+  ```solidity
+  function description() public pure returns (string)
+  ```
 
 A description of what the proposal does.
 
 ### url
 
-```solidity
-function url() public pure returns (string)
-```
+  ```solidity
+  function url() public pure returns (string)
+  ```
 
 A URL for more information.
 
 ### enacted
 
-```solidity
-function enacted(address _self) public
-```
+  ```solidity
+  function enacted(address _self) public
+  ```
 
 Enact the proposal.
 
 ## ClumsyFailureProposal
 
+**ClumsyFailureProposal
+
+A proposal used for testing proposal failures.**
+
 ### constructor
 
-```solidity
-constructor() public
-```
+  ```solidity
+  constructor() public
+  ```
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
+  ```solidity
+  function name() public pure returns (string)
+  ```
 
 The name of the proposal.
 
 ### description
 
-```solidity
-function description() public pure returns (string)
-```
+  ```solidity
+  function description() public pure returns (string)
+  ```
 
 A description of what the proposal does.
 
 ### url
 
-```solidity
-function url() public pure returns (string)
-```
+  ```solidity
+  function url() public pure returns (string)
+  ```
 
 A URL for more information.
 
 ### enacted
 
-```solidity
-function enacted(address _self) public
-```
+  ```solidity
+  function enacted(address _self) public
+  ```
 
 Enact the proposal.
 
 ## TotalFailureProposal
 
+**TotalFailureProposal
+
+A proposal used for testing proposal failures.**
+
 ### constructor
 
-```solidity
-constructor() public
-```
+  ```solidity
+  constructor() public
+  ```
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
+  ```solidity
+  function name() public pure returns (string)
+  ```
 
 The name of the proposal.
 
 ### description
 
-```solidity
-function description() public pure returns (string)
-```
+  ```solidity
+  function description() public pure returns (string)
+  ```
 
 A description of what the proposal does.
 
 ### url
 
-```solidity
-function url() public pure returns (string)
-```
+  ```solidity
+  function url() public pure returns (string)
+  ```
 
 A URL for more information.
 
 ### enacted
 
-```solidity
-function enacted(address _self) public
-```
+  ```solidity
+  function enacted(address _self) public
+  ```
 
 Enact the proposal.
 

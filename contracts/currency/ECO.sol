@@ -5,7 +5,8 @@ pragma solidity ^0.8.0;
 import "./InflationSnapshots.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 
-/** @title An ERC20 token interface to the Eco currency system.
+/**
+ * @title An ERC20 token interface to the Eco currency system.
  */
 contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
