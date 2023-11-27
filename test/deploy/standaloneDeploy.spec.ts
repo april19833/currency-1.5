@@ -154,9 +154,9 @@ describe('Deployment tests', () => {
     expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
       contracts.monetary.adapter.address
     )
-    expect(await contracts.monetary.monetaryGovernance.governanceStartTime()).to.not.eq(
-      0
-    )
+    expect(
+      await contracts.monetary.monetaryGovernance.governanceStartTime()
+    ).to.not.eq(0)
 
     expect(await contracts.monetary.trustedNodes.policy()).to.eq(
       contracts.base.policy.address
