@@ -7,7 +7,7 @@ import { DAY } from '../utils/constants'
 const INITIAL_ECO = ethers.constants.WeiPerEther.mul(10000).toString()
 const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(1000).toString()
 
-const TRUSTEE_TERM = 365 * DAY
+const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
@@ -107,56 +107,56 @@ describe('Deployment tests', () => {
       contracts.base.ecoXStaking.address
     )
 
-    expect(await contracts.monetary.lockups.lever.policy()).to.eq(
+    expect(await contracts.monetary.lockupsLever.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.lockups.lever.eco()).to.eq(
+    expect(await contracts.monetary.lockupsLever.eco()).to.eq(
       contracts.base.eco.address
     )
-    expect(await contracts.monetary.lockups.lever.depositWindow()).to.eq(
+    expect(await contracts.monetary.lockupsLever.depositWindow()).to.eq(
       LOCKUP_DEPOSIT_WINDOW
     )
     expect(
-      await contracts.monetary.lockups.lever.currentInflationMultiplier()
+      await contracts.monetary.lockupsLever.currentInflationMultiplier()
     ).to.eq(await contracts.base.eco.inflationMultiplier())
     expect(
-      await contracts.base.eco.voter(contracts.monetary.lockups.lever.address)
+      await contracts.base.eco.voter(contracts.monetary.lockupsLever.address)
     ).to.be.true
 
-    expect(await contracts.monetary.lockups.notifier.policy()).to.eq(
+    expect(await contracts.monetary.lockupsNotifier.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.lockups.notifier.lever()).to.eq(
-      contracts.monetary.lockups.lever.address
+    expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(
+      contracts.monetary.lockupsLever.address
     )
 
-    expect(await contracts.monetary.rebase.lever.policy()).to.eq(
+    expect(await contracts.monetary.rebaseLever.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.rebase.lever.eco()).to.eq(
+    expect(await contracts.monetary.rebaseLever.eco()).to.eq(
       contracts.base.eco.address
     )
 
-    expect(await contracts.monetary.rebase.notifier.policy()).to.eq(
+    expect(await contracts.monetary.rebaseNotifier.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.rebase.notifier.lever()).to.eq(
-      contracts.monetary.rebase.lever.address
+    expect(await contracts.monetary.rebaseNotifier.lever()).to.eq(
+      contracts.monetary.rebaseLever.address
     )
 
     expect(await contracts.monetary.adapter.policy()).to.eq(
       contracts.base.policy.address
     )
 
-    expect(await contracts.monetary.governance.policy()).to.eq(
+    expect(await contracts.monetary.monetaryGovernance.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.governance.enacter()).to.eq(
+    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
       contracts.monetary.adapter.address
     )
-    expect(await contracts.monetary.governance.governanceStartTime()).to.not.eq(
-      0
-    )
+    expect(
+      await contracts.monetary.monetaryGovernance.governanceStartTime()
+    ).to.not.eq(0)
 
     expect(await contracts.monetary.trustedNodes.policy()).to.eq(
       contracts.base.policy.address
@@ -165,7 +165,7 @@ describe('Deployment tests', () => {
       contracts.base.ecox.address
     )
     expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
-      contracts.monetary.governance.address
+      contracts.monetary.monetaryGovernance.address
     )
     expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(
       VOTE_REWARD
@@ -205,10 +205,10 @@ describe('Deployment tests', () => {
       await contracts.base.eco.minters(contracts.base.ecoXExchange.address)
     ).to.be.true
     expect(
-      await contracts.base.eco.minters(contracts.monetary.lockups.lever.address)
+      await contracts.base.eco.minters(contracts.monetary.lockupsLever.address)
     ).to.be.true
     expect(
-      await contracts.base.eco.rebasers(contracts.monetary.rebase.lever.address)
+      await contracts.base.eco.rebasers(contracts.monetary.rebaseLever.address)
     ).to.be.true
     expect(
       await contracts.base.eco.snapshotters(
@@ -217,26 +217,26 @@ describe('Deployment tests', () => {
     ).to.be.true
 
     expect(
-      await contracts.monetary.lockups.lever.authorized(
+      await contracts.monetary.lockupsLever.authorized(
         contracts.monetary.adapter.address
       )
     ).to.be.true
-    expect(await contracts.monetary.lockups.lever.notifier()).to.eq(
-      contracts.monetary.lockups.notifier.address
+    expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
+      contracts.monetary.lockupsNotifier.address
     )
     expect(
-      await contracts.monetary.rebase.lever.authorized(
+      await contracts.monetary.rebaseLever.authorized(
         contracts.monetary.adapter.address
       )
     ).to.be.true
-    expect(await contracts.monetary.rebase.lever.notifier()).to.eq(
-      contracts.monetary.rebase.notifier.address
+    expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
+      contracts.monetary.rebaseNotifier.address
     )
 
     expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
-      contracts.monetary.governance.address
+      contracts.monetary.monetaryGovernance.address
     )
-    expect(await contracts.monetary.governance.trustedNodes()).to.eq(
+    expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
       contracts.monetary.trustedNodes.address
     )
   })

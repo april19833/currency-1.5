@@ -29,11 +29,9 @@ describe('EcoX', () => {
       bob.address, // pauser
     ]
 
-    ecoXProxy = (await deployProxy(
-      policyImpersonator,
-      ECOx__factory,
-      ecoXDeployParams
-    )) as ECOx
+    ecoXProxy = (
+      await deployProxy(policyImpersonator, ECOx__factory, ecoXDeployParams)
+    )[0] as ECOx
   })
 
   describe('initialization', async () => {

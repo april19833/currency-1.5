@@ -80,3 +80,6 @@ typechain/
 package
 lib
 libTest
+
+#Deployment data
+deploy/deployments
