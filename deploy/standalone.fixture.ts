@@ -2,36 +2,42 @@ import { ethers } from 'hardhat'
 import fs from 'fs'
 import path from 'path'
 import { deploy, deployProxy } from './utils'
-import {
-  CommunityGovernance,
-  CommunityGovernance__factory,
-  CurrencyGovernance,
-  CurrencyGovernance__factory,
-  ECO,
-  ECO__factory,
-  ECOx,
-  ECOxExchange,
-  ECOxExchange__factory,
-  ECOxStaking,
-  ECOxStaking__factory,
-  ECOx__factory,
-  Lockups,
-  Lockups__factory,
-  MonetaryPolicyAdapter,
-  MonetaryPolicyAdapter__factory,
-  Notifier,
-  Notifier__factory,
-  Policy,
-  Policy__factory,
-  Rebase,
-  Rebase__factory,
-  TestnetLinker,
-  TestnetLinker__factory,
-  TrustedNodes,
-  TrustedNodes__factory,
-} from '../typechain-types'
 import { Signer } from 'ethers'
 import { DAY } from '../test/utils/constants'
+import { Policy } from '../typechain-types/contracts/policy'
+import { ECO, ECOx, ECOxExchange } from '../typechain-types/contracts/currency'
+import {
+  CommunityGovernance,
+  ECOxStaking,
+} from '../typechain-types/contracts/governance/community'
+import {
+  CurrencyGovernance,
+  Lockups,
+  MonetaryPolicyAdapter,
+  Notifier,
+  Rebase,
+  TrustedNodes,
+} from '../typechain-types/contracts/governance/monetary'
+import {
+  CommunityGovernance__factory,
+  ECOxStaking__factory,
+} from '../typechain-types/factories/contracts/governance/community'
+import {
+  CurrencyGovernance__factory,
+  Lockups__factory,
+  MonetaryPolicyAdapter__factory,
+  Notifier__factory,
+  Rebase__factory,
+  TrustedNodes__factory,
+} from '../typechain-types/factories/contracts/governance/monetary'
+import { Policy__factory } from '../typechain-types/factories/contracts/policy'
+import {
+  ECO__factory,
+  ECOxExchange__factory,
+  ECOx__factory,
+} from '../typechain-types/factories/contracts/currency'
+import { TestnetLinker__factory } from '../typechain-types/factories/contracts/deploy/TestnetLinker.propo.sol'
+import { TestnetLinker } from '../typechain-types/contracts/deploy/TestnetLinker.propo.sol'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
@@ -151,7 +157,7 @@ export async function deployCommunity(
     base.policy.address,
     base.eco.address,
     base.ecoXStaking.address,
-    Math.floor(now / 1000),
+    config.governanceStartTime || Math.floor(now / 1000),
     pauser,
   ]
 
@@ -402,6 +408,95 @@ export async function deployBase(
       ecoImplementation: ecoDeploy[1].address,
       ecoxImplementation: ecoxDeploy[1].address,
       ecoXStakingImplementation: ecoXStakingDeploy[1].address,
+    }
+    fs.writeFileSync(
+      `${outputFolder}/baseImplementationAddresses.json`,
+      JSON.stringify(outputProxyBases, null, 2)
+    )
+  }
+
+  return new BaseContracts(policy, eco, ecox, ecoXStaking, ecoXExchange)
+}
+
+export async function deployBaseUnproxied(
+  wallet: Signer,
+  initialECOxSupply: string,
+  verbose = false,
+  config: any
+): Promise<BaseContracts> {
+  if (verbose) {
+    console.log('deploying policy')
+  }
+
+  const policyParams = [
+    ethers.constants.AddressZero, // params don't matter because it's just an implementation
+  ]
+
+  const policy = (await deploy(wallet, Policy__factory, policyParams)) as Policy
+
+  if (verbose) {
+    console.log('deploying eco')
+  }
+
+  const ecoParams = [config.policyProxyAddress, ethers.constants.AddressZero] // policy address is immutable, pauser is not
+
+  const eco = (await deploy(wallet, ECO__factory, ecoParams)) as ECO
+
+  if (verbose) {
+    console.log('deploying ecox')
+  }
+
+  const ecoxParams = [config.policyProxyAddress, ethers.constants.AddressZero] // policy address is immutable, pauser is not
+
+  const ecox = (await deploy(wallet, ECOx__factory, ecoxParams)) as ECOx
+
+  if (verbose) {
+    console.log('deploying ecoXExchange')
+  }
+
+  const ecoXExchangeParams = [
+    // all params are immutable
+    config.policyProxyAddress,
+    config.ecoProxyAddress,
+    config.ecoxProxyAddress,
+    initialECOxSupply,
+  ]
+
+  const ecoXExchange = (await deploy(
+    wallet,
+    ECOxExchange__factory,
+    ecoXExchangeParams
+  )) as ECOxExchange
+
+  if (verbose) {
+    console.log('deploying ecoXStaking')
+  }
+
+  const ecoXStakingParams = [config.policyProxyAddress, config.ecoxProxyAddress] // both immutable
+
+  const ecoXStaking = (await deploy(
+    wallet,
+    ECOxStaking__factory,
+    ecoXStakingParams
+  )) as ECOxStaking
+
+  if (config.verify) {
+    const output = {
+      policyParams,
+      ecoParams,
+      ecoxParams,
+      ecoXExchangeParams,
+      ecoXStakingParams,
+    }
+    fs.writeFileSync(
+      `${outputFolder}/baseDeployParams.json`,
+      JSON.stringify(output, null, 2)
+    )
+    const outputProxyBases = {
+      policyImplementation: policy.address,
+      ecoImplementation: eco.address,
+      ecoxImplementation: ecox.address,
+      ecoXStakingImplementation: ecoXStaking.address,
     }
     fs.writeFileSync(
       `${outputFolder}/baseImplementationAddresses.json`,
