@@ -399,9 +399,9 @@ export async function deployBase(
     )
     const outputProxyBases = {
       policyImplementation: policyDeploy[1].address,
-      ecoImplementation: policyDeploy[1].address,
-      ecoxImplementation: policyDeploy[1].address,
-      ecoXStakingImplementation: policyDeploy[1].address,
+      ecoImplementation: ecoDeploy[1].address,
+      ecoxImplementation: ecoxDeploy[1].address,
+      ecoXStakingImplementation: ecoXStakingDeploy[1].address,
     }
     fs.writeFileSync(
       `${outputFolder}/baseImplementationAddresses.json`,
