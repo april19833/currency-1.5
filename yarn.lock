@@ -896,10 +896,10 @@
   resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.0.0.tgz#f22824caff3ae506b18207bad4126dbc6ccdb6b8"
   integrity sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==
 
-"@helix-foundation/currency@1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@helix-foundation/currency/-/currency-1.0.5.tgz#db99a24691c8fa759a79794901e4684769795ebd"
-  integrity sha512-UkX7z0wY4pHGUcYAsWDbsdZUtTlCHLj79EBmeeV6fV4GJfiNrKof0EZtQ1m2oJIoUSkEM4/sESl51Aajbj196A==
+"@helix-foundation/currency-dev@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@helix-foundation/currency-dev/-/currency-dev-1.0.7.tgz#c522bfc73282f269726ceded37f236b2a6b859e4"
+  integrity sha512-yd5NIeGhHlj8ztacsgAwd8sRCcPuRWeWB0rO9VomUuo7p83oJfxyv5n3wJ7yLNFeUjKs+k0+TdqB81oMC5O+Bg==
   dependencies:
     "@ethersproject/experimental" "^5.7.0"
     "@openzeppelin/contracts" "^4.6.0"
