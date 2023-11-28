@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./ERC20Permit.sol";
 
 /**
- * @dev Implementation of the {IERC20} interface.
+ * Implementation of the {IERC20} interface.
  *
  * This comment taken from the openzeppelin source contract.
  *
@@ -45,7 +45,7 @@ contract ERC20 is ERC20Permit {
     bytes32 internal immutable _symbol;
 
     /**
-     * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * Emitted when `value` tokens are moved from one account (`from`) to
      * another (`to`).
      *
      * Note that `value` may be zero.
@@ -53,7 +53,7 @@ contract ERC20 is ERC20Permit {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     /**
-     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+     * Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
     event Approval(
@@ -63,7 +63,7 @@ contract ERC20 is ERC20Permit {
     );
 
     /**
-     * @dev Sets the values for {name} and {symbol}.
+     * Sets the values for {name} and {symbol}.
      *
      * The default value of {decimals} is 18. To select a different value for
      * {decimals} you should overload it.
@@ -77,14 +77,14 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Returns the name of the token.
+     * Returns the name of the token.
      */
     function name() public view virtual returns (string memory) {
         return StringPacker.unpack(_name);
     }
 
     /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
+     * Returns the symbol of the token, usually a shorter version of the
      * name.
      */
     function symbol() public view virtual returns (string memory) {
@@ -92,7 +92,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Returns the number of decimals used to get its user representation.
+     * Returns the number of decimals used to get its user representation.
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
      * be displayed to a user as `5.05` (`505 / 10 ** 2`).
      *
@@ -109,21 +109,21 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev See {IERC20-totalSupply}.
+     * See {IERC20-totalSupply}.
      */
     function totalSupply() public view virtual returns (uint256) {
         return _totalSupply;
     }
 
     /**
-     * @dev See {IERC20-balanceOf}.
+     * See {IERC20-balanceOf}.
      */
     function balanceOf(address account) public view virtual returns (uint256) {
         return _balances[account];
     }
 
     /**
-     * @dev See {IERC20-transfer}.
+     * See {IERC20-transfer}.
      *
      * Requirements:
      *
@@ -139,7 +139,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev See {IERC20-allowance}.
+     * See {IERC20-allowance}.
      */
     function allowance(
         address owner,
@@ -149,7 +149,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev See {IERC20-approve}.
+     * See {IERC20-approve}.
      *
      * Requirements:
      *
@@ -164,7 +164,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev See {IERC20-transferFrom}.
+     * See {IERC20-transferFrom}.
      *
      * Emits an {Approval} event indicating the updated allowance. This is not
      * required by the EIP. See the note at the beginning of {ERC20}.
@@ -196,7 +196,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Atomically increases the allowance granted to `spender` by the caller.
+     * Atomically increases the allowance granted to `spender` by the caller.
      *
      * This is an alternative to {approve} that can be used as a mitigation for
      * problems described in {IERC20-approve}.
@@ -220,7 +220,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Atomically decreases the allowance granted to `spender` by the caller.
+     * Atomically decreases the allowance granted to `spender` by the caller.
      *
      * This is an alternative to {approve} that can be used as a mitigation for
      * problems described in {IERC20-approve}.
@@ -250,7 +250,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Moves `amount` of tokens from `sender` to `recipient`.
+     * Moves `amount` of tokens from `sender` to `recipient`.
      *
      * This internal function is equivalent to {transfer}, and can be used to
      * e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -291,7 +291,7 @@ contract ERC20 is ERC20Permit {
         _afterTokenTransfer(sender, recipient, amount);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+    /** Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
      * Emits a {Transfer} event with `from` set to the zero address.
@@ -322,7 +322,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Destroys `amount` tokens from `account`, reducing the
+     * Destroys `amount` tokens from `account`, reducing the
      * total supply.
      *
      * Emits a {Transfer} event with `to` set to the zero address.
@@ -357,7 +357,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+     * Sets `amount` as the allowance of `spender` over the `owner` s tokens.
      *
      * This internal function is equivalent to `approve`, and can be used to
      * e.g. set automatic allowances for certain subsystems, etc.
@@ -381,7 +381,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Hook that is called before any transfer of tokens. This includes
+     * Hook that is called before any transfer of tokens. This includes
      * minting and burning.
      *
      * Calling conditions:
@@ -403,7 +403,7 @@ contract ERC20 is ERC20Permit {
     }
 
     /**
-     * @dev Hook that is called after any transfer of tokens. This includes
+     * Hook that is called after any transfer of tokens. This includes
      * minting and burning.
      *
      * Calling conditions:

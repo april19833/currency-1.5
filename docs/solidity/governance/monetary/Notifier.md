@@ -98,7 +98,6 @@ struct Transaction {
   ```solidity
   function removeTransaction(uint256 index) external
   ```
-
 #### Parameters
 
 | Name | Type | Description |

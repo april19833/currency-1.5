@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title initial token distribution contract
- * @dev This contract is used to distribute the initial allocations of ECO and ECOx
+ * This contract is used to distribute the initial allocations of ECO and ECOx
  */
 contract TokenInit is Ownable {
     struct distribution {
@@ -19,11 +19,10 @@ contract TokenInit is Ownable {
         uint256 balance;
     }
 
-    /** 
-     * @dev Transfer held tokens for the initial distribution.
+    /**
+     * Transfer held tokens for the initial distribution.
      * @param _token The address of the token contract.
      * @param _distributions array of distribution address - balance pairs
-     
      */
     function distributeTokens(
         address _token,

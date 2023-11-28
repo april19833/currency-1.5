@@ -56,29 +56,25 @@ allowances. See {IERC20-approve}._
 
 ### Transfer
 
-  ```solidity
-  event Transfer(address from, address to, uint256 value)
-  ```
-
 _Emitted when `value` tokens are moved from one account (`from`) to
 another (`to`).
 
 Note that `value` may be zero._
 
+  ```solidity
+  event Transfer(address from, address to, uint256 value)
+  ```
+
 ### Approval
+
+_Emitted when the allowance of a `spender` for an `owner` is set by
+a call to {approve}. `value` is the new allowance._
 
   ```solidity
   event Approval(address owner, address spender, uint256 value)
   ```
 
-_Emitted when the allowance of a `spender` for an `owner` is set by
-a call to {approve}. `value` is the new allowance._
-
 ### constructor
-
-  ```solidity
-  constructor(string name_, string symbol_) public
-  ```
 
 _Sets the values for {name} and {symbol}.
 
@@ -88,28 +84,28 @@ The default value of {decimals} is 18. To select a different value for
 All two of these values are immutable: they can only be set once during
 construction._
 
+  ```solidity
+  constructor(string name_, string symbol_) public
+  ```
+
 ### name
+
+_Returns the name of the token._
 
   ```solidity
   function name() public view virtual returns (string)
   ```
 
-_Returns the name of the token._
-
 ### symbol
+
+_Returns the symbol of the token, usually a shorter version of the
+name._
 
   ```solidity
   function symbol() public view virtual returns (string)
   ```
 
-_Returns the symbol of the token, usually a shorter version of the
-name._
-
 ### decimals
-
-  ```solidity
-  function decimals() public view virtual returns (uint8)
-  ```
 
 _Returns the number of decimals used to get its user representation.
 For example, if `decimals` equals `2`, a balance of `505` tokens should
@@ -123,27 +119,27 @@ NOTE: This information is only used for _display_ purposes: it in
 no way affects any of the arithmetic of the contract, including
 {IERC20-balanceOf} and {IERC20-transfer}._
 
+  ```solidity
+  function decimals() public view virtual returns (uint8)
+  ```
+
 ### totalSupply
+
+_See {IERC20-totalSupply}._
 
   ```solidity
   function totalSupply() public view virtual returns (uint256)
   ```
 
-_See {IERC20-totalSupply}._
-
 ### balanceOf
+
+_See {IERC20-balanceOf}._
 
   ```solidity
   function balanceOf(address account) public view virtual returns (uint256)
   ```
 
-_See {IERC20-balanceOf}._
-
 ### transfer
-
-  ```solidity
-  function transfer(address recipient, uint256 amount) public virtual returns (bool)
-  ```
 
 _See {IERC20-transfer}.
 
@@ -152,19 +148,19 @@ Requirements:
 - `recipient` cannot be the zero address.
 - the caller must have a balance of at least `amount`._
 
+  ```solidity
+  function transfer(address recipient, uint256 amount) public virtual returns (bool)
+  ```
+
 ### allowance
+
+_See {IERC20-allowance}._
 
   ```solidity
   function allowance(address owner, address spender) public view virtual returns (uint256)
   ```
 
-_See {IERC20-allowance}._
-
 ### approve
-
-  ```solidity
-  function approve(address spender, uint256 amount) public virtual returns (bool)
-  ```
 
 _See {IERC20-approve}.
 
@@ -172,11 +168,11 @@ Requirements:
 
 - `spender` cannot be the zero address._
 
-### transferFrom
-
   ```solidity
-  function transferFrom(address sender, address recipient, uint256 amount) public virtual returns (bool)
+  function approve(address spender, uint256 amount) public virtual returns (bool)
   ```
+
+### transferFrom
 
 _See {IERC20-transferFrom}.
 
@@ -190,11 +186,11 @@ Requirements:
 - the caller must have allowance for ``sender``'s tokens of at least
 `amount`._
 
-### increaseAllowance
-
   ```solidity
-  function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool)
+  function transferFrom(address sender, address recipient, uint256 amount) public virtual returns (bool)
   ```
+
+### increaseAllowance
 
 _Atomically increases the allowance granted to `spender` by the caller.
 
@@ -207,11 +203,11 @@ Requirements:
 
 - `spender` cannot be the zero address._
 
-### decreaseAllowance
-
   ```solidity
-  function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool)
+  function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool)
   ```
+
+### decreaseAllowance
 
 _Atomically decreases the allowance granted to `spender` by the caller.
 
@@ -226,11 +222,11 @@ Requirements:
 - `spender` must have allowance for the caller of at least
 `subtractedValue`._
 
-### _transfer
-
   ```solidity
-  function _transfer(address sender, address recipient, uint256 originalAmount) internal virtual
+  function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool)
   ```
+
+### _transfer
 
 _Moves `amount` of tokens from `sender` to `recipient`.
 
@@ -245,11 +241,11 @@ Requirements:
 - `recipient` cannot be the zero address.
 - `sender` must have a balance of at least `amount`._
 
-### _mint
-
   ```solidity
-  function _mint(address account, uint256 originalAmount) internal virtual returns (uint256)
+  function _transfer(address sender, address recipient, uint256 originalAmount) internal virtual
   ```
+
+### _mint
 
 _Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
@@ -260,11 +256,11 @@ Requirements:
 
 - `account` cannot be the zero address._
 
-### _burn
-
   ```solidity
-  function _burn(address account, uint256 originalAmount) internal virtual returns (uint256)
+  function _mint(address account, uint256 originalAmount) internal virtual returns (uint256)
   ```
+
+### _burn
 
 _Destroys `amount` tokens from `account`, reducing the
 total supply.
@@ -276,11 +272,11 @@ Requirements:
 - `account` cannot be the zero address.
 - `account` must have at least `amount` tokens._
 
-### _approve
-
   ```solidity
-  function _approve(address owner, address spender, uint256 amount) internal virtual
+  function _burn(address account, uint256 originalAmount) internal virtual returns (uint256)
   ```
+
+### _approve
 
 _Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
@@ -294,11 +290,11 @@ Requirements:
 - `owner` cannot be the zero address.
 - `spender` cannot be the zero address._
 
-### _beforeTokenTransfer
-
   ```solidity
-  function _beforeTokenTransfer(address, address, uint256 amount) internal virtual returns (uint256)
+  function _approve(address owner, address spender, uint256 amount) internal virtual
   ```
+
+### _beforeTokenTransfer
 
 _Hook that is called before any transfer of tokens. This includes
 minting and burning.
@@ -313,11 +309,11 @@ will be transferred to `to`.
 
 To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
 
-### _afterTokenTransfer
-
   ```solidity
-  function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
+  function _beforeTokenTransfer(address, address, uint256 amount) internal virtual returns (uint256)
   ```
+
+### _afterTokenTransfer
 
 _Hook that is called after any transfer of tokens. This includes
 minting and burning.
@@ -331,4 +327,8 @@ has been transferred to `to`.
 - `from` and `to` are never both zero.
 
 To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
+
+  ```solidity
+  function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
+  ```
 

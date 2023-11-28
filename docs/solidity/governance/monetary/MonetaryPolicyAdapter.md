@@ -30,12 +30,11 @@ This module can be replaced, but it eases the difficulty of the potentially more
 
 ### NewCurrencyGovernance
 
+emits when the currencyGovernance contract is changed
+
   ```solidity
   event NewCurrencyGovernance(contract CurrencyGovernance newCurrencyGovernance, contract CurrencyGovernance oldCurrencyGovernance)
   ```
-
-emits when the currencyGovernance contract is changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -45,12 +44,11 @@ emits when the currencyGovernance contract is changed
 
 ### EnactedMonetaryPolicy
 
+emits when enaction happens to keep record of enaction
+
   ```solidity
   event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance, bool[] successes)
   ```
-
-emits when enaction happens to keep record of enaction
-
 #### Parameters
 
 | Name | Type | Description |
@@ -61,19 +59,19 @@ emits when enaction happens to keep record of enaction
 
 ### FailedPolicySubcall
 
+emits when a part of enacting a policy reverts
+
   ```solidity
   event FailedPolicySubcall(address target, string reason)
   ```
 
-emits when a part of enacting a policy reverts
-
 ### onlyCurrencyGovernance
+
+Restrict method access to the root policy instance only.
 
   ```solidity
   modifier onlyCurrencyGovernance()
   ```
-
-Restrict method access to the root policy instance only.
 
 ### constructor
 
@@ -83,13 +81,12 @@ Restrict method access to the root policy instance only.
 
 ### setCurrencyGovernance
 
-  ```solidity
-  function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
-  ```
-
 setter function for currencyGovernance var
 only available to the owning policy contract
 
+  ```solidity
+  function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
+  ```
 #### Parameters
 
 | Name | Type | Description |

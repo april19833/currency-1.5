@@ -143,13 +143,13 @@ enum Stage {
 
 ### leader
 
-  ```solidity
-  bytes32 leader
-  ```
-
 used to track the leading proposalId during the vote totalling
 tracks the winner between reveal phases
 is deleted on enact to ensure it can only be enacted once
+
+  ```solidity
+  bytes32 leader
+  ```
 
 ### NonZeroTrustedNodesAddr
 
@@ -177,13 +177,12 @@ is deleted on enact to ensure it can only be enacted once
 
 ### CycleIncomplete
 
-  ```solidity
-  error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle)
-  ```
-
 Early finazilation error
 for when a cycle is attempted to be finalized before it finishes
 
+  ```solidity
+  error CycleIncomplete(uint256 requestedCycle, uint256 currentCycle)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -193,13 +192,12 @@ for when a cycle is attempted to be finalized before it finishes
 
 ### ExceedsMaxDescriptionSize
 
-  ```solidity
-  error ExceedsMaxDescriptionSize(uint256 submittedLength)
-  ```
-
 Description length error
 for when a proposal is submitted with too long of a description
 
+  ```solidity
+  error ExceedsMaxDescriptionSize(uint256 submittedLength)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -208,13 +206,12 @@ for when a proposal is submitted with too long of a description
 
 ### BadNumTargets
 
-  ```solidity
-  error BadNumTargets(uint256 submittedLength)
-  ```
-
 Targets length error
 for when a proposal is submitted with too many actions or zero actions
 
+  ```solidity
+  error BadNumTargets(uint256 submittedLength)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -283,12 +280,11 @@ for when a proposal is submitted with too many actions or zero actions
 
 ### InvalidVoteBadProposalId
 
+error for when a proposalId in a trustee's vote is not one from the current cycle or is completely invalid
+
   ```solidity
   error InvalidVoteBadProposalId(struct CurrencyGovernance.Vote vote)
   ```
-
-error for when a proposalId in a trustee's vote is not one from the current cycle or is completely invalid
-
 #### Parameters
 
 | Name | Type | Description |
@@ -297,12 +293,11 @@ error for when a proposalId in a trustee's vote is not one from the current cycl
 
 ### InvalidVoteBadProposalOrder
 
+error for when the proposalIds in a trustee's vote are not strictly increasing
+
   ```solidity
   error InvalidVoteBadProposalOrder(struct CurrencyGovernance.Vote prevVote, struct CurrencyGovernance.Vote vote)
   ```
-
-error for when the proposalIds in a trustee's vote are not strictly increasing
-
 #### Parameters
 
 | Name | Type | Description |
@@ -312,12 +307,11 @@ error for when the proposalIds in a trustee's vote are not strictly increasing
 
 ### InvalidVoteBadScore
 
+error for when a score in a trustee's vote is either duplicate or doesn't respect support weightings
+
   ```solidity
   error InvalidVoteBadScore(struct CurrencyGovernance.Vote vote)
   ```
-
-error for when a score in a trustee's vote is either duplicate or doesn't respect support weightings
-
 #### Parameters
 
 | Name | Type | Description |
@@ -338,12 +332,11 @@ error for when a score in a trustee's vote is either duplicate or doesn't respec
 
 ### NewTrustedNodes
 
+emits when the trustedNodes contract is changed
+
   ```solidity
   event NewTrustedNodes(contract TrustedNodes newTrustedNodes, contract TrustedNodes oldTrustedNodes)
   ```
-
-emits when the trustedNodes contract is changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -353,12 +346,11 @@ emits when the trustedNodes contract is changed
 
 ### NewEnacter
 
+emits when the enacter contract is changed
+
   ```solidity
   event NewEnacter(contract MonetaryPolicyAdapter newEnacter, contract MonetaryPolicyAdapter oldEnacter)
   ```
-
-emits when the enacter contract is changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -368,13 +360,12 @@ emits when the enacter contract is changed
 
 ### ProposalCreation
 
-  ```solidity
-  event ProposalCreation(address _trusteeAddress, uint256 _cycle, bytes32 id, string _description)
-  ```
-
 Tracking for proposal creation
 emitted when a proposal is submitted to track the values
 
+  ```solidity
+  event ProposalCreation(address _trusteeAddress, uint256 _cycle, bytes32 id, string _description)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -386,13 +377,12 @@ emitted when a proposal is submitted to track the values
 
 ### Support
 
-  ```solidity
-  event Support(address trustee, bytes32 proposalId, uint256 cycle)
-  ```
-
 Tracking for support actions
 emitted when a trustee adds their support for a proposal
 
+  ```solidity
+  event Support(address trustee, bytes32 proposalId, uint256 cycle)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -403,13 +393,12 @@ emitted when a trustee adds their support for a proposal
 
 ### Unsupport
 
-  ```solidity
-  event Unsupport(address trustee, bytes32 proposalId, uint256 cycle)
-  ```
-
 Tracking for unsupport actions
 emitted when a trustee retracts their support for a proposal
 
+  ```solidity
+  event Unsupport(address trustee, bytes32 proposalId, uint256 cycle)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -420,13 +409,12 @@ emitted when a trustee retracts their support for a proposal
 
 ### ProposalDeleted
 
-  ```solidity
-  event ProposalDeleted(bytes32 proposalId, uint256 cycle)
-  ```
-
 Tracking for removed proposals
 emitted when the last trustee retracts their support for a proposal
 
+  ```solidity
+  event ProposalDeleted(bytes32 proposalId, uint256 cycle)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -436,12 +424,11 @@ emitted when the last trustee retracts their support for a proposal
 
 ### VoteCommit
 
+Fired when a trustee commits their vote.
+
   ```solidity
   event VoteCommit(address trustee, uint256 cycle)
   ```
-
-Fired when a trustee commits their vote.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -451,13 +438,12 @@ Fired when a trustee commits their vote.
 
 ### VoteReveal
 
-  ```solidity
-  event VoteReveal(address voter, uint256 cycle, struct CurrencyGovernance.Vote[] votes)
-  ```
-
 Fired when a vote is revealed, to create a voting history for all participants.
 Records the voter, as well as all of the parameters of the vote cast.
 
+  ```solidity
+  event VoteReveal(address voter, uint256 cycle, struct CurrencyGovernance.Vote[] votes)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -468,20 +454,19 @@ Records the voter, as well as all of the parameters of the vote cast.
 
 ### Abstain
 
+Fired when an address choses to abstain
+
   ```solidity
   event Abstain(address voter, uint256 cycle)
   ```
 
-Fired when an address choses to abstain
-
 ### VoteResult
+
+Fired when vote results are computed, creating a permanent record of vote outcomes.
 
   ```solidity
   event VoteResult(uint256 cycle, bytes32 winner)
   ```
-
-Fired when vote results are computed, creating a permanent record of vote outcomes.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -491,11 +476,11 @@ Fired when vote results are computed, creating a permanent record of vote outcom
 
 ### onlyTrusted
 
+Restrict access to trusted nodes only.
+
   ```solidity
   modifier onlyTrusted()
   ```
-
-Restrict access to trusted nodes only.
 
 ### duringProposePhase
 
@@ -523,12 +508,11 @@ Restrict access to trusted nodes only.
 
 ### constructor
 
+constructor
+
   ```solidity
   constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter) public
   ```
-
-constructor
-
 #### Parameters
 
 | Name | Type | Description |
@@ -538,13 +522,12 @@ constructor
 
 ### setTrustedNodes
 
-  ```solidity
-  function setTrustedNodes(contract TrustedNodes _trustedNodes) external
-  ```
-
 setter function for trustedNodes var
 only available to the owning policy contract
 
+  ```solidity
+  function setTrustedNodes(contract TrustedNodes _trustedNodes) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -559,13 +542,12 @@ only available to the owning policy contract
 
 ### setEnacter
 
-  ```solidity
-  function setEnacter(contract MonetaryPolicyAdapter _enacter) external
-  ```
-
 setter function for enacter var
 only available to the owning policy contract
 
+  ```solidity
+  function setEnacter(contract MonetaryPolicyAdapter _enacter) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -580,12 +562,12 @@ only available to the owning policy contract
 
 ### getCurrentStage
 
+getter for timing data
+calculates and returns the current cycle and the current stage
+
   ```solidity
   function getCurrentStage() public view returns (struct CurrencyGovernance.TimingData)
   ```
-
-getter for timing data
-calculates and returns the current cycle and the current stage
 
 #### Return Values
 
@@ -595,12 +577,12 @@ calculates and returns the current cycle and the current stage
 
 ### getCurrentCycle
 
+getter for just the current cycle
+calculates and returns, used internally
+
   ```solidity
   function getCurrentCycle() public view returns (uint256)
   ```
-
-getter for just the current cycle
-calculates and returns, used internally
 
 #### Return Values
 
@@ -610,25 +592,24 @@ calculates and returns, used internally
 
 ### propose
 
-  ```solidity
-  function propose(address[] targets, bytes4[] signatures, bytes[] calldatas, string description) external
-  ```
-
 propose a monetary policy
 this function allows trustees to submit a potential monetary policy
 if there is already a proposed monetary policy by the trustee, this overwrites it
 \\param these will be done later when I change this whole function
 
-### canSupport
-
   ```solidity
-  function canSupport(address _address) public view returns (bool)
+  function propose(address[] targets, bytes4[] signatures, bytes[] calldatas, string description) external
   ```
+
+### canSupport
 
 getter for duplicate support checks
 the function just pulls to see if the address has supported this generation
 doesn't check to see if the address is a trustee
 
+  ```solidity
+  function canSupport(address _address) public view returns (bool)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -667,16 +648,15 @@ doesn't check to see if the address is a trustee
 
 ### supportProposal
 
-  ```solidity
-  function supportProposal(bytes32 proposalId) external
-  ```
-
 add your support to a monetary policy
 this function allows you to increase the support weight to an already submitted proposal
 the submitter of a proposal default supports it
 support for a proposal is close to equivalent of submitting a duplicate proposal to pad the ranking
 need to link to borda count analysis by christian here
 
+  ```solidity
+  function supportProposal(bytes32 proposalId) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -685,15 +665,14 @@ need to link to borda count analysis by christian here
 
 ### unsupportProposal
 
-  ```solidity
-  function unsupportProposal(bytes32 proposalId) external
-  ```
-
 removes your support to a monetary policy
 this function allows you to reduce the support weight to an already submitted proposal
 you must unsupport first if you currently have supported if you want to support or propose another proposal
 the last person who unsupports the proposal deletes the proposal
 
+  ```solidity
+  function unsupportProposal(bytes32 proposalId) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -702,15 +681,14 @@ the last person who unsupports the proposal deletes the proposal
 
 ### commit
 
-  ```solidity
-  function commit(bytes32 _commitment) external
-  ```
-
 submit a vote commitment
 this function allows trustees to submit a commit hash of their vote
 commitment is salted so that it is a blind vote process
 calling additional times overwrites previous commitments
 
+  ```solidity
+  function commit(bytes32 _commitment) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -719,25 +697,24 @@ calling additional times overwrites previous commitments
 
 ### abstain
 
-  ```solidity
-  function abstain() external
-  ```
-
 signal abstainment to the protocol
 does not count as a vote (cannot be revealed to record positive participation for a reward)
 signals the abstainment with an event
 due to a small quirk, forgetting to reveal your vote in the previous round requires you to first call commit with zero data
 
-### reveal
-
   ```solidity
-  function reveal(address _trustee, bytes32 _salt, struct CurrencyGovernance.Vote[] _votes) external
+  function abstain() external
   ```
+
+### reveal
 
 reveal a committed vote
 this function allows trustees to reveal their previously committed votes once the reveal phase is entered
 in revealing the vote, votes are tallied, a running tally of each proposal's votes is kept in storage during this phase
 
+  ```solidity
+  function reveal(address _trustee, bytes32 _salt, struct CurrencyGovernance.Vote[] _votes) external
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -748,12 +725,11 @@ in revealing the vote, votes are tallied, a running tally of each proposal's vot
 
 ### enact
 
+send the results to the adapter for enaction
+
   ```solidity
   function enact(uint256 _cycle) external
   ```
-
-send the results to the adapter for enaction
-
 #### Parameters
 
 | Name | Type | Description |

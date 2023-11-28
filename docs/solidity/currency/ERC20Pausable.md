@@ -21,12 +21,11 @@ When paused by the pauser admin, transfers revert._
 
 ### PauserAssignment
 
+event indicating the pauser was updated
+
   ```solidity
   event PauserAssignment(address pauser)
   ```
-
-event indicating the pauser was updated
-
 #### Parameters
 
 | Name | Type | Description |
@@ -53,45 +52,44 @@ event indicating the pauser was updated
 
 ### _beforeTokenTransfer
 
-  ```solidity
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
-  ```
-
 _Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 If the token is not paused, it will pass through the amount_
 
-### pause
-
   ```solidity
-  function pause() external
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
   ```
+
+### pause
 
 pauses transfers of this token
 
 _only callable by the pauser_
 
-### unpause
-
   ```solidity
-  function unpause() external
+  function pause() external
   ```
+
+### unpause
 
 unpauses transfers of this token
 
 _only callable by the pauser_
 
-### setPauser
-
   ```solidity
-  function setPauser(address _pauser) public
+  function unpause() external
   ```
+
+### setPauser
 
 set the given address as the pauser
 
 _only the roleAdmin can call this function_
 
+  ```solidity
+  function setPauser(address _pauser) public
+  ```
 #### Parameters
 
 | Name | Type | Description |

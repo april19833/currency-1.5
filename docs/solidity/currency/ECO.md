@@ -8,44 +8,43 @@ Copyright (c) 2023 Eco Association
 
 ### rebasers
 
+_Mapping storing contracts able to rebase the token_
+
   ```solidity
   mapping(address => bool) rebasers
   ```
 
-_Mapping storing contracts able to rebase the token_
-
 ### snapshotters
+
+_Mapping storing contracts able to rebase the token_
 
   ```solidity
   mapping(address => bool) snapshotters
   ```
 
-_Mapping storing contracts able to rebase the token_
-
 ### OnlyRebasers
+
+_error for when an address tries to rebase without permission_
 
   ```solidity
   error OnlyRebasers()
   ```
 
-_error for when an address tries to rebase without permission_
-
 ### OnlySnapshotters
+
+_error for when an address tries to snapshot without permission_
 
   ```solidity
   error OnlySnapshotters()
   ```
 
-_error for when an address tries to snapshot without permission_
-
 ### UpdatedRebasers
+
+_emits when the rebasers permissions are changed_
 
   ```solidity
   event UpdatedRebasers(address actor, bool newPermission)
   ```
-
-_emits when the rebasers permissions are changed_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -55,12 +54,11 @@ _emits when the rebasers permissions are changed_
 
 ### UpdatedSnapshotters
 
+_emits when the snapshotters permissions are changed_
+
   ```solidity
   event UpdatedSnapshotters(address actor, bool newPermission)
   ```
-
-_emits when the snapshotters permissions are changed_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -70,19 +68,19 @@ _emits when the snapshotters permissions are changed_
 
 ### onlyRebaserRole
 
+_Modifier for checking if the sender is a rebaser_
+
   ```solidity
   modifier onlyRebaserRole()
   ```
 
-_Modifier for checking if the sender is a rebaser_
-
 ### onlySnapshotterRole
+
+_Modifier for checking if the sender is a snapshotter_
 
   ```solidity
   modifier onlySnapshotterRole()
   ```
-
-_Modifier for checking if the sender is a snapshotter_
 
 ### constructor
 
@@ -92,12 +90,11 @@ _Modifier for checking if the sender is a snapshotter_
 
 ### initialize
 
+_Initialize_
+
   ```solidity
   function initialize(address _self) public virtual
   ```
-
-_Initialize_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -106,12 +103,11 @@ _Initialize_
 
 ### rebase
 
+_Rebase the currency using an inflation multiplier_
+
   ```solidity
   function rebase(uint256 _inflationMultiplier) public
   ```
-
-_Rebase the currency using an inflation multiplier_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -120,21 +116,20 @@ _Rebase the currency using an inflation multiplier_
 
 ### snapshot
 
+_Creates a new snapshot_
+
   ```solidity
   function snapshot() public
   ```
 
-_Creates a new snapshot_
-
 ### updateRebasers
-
-  ```solidity
-  function updateRebasers(address _key, bool _value) public
-  ```
 
 _change the rebasing permissions for an address
 only callable by tokenRoleAdmin_
 
+  ```solidity
+  function updateRebasers(address _key, bool _value) public
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -144,13 +139,12 @@ only callable by tokenRoleAdmin_
 
 ### updateSnapshotters
 
-  ```solidity
-  function updateSnapshotters(address _key, bool _value) public
-  ```
-
 _change the rebasing permissions for an address
 only callable by tokenRoleAdmin_
 
+  ```solidity
+  function updateSnapshotters(address _key, bool _value) public
+  ```
 #### Parameters
 
 | Name | Type | Description |

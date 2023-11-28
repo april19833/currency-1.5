@@ -26,13 +26,12 @@ Copyright (c) 2023 Eco Association
 
 ### Deposit
 
+_The Deposit event indicates that ECOx has been locked up, credited
+to a particular address in a particular amount._
+
   ```solidity
   event Deposit(address source, uint256 amount)
   ```
-
-The Deposit event indicates that ECOx has been locked up, credited
-to a particular address in a particular amount.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -42,13 +41,12 @@ to a particular address in a particular amount.
 
 ### Withdrawal
 
+_The Withdrawal event indicates that a withdrawal has been made to a particular
+address in a particular amount._
+
   ```solidity
   event Withdrawal(address destination, uint256 amount)
   ```
-
-The Withdrawal event indicates that a withdrawal has been made to a particular
-address in a particular amount.
-
 #### Parameters
 
 | Name | Type | Description |

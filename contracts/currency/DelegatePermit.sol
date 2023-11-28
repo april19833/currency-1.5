@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 
 /**
- * @dev Abstract contract including helper functions to allow delegation by signature using
+ * Abstract contract including helper functions to allow delegation by signature using
  * [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612).
  *
  * Adds the `{_verifyDelegatePermit}` internal method, verifies a signature specifying permission to receive delegation power
@@ -27,7 +27,7 @@ abstract contract DelegatePermit is EIP712 {
         );
 
     /**
-     * @dev Verify that the given delegate signature is valid, throws if not
+     * Verify that the given delegate signature is valid, throws if not
      * @param delegator The address delegating
      * @param delegatee The address being delegated to
      * @param deadline The deadling of the delegation after which it will be invalid
@@ -66,16 +66,19 @@ abstract contract DelegatePermit is EIP712 {
     }
 
     /**
-     * @dev get the current nonce for the given address
+     * get the current nonce for the given address
      * @param owner The address to get nonce for
      * @return nonce current nonce of `owner`
      */
-    function delegationNonce(address owner) public view returns (uint256) {
-        return _nonces[owner].current();
+    function delegationNonce(
+        address owner
+    ) public view returns (uint256 nonce) {
+        nonce = _nonces[owner].current();
+        return nonce;
     }
 
     /**
-     * @dev "Consume a nonce": return the current value and increment.
+     * "Consume a nonce": return the current value and increment.
      *
      * Available since v4.1.
      * @param owner The address to consume a nonce for
@@ -87,5 +90,6 @@ abstract contract DelegatePermit is EIP712 {
         Counters.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();
+        return current;
     }
 }

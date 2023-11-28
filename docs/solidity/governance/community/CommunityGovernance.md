@@ -43,236 +43,235 @@ enum Vote {
 
 ### CYCLE_LENGTH
 
+_the duration of the community governance cycle_
+
   ```solidity
   uint256 CYCLE_LENGTH
   ```
 
-the duration of the community governance cycle
-
 ### PROPOSAL_LENGTH
+
+_the duration of the proposal stage_
 
   ```solidity
   uint256 PROPOSAL_LENGTH
   ```
 
-the duration of the proposal stage
-
 ### VOTING_LENGTH
+
+_the duration of the voting stage_
 
   ```solidity
   uint256 VOTING_LENGTH
   ```
 
-the duration of the voting stage
-
 ### DELAY_LENGTH
+
+_the duration of the execution delay_
 
   ```solidity
   uint256 DELAY_LENGTH
   ```
 
-the duration of the execution delay
-
 ### pauser
+
+_address allowed to pause community governance_
 
   ```solidity
   address pauser
   ```
 
-address allowed to pause community governance
-
 ### proposals
+
+_reference any proposal by its address_
 
   ```solidity
   mapping(address => struct CommunityGovernance.PropData) proposals
   ```
 
-reference any proposal by its address
-
 ### cycleCount
+
+_number of voting cycles since launch_
 
   ```solidity
   uint256 cycleCount
   ```
 
-number of voting cycles since launch
-
 ### cycleStart
+
+_start of the current cycle_
 
   ```solidity
   uint256 cycleStart
   ```
 
-start of the current cycle
-
 ### stage
+
+_current stage in the cycle_
 
   ```solidity
   enum CommunityGovernance.Stage stage
   ```
 
-current stage in the cycle
-
 ### currentStageEnd
+
+_end time of current_
 
   ```solidity
   uint256 currentStageEnd
   ```
 
-end time of current
-
 ### snapshotBlock
+
+_snapshot block for calculating voting power_
 
   ```solidity
   uint256 snapshotBlock
   ```
 
-snapshot block for calculating voting power
-
 ### proposalFee
+
+_cost in ECO to submit a proposal_
 
   ```solidity
   uint256 proposalFee
   ```
 
-cost in ECO to submit a proposal
-
 ### feeRefund
+
+_proposal fee to be refunded if proposal is not enacted_
 
   ```solidity
   uint256 feeRefund
   ```
 
-proposal fee to be refunded if proposal is not enacted
-
 ### supportThresholdPercent
+
+_the percent of total VP that must be supporting a proposal in order to advance it to the voting stage_
 
   ```solidity
   uint256 supportThresholdPercent
   ```
 
-the percent of total VP that must be supporting a proposal in order to advance it to the voting stage
-
 ### voteThresholdPercent
+
+_the percent of total VP that must have voted to enact a proposal in order to bypass the delay period_
 
   ```solidity
   uint256 voteThresholdPercent
   ```
 
-the percent of total VP that must have voted to enact a proposal in order to bypass the delay period
-
 ### cycleTotalVotingPower
+
+_total voting power for the cycle_
 
   ```solidity
   uint256 cycleTotalVotingPower
   ```
 
-total voting power for the cycle
-
 ### selectedProposal
+
+_the proposal being voted on this cycle_
 
   ```solidity
   address selectedProposal
   ```
 
-the proposal being voted on this cycle
-
 ### totalEnactVotes
+
+_total votes to enact the selected proposal_
 
   ```solidity
   uint256 totalEnactVotes
   ```
 
-total votes to enact the selected proposal
-
 ### totalRejectVotes
+
+_total votes to reject the selected proposal_
 
   ```solidity
   uint256 totalRejectVotes
   ```
 
-total votes to reject the selected proposal
-
 ### totalAbstainVotes
+
+_total votes to abstain from voting on the selected proposal_
 
   ```solidity
   uint256 totalAbstainVotes
   ```
 
-total votes to abstain from voting on the selected proposal
-
 ### pot
+
+_redeemable tokens from fees_
 
   ```solidity
   uint256 pot
   ```
 
-redeemable tokens from fees
-
 ### OnlyPauser
+
+_thrown when non-pauser tries to call pause without permission_
 
   ```solidity
   error OnlyPauser()
   ```
 
-thrown when non-pauser tries to call pause without permission
-
 ### WrongStage
+
+_thrown when a call is made during the wrong stage of Community Governance_
 
   ```solidity
   error WrongStage()
   ```
 
-thrown when a call is made during the wrong stage of Community Governance
-
 ### DuplicateProposal
+
+_thrown when a proposal that already exists is proposed again_
 
   ```solidity
   error DuplicateProposal()
   ```
 
-thrown when a proposal that already exists is proposed again
-
 ### ArrayLengthMismatch
+
+_thrown when related argument arrays have differing lengths_
 
   ```solidity
   error ArrayLengthMismatch()
   ```
 
-thrown when related argument arrays have differing lengths
-
 ### BadVotingPower
+
+_thrown when the voting power of a support or vote action is invalid_
 
   ```solidity
   error BadVotingPower()
   ```
 
-thrown when the voting power of a support or vote action is invalid
-
 ### NoSupportToRevoke
+
+_thrown when unsupport is called without the caller having supported the proposal_
 
   ```solidity
   error NoSupportToRevoke()
   ```
 
-thrown when unsupport is called without the caller having supported the proposal
-
 ### BadVoteType
+
+_thrown when vote is called with a vote type other than enact, reject, abstain_
 
   ```solidity
   error BadVoteType()
   ```
 
-thrown when vote is called with a vote type other than enact, reject, abstain
-
 ### NoRefundAvailable
+
+_thrown when refund is called on a proposal for which no refund is available_
 
   ```solidity
   error NoRefundAvailable(address proposal)
   ```
-
-thrown when refund is called on a proposal for which no refund is available
-
 #### Parameters
 
 | Name | Type | Description |
@@ -281,12 +280,11 @@ thrown when refund is called on a proposal for which no refund is available
 
 ### NoRefundDuringCycle
 
+_thrown when refund is called on a proposal that was submitted in the current cycle_
+
   ```solidity
   error NoRefundDuringCycle(address proposal)
   ```
-
-thrown when refund is called on a proposal that was submitted in the current cycle
-
 #### Parameters
 
 | Name | Type | Description |
@@ -295,12 +293,11 @@ thrown when refund is called on a proposal that was submitted in the current cyc
 
 ### PauserAssignment
 
+_event indicating the pauser was updated_
+
   ```solidity
   event PauserAssignment(address pauser)
   ```
-
-event indicating the pauser was updated
-
 #### Parameters
 
 | Name | Type | Description |
@@ -309,12 +306,11 @@ event indicating the pauser was updated
 
 ### StageUpdated
 
+_event indicating a change in the community governance stage_
+
   ```solidity
   event StageUpdated(enum CommunityGovernance.Stage stage)
   ```
-
-event indicating a change in the community governance stage
-
 #### Parameters
 
 | Name | Type | Description |
@@ -323,12 +319,11 @@ event indicating a change in the community governance stage
 
 ### ProposalRegistration
 
+_An event indicating a proposal has been registered_
+
   ```solidity
   event ProposalRegistration(address proposer, contract Proposal proposal)
   ```
-
-An event indicating a proposal has been registered
-
 #### Parameters
 
 | Name | Type | Description |
@@ -338,12 +333,11 @@ An event indicating a proposal has been registered
 
 ### SupportChanged
 
+_An event indicating a change in support for a proposal_
+
   ```solidity
   event SupportChanged(address supporter, contract Proposal proposal, uint256 oldSupport, uint256 newSupport)
   ```
-
-An event indicating a change in support for a proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -355,12 +349,11 @@ An event indicating a change in support for a proposal
 
 ### VotesChanged
 
+_An event indicating a vote cast on a proposal_
+
   ```solidity
   event VotesChanged(address voter, uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes)
   ```
-
-An event indicating a vote cast on a proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -372,12 +365,11 @@ An event indicating a vote cast on a proposal
 
 ### ExecutionComplete
 
+_An event indicating that the proposal selected for this governance cycle was successfully executed_
+
   ```solidity
   event ExecutionComplete(address proposal)
   ```
-
-An event indicating that the proposal selected for this governance cycle was successfully executed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -386,12 +378,11 @@ An event indicating that the proposal selected for this governance cycle was suc
 
 ### NewCycle
 
+_An event indicating that a new cycle has begun_
+
   ```solidity
   event NewCycle(uint256 cycleNumber)
   ```
-
-An event indicating that a new cycle has begun
-
 #### Parameters
 
 | Name | Type | Description |
@@ -400,23 +391,22 @@ An event indicating that a new cycle has begun
 
 ### FeeRefunded
 
+_An event indicating that the fee for a proposal was refunded
+     @param proposal The address of the proposal being refunded
+     @param proposer The address that registered the proposal
+     @param refund The amount of tokens refunded to proposer_
+
   ```solidity
   event FeeRefunded(address proposal, address proposer, uint256 refund)
   ```
 
-An event indicating that the fee for a proposal was refunded
-     @param proposal The address of the proposal being refunded
-     @param proposer The address that registered the proposal
-     @param refund The amount of tokens refunded to proposer
-
 ### Sweep
+
+_An event indicating that the leftover funds from fees were swept to a recipient address_
 
   ```solidity
   event Sweep(address recipient)
   ```
-
-An event indicating that the leftover funds from fees were swept to a recipient address
-
 #### Parameters
 
 | Name | Type | Description |
@@ -431,12 +421,11 @@ An event indicating that the leftover funds from fees were swept to a recipient 
 
 ### constructor
 
+_contract constructor_
+
   ```solidity
   constructor(contract Policy policy, contract ECO _eco, contract ECOxStaking _ecoXStaking, uint256 _cycleStart, address _pauser) public
   ```
-
-contract constructor
-
 #### Parameters
 
 | Name | Type | Description |
@@ -449,12 +438,11 @@ contract constructor
 
 ### setPauser
 
+_sets the pauser of community governance_
+
   ```solidity
   function setPauser(address _pauser) public
   ```
-
-sets the pauser of community governance
-
 #### Parameters
 
 | Name | Type | Description |
@@ -463,41 +451,38 @@ sets the pauser of community governance
 
 ### pause
 
+_Pauses community governance_
+
   ```solidity
   function pause() external
   ```
 
-Pauses community governance
-
 ### updateStage
+
+_updates the current stage
+called by methods propose, vote, and execute._
 
   ```solidity
   function updateStage() public
   ```
 
-updates the current stage
-
-_called by methods propose, vote, and execute._
-
 ### nextCycle
+
+_moves community governance to the next cycle_
 
   ```solidity
   function nextCycle() internal
   ```
 
-moves community governance to the next cycle
-
 ### propose
+
+_allows a user to submit a community governance proposal
+fee is only levied if community governance is paused - we want to still be usable
+in the event that ECO transfers are paused._
 
   ```solidity
   function propose(contract Proposal _proposal) public
   ```
-
-allows a user to submit a community governance proposal
-
-_fee is only levied if community governance is paused - we want to still be usable
-in the event that ECO transfers are paused._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -506,12 +491,11 @@ in the event that ECO transfers are paused._
 
 ### support
 
+_allows an address to register its full voting power in support of a proposal_
+
   ```solidity
   function support(address _proposal) public
   ```
-
-allows an address to register its full voting power in support of a proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -520,14 +504,12 @@ allows an address to register its full voting power in support of a proposal
 
 ### supportPartial
 
+_allows an address to register partial support for a set of proposals
+_changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support_
+
   ```solidity
   function supportPartial(address[] _proposals, uint256[] _allocations) public
   ```
-
-allows an address to register partial support for a set of proposals
-
-__changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the _proposals array will not result in double counting of support_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -537,12 +519,11 @@ __changeSupport overwrites the previous supporting voting power, so having the s
 
 ### unsupport
 
+_allows an address to revoke support for a proposal_
+
   ```solidity
   function unsupport(address _proposal) public
   ```
-
-allows an address to revoke support for a proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -557,12 +538,11 @@ allows an address to revoke support for a proposal
 
 ### getSupport
 
+_fetches the voting power with which a given address supports a given proposal_
+
   ```solidity
   function getSupport(address supporter, address proposal) public view returns (uint256 support)
   ```
-
-fetches the voting power with which a given address supports a given proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -572,12 +552,11 @@ fetches the voting power with which a given address supports a given proposal
 
 ### vote
 
+_allows an address to vote to enact, reject or abstain on a proposal with their full voting power_
+
   ```solidity
   function vote(enum CommunityGovernance.Vote choice) public
   ```
-
-allows an address to vote to enact, reject or abstain on a proposal with their full voting power
-
 #### Parameters
 
 | Name | Type | Description |
@@ -586,12 +565,11 @@ allows an address to vote to enact, reject or abstain on a proposal with their f
 
 ### votePartial
 
+_allows an address to split their voting power allocation between enact, reject and abstain_
+
   ```solidity
   function votePartial(uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes) public
   ```
-
-allows an address to split their voting power allocation between enact, reject and abstain
-
 #### Parameters
 
 | Name | Type | Description |
@@ -608,12 +586,11 @@ allows an address to split their voting power allocation between enact, reject a
 
 ### getVotes
 
+_fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal_
+
   ```solidity
   function getVotes(address voter) public view returns (uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes)
   ```
-
-fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
-
 #### Parameters
 
 | Name | Type | Description |
@@ -622,25 +599,22 @@ fetches the votes an address has pledged toward enacting, rejecting, and abstain
 
 ### execute
 
+_allows an address to enact a selected proposal that has passed the vote
+it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
+the community will have a minimum of 3 days 8 hours to enact the proposal._
+
   ```solidity
   function execute() public
   ```
 
-allows an address to enact a selected proposal that has passed the vote
-
-_it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
-the community will have a minimum of 3 days 8 hours to enact the proposal._
-
 ### refund
+
+_allows redemption of proposal registration fees
+the fee will be refunded to the proposer of the proposal, regardless of who calls refund_
 
   ```solidity
   function refund(address proposal) public
   ```
-
-allows redemption of proposal registration fees
-
-_the fee will be refunded to the proposer of the proposal, regardless of who calls refund_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -649,14 +623,12 @@ _the fee will be refunded to the proposer of the proposal, regardless of who cal
 
 ### sweep
 
+_allows the leftover registration fees to be drained from the contract
+only the policy contract can call this_
+
   ```solidity
   function sweep(address recipient) public
   ```
-
-allows the leftover registration fees to be drained from the contract
-
-_only the policy contract can call this_
-
 #### Parameters
 
 | Name | Type | Description |

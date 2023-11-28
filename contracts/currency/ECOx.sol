@@ -16,12 +16,12 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * @dev address of ECOxExchange contract
+     * address of ECOxExchange contract
      */
     address public ecoXExchange;
 
     /**
-     * @dev bits of precision used in the exponentiation approximation
+     * bits of precision used in the exponentiation approximation
      */
     // uint8 public constant PRECISION_BITS = 100;
 
@@ -30,7 +30,7 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * @dev error for when transfer returns false
+     * error for when transfer returns false
      * used by contracts that import this contract
      */
     error TransferFailed();
@@ -40,14 +40,14 @@ contract ECOx is ERC20MintAndBurn {
     //////////////////////////////////////////////
 
     /**
-     * @dev emits when the ECOxExchange address is changed
+     * emits when the ECOxExchange address is changed
      * @param _old old holder of role
      * @param _new new holder of role
      */
     event UpdatedECOxExchange(address _old, address _new);
 
     /**
-     * @dev Constructor
+     * Constructor
      * @param _policy The policy contract that oversees other contracts
      * @param _pauser The address of the Pauser
      */
@@ -57,7 +57,7 @@ contract ECOx is ERC20MintAndBurn {
     ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {}
 
     /**
-     * @dev unlikely this will need to be used again since the proxy has already been initialized.
+     * unlikely this will need to be used again since the proxy has already been initialized.
      * @param _self the address to initialize
      */
     function initialize(
@@ -70,7 +70,7 @@ contract ECOx is ERC20MintAndBurn {
     }
 
     /**
-     * @dev change the ECOxExchange address
+     * change the ECOxExchange address
      * @param _newRoleHolder the new ECOxExchange address
      */
     function updateECOxExchange(address _newRoleHolder) public onlyPolicy {

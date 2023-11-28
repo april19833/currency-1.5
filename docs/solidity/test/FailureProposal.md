@@ -10,11 +10,11 @@ A proposal used for testing proposal failures.**
 
 ### ImSorry
 
+Apologize in case of failure
+
   ```solidity
   error ImSorry()
   ```
-
-Apologize in case of failure
 
 ### constructor
 
@@ -24,35 +24,35 @@ Apologize in case of failure
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address _self) public
   ```
-
-Enact the proposal.
 
 ## WorseFailureProposal
 
@@ -68,35 +68,35 @@ A proposal used for testing proposal failures.**
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address _self) public
   ```
-
-Enact the proposal.
 
 ## ClumsyFailureProposal
 
@@ -112,35 +112,35 @@ A proposal used for testing proposal failures.**
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address _self) public
   ```
-
-Enact the proposal.
 
 ## TotalFailureProposal
 
@@ -156,33 +156,33 @@ A proposal used for testing proposal failures.**
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address _self) public
   ```
-
-Enact the proposal.
 

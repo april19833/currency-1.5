@@ -29,21 +29,20 @@ Changing this value (via implementing _rebase)_
 
 ### BadRebaseValue
 
+_error for when a rebase attempts to rebase incorrectly_
+
   ```solidity
   error BadRebaseValue()
   ```
 
-_error for when a rebase attempts to rebase incorrectly_
-
 ### NewInflationMultiplier
-
-  ```solidity
-  event NewInflationMultiplier(uint256 adjustinginflationMultiplier, uint256 cumulativeInflationMultiplier)
-  ```
 
 _Fired when a proposal with a new inflation multiplier is selected and passed.
 Used to calculate new values for the rebased token._
 
+  ```solidity
+  event NewInflationMultiplier(uint256 adjustinginflationMultiplier, uint256 cumulativeInflationMultiplier)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -53,13 +52,12 @@ Used to calculate new values for the rebased token._
 
 ### BaseValueTransfer
 
-  ```solidity
-  event BaseValueTransfer(address from, address to, uint256 value)
-  ```
-
 _to be used to record the transfer amounts after _beforeTokenTransfer
 these values are the base (unchanging) values the currency is stored in_
 
+  ```solidity
+  event BaseValueTransfer(address from, address to, uint256 value)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -70,10 +68,6 @@ these values are the base (unchanging) values the currency is stored in_
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
-  ```
-
 Construct a new instance.
 
 _Note that it is always necessary to call reAuthorize on the balance store
@@ -81,6 +75,9 @@ after it is first constructed to populate the authorized interface
 contracts cache. These calls are separated to allow the authorized
 contracts to be configured/deployed after the balance store contract._
 
+  ```solidity
+  constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -92,12 +89,11 @@ contracts to be configured/deployed after the balance store contract._
 
 ### initialize
 
+_Initialize_
+
   ```solidity
   function initialize(address _self) public virtual
   ```
-
-_Initialize_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -112,20 +108,20 @@ _Initialize_
 
 ### _beforeTokenTransfer
 
+Update total supply snapshots before the values are modified. This is implemented
+in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+
   ```solidity
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
   ```
 
-Update total supply snapshots before the values are modified. This is implemented
-in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
-
 ### inflationMultiplierSnapshot
+
+_Inflation Multiplier Snapshot_
 
   ```solidity
   function inflationMultiplierSnapshot() public view returns (uint256)
   ```
-
-_Inflation Multiplier Snapshot_
 
 #### Return Values
 
@@ -135,12 +131,12 @@ _Inflation Multiplier Snapshot_
 
 ### getPastLinearInflation
 
+_wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
+no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability_
+
   ```solidity
   function getPastLinearInflation(uint256) public view returns (uint256)
   ```
-
-_wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
-no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability_
 
 #### Return Values
 
@@ -150,20 +146,19 @@ no requires even though return value might be misleading given inability to quer
 
 ### balanceOf
 
+_Access function to determine the token balance held by some address._
+
   ```solidity
   function balanceOf(address _owner) public view returns (uint256)
   ```
 
-_Access function to determine the token balance held by some address._
-
 ### voteBalanceOf
+
+_Access function to determine the voting balance (includes delegation) of some address._
 
   ```solidity
   function voteBalanceOf(address _owner) public view returns (uint256)
   ```
-
-_Access function to determine the voting balance (includes delegation) of some address._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -178,11 +173,11 @@ _Access function to determine the voting balance (includes delegation) of some a
 
 ### totalSupply
 
+_Returns the total (inflation corrected) token supply_
+
   ```solidity
   function totalSupply() public view returns (uint256)
   ```
-
-_Returns the total (inflation corrected) token supply_
 
 #### Return Values
 
@@ -192,11 +187,11 @@ _Returns the total (inflation corrected) token supply_
 
 ### totalSupplySnapshot
 
+_Returns the total (inflation corrected) token supply for the current snapshot_
+
   ```solidity
   function totalSupplySnapshot() public view returns (uint256)
   ```
-
-_Returns the total (inflation corrected) token supply for the current snapshot_
 
 #### Return Values
 
@@ -206,12 +201,11 @@ _Returns the total (inflation corrected) token supply for the current snapshot_
 
 ### voteBalanceSnapshot
 
+_Return snapshotted voting balance (includes delegation) for the current snapshot._
+
   ```solidity
   function voteBalanceSnapshot(address account) public view returns (uint256)
   ```
-
-_Return snapshotted voting balance (includes delegation) for the current snapshot._
-
 #### Parameters
 
 | Name | Type | Description |

@@ -52,12 +52,11 @@ This contract is a generic monetary policy lever and is inherited by all lever i
 
 ### setAuthorized
 
+Changes the authorized status of an address.
+
   ```solidity
   function setAuthorized(address _agent, bool _status) public
   ```
-
-Changes the authorized status of an address.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -67,12 +66,11 @@ Changes the authorized status of an address.
 
 ### setNotifier
 
+Changes the notifier for the lever.
+
   ```solidity
   function setNotifier(contract Notifier _notifier) public
   ```
-
-Changes the notifier for the lever.
-
 #### Parameters
 
 | Name | Type | Description |

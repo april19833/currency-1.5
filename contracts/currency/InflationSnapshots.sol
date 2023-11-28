@@ -5,7 +5,7 @@ import "./VoteSnapshots.sol";
 
 /**
  * @title InflationSnapshots
- * @dev This implements a scaling inflation multiplier on all balances and votes.
+ * This implements a scaling inflation multiplier on all balances and votes.
  * Changing this value (via implementing _rebase)
  */
 abstract contract InflationSnapshots is VoteSnapshots {
@@ -16,12 +16,12 @@ abstract contract InflationSnapshots is VoteSnapshots {
     uint256 public inflationMultiplier;
 
     /**
-     * @dev error for when a rebase attempts to rebase incorrectly
+     * error for when a rebase attempts to rebase incorrectly
      */
     error BadRebaseValue();
 
     /**
-     * @dev Fired when a proposal with a new inflation multiplier is selected and passed.
+     * Fired when a proposal with a new inflation multiplier is selected and passed.
      * Used to calculate new values for the rebased token.
      * @param adjustinginflationMultiplier the multiplier that has just been applied to the tokens
      * @param cumulativeInflationMultiplier the total multiplier that is used to convert to and from gons
@@ -32,7 +32,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     );
 
     /**
-     * @dev to be used to record the transfer amounts after _beforeTokenTransfer
+     * to be used to record the transfer amounts after _beforeTokenTransfer
      * these values are the base (unchanging) values the currency is stored in
      * @param from address transferring from
      * @param to address transferring to
@@ -45,7 +45,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     );
 
     /** Construct a new instance.
-     * @dev Note that it is always necessary to call reAuthorize on the balance store
+     * Note that it is always necessary to call reAuthorize on the balance store
      * after it is first constructed to populate the authorized interface
      * contracts cache. These calls are separated to allow the authorized
      * contracts to be configured/deployed after the balance store contract.
@@ -65,7 +65,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Initialize
+     * Initialize
      * @param _self the address to initialize
      */
     function initialize(
@@ -106,7 +106,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Inflation Multiplier Snapshot
+     * Inflation Multiplier Snapshot
      * @return Inflation Value Muliplier at time of the Snapshot
      */
     function inflationMultiplierSnapshot() public view returns (uint256) {
@@ -118,7 +118,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
+     * wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
      * no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability
      * @return Inflation Value Muliplier at time of the Snapshot
      */
@@ -127,14 +127,14 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Access function to determine the token balance held by some address.
+     * Access function to determine the token balance held by some address.
      */
     function balanceOf(address _owner) public view override returns (uint256) {
         return _balances[_owner] / inflationMultiplier;
     }
 
     /**
-     * @dev Access function to determine the voting balance (includes delegation) of some address.
+     * Access function to determine the voting balance (includes delegation) of some address.
      * @param _owner the address of the account to get the balance for
      * @return The vote balance fo the owner divided by the inflation multiplier
      */
@@ -145,7 +145,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Returns the total (inflation corrected) token supply
+     * Returns the total (inflation corrected) token supply
      * @return The total supply divided by the inflation multiplier
      */
     function totalSupply() public view override returns (uint256) {
@@ -153,7 +153,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Returns the total (inflation corrected) token supply for the current snapshot
+     * Returns the total (inflation corrected) token supply for the current snapshot
      * @return The total supply snapshot divided by the inflation multiplier
      */
     function totalSupplySnapshot() public view override returns (uint256) {
@@ -161,7 +161,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     /**
-     * @dev Return snapshotted voting balance (includes delegation) for the current snapshot.
+     * Return snapshotted voting balance (includes delegation) for the current snapshot.
      * @param account The account to check the votes of.
      * @return snapshotted voting balance (includes delegation) for the current snapshot.
      */

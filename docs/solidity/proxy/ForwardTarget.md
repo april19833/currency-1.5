@@ -20,10 +20,6 @@ Copyright (c) 2023 Eco Association
 
 ### initialize
 
-  ```solidity
-  function initialize(address _self) public virtual
-  ```
-
 Storage initialization of cloned contract
 
 This is used to initialize the storage of the forwarded contract, and
@@ -33,6 +29,9 @@ done in the constructor of the proxied contract.
 Implementations of ForwardTarget should override this function,
 and chain to super.initialize(_self).
 
+  ```solidity
+  function initialize(address _self) public virtual
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -41,17 +40,17 @@ and chain to super.initialize(_self).
 
 ### implementation
 
+Get the address of the proxy target contract.
+
   ```solidity
   function implementation() public view returns (address _impl)
   ```
 
-Get the address of the proxy target contract.
-
 ### setImplementation
+
+Set new implementation
 
   ```solidity
   function setImplementation(address _impl) internal
   ```
-
-Set new implementation
 

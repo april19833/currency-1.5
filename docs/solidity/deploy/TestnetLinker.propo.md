@@ -100,33 +100,33 @@ A proposal used to link upwards permissions for all necessary contracts and mint
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address) public
   ```
-
-Enact the proposal.
 

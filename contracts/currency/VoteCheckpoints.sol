@@ -6,7 +6,7 @@ import "./ERC20Pausable.sol";
 import "./DelegatePermit.sol";
 
 /**
- * @dev Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
+ * Extension of ERC20 to support Compound-like voting and delegation. This version is more generic than Compound's,
  * and supports token supply up to 2^224^ - 1, while COMP is limited to 2^96^ - 1.
  *
  * This extension keeps a history (checkpoints) of each account's vote power. Vote power can be delegated either
@@ -34,7 +34,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     mapping(address => uint256) internal _delegatedTotals;
 
     /**
-     * @dev a mapping that tracks the primaryDelegates of each user
+     * a mapping that tracks the primaryDelegates of each user
      *
      * Primary delegates can only be chosen using delegate() which sends the full balance
      * the exist to maintain the functionality that recieving tokens gives those votes to the delegate
@@ -54,7 +54,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     Checkpoint[] private _totalSupplyCheckpoints;
 
     /**
-     * @dev Emitted when a delegatee is delegated new votes.
+     * Emitted when a delegatee is delegated new votes.
      * @param delegator the delegators address
      * @param delegatee the delegatee address
      * @param amount the amount delegated
@@ -66,14 +66,14 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     );
 
     /**
-     * @dev Emitted when a token transfer or delegate change results in changes to an account's voting power.
+     * Emitted when a token transfer or delegate change results in changes to an account's voting power.
      * @param voter the address of the voter
      * @param newVotes the new votes amount
      */
     event UpdatedVotes(address indexed voter, uint256 newVotes);
 
     /**
-     * @dev Emitted when an account denotes a primary delegate.
+     * Emitted when an account denotes a primary delegate.
      * @param delegator the delegator address
      * @param primaryDelegate the primary delegates address
      */
@@ -91,16 +91,20 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
         // call to super constructor
     }
 
-    /** Returns the total (inflation corrected) token supply at a specified block number
+    /**
+     * Returns the total (inflation corrected) token supply at a specified block number
+     * @param _blockNumber the block number for retrieving the total supply
+     * @return pastTotalSupply  the total (inflation corrected) token supply at the specified block
      */
     function totalSupplyAt(
         uint256 _blockNumber
-    ) public view virtual returns (uint256) {
-        return getPastTotalSupply(_blockNumber);
+    ) public view virtual returns (uint256 pastTotalSupply) {
+        pastTotalSupply = getPastTotalSupply(_blockNumber);
+        return pastTotalSupply;
     }
 
     /**
-     * @dev Return historical voting balance (includes delegation) at given block number.
+     * Return historical voting balance (includes delegation) at given block number.
      *
      * If the latest block number for the account is before the requested
      * block then the most recent known balance is returned. Otherwise the
@@ -110,32 +114,35 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * @param _blockNumber the block number to check the balance at the start
      *                        of. Must be less than or equal to the present
      *                        block number.
+     * @return pastVotingGons historical voting balance (including delegation) at given block number
      */
     function getPastVotes(
         address _owner,
         uint256 _blockNumber
-    ) public view virtual returns (uint256) {
-        return getPastVotingGons(_owner, _blockNumber);
+    ) public view virtual returns (uint256 pastVotingGons) {
+        pastVotingGons = getPastVotingGons(_owner, _blockNumber);
+        return pastVotingGons;
     }
 
     /**
-     * @dev Get number of checkpoints for `account`.
+     * Get number of checkpoints for `account`.
      * @param account the address of the account
-     * @return number of checkppints for the account
+     * @return checkPoints the number of checkpoints for the account
      */
     function numCheckpoints(
         address account
-    ) public view virtual returns (uint32) {
+    ) public view virtual returns (uint32 checkPoints) {
         uint256 _numCheckpoints = checkpoints[account].length;
         require(
             _numCheckpoints <= type(uint32).max,
             "number of checkpoints cannot be casted safely"
         );
-        return uint32(_numCheckpoints);
+        checkPoints = uint32(_numCheckpoints);
+        return checkPoints;
     }
 
     /**
-     * @dev Set yourself as willing to recieve delegates.
+     * Set yourself as willing to recieve delegates.
      */
     function enableDelegationTo() public {
         require(
@@ -148,14 +155,14 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Set yourself as no longer recieving delegates.
+     * Set yourself as no longer recieving delegates.
      */
     function disableDelegationTo() public {
         delegationToAddressEnabled[msg.sender] = false;
     }
 
     /**
-     * @dev Set yourself as being able to delegate again.
+     * Set yourself as being able to delegate again.
      * also disables delegating to you
      * NOTE: the condition for this is not easy and cannot be unilaterally achieved
      */
@@ -172,25 +179,35 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Returns true if the user has no amount of their balance delegated, otherwise false.
+     * Returns true if the user has no amount of their balance delegated, otherwise false.
+     * @param account the account address to check for delegation
+     * @return noDelegation true if the user has no amount of their balance delegated, otherwise false.
      */
-    function isOwnDelegate(address account) public view returns (bool) {
-        return _delegatedTotals[account] == 0;
+    function isOwnDelegate(
+        address account
+    ) public view returns (bool noDelegation) {
+        noDelegation = _delegatedTotals[account] == 0;
+        return noDelegation;
     }
 
     /**
-     * @dev Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+     * Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
      * the primary delegate is the one that is delegated any new funds the address recieves.
+     * @param account the address of the account to check for primary delgate
+     * @return primaryDelegate the primary delegate for the account
      */
     function getPrimaryDelegate(
         address account
-    ) public view virtual returns (address) {
+    ) public view virtual returns (address primaryDelegate) {
         address _voter = _primaryDelegates[account];
-        return _voter == address(0) ? account : _voter;
+        primaryDelegate = _voter == address(0) ? account : _voter;
+        return primaryDelegate;
     }
 
     /**
-     * @dev sets the primaryDelegate and emits an event to track it
+     * sets the primaryDelegate and emits an event to track it
+     * @param delegator the address of the delegator
+     * @param delegatee the address of the delegatee
      */
     function _setPrimaryDelegate(
         address delegator,
@@ -205,76 +222,89 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Gets the current votes balance in gons for `account`
+     * Gets the current votes balance in gons for `account`
      * @param account the address of the account
-     * @return the curren votes balance in gons for the acccount
+     * @return votingGons the current votes balance in gons for the acccount
      */
-    function getVotingGons(address account) public view returns (uint256) {
+    function getVotingGons(
+        address account
+    ) public view returns (uint256 votingGons) {
         Checkpoint[] memory accountCheckpoints = checkpoints[account];
         uint256 pos = accountCheckpoints.length;
-        return pos == 0 ? 0 : accountCheckpoints[pos - 1].value;
+        votingGons == 0 ? 0 : accountCheckpoints[pos - 1].value;
+        return votingGons;
     }
 
     /**
-     * @dev Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
+     * Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
      *
      * Requirements:
      *
      * - `blockNumber` must have been already mined
      * @param account the address of the account to get the votes for
      * @param blockNumber the blockNumber to get the votes for
-     * @return the number of votes in gons for the account and block number
+     * @return pastVotingGons the number of votes in gons for the account and block number
      */
     function getPastVotingGons(
         address account,
         uint256 blockNumber
-    ) public view returns (uint256) {
+    ) public view returns (uint256 pastVotingGons) {
         require(
             blockNumber < block.number,
             "VoteCheckpoints: block not yet mined"
         );
-        return _checkpointsLookup(checkpoints[account], blockNumber);
+        pastVotingGons = _checkpointsLookup(checkpoints[account], blockNumber);
+        return pastVotingGons;
     }
 
     /**
-     * @dev Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
+     * Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
      * It is NOT the sum of all the delegated votes!
      *
      * Requirements:
      *
      * - `blockNumber` must have been already mined
      * @param blockNumber the block number to get the past total supply
-     * @return the totalSupply at the end of blockNumber calculated by summing all balances.
+     * @return pastTotalSupply the totalSupply at the end of blockNumber calculated by summing all balances.
      */
     function getPastTotalSupply(
         uint256 blockNumber
-    ) public view returns (uint256) {
+    ) public view returns (uint256 pastTotalSupply) {
         require(
             blockNumber < block.number,
             "VoteCheckpoints: block not yet mined"
         );
-        return _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
+        pastTotalSupply = _checkpointsLookup(
+            _totalSupplyCheckpoints,
+            blockNumber
+        );
+        return pastTotalSupply;
     }
 
     /**
-     * @dev Lookup a value in a list of (sorted) checkpoints.
+     * Lookup a value in a list of (sorted) checkpoints.
+     *
+     * This function runs a binary search to look for the last checkpoint taken before `blockNumber`.
+     *
+     * During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
+     * With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
+     *
+     * - If the middle checkpoint is after `blockNumber`, the next iteration looks in [low, mid)
+     * - If the middle checkpoint is before or equal to `blockNumber`, the next iteration looks in [mid+1, high)
+     *
+     * Once it reaches a single value (when low == high), it has found the right checkpoint at the index high-1, if not
+     * out of bounds (in which case it's looking too far in the past and the result is 0).
+     * Note that if the latest checkpoint available is exactly for `blockNumber`, it will end up with an index that is
+     * past the end of the array, so this technically doesn't find a checkpoint after `blockNumber`, but the result is
+     * the same.
+     * @param ckpts list of sorted checkpoints
+     * @param blockNumber the blockNumber to seerch for the last checkpoint taken before
+     * @return checkPoint the checkpoint
      */
     function _checkpointsLookup(
         Checkpoint[] storage ckpts,
         uint256 blockNumber
-    ) internal view returns (uint256) {
-        // This function runs a binary search to look for the last checkpoint taken before `blockNumber`.
-        //
-        // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
-        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
-        // - If the middle checkpoint is after `blockNumber`, the next iteration looks in [low, mid)
-        // - If the middle checkpoint is before or equal to `blockNumber`, the next iteration looks in [mid+1, high)
-        // Once it reaches a single value (when low == high), it has found the right checkpoint at the index high-1, if not
-        // out of bounds (in which case it's looking too far in the past and the result is 0).
-        // Note that if the latest checkpoint available is exactly for `blockNumber`, it will end up with an index that is
-        // past the end of the array, so this technically doesn't find a checkpoint after `blockNumber`, but the result is
-        // the same.
-
+    ) internal view returns (uint256 checkPoint) {
         uint256 ckptsLength = ckpts.length;
         if (ckptsLength == 0) return 0;
         Checkpoint memory lastCkpt = ckpts[ckptsLength - 1];
@@ -292,11 +322,12 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
             }
         }
 
-        return high == 0 ? 0 : ckpts[high - 1].value;
+        checkPoint = high == 0 ? 0 : ckpts[high - 1].value;
+        return checkPoint;
     }
 
     /**
-     * @dev Delegate all votes from the sender to `delegatee`.
+     * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "Must have an undelegated amount available to cover delegation" if you do
      * @param delegatee the address of the delegatee
@@ -322,7 +353,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Delegate all votes from the sender to `delegatee`.
+     * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "Must have an undelegated amount available to cover delegation" if you do
      * @param delegator The address delegating
@@ -358,7 +389,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Delegate an `amount` of votes from the sender to `delegatee`.
+     * Delegate an `amount` of votes from the sender to `delegatee`.
      * @param delegatee The address being delegated to
      * @param amount The amount of votes
      */
@@ -369,7 +400,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Change delegation for `delegator` to `delegatee`.
+     * Change delegation for `delegator` to `delegatee`.
      *
      * Emits events {NewDelegatedAmount} and {UpdatedVotes}.
      */
@@ -397,7 +428,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate all votes from the sender's primary delegate.
+     * Undelegate all votes from the sender's primary delegate.
      */
     function undelegate() public {
         address _primaryDelegate = getPrimaryDelegate(msg.sender);
@@ -409,7 +440,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate votes from the `delegatee` back to the sender.
+     * Undelegate votes from the `delegatee` back to the sender.
      * @param delegatee the delegatee address
      */
     function undelegateFromAddress(address delegatee) public {
@@ -417,7 +448,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate votes from the `delegatee` back to the delegator.
+     * Undelegate votes from the `delegatee` back to the delegator.
      */
     function _undelegateFromAddress(
         address delegator,
@@ -431,7 +462,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate a specific amount of votes from the `delegatee` back to the sender.
+     * Undelegate a specific amount of votes from the `delegatee` back to the sender.
      * @param delegatee The address being delegated to
      * @param amount The amount of votes
      */
@@ -462,14 +493,14 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1).
+     * Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1).
      */
     function _maxSupply() internal view virtual returns (uint224) {
         return type(uint224).max;
     }
 
     /**
-     * @dev Snapshots the totalSupply after it has been increased.
+     * Snapshots the totalSupply after it has been increased.
      */
     function _mint(
         address account,
@@ -486,7 +517,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Snapshots the totalSupply after it has been decreased.
+     * Snapshots the totalSupply after it has been decreased.
      */
     function _burn(
         address account,
@@ -499,7 +530,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     }
 
     /**
-     * @dev Move voting power when tokens are transferred.
+     * Move voting power when tokens are transferred.
      *
      * Emits a {UpdatedVotes} event.
      */

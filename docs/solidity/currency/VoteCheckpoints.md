@@ -41,14 +41,14 @@ struct Checkpoint {
 
 ### _primaryDelegates
 
-  ```solidity
-  mapping(address => address) _primaryDelegates
-  ```
-
 _a mapping that tracks the primaryDelegates of each user
 
 Primary delegates can only be chosen using delegate() which sends the full balance
 the exist to maintain the functionality that recieving tokens gives those votes to the delegate_
+
+  ```solidity
+  mapping(address => address) _primaryDelegates
+  ```
 
 ### delegationToAddressEnabled
 
@@ -70,12 +70,11 @@ the exist to maintain the functionality that recieving tokens gives those votes 
 
 ### DelegatedVotes
 
+_Emitted when a delegatee is delegated new votes._
+
   ```solidity
   event DelegatedVotes(address delegator, address delegatee, uint256 amount)
   ```
-
-_Emitted when a delegatee is delegated new votes._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -86,12 +85,11 @@ _Emitted when a delegatee is delegated new votes._
 
 ### UpdatedVotes
 
+_Emitted when a token transfer or delegate change results in changes to an account's voting power._
+
   ```solidity
   event UpdatedVotes(address voter, uint256 newVotes)
   ```
-
-_Emitted when a token transfer or delegate change results in changes to an account's voting power._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -101,12 +99,11 @@ _Emitted when a token transfer or delegate change results in changes to an accou
 
 ### NewPrimaryDelegate
 
+_Emitted when an account denotes a primary delegate._
+
   ```solidity
   event NewPrimaryDelegate(address delegator, address primaryDelegate)
   ```
-
-_Emitted when an account denotes a primary delegate._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -122,17 +119,13 @@ _Emitted when an account denotes a primary delegate._
 
 ### totalSupplyAt
 
+Returns the total (inflation corrected) token supply at a specified block number
+
   ```solidity
   function totalSupplyAt(uint256 _blockNumber) public view virtual returns (uint256)
   ```
 
-Returns the total (inflation corrected) token supply at a specified block number
-
 ### getPastVotes
-
-  ```solidity
-  function getPastVotes(address _owner, uint256 _blockNumber) public view virtual returns (uint256)
-  ```
 
 _Return historical voting balance (includes delegation) at given block number.
 
@@ -140,6 +133,9 @@ If the latest block number for the account is before the requested
 block then the most recent known balance is returned. Otherwise the
 exact block number requested is returned._
 
+  ```solidity
+  function getPastVotes(address _owner, uint256 _blockNumber) public view virtual returns (uint256)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -149,12 +145,11 @@ exact block number requested is returned._
 
 ### numCheckpoints
 
+_Get number of checkpoints for `account`._
+
   ```solidity
   function numCheckpoints(address account) public view virtual returns (uint32)
   ```
-
-_Get number of checkpoints for `account`._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -169,63 +164,62 @@ _Get number of checkpoints for `account`._
 
 ### enableDelegationTo
 
+_Set yourself as willing to recieve delegates._
+
   ```solidity
   function enableDelegationTo() public
   ```
 
-_Set yourself as willing to recieve delegates._
-
 ### disableDelegationTo
+
+_Set yourself as no longer recieving delegates._
 
   ```solidity
   function disableDelegationTo() public
   ```
 
-_Set yourself as no longer recieving delegates._
-
 ### reenableDelegating
-
-  ```solidity
-  function reenableDelegating() public
-  ```
 
 _Set yourself as being able to delegate again.
 also disables delegating to you
 NOTE: the condition for this is not easy and cannot be unilaterally achieved_
 
+  ```solidity
+  function reenableDelegating() public
+  ```
+
 ### isOwnDelegate
+
+_Returns true if the user has no amount of their balance delegated, otherwise false._
 
   ```solidity
   function isOwnDelegate(address account) public view returns (bool)
   ```
 
-_Returns true if the user has no amount of their balance delegated, otherwise false._
-
 ### getPrimaryDelegate
+
+_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+the primary delegate is the one that is delegated any new funds the address recieves._
 
   ```solidity
   function getPrimaryDelegate(address account) public view virtual returns (address)
   ```
 
-_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
-the primary delegate is the one that is delegated any new funds the address recieves._
-
 ### _setPrimaryDelegate
+
+_sets the primaryDelegate and emits an event to track it_
 
   ```solidity
   function _setPrimaryDelegate(address delegator, address delegatee) internal
   ```
 
-_sets the primaryDelegate and emits an event to track it_
-
 ### getVotingGons
+
+_Gets the current votes balance in gons for `account`_
 
   ```solidity
   function getVotingGons(address account) public view returns (uint256)
   ```
-
-_Gets the current votes balance in gons for `account`_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -240,16 +234,15 @@ _Gets the current votes balance in gons for `account`_
 
 ### getPastVotingGons
 
-  ```solidity
-  function getPastVotingGons(address account, uint256 blockNumber) public view returns (uint256)
-  ```
-
 _Retrieve the number of votes in gons for `account` at the end of `blockNumber`.
 
 Requirements:
 
 - `blockNumber` must have been already mined_
 
+  ```solidity
+  function getPastVotingGons(address account, uint256 blockNumber) public view returns (uint256)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -265,10 +258,6 @@ Requirements:
 
 ### getPastTotalSupply
 
-  ```solidity
-  function getPastTotalSupply(uint256 blockNumber) public view returns (uint256)
-  ```
-
 _Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
 It is NOT the sum of all the delegated votes!
 
@@ -276,6 +265,9 @@ Requirements:
 
 - `blockNumber` must have been already mined_
 
+  ```solidity
+  function getPastTotalSupply(uint256 blockNumber) public view returns (uint256)
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -290,22 +282,21 @@ Requirements:
 
 ### _checkpointsLookup
 
+_Lookup a value in a list of (sorted) checkpoints._
+
   ```solidity
   function _checkpointsLookup(struct VoteCheckpoints.Checkpoint[] ckpts, uint256 blockNumber) internal view returns (uint256)
   ```
 
-_Lookup a value in a list of (sorted) checkpoints._
-
 ### delegate
-
-  ```solidity
-  function delegate(address delegatee) public
-  ```
 
 _Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "Must have an undelegated amount available to cover delegation" if you do_
 
+  ```solidity
+  function delegate(address delegatee) public
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -314,14 +305,13 @@ It will revert with "Must have an undelegated amount available to cover delegati
 
 ### delegateBySig
 
-  ```solidity
-  function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
-  ```
-
 _Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "Must have an undelegated amount available to cover delegation" if you do_
 
+  ```solidity
+  function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
+  ```
 #### Parameters
 
 | Name | Type | Description |
@@ -335,12 +325,11 @@ It will revert with "Must have an undelegated amount available to cover delegati
 
 ### delegateAmount
 
+_Delegate an `amount` of votes from the sender to `delegatee`._
+
   ```solidity
   function delegateAmount(address delegatee, uint256 amount) public
   ```
-
-_Delegate an `amount` of votes from the sender to `delegatee`._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -350,30 +339,29 @@ _Delegate an `amount` of votes from the sender to `delegatee`._
 
 ### _delegate
 
-  ```solidity
-  function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
-  ```
-
 _Change delegation for `delegator` to `delegatee`.
 
 Emits events {NewDelegatedAmount} and {UpdatedVotes}._
 
+  ```solidity
+  function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
+  ```
+
 ### undelegate
+
+_Undelegate all votes from the sender's primary delegate._
 
   ```solidity
   function undelegate() public
   ```
 
-_Undelegate all votes from the sender's primary delegate._
-
 ### undelegateFromAddress
+
+_Undelegate votes from the `delegatee` back to the sender._
 
   ```solidity
   function undelegateFromAddress(address delegatee) public
   ```
-
-_Undelegate votes from the `delegatee` back to the sender._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -382,20 +370,19 @@ _Undelegate votes from the `delegatee` back to the sender._
 
 ### _undelegateFromAddress
 
+_Undelegate votes from the `delegatee` back to the delegator._
+
   ```solidity
   function _undelegateFromAddress(address delegator, address delegatee) internal
   ```
 
-_Undelegate votes from the `delegatee` back to the delegator._
-
 ### undelegateAmountFromAddress
+
+_Undelegate a specific amount of votes from the `delegatee` back to the sender._
 
   ```solidity
   function undelegateAmountFromAddress(address delegatee, uint256 amount) public
   ```
-
-_Undelegate a specific amount of votes from the `delegatee` back to the sender._
-
 #### Parameters
 
 | Name | Type | Description |
@@ -411,37 +398,37 @@ _Undelegate a specific amount of votes from the `delegatee` back to the sender._
 
 ### _maxSupply
 
+_Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1)._
+
   ```solidity
   function _maxSupply() internal view virtual returns (uint224)
   ```
 
-_Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1)._
-
 ### _mint
+
+_Snapshots the totalSupply after it has been increased._
 
   ```solidity
   function _mint(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-_Snapshots the totalSupply after it has been increased._
-
 ### _burn
+
+_Snapshots the totalSupply after it has been decreased._
 
   ```solidity
   function _burn(address account, uint256 amount) internal virtual returns (uint256)
   ```
 
-_Snapshots the totalSupply after it has been decreased._
-
 ### _afterTokenTransfer
-
-  ```solidity
-  function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
-  ```
 
 _Move voting power when tokens are transferred.
 
 Emits a {UpdatedVotes} event._
+
+  ```solidity
+  function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
+  ```
 
 ### _writeCheckpoint
 

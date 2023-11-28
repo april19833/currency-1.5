@@ -10,19 +10,19 @@ A proposal used for testing proposal adoption.**
 
 ### counter
 
+State variable to test
+
   ```solidity
   uint256 counter
   ```
 
-State variable to test
-
 ### NEW_GOVERNOR
+
+Constant to set as a new governor address
 
   ```solidity
   address NEW_GOVERNOR
   ```
-
-Constant to set as a new governor address
 
 ### constructor
 
@@ -32,41 +32,41 @@ Constant to set as a new governor address
 
 ### name
 
+The name of the proposal.
+
   ```solidity
   function name() public pure returns (string)
   ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
   ```solidity
   function description() public pure returns (string)
   ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
   ```solidity
   function url() public pure returns (string)
   ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
   ```solidity
   function enacted(address _self) public
   ```
 
-Enact the proposal.
-
 ### incrementCounter
+
+Function to test the enactment.
 
   ```solidity
   function incrementCounter() public
   ```
-
-Function to test the enactment.
 

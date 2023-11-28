@@ -6,12 +6,11 @@ Copyright (c) 2023 Eco Association
 
 ### mint
 
+_Only available to minters_
+
   ```solidity
   function mint(address to, uint256 amount) external
   ```
-
-_Only available to minters_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -21,12 +20,11 @@ _Only available to minters_
 
 ### burn
 
+_Only available to token holders for their own tokens and burners_
+
   ```solidity
   function burn(address from, uint256 amount) external
   ```
-
-_Only available to token holders for their own tokens and burners_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -36,12 +34,11 @@ _Only available to token holders for their own tokens and burners_
 
 ### voteBalanceSnapshot
 
+_Returns the votes for the current snapshot_
+
   ```solidity
   function voteBalanceSnapshot(address account) external view returns (uint256)
   ```
-
-_Returns the votes for the current snapshot_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -56,11 +53,11 @@ _Returns the votes for the current snapshot_
 
 ### inflationMultiplierSnapshot
 
+_Returns the inflation multiplier value for the current snapshot_
+
   ```solidity
   function inflationMultiplierSnapshot() external view returns (uint256)
   ```
-
-_Returns the inflation multiplier value for the current snapshot_
 
 #### Return Values
 
@@ -70,11 +67,11 @@ _Returns the inflation multiplier value for the current snapshot_
 
 ### totalSupplySnapshot
 
+_Returns the total supply for the current snapshot_
+
   ```solidity
   function totalSupplySnapshot() external view returns (uint256)
   ```
-
-_Returns the total supply for the current snapshot_
 
 #### Return Values
 

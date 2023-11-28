@@ -19,12 +19,11 @@ struct distribution {
 
 ### distributeTokens
 
+_Transfer held tokens for the initial distribution._
+
   ```solidity
   function distributeTokens(address _token, struct TokenInit.distribution[] _distributions) external
   ```
-
-_Transfer held tokens for the initial distribution._
-
 #### Parameters
 
 | Name | Type | Description |

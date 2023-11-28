@@ -14,11 +14,11 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev Mapping storing contracts able to rebase the token
+     * Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public rebasers;
     /**
-     * @dev Mapping storing contracts able to rebase the token
+     * Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public snapshotters;
 
@@ -27,12 +27,12 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev error for when an address tries to rebase without permission
+     * error for when an address tries to rebase without permission
      */
     error OnlyRebasers();
 
     /**
-     * @dev error for when an address tries to snapshot without permission
+     * error for when an address tries to snapshot without permission
      */
     error OnlySnapshotters();
 
@@ -41,14 +41,14 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev emits when the rebasers permissions are changed
+     * emits when the rebasers permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can rebase, false for cannot)
      */
     event UpdatedRebasers(address actor, bool newPermission);
 
     /**
-     * @dev emits when the snapshotters permissions are changed
+     * emits when the snapshotters permissions are changed
      * @param actor denotes the new address whose permissions are being updated
      * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
      */
@@ -59,7 +59,7 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev Modifier for checking if the sender is a rebaser
+     * Modifier for checking if the sender is a rebaser
      */
     modifier onlyRebaserRole() {
         if (!rebasers[msg.sender]) {
@@ -69,7 +69,7 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev Modifier for checking if the sender is a snapshotter
+     * Modifier for checking if the sender is a snapshotter
      */
     modifier onlySnapshotterRole() {
         if (!snapshotters[msg.sender]) {
@@ -103,7 +103,7 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev Rebase the currency using an inflation multiplier
+     * Rebase the currency using an inflation multiplier
      * @param _inflationMultiplier the multipler used to rebase the currency
      */
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
@@ -111,14 +111,14 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev Creates a new snapshot
+     * Creates a new snapshot
      */
     function snapshot() public onlySnapshotterRole {
         _snapshot();
     }
 
     /**
-     * @dev change the rebasing permissions for an address
+     * change the rebasing permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can rebase, false = cannot rebase
@@ -129,7 +129,7 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev change the rebasing permissions for an address
+     * change the rebasing permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can snapshot, false = cannot snapshot

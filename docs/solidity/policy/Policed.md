@@ -10,28 +10,27 @@ A policed contract is any contract managed by a policy.**
 
 ### policy
 
+The address of the root policy instance overseeing this instance.
+
   ```solidity
   contract Policy policy
   ```
 
-The address of the root policy instance overseeing this instance.
-
 ### NonZeroPolicyAddr
+
+If the policy address is set to zero, the contract is unrecoverably ungovernable
 
   ```solidity
   error NonZeroPolicyAddr()
   ```
 
-If the policy address is set to zero, the contract is unrecoverably ungovernable
-
 ### NonZeroContractAddr
+
+If this address is set to zero the contract is an unusable state
 
   ```solidity
   error NonZeroContractAddr(string contractName)
   ```
-
-If this address is set to zero the contract is an unusable state
-
 #### Parameters
 
 | Name | Type | Description |
@@ -40,20 +39,19 @@ If this address is set to zero the contract is an unusable state
 
 ### PolicyOnlyFunction
 
+For if a non-policy address tries to access policy role gated functionality
+
   ```solidity
   error PolicyOnlyFunction()
   ```
 
-For if a non-policy address tries to access policy role gated functionality
-
 ### NewPolicy
+
+emits when the policy contract is changed
 
   ```solidity
   event NewPolicy(contract Policy newPolicy, contract Policy oldPolicy)
   ```
-
-emits when the policy contract is changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -63,20 +61,19 @@ emits when the policy contract is changed
 
 ### onlyPolicy
 
+Restrict method access to the root policy instance only.
+
   ```solidity
   modifier onlyPolicy()
   ```
 
-Restrict method access to the root policy instance only.
-
 ### constructor
+
+constructor
 
   ```solidity
   constructor(contract Policy _policy) internal
   ```
-
-constructor
-
 #### Parameters
 
 | Name | Type | Description |

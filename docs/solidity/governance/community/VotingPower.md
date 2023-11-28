@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## VotingPower
 
-**VotingPower
-Compute voting power for user**
+**VotingPower**
+
+_Compute voting power for user_
 
 ### totalECOxSnapshot
 
