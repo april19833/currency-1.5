@@ -3,7 +3,9 @@ import { expect } from 'chai'
 import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
-import { ECO, ECO__factory, Policy } from '../../typechain-types'
+import { ECO } from '../../typechain-types/contracts/currency'
+import { Policy } from '../../typechain-types/contracts/policy'
+import { ECO__factory } from '../../typechain-types/factories/contracts/currency'
 import { deployProxy } from '../../deploy/utils'
 import { BigNumber, BigNumberish } from 'ethers'
 import { delegateBySig } from '../utils/permit'
@@ -48,7 +50,7 @@ describe('ECO', () => {
     globalInflationMult = ethers.BigNumber.from(`${digits10to19}${digits1to9}`)
 
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 

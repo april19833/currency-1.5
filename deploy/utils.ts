@@ -1,5 +1,5 @@
 import { Contract, ContractFactory, Signer } from 'ethers'
-import { ForwardProxy__factory } from '../typechain-types'
+import { ForwardProxy__factory } from '../typechain-types/factories/contracts/proxy'
 
 /**
  * Deploy a contract with the given factory from a certain address

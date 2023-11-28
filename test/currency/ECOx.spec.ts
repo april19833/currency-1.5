@@ -3,7 +3,9 @@ import { expect } from 'chai'
 import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../utils/errors'
-import { ECOx, ECOx__factory, Policy } from '../../typechain-types'
+import { ECOx } from '../../typechain-types/contracts/currency'
+import { Policy } from '../../typechain-types/contracts/policy'
+import { ECOx__factory } from '../../typechain-types/factories/contracts/currency'
 import { deployProxy } from '../../deploy/utils'
 
 describe('EcoX', () => {
@@ -20,7 +22,7 @@ describe('EcoX', () => {
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 

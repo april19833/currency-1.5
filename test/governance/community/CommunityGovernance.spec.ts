@@ -5,17 +5,19 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { ECO } from '../../../typechain-types/contracts/currency'
 import {
   CommunityGovernance,
-  CommunityGovernance__factory,
-  Policy,
-  ECO,
-  ECO__factory,
   ECOxStaking,
+} from '../../../typechain-types/contracts/governance/community'
+import { SampleProposal } from '../../../typechain-types/contracts/test'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
+  CommunityGovernance__factory,
   ECOxStaking__factory,
-  SampleProposal,
-  SampleProposal__factory,
-} from '../../../typechain-types'
+} from '../../../typechain-types/factories/contracts/governance/community'
+import { SampleProposal__factory } from '../../../typechain-types/factories/contracts/test'
 
 use(smock.matchers)
 
@@ -56,12 +58,12 @@ describe('Community Governance', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
     eco = await (
-      await smock.mock<ECO__factory>('ECO')
+      await smock.mock<ECO__factory>('contracts/currency/ECO.sol:ECO')
     ).deploy(
       policy.address,
       alice.address // pauser
@@ -77,7 +79,9 @@ describe('Community Governance', () => {
     await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
 
     ecoXStaking = await (
-      await smock.mock<ECOxStaking__factory>('ECOxStaking')
+      await smock.mock<ECOxStaking__factory>(
+        'contracts/governance/community/ECOxStaking.sol:ECOxStaking'
+      )
     ).deploy(
       policy.address,
       A2 // ECOx
@@ -86,7 +90,9 @@ describe('Community Governance', () => {
     currentStageEnd = await time.latest()
 
     cg = await (
-      await smock.mock<CommunityGovernance__factory>('CommunityGovernance')
+      await smock.mock<CommunityGovernance__factory>(
+        'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
+      )
     ).deploy(
       policy.address,
       eco.address,
@@ -113,7 +119,7 @@ describe('Community Governance', () => {
     })
     it('bricks when eco or ecoxstaking is 0 address', async () => {
       const cgmocker = await smock.mock<CommunityGovernance__factory>(
-        'CommunityGovernance'
+        'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
       )
       await expect(
         cgmocker.deploy(
@@ -308,7 +314,7 @@ describe('Community Governance', () => {
         await cg.updateStage()
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
 
-        const realProp = await deploy(alice, SampleProposal__factory, [])
+        const realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
 
         await cg.connect(alice).propose(realProp.address)
         await cg.connect(bigboy).support(realProp.address)
@@ -721,7 +727,7 @@ describe('Community Governance', () => {
 
   describe('execution stage', () => {
     beforeEach(async () => {
-      realProp = await deploy(alice, SampleProposal__factory, [])
+      realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(realProp.address)
       await cg.connect(bigboy).support(realProp.address)
@@ -779,7 +785,7 @@ describe('Community Governance', () => {
     })
   })
   it('E2E', async () => {
-    realProp = await deploy(alice, SampleProposal__factory, [])
+    realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
     await eco.connect(alice).approve(cg.address, await cg.proposalFee())
     await cg.connect(alice).propose(realProp.address)
     await eco.connect(bob).approve(cg.address, await cg.proposalFee())
