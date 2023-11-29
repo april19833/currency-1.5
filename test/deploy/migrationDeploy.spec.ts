@@ -11,15 +11,6 @@ import {
   MonetaryGovernanceContracts,
   CommunityGovernanceContracts,
 } from '../../deploy/standalone.fixture'
-import {
-  PolicyProposals__factory,
-  fixtures,
-} from '@helix-foundation/currency-dev/'
-const {
-  ecoFixture,
-  policyFor,
-  deploySingletons
-} = fixtures
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import {
@@ -30,10 +21,18 @@ import {
   Policy as Policyold,
   PolicyProposals,
   TimedPolicies,
-} from '@helix-foundation/currency-dev/src/typechain-types'
+  PolicyProposals__factory,
+  fixtures,
+} from '@helix-foundation/currency-dev'
 import { ECO, ECOx } from '../../typechain-types/contracts/currency'
 import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOxStaking } from '../../typechain-types/contracts/governance/community'
+
+const {
+  ecoFixture,
+  policyFor,
+  deploySingletons
+} = fixtures
 
 const INITIAL_ECO = ethers.constants.WeiPerEther.mul(1000).toString()
 const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(100).toString() // taylored to match the 1.0 fixture deploy
@@ -139,7 +138,7 @@ describe.only('Migration tests', () => {
     expect(await contracts.base.ecox.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.base.ecox.pauser()).to.eq(PAUSER)
+    expect(await contracts.base.ecox.pauser()).to.eq(ethers.constants.AddressZero)
     expect(await contracts.base.ecox.decimals()).to.eq(18)
     expect(await contracts.base.ecox.name()).to.eq('ECOx')
     expect(await contracts.base.ecox.symbol()).to.eq('ECOx')
@@ -257,6 +256,12 @@ describe.only('Migration tests', () => {
       .be.true
     expect(await contracts.monetary.trustedNodes.isTrusted(trustee2.address)).to
       .be.true
+  })
+
+  context('with the proposal contstructed', () => {
+    beforeEach(async () => {
+
+    })
   })
 
   // it('check deployment linking', async () => {
