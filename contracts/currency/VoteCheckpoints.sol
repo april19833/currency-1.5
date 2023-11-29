@@ -245,7 +245,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     ) public view returns (uint256 votingGons) {
         Checkpoint[] memory accountCheckpoints = checkpoints[account];
         uint256 pos = accountCheckpoints.length;
-        votingGons == 0 ? 0 : accountCheckpoints[pos - 1].value;
+        votingGons = (pos == 0) ? 0 : accountCheckpoints[pos - 1].value;
         return votingGons;
     }
 
