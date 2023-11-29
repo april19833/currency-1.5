@@ -4,9 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## Lever
 
-**Monetary policy lever
+**Monetary policy lever**
 
-This contract is a generic monetary policy lever and is inherited by all lever implementations.**
+This contract is a generic monetary policy lever and is inherited by all lever implementations.
 
 ### authorized
 

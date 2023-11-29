@@ -4,10 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## CurrencyGovernance
 
-**Trustee monetary policy decision process
+**Trustee monetary policy decision process**
 
 This contract oversees the voting on the currency monetary levers.
-Trustees vote on a policy that is implemented at the conclusion of the cycle**
+Trustees vote on a policy that is implemented at the conclusion of the cycle
 
 ### MonetaryPolicy
 

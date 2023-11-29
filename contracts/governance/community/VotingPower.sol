@@ -8,7 +8,7 @@ import "./ECOxStaking.sol";
 
 /**
  * @title VotingPower
- * Compute voting power for user
+ * @notice Compute voting power for user
  */
 contract VotingPower is Policed {
     /// ECOx voting power is snapshotted when the contract is cloned

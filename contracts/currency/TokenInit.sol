@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title initial token distribution contract
- * This contract is used to distribute the initial allocations of ECO and ECOx
+ * @notice This contract is used to distribute the initial allocations of ECO and ECOx
  */
 contract TokenInit is Ownable {
     struct distribution {

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/** @title TimeUtils
- * Utility class for time, allowing easy unit testing.
+/**
+ * @title TimeUtils
+ * @notice Utility class for time, allowing easy unit testing.
  */
 abstract contract TimeUtils {
     /** Determine the current time as perceived by the policy timing contract.

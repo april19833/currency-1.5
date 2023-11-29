@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title Proposal
- * Interface specification for proposals. Any proposal submitted in the
+ * @notice Interface specification for proposals. Any proposal submitted in the
  * policy decision process must implement this interface.
  */
 interface Proposal {

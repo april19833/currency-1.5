@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## ECOxExchange
 
-**EcoX Exchange Contract
-Exchange for ECOx to ECO**
+**EcoX Exchange Contract**
+
+Exchange for ECOx to ECO
 
 ### PRECISION_BITS
 

@@ -5,7 +5,7 @@ import "./VoteSnapshots.sol";
 
 /**
  * @title InflationSnapshots
- * This implements a scaling inflation multiplier on all balances and votes.
+ * @notice This implements a scaling inflation multiplier on all balances and votes.
  * Changing this value (via implementing _rebase)
  */
 abstract contract InflationSnapshots is VoteSnapshots {

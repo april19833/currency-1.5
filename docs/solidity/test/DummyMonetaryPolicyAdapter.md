@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## DummyMonetaryPolicyAdapter
 
-**DummyMonetaryPolicyAdapter
-For minimally testing enaction without having to give valid parameters**
+**DummyMonetaryPolicyAdapter**
+
+For minimally testing enaction without having to give valid parameters
 
 ### enacted
 

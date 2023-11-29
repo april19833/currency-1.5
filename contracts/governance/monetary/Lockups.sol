@@ -6,8 +6,9 @@ import "./Notifier.sol";
 import "./Lever.sol";
 import "../../utils/TimeUtils.sol";
 
-/** @title Lockups
- * This provides deposit certificate functionality for the purpose of countering
+/**
+ * @title Lockups
+ * @notice This provides deposit certificate functionality for the purpose of countering
  * inflationary effects.
  *
  * Deposits can be made and interest will be paid out to those who make

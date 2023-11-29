@@ -4,9 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## Policed
 
-**Policed Contracts
+**Policed Contracts**
 
-A policed contract is any contract managed by a policy.**
+A policed contract is any contract managed by a policy.
 
 ### policy
 

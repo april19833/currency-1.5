@@ -4,9 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## SampleProposal
 
-**SampleProposal
+**SampleProposal**
 
-A proposal used for testing proposal adoption.**
+A proposal used for testing proposal adoption.
 
 ### counter
 

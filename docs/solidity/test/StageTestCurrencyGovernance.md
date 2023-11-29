@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## StageTestCurrencyGovernance
 
-**StageTestCurrencyGovernance
-For minimally testing the stage modifiers in currency governance**
+**StageTestCurrencyGovernance**
+
+For minimally testing the stage modifiers in currency governance
 
 ### constructor
 

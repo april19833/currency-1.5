@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../proxy/ForwardTarget.sol";
 
-/** @title The policy contract that oversees other contracts
- *
- * Policy contracts provide a mechanism for building pluggable (after deploy)
+/**
+ * @title The policy contract that oversees other contracts
+ * @notice Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
 contract Policy is ForwardTarget {

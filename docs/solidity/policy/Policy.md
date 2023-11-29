@@ -4,14 +4,14 @@ Copyright (c) 2023 Eco Association
 
 ## Policy
 
-**The policy contract that oversees other contracts
+**The policy contract that oversees other contracts**
 
 Policy contracts provide a mechanism for building pluggable (after deploy)
-governance systems for other contracts.**
+governance systems for other contracts.
 
 ### governor
 
-_the contract allowed enact proposals_
+the contract allowed enact proposals
 
   ```solidity
   address governor
@@ -19,7 +19,7 @@ _the contract allowed enact proposals_
 
 ### OnlyGovernor
 
-_error for when an address tries submit proposal actions without permission_
+error for when an address tries submit proposal actions without permission
 
   ```solidity
   error OnlyGovernor()
@@ -27,7 +27,7 @@ _error for when an address tries submit proposal actions without permission_
 
 ### OnlySelf
 
-_error for when an address tries to call a pseudo-internal function_
+error for when an address tries to call a pseudo-internal function
 
   ```solidity
   error OnlySelf()
@@ -76,7 +76,7 @@ emits when enaction happens to keep record of enaction
 
 ### onlyGovernorRole
 
-_Modifier for checking if the sender is a governor_
+Modifier for checking if the sender is a governor
 
   ```solidity
   modifier onlyGovernorRole()
@@ -84,8 +84,8 @@ _Modifier for checking if the sender is a governor_
 
 ### onlySelf
 
-_Modifier for faux internal calls
-needed for function to be called only during delegate call_
+Modifier for faux internal calls
+needed for function to be called only during delegate call
 
   ```solidity
   modifier onlySelf()
@@ -107,7 +107,7 @@ initializes the governor
 
 ### updateGovernor
 
-_pass the governance permissions to another address_
+pass the governance permissions to another address
 
   ```solidity
   function updateGovernor(address _newGovernor) public

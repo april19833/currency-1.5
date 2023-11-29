@@ -4,7 +4,8 @@ pragma solidity ^0.8.0;
 import "../policy/Policed.sol";
 import "./ERC20Pausable.sol";
 
-/** @title An ERC20 token interface for ECOx
+/**
+ * @title An ERC20 token interface for ECOx
  *
  */
 contract ERC20MintAndBurn is ERC20Pausable, Policed {

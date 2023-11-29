@@ -4,9 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## Proposal
 
-**Proposal
+**Proposal**
+
 Interface specification for proposals. Any proposal submitted in the
-policy decision process must implement this interface.**
+policy decision process must implement this interface.
 
 ### name
 

@@ -4,14 +4,15 @@ Copyright (c) 2023 Eco Association
 
 ## Lockups
 
-**Lockups
+**Lockups**
+
 This provides deposit certificate functionality for the purpose of countering
 inflationary effects.
 
 Deposits can be made and interest will be paid out to those who make
 deposits. Deposit principal is accessable before the interested period
 but for a penalty of not retrieving your gained interest as well as an
-additional penalty of that same amount.**
+additional penalty of that same amount.
 
 ### Lockup
 

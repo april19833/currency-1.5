@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 
 /* solhint-disable no-inline-assembly */
 
-/** @title Target for ForwardProxy and EcoInitializable */
+/**
+ * @title Target for ForwardProxy and EcoInitializable
+ */
 abstract contract ForwardTarget {
     // Must match definition in ForwardProxy
     // keccak256("com.eco.ForwardProxy.target")

@@ -4,9 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## FailureProposal
 
-**FailureProposal
+**FailureProposal**
 
-A proposal used for testing proposal failures.**
+A proposal used for testing proposal failures.
 
 ### ImSorry
 
@@ -56,9 +56,9 @@ Enact the proposal.
 
 ## WorseFailureProposal
 
-**WorseFailureProposal
+**WorseFailureProposal**
 
-A proposal used for testing proposal failures.**
+A proposal used for testing proposal failures.
 
 ### constructor
 
@@ -100,9 +100,9 @@ Enact the proposal.
 
 ## ClumsyFailureProposal
 
-**ClumsyFailureProposal
+**ClumsyFailureProposal**
 
-A proposal used for testing proposal failures.**
+A proposal used for testing proposal failures.
 
 ### constructor
 
@@ -144,9 +144,9 @@ Enact the proposal.
 
 ## TotalFailureProposal
 
-**TotalFailureProposal
+**TotalFailureProposal**
 
-A proposal used for testing proposal failures.**
+A proposal used for testing proposal failures.
 
 ### constructor
 

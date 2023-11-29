@@ -5,9 +5,9 @@ import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 import "./Notifier.sol";
 
-/** @title Monetary policy lever
- *
- * This contract is a generic monetary policy lever and is inherited by all lever implementations.
+/**
+ * @title Monetary policy lever
+ * @notice This contract is a generic monetary policy lever and is inherited by all lever implementations.
  */
 contract Lever is Policed {
     mapping(address => bool) public authorized;

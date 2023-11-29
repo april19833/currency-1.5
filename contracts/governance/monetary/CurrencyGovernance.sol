@@ -6,9 +6,9 @@ import "./MonetaryPolicyAdapter.sol";
 import "../../utils/TimeUtils.sol";
 import "../../policy/Policed.sol";
 
-/** @title Trustee monetary policy decision process
- *
- * This contract oversees the voting on the currency monetary levers.
+/**
+ * @title Trustee monetary policy decision process
+ * @notice This contract oversees the voting on the currency monetary levers.
  * Trustees vote on a policy that is implemented at the conclusion of the cycle
  */
 contract CurrencyGovernance is Policed, TimeUtils {

@@ -6,9 +6,9 @@ import "../../currency/ECOx.sol";
 import "../../utils/TimeUtils.sol";
 import "./CurrencyGovernance.sol";
 
-/** @title TrustedNodes
- *
- * A registry of trusted nodes. Trusted nodes (trustees) are able to vote
+/**
+ * @title TrustedNodes
+ * @notice A registry of trusted nodes. Trusted nodes (trustees) are able to vote
  * on monetary policy and can only be added or removed using community
  * governance.
  *

@@ -6,15 +6,19 @@ Copyright (c) 2023 Eco Association
 
 **VotingPower**
 
-_Compute voting power for user_
+Compute voting power for user
 
 ### totalECOxSnapshot
+
+ECOx voting power is snapshotted when the contract is cloned
 
   ```solidity
   uint256 totalECOxSnapshot
   ```
 
 ### excludedVotingPower
+
+voting power to exclude from totalVotingPower
 
   ```solidity
   uint256 excludedVotingPower
@@ -27,6 +31,8 @@ _Compute voting power for user_
   ```
 
 ### ecoXStaking
+
+the ECO contract address
 
   ```solidity
   contract ECOxStaking ecoXStaking

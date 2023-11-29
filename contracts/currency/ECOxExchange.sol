@@ -6,7 +6,7 @@ import "./ECOx.sol";
 
 /**
  * @title EcoX Exchange Contract
- * Exchange for ECOx to ECO
+ * @notice Exchange for ECOx to ECO
  */
 contract ECOxExchange is Policed {
     /**

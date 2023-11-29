@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "../proxy/ForwardTarget.sol";
 import "./Policy.sol";
 
-/** @title Policed Contracts
- *
- * A policed contract is any contract managed by a policy.
+/**
+ * @title Policed Contracts
+ * @notice A policed contract is any contract managed by a policy.
  */
 abstract contract Policed is ForwardTarget {
     /** The address of the root policy instance overseeing this instance.

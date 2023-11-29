@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## TokenInit
 
-**initial token distribution contract
-This contract is used to distribute the initial allocations of ECO and ECOx**
+**initial token distribution contract**
+
+This contract is used to distribute the initial allocations of ECO and ECOx
 
 ### distribution
 

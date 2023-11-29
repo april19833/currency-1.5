@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## DummyPoliced
 
-**DummyPoliced
-For minimally testing the abstract contract's functionality**
+**DummyPoliced**
+
+For minimally testing the abstract contract's functionality
 
 ### value
 

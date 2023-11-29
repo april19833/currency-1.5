@@ -8,11 +8,15 @@ Copyright (c) 2023 Eco Association
 
 ### ecoXToken
 
+the ECOx contract address
+
   ```solidity
   contract IERC20 ecoXToken
   ```
 
 ### NoZeroECOx
+
+error for if the constructor tries to set the ECOx address to zero
 
   ```solidity
   error NoZeroECOx()
@@ -20,14 +24,16 @@ Copyright (c) 2023 Eco Association
 
 ### NonTransferrable
 
+error for if any transfer function is attempted to be used
+
   ```solidity
   error NonTransferrable()
   ```
 
 ### Deposit
 
-_The Deposit event indicates that ECOx has been locked up, credited
-to a particular address in a particular amount._
+The Deposit event indicates that ECOx has been locked up, credited
+to a particular address in a particular amount.
 
   ```solidity
   event Deposit(address source, uint256 amount)
@@ -41,8 +47,8 @@ to a particular address in a particular amount._
 
 ### Withdrawal
 
-_The Withdrawal event indicates that a withdrawal has been made to a particular
-address in a particular amount._
+The Withdrawal event indicates that a withdrawal has been made to a particular
+address in a particular amount.
 
   ```solidity
   event Withdrawal(address destination, uint256 amount)

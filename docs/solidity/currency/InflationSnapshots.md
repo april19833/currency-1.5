@@ -4,9 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## InflationSnapshots
 
-**InflationSnapshots
+**InflationSnapshots**
+
 This implements a scaling inflation multiplier on all balances and votes.
-Changing this value (via implementing _rebase)**
+Changing this value (via implementing _rebase)
 
 ### INITIAL_INFLATION_MULTIPLIER
 

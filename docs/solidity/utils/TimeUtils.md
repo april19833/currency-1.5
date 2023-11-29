@@ -4,8 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## TimeUtils
 
-**TimeUtils
-Utility class for time, allowing easy unit testing.**
+**TimeUtils**
+
+Utility class for time, allowing easy unit testing.
 
 ### getTime
 

@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../governance/monetary/MonetaryPolicyAdapter.sol";
 
-/** @title DummyMonetaryPolicyAdapter
- * For minimally testing enaction without having to give valid parameters
+/**
+ * @title DummyMonetaryPolicyAdapter
+ * @notice For minimally testing enaction without having to give valid parameters
  */
 contract DummyMonetaryPolicyAdapter is MonetaryPolicyAdapter {
     bool public enacted;

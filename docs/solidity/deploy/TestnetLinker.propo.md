@@ -4,9 +4,9 @@ Copyright (c) 2023 Eco Association
 
 ## TestnetLinker
 
-**Testnet Linking Proposal
+**Testnet Linking Proposal**
 
-A proposal used to link upwards permissions for all necessary contracts and mint tokens**
+A proposal used to link upwards permissions for all necessary contracts and mint tokens
 
 ### distributor
 

@@ -4,11 +4,11 @@ Copyright (c) 2023 Eco Association
 
 ## MonetaryPolicyAdapter
 
-**Contract for managing permissions between currency governance and monetary policy levers
+**Contract for managing permissions between currency governance and monetary policy levers**
 
 This contract enacts the results of the currency governance
 Its goal is to act as a long term address to pemission to allow execution of trustee governance and as a long term reference for event indexing of the results
-This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract**
+This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract
 
 ### currencyGovernance
 
