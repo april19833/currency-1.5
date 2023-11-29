@@ -79,8 +79,8 @@ export type MonetaryGovernanceAddresses = {
   trustedNodes: string
   monetaryGovernance: string
   adapter: string
-  lockupsLever: string
-  lockupsNotifier: string
+  // lockupsLever: string
+  // lockupsNotifier: string
   rebaseLever: string
   rebaseNotifier: string
 }
@@ -90,8 +90,8 @@ export class MonetaryGovernanceContracts {
     public trustedNodes: TrustedNodes,
     public monetaryGovernance: CurrencyGovernance,
     public adapter: MonetaryPolicyAdapter,
-    public lockupsLever: Lockups,
-    public lockupsNotifier: Notifier,
+    // public lockupsLever: Lockups,
+    // public lockupsNotifier: Notifier,
     public rebaseLever: Rebase,
     public rebaseNotifier: Notifier
   ) {}
@@ -101,8 +101,8 @@ export class MonetaryGovernanceContracts {
       trustedNodes: this.trustedNodes.address,
       monetaryGovernance: this.monetaryGovernance.address,
       adapter: this.adapter.address,
-      lockupsLever: this.lockupsLever.address,
-      lockupsNotifier: this.lockupsNotifier.address,
+      // lockupsLever: this.lockupsLever.address,
+      // lockupsNotifier: this.lockupsNotifier.address,
       rebaseLever: this.rebaseLever.address,
       rebaseNotifier: this.rebaseNotifier.address,
     }
@@ -197,29 +197,29 @@ export async function deployMonetary(
     config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
   ]
 
-  const lockupsContract = (await deploy(
-    wallet,
-    Lockups__factory,
-    lockupsLeverParams
-  )) as Lockups
+  // const lockupsContract = (await deploy(
+  //   wallet,
+  //   Lockups__factory,
+  //   lockupsLeverParams
+  // )) as Lockups
 
-  if (verbose) {
-    console.log('deploying lockups notifier')
-  }
+  // if (verbose) {
+  //   console.log('deploying lockups notifier')
+  // }
 
-  const lockupsNotifierParams = [
-    base.policy.address,
-    lockupsContract.address,
-    [],
-    [],
-    [],
-  ]
+  // const lockupsNotifierParams = [
+  //   base.policy.address,
+  //   lockupsContract.address,
+  //   [],
+  //   [],
+  //   [],
+  // ]
 
-  const lockupsNotifier = (await deploy(
-    wallet,
-    Notifier__factory,
-    lockupsNotifierParams
-  )) as Notifier
+  // const lockupsNotifier = (await deploy(
+  //   wallet,
+  //   Notifier__factory,
+  //   lockupsNotifierParams
+  // )) as Notifier
 
   if (verbose) {
     console.log('deploying rebase lever')
@@ -296,8 +296,8 @@ export async function deployMonetary(
 
   if (config.verify) {
     const output = {
-      lockupsLeverParams,
-      lockupsNotifierParams,
+      // lockupsLeverParams,
+      // lockupsNotifierParams,
       rebaseLeverParams,
       rebaseNotifierParams,
       adapterParams,
@@ -314,8 +314,8 @@ export async function deployMonetary(
     trustedNodes,
     monetaryGovernance,
     adapter,
-    lockupsContract,
-    lockupsNotifier,
+    // lockupsContract,
+    // lockupsNotifier,
     rebaseContract,
     rebaseNotifier
   )
@@ -457,8 +457,8 @@ export async function deployBaseUnproxied(
   const ecoXExchangeParams = [
     // all params are immutable
     config.policyProxyAddress,
-    config.ecoProxyAddress,
     config.ecoxProxyAddress,
+    config.ecoProxyAddress,
     initialECOxSupply,
   ]
 
