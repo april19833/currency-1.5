@@ -14,6 +14,7 @@ import "../governance/monetary/MonetaryPolicyAdapter.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 import "../governance/monetary/TrustedNodes.sol";
 import {Policed as PolicedOld} from "@helix-foundation/currency-dev/contracts/policy/Policed.sol";
+import {ImplementationUpdatingTarget} from "@helix-foundation/currency-dev/contracts/test/ImplementationUpdatingTarget.sol";
 
 /** @title Testnet Linking Proposal
  *
@@ -28,17 +29,17 @@ contract MigrationLinker is Policy, Proposal {
 
     address public immutable ecoxProxyAddress;
 
-    address public immutable ecoXStakingProxyAddress;
-
     address public immutable newEcoxStakingImpl;
+
+    address public immutable ecoXStakingProxyAddress;
 
     CommunityGovernance public immutable communityGovernance;
 
     ECOxExchange public immutable ecoXExchange;
 
-    address public immutable lockups;
+    // address public immutable lockups;
 
-    Notifier public immutable lockupsNotifier;
+    // Notifier public immutable lockupsNotifier;
 
     address public immutable rebase;
 
@@ -59,7 +60,7 @@ contract MigrationLinker is Policy, Proposal {
     constructor(
         CommunityGovernance _communityGovernance,
         ECOxExchange _ecoXExchange,
-        Notifier _lockupsNotifier,
+        // Notifier _lockupsNotifier,
         Notifier _rebaseNotifier,
         TrustedNodes _trustedNodes,
         address _newPolicyImpl,
@@ -70,7 +71,7 @@ contract MigrationLinker is Policy, Proposal {
     ) Policy(address(0x0)) {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
-        lockupsNotifier = _lockupsNotifier;
+        // lockupsNotifier = _lockupsNotifier;
         rebaseNotifier = _rebaseNotifier;
         trustedNodes = _trustedNodes;
 
@@ -82,7 +83,7 @@ contract MigrationLinker is Policy, Proposal {
 
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
-        lockups = _lockupsNotifier.lever();
+        // lockups = _lockupsNotifier.lever();
         rebase = _rebaseNotifier.lever();
         currencyGovernance = _trustedNodes.currencyGovernance();
         monetaryPolicyAdapter = currencyGovernance.enacter();
@@ -110,7 +111,16 @@ contract MigrationLinker is Policy, Proposal {
     /** Enact the proposal.
      */
     function enacted(address) public override {
-        // update eco
+        // update root policy
+        (bool success, bytes memory returnedData) = implementationUpdatingTarget.delegatecall(abi.encodeWithSelector(
+            ImplementationUpdatingTarget.updateImplementation.selector,
+            newPolicyImpl
+        ));
+
+        // add new governance permissions
+        this.updateGovernor(address(communityGovernance));
+
+        // update ecox
         PolicedOld(ecoxProxyAddress).policyCommand(
             implementationUpdatingTarget,
             abi.encodeWithSignature(
@@ -131,7 +141,7 @@ contract MigrationLinker is Policy, Proposal {
 
         // link eco
         ECO(ecoProxyAddress).updateMinters(address(ecoXExchange), true);
-        ECO(ecoProxyAddress).updateMinters(lockups, true);
+        // ECO(ecoProxyAddress).updateMinters(lockups, true);
         ECO(ecoProxyAddress).updateRebasers(rebase, true);
         ECO(ecoProxyAddress).updateSnapshotters(
             address(communityGovernance),
@@ -147,15 +157,9 @@ contract MigrationLinker is Policy, Proposal {
             )
         );
 
-        // update root policy
-        setImplementation(newPolicyImpl);
-
-        // add new governance permissions
-        this.updateGovernor(address(communityGovernance));
-
         // link levers
-        Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
-        Lockups(lockups).setNotifier(lockupsNotifier);
+        // Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
+        // Lockups(lockups).setNotifier(lockupsNotifier);
         Rebase(rebase).setAuthorized(address(monetaryPolicyAdapter), true);
         Rebase(rebase).setNotifier(rebaseNotifier);
 
