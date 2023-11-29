@@ -18,19 +18,25 @@ import "./DelegatePermit.sol";
  * Enabling self-delegation can easily be done by overriding the {delegates} function. Keep in mind however that this
  * will significantly increase the base gas cost of transfers.
  *
- * Available since v4.2.
+ * _Available since v4.2._
  */
 abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
-    // structure for saving past voting balances, accounting for delegation
+    /**
+     * structure for saving past voting balances, accounting for delegation
+     */
     struct Checkpoint {
         uint32 fromBlock;
         uint224 value;
     }
 
-    // the mapping from an address to each address that it delegates to, then mapped to the amount delegated
+    /**
+     * the mapping from an address to each address that it delegates to, then mapped to the amount delegated
+     */
     mapping(address => mapping(address => uint256)) internal _delegates;
 
-    // a mapping that aggregates the total delegated amounts in the mapping above
+    /**
+     * a mapping that aggregates the total delegated amounts in the mapping above
+     */
     mapping(address => uint256) internal _delegatedTotals;
 
     /**
@@ -41,16 +47,24 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      */
     mapping(address => address) internal _primaryDelegates;
 
-    // mapping that tracks if an address is willing to be delegated to
+    /**
+     * mapping that tracks if an address is willing to be delegated to
+     */
     mapping(address => bool) public delegationToAddressEnabled;
 
-    // mapping that tracks if an address is unable to delegate
+    /**
+     * mapping that tracks if an address is unable to delegate
+     */
     mapping(address => bool) public delegationFromAddressDisabled;
 
-    // mapping to the ordered arrays of voting checkpoints for each address
+    /**
+     * mapping to the ordered arrays of voting checkpoints for each address
+     */
     mapping(address => Checkpoint[]) public checkpoints;
 
-    // the checkpoints to track the token total supply
+    /**
+     * the checkpoints to track the token total supply
+     */
     Checkpoint[] private _totalSupplyCheckpoints;
 
     /**
@@ -501,6 +515,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * Snapshots the totalSupply after it has been increased.
+     * @param account the account to mint from
+     * @param amount the amount to mint
      */
     function _mint(
         address account,
@@ -518,6 +534,8 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
 
     /**
      * Snapshots the totalSupply after it has been decreased.
+     * @param account the account to burn from
+     * @param amount the amount to burn
      */
     function _burn(
         address account,
@@ -533,6 +551,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
      * Move voting power when tokens are transferred.
      *
      * Emits a {UpdatedVotes} event.
+     * @param from the transfer from address
+     * @param to the transfer to address
+     * @param amount the amount transferred
      */
     function _afterTokenTransfer(
         address from,
@@ -607,7 +628,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
         }
     }
 
-    // returns the newly written value in the checkpoint
+    /**
+     * returns the newly written value in the checkpoint
+     */
     function _writeCheckpoint(
         Checkpoint[] storage ckpts,
         function(uint256, uint256) view returns (uint256) op,

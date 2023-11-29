@@ -8,7 +8,7 @@ Copyright (c) 2023 Eco Association
 
 ### minters
 
-_Mapping storing contracts able to mint tokens_
+Mapping storing contracts able to mint tokens
 
   ```solidity
   mapping(address => bool) minters
@@ -16,7 +16,7 @@ _Mapping storing contracts able to mint tokens_
 
 ### burners
 
-_Mapping storing contracts able to burn tokens_
+Mapping storing contracts able to burn tokens
 
   ```solidity
   mapping(address => bool) burners
@@ -24,7 +24,7 @@ _Mapping storing contracts able to burn tokens_
 
 ### OnlyMinters
 
-_error for when an address tries to mint tokens without permission_
+error for when an address tries to mint tokens without permission
 
   ```solidity
   error OnlyMinters()
@@ -32,7 +32,7 @@ _error for when an address tries to mint tokens without permission_
 
 ### OnlyBurners
 
-_error for when an address tries to burn tokens without permission_
+error for when an address tries to burn tokens without permission
 
   ```solidity
   error OnlyBurners()
@@ -68,7 +68,7 @@ emits when the burners permissions are changed
 
 ### onlyMinterRole
 
-_Modifier for checking if the sender is a minter_
+Modifier for checking if the sender is a minter
 
   ```solidity
   modifier onlyMinterRole()
@@ -76,8 +76,8 @@ _Modifier for checking if the sender is a minter_
 
 ### onlyBurnerRoleOrSelf
 
-_Modifier for checking if the sender is allowed to burn
-both burners and the message sender can burn_
+Modifier for checking if the sender is allowed to burn
+both burners and the message sender can burn
 
   ```solidity
   modifier onlyBurnerRoleOrSelf(address _from)
@@ -96,8 +96,8 @@ both burners and the message sender can burn_
 
 ### updateMinters
 
-_change the minting permissions for an address
-only callable by tokenRoleAdmin_
+change the minting permissions for an address
+only callable by tokenRoleAdmin
 
   ```solidity
   function updateMinters(address _key, bool _value) public
@@ -111,8 +111,8 @@ only callable by tokenRoleAdmin_
 
 ### updateBurners
 
-_change the burning permissions for an address
-only callable by tokenRoleAdmin_
+change the burning permissions for an address
+only callable by tokenRoleAdmin
 
   ```solidity
   function updateBurners(address _key, bool _value) public
@@ -126,7 +126,7 @@ only callable by tokenRoleAdmin_
 
 ### mint
 
-_mints tokens to a given address_
+mints tokens to a given address
 
   ```solidity
   function mint(address _to, uint256 _value) external
@@ -140,7 +140,7 @@ _mints tokens to a given address_
 
 ### burn
 
-_burns tokens to a given address_
+burns tokens to a given address
 
   ```solidity
   function burn(address _from, uint256 _value) external

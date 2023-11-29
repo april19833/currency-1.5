@@ -10,17 +10,17 @@ import "../../policy/Policed.sol";
  *
  */
 contract ECOxStaking is VoteCheckpoints, Policed {
-    // the ECOx contract address
+    /// the ECOx contract address
     IERC20 public immutable ecoXToken;
 
-    // error for if the constructor tries to set the ECOx address to zero
+    /// error for if the constructor tries to set the ECOx address to zero
     error NoZeroECOx();
 
-    // error for if any transfer function is attempted to be used
+    /// error for if any transfer function is attempted to be used
     error NonTransferrable();
 
     /**
-     * @dev The Deposit event indicates that ECOx has been locked up, credited
+     * The Deposit event indicates that ECOx has been locked up, credited
      * to a particular address in a particular amount.
      *
      * @param source The address that a deposit certificate has been issued to.
@@ -29,7 +29,7 @@ contract ECOxStaking is VoteCheckpoints, Policed {
     event Deposit(address indexed source, uint256 amount);
 
     /**
-     * @dev The Withdrawal event indicates that a withdrawal has been made to a particular
+     * The Withdrawal event indicates that a withdrawal has been made to a particular
      * address in a particular amount.
      *
      * @param destination The address that has made a withdrawal.

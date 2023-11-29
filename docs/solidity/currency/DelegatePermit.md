@@ -4,14 +4,14 @@ Copyright (c) 2023 Eco Association
 
 ## DelegatePermit
 
-_Abstract contract including helper functions to allow delegation by signature using
+Abstract contract including helper functions to allow delegation by signature using
 [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612).
 
-Adds the `{_verifyDelegatePermit}` internal method, verifies a signature specifying permission to receive delegation power_
+Adds the `{_verifyDelegatePermit}` internal method, verifies a signature specifying permission to receive delegation power
 
 ### _verifyDelegatePermit
 
-_Verify that the given delegate signature is valid, throws if not_
+Verify that the given delegate signature is valid, throws if not
 
   ```solidity
   function _verifyDelegatePermit(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) internal
@@ -29,10 +29,10 @@ _Verify that the given delegate signature is valid, throws if not_
 
 ### delegationNonce
 
-_get the current nonce for the given address_
+get the current nonce for the given address
 
   ```solidity
-  function delegationNonce(address owner) public view returns (uint256)
+  function delegationNonce(address owner) public view returns (uint256 nonce)
   ```
 #### Parameters
 
@@ -44,5 +44,5 @@ _get the current nonce for the given address_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | nonce current nonce of `owner` |
+| nonce | uint256 | current nonce of `owner` |
 

@@ -4,16 +4,15 @@ Copyright (c) 2023 Eco Association
 
 ## Proposal
 
-**Proposal**
-
-_Interface specification for proposals. Any proposal submitted in the
-policy decision process must implement this interface._
+**Proposal
+Interface specification for proposals. Any proposal submitted in the
+policy decision process must implement this interface.**
 
 ### name
 
-_The name of the proposal.
+The name of the proposal.
 
-This should be relatively unique and descriptive._
+This should be relatively unique and descriptive.
 
   ```solidity
   function name() external view returns (string)
@@ -21,7 +20,7 @@ This should be relatively unique and descriptive._
 
 ### description
 
-_A longer description of what this proposal achieves._
+A longer description of what this proposal achieves.
 
   ```solidity
   function description() external view returns (string)
@@ -29,8 +28,8 @@ _A longer description of what this proposal achieves._
 
 ### url
 
-_A URL where voters can go to see the case in favour of this proposal,
-and learn more about it._
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
   ```solidity
   function url() external view returns (string)
@@ -38,11 +37,11 @@ and learn more about it._
 
 ### enacted
 
-_Called to enact the proposal.
+Called to enact the proposal.
 
 This will be called from the root policy contract using delegatecall,
 with the direct proposal address passed in as _self so that storage
-data can be accessed if needed._
+data can be accessed if needed.
 
   ```solidity
   function enacted(address _self) external

@@ -23,7 +23,7 @@ abstract contract ForwardTarget {
         setImplementation(address(this));
     }
 
-    /** @notice Storage initialization of cloned contract
+    /** Storage initialization of cloned contract
      *
      * This is used to initialize the storage of the forwarded contract, and
      * should (typically) copy or repeat any work that would normally be
@@ -52,7 +52,7 @@ abstract contract ForwardTarget {
         }
     }
 
-    /** @notice Set new implementation */
+    /** Set new implementation */
     function setImplementation(address _impl) internal {
         require(implementation() != _impl, "Implementation already matching");
         assembly {

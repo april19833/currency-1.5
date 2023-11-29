@@ -6,7 +6,7 @@ Copyright (c) 2023 Eco Association
 
 ### mint
 
-_Only available to minters_
+Only available to minters
 
   ```solidity
   function mint(address to, uint256 amount) external
@@ -20,7 +20,7 @@ _Only available to minters_
 
 ### burn
 
-_Only available to token holders for their own tokens and burners_
+Only available to token holders for their own tokens and burners
 
   ```solidity
   function burn(address from, uint256 amount) external
@@ -34,7 +34,7 @@ _Only available to token holders for their own tokens and burners_
 
 ### voteBalanceSnapshot
 
-_Returns the votes for the current snapshot_
+Returns the votes for the current snapshot
 
   ```solidity
   function voteBalanceSnapshot(address account) external view returns (uint256)
@@ -53,7 +53,7 @@ _Returns the votes for the current snapshot_
 
 ### inflationMultiplierSnapshot
 
-_Returns the inflation multiplier value for the current snapshot_
+Returns the inflation multiplier value for the current snapshot
 
   ```solidity
   function inflationMultiplierSnapshot() external view returns (uint256)
@@ -67,7 +67,7 @@ _Returns the inflation multiplier value for the current snapshot_
 
 ### totalSupplySnapshot
 
-_Returns the total supply for the current snapshot_
+Returns the total supply for the current snapshot
 
   ```solidity
   function totalSupplySnapshot() external view returns (uint256)

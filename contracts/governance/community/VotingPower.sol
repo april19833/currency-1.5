@@ -8,19 +8,19 @@ import "./ECOxStaking.sol";
 
 /**
  * @title VotingPower
- * @dev Compute voting power for user
+ * Compute voting power for user
  */
 contract VotingPower is Policed {
-    // ECOx voting power is snapshotted when the contract is cloned
+    /// ECOx voting power is snapshotted when the contract is cloned
     uint256 public totalECOxSnapshot;
 
-    // voting power to exclude from totalVotingPower
+    /// voting power to exclude from totalVotingPower
     uint256 public excludedVotingPower;
 
     // the ECO contract address
     ECO public immutable ecoToken;
 
-    // the ECO contract address
+    /// the ECO contract address
     ECOxStaking public immutable ecoXStaking;
 
     constructor(

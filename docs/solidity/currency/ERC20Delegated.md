@@ -53,7 +53,7 @@ The exist to maintain the functionality that recieving tokens gives those votes 
 
 ### DelegatedVotes
 
-_Emitted when a delegatee is delegated new votes._
+Emitted when a delegatee is delegated new votes.
 
   ```solidity
   event DelegatedVotes(address delegator, address delegatee, uint256 amount)
@@ -61,7 +61,7 @@ _Emitted when a delegatee is delegated new votes._
 
 ### VoteTransfer
 
-_Emitted when a token transfer or delegate change results a transfer of voting power._
+Emitted when a token transfer or delegate change results a transfer of voting power.
 
   ```solidity
   event VoteTransfer(address sendingVoter, address recievingVoter, uint256 votes)
@@ -69,7 +69,7 @@ _Emitted when a token transfer or delegate change results a transfer of voting p
 
 ### NewPrimaryDelegate
 
-_Emitted when an account denotes a primary delegate._
+Emitted when an account denotes a primary delegate.
 
   ```solidity
   event NewPrimaryDelegate(address delegator, address primaryDelegate)
@@ -89,7 +89,7 @@ _Emitted when an account denotes a primary delegate._
 
 ### enableDelegationTo
 
-_Set yourself as willing to recieve delegates._
+Set yourself as willing to recieve delegates.
 
   ```solidity
   function enableDelegationTo() public
@@ -97,7 +97,7 @@ _Set yourself as willing to recieve delegates._
 
 ### disableDelegationTo
 
-_Set yourself as no longer recieving delegates._
+Set yourself as no longer recieving delegates.
 
   ```solidity
   function disableDelegationTo() public
@@ -105,8 +105,8 @@ _Set yourself as no longer recieving delegates._
 
 ### reenableDelegating
 
-_Set yourself as being able to delegate again.
-also disables delegating to you_
+Set yourself as being able to delegate again.
+also disables delegating to you
 
   ```solidity
   function reenableDelegating() public
@@ -114,7 +114,7 @@ also disables delegating to you_
 
 ### isOwnDelegate
 
-_Returns true if the user has no amount of their balance delegated, otherwise false._
+Returns true if the user has no amount of their balance delegated, otherwise false.
 
   ```solidity
   function isOwnDelegate(address account) public view returns (bool)
@@ -122,8 +122,8 @@ _Returns true if the user has no amount of their balance delegated, otherwise fa
 
 ### getPrimaryDelegate
 
-_Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
-The primary delegate is the one that is delegated any new funds the address recieves._
+Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+The primary delegate is the one that is delegated any new funds the address recieves.
 
   ```solidity
   function getPrimaryDelegate(address account) public view virtual returns (address)
@@ -139,9 +139,9 @@ sets the primaryDelegate and emits an event to track it
 
 ### delegate
 
-_Delegate all votes from the sender to `delegatee`.
+Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
-It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
+It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
 
   ```solidity
   function delegate(address delegatee) public
@@ -149,9 +149,9 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
 
 ### delegateBySig
 
-_Delegate all votes from the sender to `delegatee`.
+Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
-It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do_
+It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
 
   ```solidity
   function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
@@ -159,7 +159,7 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
 
 ### delegateAmount
 
-_Delegate an `amount` of votes from the sender to `delegatee`._
+Delegate an `amount` of votes from the sender to `delegatee`.
 
   ```solidity
   function delegateAmount(address delegatee, uint256 amount) public
@@ -167,9 +167,9 @@ _Delegate an `amount` of votes from the sender to `delegatee`._
 
 ### _delegate
 
-_Change delegation for `delegator` to `delegatee`.
+Change delegation for `delegator` to `delegatee`.
 
-Emits events {NewDelegatedAmount} and {VoteTransfer}._
+Emits events {NewDelegatedAmount} and {VoteTransfer}.
 
   ```solidity
   function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
@@ -177,7 +177,7 @@ Emits events {NewDelegatedAmount} and {VoteTransfer}._
 
 ### undelegate
 
-_Undelegate all votes from the sender's primary delegate._
+Undelegate all votes from the sender's primary delegate.
 
   ```solidity
   function undelegate() public
@@ -185,7 +185,7 @@ _Undelegate all votes from the sender's primary delegate._
 
 ### undelegateFromAddress
 
-_Undelegate votes from the `delegatee` back to the sender._
+Undelegate votes from the `delegatee` back to the sender.
 
   ```solidity
   function undelegateFromAddress(address delegatee) public
@@ -202,7 +202,7 @@ Useful for allowing yourself to call reenableDelegating after calling disableDel
 
 ### _undelegateFromAddress
 
-_Undelegate votes from the `delegatee` back to the delegator._
+Undelegate votes from the `delegatee` back to the delegator.
 
   ```solidity
   function _undelegateFromAddress(address delegator, address delegatee) internal
@@ -210,7 +210,7 @@ _Undelegate votes from the `delegatee` back to the delegator._
 
 ### undelegateAmountFromAddress
 
-_Undelegate a specific amount of votes from the `delegatee` back to the sender._
+Undelegate a specific amount of votes from the `delegatee` back to the sender.
 
   ```solidity
   function undelegateAmountFromAddress(address delegatee, uint256 amount) public
@@ -224,9 +224,9 @@ _Undelegate a specific amount of votes from the `delegatee` back to the sender._
 
 ### _afterTokenTransfer
 
-_Move voting power when tokens are transferred.
+Move voting power when tokens are transferred.
 
-Emits a {VoteTransfer} event._
+Emits a {VoteTransfer} event.
 
   ```solidity
   function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
@@ -234,7 +234,7 @@ Emits a {VoteTransfer} event._
 
 ### voteBalanceOf
 
-_See {IERC20-balanceOf}._
+See {IERC20-balanceOf}.
 
   ```solidity
   function voteBalanceOf(address account) public view virtual returns (uint256)
@@ -242,12 +242,12 @@ _See {IERC20-balanceOf}._
 
 ### voteTransfer
 
-_See {IERC20-transfer}.
+See {IERC20-transfer}.
 
 Requirements:
 
 - `recipient` cannot be the zero address.
-- the caller must have a balance of at least `amount`._
+- the caller must have a balance of at least `amount`.
 
   ```solidity
   function voteTransfer(address recipient, uint256 amount) internal virtual returns (bool)
@@ -255,7 +255,7 @@ Requirements:
 
 ### voteAllowance
 
-_See {IERC20-allowance}._
+See {IERC20-allowance}.
 
   ```solidity
   function voteAllowance(address owner, address spender) internal view virtual returns (uint256)
@@ -263,11 +263,11 @@ _See {IERC20-allowance}._
 
 ### voteApprove
 
-_See {IERC20-approve}.
+See {IERC20-approve}.
 
 Requirements:
 
-- `spender` cannot be the zero address._
+- `spender` cannot be the zero address.
 
   ```solidity
   function voteApprove(address spender, uint256 amount) internal virtual returns (bool)
@@ -284,7 +284,7 @@ is instead more restrictive, only allows for transfers where the recipient owns 
 
 ### _voteTransfer
 
-_Moves `amount` of tokens from `sender` to `recipient`.
+Moves `amount` of tokens from `sender` to `recipient`.
 
 This internal function is equivalent to {transfer}, and can be used to
 e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -295,7 +295,7 @@ Requirements:
 
 - `sender` cannot be the zero address.
 - `recipient` cannot be the zero address.
-- `sender` must have a balance of at least `amount`._
+- `sender` must have a balance of at least `amount`.
 
   ```solidity
   function _voteTransfer(address sender, address recipient, uint256 amount) internal virtual
@@ -303,14 +303,14 @@ Requirements:
 
 ### _voteMint
 
-_Creates `amount` tokens and assigns them to `account`, increasing
+Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
 
 Emits a {Transfer} event with `from` set to the zero address.
 
 Requirements:
 
-- `account` cannot be the zero address._
+- `account` cannot be the zero address.
 
   ```solidity
   function _voteMint(address account, uint256 amount) internal virtual returns (uint256)
@@ -318,7 +318,7 @@ Requirements:
 
 ### _voteBurn
 
-_Destroys `amount` tokens from `account`, reducing the
+Destroys `amount` tokens from `account`, reducing the
 total supply.
 
 Emits a {Transfer} event with `to` set to the zero address.
@@ -326,7 +326,7 @@ Emits a {Transfer} event with `to` set to the zero address.
 Requirements:
 
 - `account` cannot be the zero address.
-- `account` must have at least `amount` tokens._
+- `account` must have at least `amount` tokens.
 
   ```solidity
   function _voteBurn(address account, uint256 amount) internal virtual returns (uint256)
@@ -334,7 +334,7 @@ Requirements:
 
 ### _voteApprove
 
-_Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+Sets `amount` as the allowance of `spender` over the `owner` s tokens.
 
 This internal function is equivalent to `approve`, and can be used to
 e.g. set automatic allowances for certain subsystems, etc.
@@ -344,7 +344,7 @@ Emits an {Approval} event.
 Requirements:
 
 - `owner` cannot be the zero address.
-- `spender` cannot be the zero address._
+- `spender` cannot be the zero address.
 
   ```solidity
   function _voteApprove(address owner, address spender, uint256 amount) internal virtual
@@ -352,7 +352,7 @@ Requirements:
 
 ### _increaseVoteAllowance
 
-_Atomically increases the allowance granted to `spender` by the caller.
+Atomically increases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -361,7 +361,7 @@ Emits an {Approval} event indicating the updated allowance.
 
 Requirements:
 
-- `spender` cannot be the zero address._
+- `spender` cannot be the zero address.
 
   ```solidity
   function _increaseVoteAllowance(address owner, address spender, uint256 addedValue) internal virtual returns (bool)
@@ -369,7 +369,7 @@ Requirements:
 
 ### _decreaseVoteAllowance
 
-_Atomically decreases the allowance granted to `spender` by the caller.
+Atomically decreases the allowance granted to `spender` by the caller.
 
 This is an alternative to {approve} that can be used as a mitigation for
 problems described in {IERC20-approve}.
@@ -380,7 +380,7 @@ Requirements:
 
 - `spender` cannot be the zero address.
 - `spender` must have allowance for the caller of at least
-`subtractedValue`._
+`subtractedValue`.
 
   ```solidity
   function _decreaseVoteAllowance(address owner, address spender, uint256 subtractedValue) internal virtual returns (bool)
@@ -388,7 +388,7 @@ Requirements:
 
 ### _beforeVoteTokenTransfer
 
-_Hook that is called before any transfer of tokens. This includes
+Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
@@ -399,7 +399,7 @@ will be transferred to `to`.
 - when `to` is zero, `amount` of ``from``'s tokens will be burned.
 - `from` and `to` are never both zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
 
   ```solidity
   function _beforeVoteTokenTransfer(address, address, uint256 amount) internal virtual
@@ -407,7 +407,7 @@ To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hook
 
 ### _afterVoteTokenTransfer
 
-_Hook that is called after any transfer of tokens. This includes
+Hook that is called after any transfer of tokens. This includes
 minting and burning.
 
 Calling conditions:
@@ -418,7 +418,7 @@ has been transferred to `to`.
 - when `to` is zero, `amount` of ``from``'s tokens have been burned.
 - `from` and `to` are never both zero.
 
-To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks]._
+To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
 
   ```solidity
   function _afterVoteTokenTransfer(address, address, uint256 amount) internal virtual

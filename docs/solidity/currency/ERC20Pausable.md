@@ -4,8 +4,8 @@ Copyright (c) 2023 Eco Association
 
 ## ERC20Pausable
 
-_Implementation of the {IERC20} interface with pausability
-When paused by the pauser admin, transfers revert._
+Implementation of the {IERC20} interface with pausability
+When paused by the pauser admin, transfers revert.
 
 ### roleAdmin
 
@@ -52,10 +52,10 @@ event indicating the pauser was updated
 
 ### _beforeTokenTransfer
 
-_Hook that is called before any transfer of tokens. This includes
+Hook that is called before any transfer of tokens. This includes
 minting and burning.
 
-If the token is not paused, it will pass through the amount_
+If the token is not paused, it will pass through the amount
 
   ```solidity
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
@@ -64,8 +64,7 @@ If the token is not paused, it will pass through the amount_
 ### pause
 
 pauses transfers of this token
-
-_only callable by the pauser_
+only callable by the pauser
 
   ```solidity
   function pause() external
@@ -74,8 +73,7 @@ _only callable by the pauser_
 ### unpause
 
 unpauses transfers of this token
-
-_only callable by the pauser_
+only callable by the pauser
 
   ```solidity
   function unpause() external
@@ -85,8 +83,6 @@ _only callable by the pauser_
 
 set the given address as the pauser
 
-_only the roleAdmin can call this function_
-
   ```solidity
   function setPauser(address _pauser) public
   ```
@@ -94,5 +90,5 @@ _only the roleAdmin can call this function_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _pauser | address | The address that can pause this token |
+| _pauser | address | The address that can pause this token only the roleAdmin can call this function |
 

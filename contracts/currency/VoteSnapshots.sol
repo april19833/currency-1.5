@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "./ERC20Delegated.sol";
 
 /**
- * @dev Extension of ERC20Delegated to support snapshotting.
+ * Extension of ERC20Delegated to support snapshotting.
  *
  * This extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken.
  * Only addresses that have opted into voting are snapshotted.
@@ -17,17 +17,17 @@ abstract contract VoteSnapshots is ERC20Delegated {
         uint224 value;
     }
 
-    // the reference snapshotBlock that the update function checks against
+    /// the reference snapshotBlock that the update function checks against
     uint32 public currentSnapshotBlock;
 
-    // mapping of each address to it's latest snapshot of votes
+    /// mapping of each address to it's latest snapshot of votes
     mapping(address => Snapshot) private _voteSnapshots;
 
-    // the snapshot to track the token total supply
+    /// the snapshot to track the token total supply
     Snapshot private _totalSupplySnapshot;
 
     /**
-     * @dev Emitted by {_snapshot} when a new snapshot is created.
+     * Emitted by {_snapshot} when a new snapshot is created.
      *
      * @param block the new value of currentSnapshotBlock
      */
@@ -56,55 +56,70 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     /**
-     * @dev Retrieve the balance for the snapshot
+     * Retrieve the balance for the snapshot
      *
      * @param account the address to check vote balances for
+     * @return balance the balance for the snapshot
      */
     function voteBalanceSnapshot(
         address account
-    ) public view virtual returns (uint256) {
+    ) public view virtual returns (uint256 balance) {
         Snapshot memory _accountSnapshot = _voteSnapshots[account];
 
         if (_accountSnapshot.snapshotBlock < currentSnapshotBlock) {
-            return _voteBalances[account];
+            balance = _voteBalances[account];
         } else {
-            return _accountSnapshot.value;
+            balance = _accountSnapshot.value;
         }
+        return balance;
     }
 
     /**
-     * @dev Retrieve the `totalSupply` for the snapshot
+     * Retrieve the `totalSupply` for the snapshot
+     * @return totalSupply total supply for the current Snapshot
      */
-    function totalSupplySnapshot() public view virtual returns (uint256) {
+    function totalSupplySnapshot()
+        public
+        view
+        virtual
+        returns (uint256 totalSupply)
+    {
         if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
-            return _totalSupply;
+            totalSupply = _totalSupply;
         } else {
-            return _totalSupplySnapshot.value;
+            totalSupply = _totalSupplySnapshot.value;
         }
+        return totalSupply;
     }
 
     /**
-     * @dev Creates a new snapshot and returns its snapshot id.
+     * Creates a new snapshot and returns its snapshot id.
      *
      * Emits a {NewSnapshotBlock} event that contains the same id.
+     * @return snapshotId new snapshot idenitifier
      */
-    function _snapshot() internal virtual returns (uint256) {
+    function _snapshot() internal virtual returns (uint256 snapshotId) {
         // the math will error if the snapshot overflows
         currentSnapshotBlock = uint32(block.number);
 
         emit NewSnapshotBlock(block.number);
-        return block.number;
+        snapshotId = block.number;
+        return snapshotId;
     }
 
     /**
      * Update total supply snapshots before the values are modified. This is implemented
      * in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     * @param from the from address for the transfer
+     * @param to the to address for the transfer
+     * @param amount the amount of the transfer
+     * @return totalSupplyAmount the totalSupply ammount before the token transfer
      */
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 amount
-    ) internal virtual override returns (uint256) {
+    ) internal virtual override returns (uint256 totalSupplyAmount) {
         if (from == address(0)) {
             // mint
             _updateTotalSupplySnapshot();
@@ -113,12 +128,16 @@ abstract contract VoteSnapshots is ERC20Delegated {
             _updateTotalSupplySnapshot();
         }
 
-        return super._beforeTokenTransfer(from, to, amount);
+        totalSupplyAmount = super._beforeTokenTransfer(from, to, amount);
+        return totalSupplyAmount;
     }
 
     /**
      * Update balance snapshots for votes before the values are modified. This is implemented
      * in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     * @param from the from address for the transfer
+     * @param to the to address for the transfer
+     * @param amount the amount of the transfer
      */
     function _beforeVoteTokenTransfer(
         address from,

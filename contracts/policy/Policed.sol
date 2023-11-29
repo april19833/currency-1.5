@@ -9,32 +9,32 @@ import "./Policy.sol";
  * A policed contract is any contract managed by a policy.
  */
 abstract contract Policed is ForwardTarget {
-    /** @notice The address of the root policy instance overseeing this instance.
+    /** The address of the root policy instance overseeing this instance.
      */
     Policy public immutable policy;
 
-    /** @notice If the policy address is set to zero, the contract is unrecoverably ungovernable
+    /** If the policy address is set to zero, the contract is unrecoverably ungovernable
      */
     error NonZeroPolicyAddr();
 
     /**
-     * @notice If this address is set to zero the contract is an unusable state
+     * If this address is set to zero the contract is an unusable state
      * @param contractName the name of the contract that was given as the zero address
      */
     error NonZeroContractAddr(string contractName);
 
-    /** @notice For if a non-policy address tries to access policy role gated functionality
+    /** For if a non-policy address tries to access policy role gated functionality
      */
     error PolicyOnlyFunction();
 
     /**
-     * @notice emits when the policy contract is changed
+     * emits when the policy contract is changed
      * @param newPolicy denotes the new policy contract address
      * @param oldPolicy denotes the old policy contract address
      */
     event NewPolicy(Policy newPolicy, Policy oldPolicy);
 
-    /** @notice Restrict method access to the root policy instance only.
+    /** Restrict method access to the root policy instance only.
      */
     modifier onlyPolicy() {
         if (msg.sender != address(policy)) {
@@ -53,20 +53,4 @@ abstract contract Policed is ForwardTarget {
         }
         policy = _policy;
     }
-
-    // /** setter for policy
-    //  * only callable by the current policy address
-    //  * @param _policy the new address to set for the policy, cannot be zero
-    //  */
-    // function setPolicy(Policy _policy) external onlyPolicy {
-    //     emit NewPolicy(_policy, policy);
-    //     _setPolicy(_policy);
-    // }
-
-    // function _setPolicy(Policy _policy) private {
-    //     if (address(_policy) == address(0)) {
-    //         revert NonZeroPolicyAddr();
-    //     }
-    //     policy = _policy;
-    // }
 }

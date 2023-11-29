@@ -4,10 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## VoteSnapshots
 
-_Extension of ERC20Delegated to support snapshotting.
+Extension of ERC20Delegated to support snapshotting.
 
 This extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken.
-Only addresses that have opted into voting are snapshotted._
+Only addresses that have opted into voting are snapshotted.
 
 ### Snapshot
 
@@ -20,13 +20,15 @@ struct Snapshot {
 
 ### currentSnapshotBlock
 
+the reference snapshotBlock that the update function checks against
+
   ```solidity
   uint32 currentSnapshotBlock
   ```
 
 ### NewSnapshotBlock
 
-_Emitted by {_snapshot} when a new snapshot is created._
+Emitted by {_snapshot} when a new snapshot is created.
 
   ```solidity
   event NewSnapshotBlock(uint256 block)
@@ -69,10 +71,10 @@ and chain to super.initialize(_self).
 
 ### voteBalanceSnapshot
 
-_Retrieve the balance for the snapshot_
+Retrieve the balance for the snapshot
 
   ```solidity
-  function voteBalanceSnapshot(address account) public view virtual returns (uint256)
+  function voteBalanceSnapshot(address account) public view virtual returns (uint256 balance)
   ```
 #### Parameters
 
@@ -80,23 +82,41 @@ _Retrieve the balance for the snapshot_
 | ---- | ---- | ----------- |
 | account | address | the address to check vote balances for |
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| balance | uint256 | the balance for the snapshot |
+
 ### totalSupplySnapshot
 
-_Retrieve the `totalSupply` for the snapshot_
+Retrieve the `totalSupply` for the snapshot
 
   ```solidity
-  function totalSupplySnapshot() public view virtual returns (uint256)
+  function totalSupplySnapshot() public view virtual returns (uint256 totalSupply)
   ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| totalSupply | uint256 | total supply for the current Snapshot |
 
 ### _snapshot
 
-_Creates a new snapshot and returns its snapshot id.
+Creates a new snapshot and returns its snapshot id.
 
-Emits a {NewSnapshotBlock} event that contains the same id._
+Emits a {NewSnapshotBlock} event that contains the same id.
 
   ```solidity
-  function _snapshot() internal virtual returns (uint256)
+  function _snapshot() internal virtual returns (uint256 snapshotId)
   ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| snapshotId | uint256 | new snapshot idenitifier |
 
 ### _beforeTokenTransfer
 
@@ -104,8 +124,21 @@ Update total supply snapshots before the values are modified. This is implemente
 in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
 
   ```solidity
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256 totalSupplyAmount)
   ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| from | address | the from address for the transfer |
+| to | address | the to address for the transfer |
+| amount | uint256 | the amount of the transfer |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| totalSupplyAmount | uint256 | the totalSupply ammount before the token transfer |
 
 ### _beforeVoteTokenTransfer
 
@@ -115,4 +148,11 @@ in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _t
   ```solidity
   function _beforeVoteTokenTransfer(address from, address to, uint256 amount) internal virtual
   ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| from | address | the from address for the transfer |
+| to | address | the to address for the transfer |
+| amount | uint256 | the amount of the transfer |
 

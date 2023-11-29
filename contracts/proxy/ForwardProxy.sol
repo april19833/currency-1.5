@@ -30,7 +30,7 @@ contract ForwardProxy {
         }
     }
 
-    /** @notice Default function that forwards call to proxy target
+    /** Default function that forwards call to proxy target
      */
     fallback() external payable {
         /* This default-function is optimized for minimum gas cost, to make the

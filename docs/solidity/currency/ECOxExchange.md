@@ -4,13 +4,12 @@ Copyright (c) 2023 Eco Association
 
 ## ECOxExchange
 
-**EcoX Exchange Contract**
-
-_Exchange for ECOx to ECO_
+**EcoX Exchange Contract
+Exchange for ECOx to ECO**
 
 ### PRECISION_BITS
 
-_bits of precision used in the exponentiation approximation_
+bits of precision used in the exponentiation approximation
 
   ```solidity
   uint8 PRECISION_BITS
@@ -18,7 +17,7 @@ _bits of precision used in the exponentiation approximation_
 
 ### initialSupply
 
-_initial supply of ECOx at deployment_
+initial supply of ECOx at deployment
 
   ```solidity
   uint256 initialSupply
@@ -26,7 +25,7 @@ _initial supply of ECOx at deployment_
 
 ### ecox
 
-_ECOx token contract_
+ECOx token contract
 
   ```solidity
   contract ECOx ecox
@@ -34,7 +33,7 @@ _ECOx token contract_
 
 ### eco
 
-_ECO token contract_
+ECO token contract
 
   ```solidity
   contract ECO eco
@@ -42,7 +41,7 @@ _ECO token contract_
 
 ### constructor
 
-_constructor_
+constructor
 
   ```solidity
   constructor(contract Policy policy, contract ECOx _ECOx, contract ECO _eco, uint256 _initialSupply) public
@@ -58,7 +57,7 @@ _constructor_
 
 ### ecoValueOf
 
-_Calculates the value of ECOx by multiplying value by supply_
+Calculates the value of ECOx by multiplying value by supply
 
   ```solidity
   function ecoValueOf(uint256 _ecoXValue) public view returns (uint256 ecoValue)
@@ -77,10 +76,10 @@ _Calculates the value of ECOx by multiplying value by supply_
 
 ### valueAt
 
-_Calculates the value of ECOx at the total supply snapshot_
+Calculates the value of ECOx at the total supply snapshot
 
   ```solidity
-  function valueAt(uint256 _ecoXValue) public view returns (uint256)
+  function valueAt(uint256 _ecoXValue) public view returns (uint256 ecoValue)
   ```
 #### Parameters
 
@@ -92,11 +91,11 @@ _Calculates the value of ECOx at the total supply snapshot_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | returnValue the value of ECOx multiplied by the total supply at the time of snapshot |
+| ecoValue | uint256 | the value of ECOx multiplied by the total supply at the time of snapshot |
 
 ### exchange
 
-_Exchange ECOx for ECO by burning ECOx and minting ECO_
+Exchange ECOx for ECO by burning ECOx and minting ECO
 
   ```solidity
   function exchange(uint256 _ecoXValue) external
@@ -109,10 +108,10 @@ _Exchange ECOx for ECO by burning ECOx and minting ECO_
 
 ### computeValue
 
-_Computes the value of ECO from the ECOx value and the ECO supply_
+Computes the value of ECO from the ECOx value and the ECO supply
 
   ```solidity
-  function computeValue(uint256 _ecoXValue, uint256 _ecoSupply) internal view returns (uint256)
+  function computeValue(uint256 _ecoXValue, uint256 _ecoSupply) internal view returns (uint256 ecoValue)
   ```
 #### Parameters
 
@@ -125,14 +124,14 @@ _Computes the value of ECO from the ECOx value and the ECO supply_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | the value of ECO |
+| ecoValue | uint256 | the value of ECO |
 
 ### safeLeftShift
 
-_Safe Left Shift_
+Safe Left Shift
 
   ```solidity
-  function safeLeftShift(uint256 value, uint8 shift) internal pure returns (uint256)
+  function safeLeftShift(uint256 value, uint8 shift) internal pure returns (uint256 shiftedAmount)
   ```
 #### Parameters
 
@@ -145,7 +144,7 @@ _Safe Left Shift_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | the shifted amount |
+| shiftedAmount | uint256 | the shifted amount |
 
 ### generalExp
 
@@ -160,7 +159,7 @@ the global `maxExpArray` maps each `precision` to `((maximumExponent + 1) << (MA
 the maximum permitted value for `x` is therefore given by `maxExpArray[precision] >> (MAX_PRECISION - precision)`.
 
   ```solidity
-  function generalExp(uint256 _x, uint8 _precision) internal pure returns (uint256)
+  function generalExp(uint256 _x, uint8 _precision) internal pure returns (uint256 result)
   ```
 #### Parameters
 
@@ -173,5 +172,5 @@ the maximum permitted value for `x` is therefore given by `maxExpArray[precision
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | `e ^ (x / 2 ^ precision) * 2 ^ precision`, that is, the result is upshifted for accuracy. |
+| result | uint256 | `e ^ (x / 2 ^ precision) * 2 ^ precision`, that is, the result is upshifted for accuracy. |
 
