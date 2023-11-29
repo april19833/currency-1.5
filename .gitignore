@@ -88,3 +88,5 @@ docs/slither/vulnerability.txt
 
 # Gas Reports
 docs/gasReport.txt
+#Deployment data
+deploy/deployments

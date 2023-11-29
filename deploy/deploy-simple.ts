@@ -12,7 +12,8 @@ async function main() {
     wallet.address,
     initialECOSupply,
     initialECOxSupply,
-    true
+    true,
+    { verify: true }
   )
   console.log(JSON.stringify(contracts.toAddresses(), null, 2))
 }
