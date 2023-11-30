@@ -112,10 +112,13 @@ contract MigrationLinker is Policy, Proposal {
      */
     function enacted(address) public override {
         // update root policy
-        (bool success, bytes memory returnedData) = implementationUpdatingTarget.delegatecall(abi.encodeWithSelector(
-            ImplementationUpdatingTarget.updateImplementation.selector,
-            newPolicyImpl
-        ));
+        (bool success, bytes memory returnedData) = implementationUpdatingTarget
+            .delegatecall(
+                abi.encodeWithSelector(
+                    ImplementationUpdatingTarget.updateImplementation.selector,
+                    newPolicyImpl
+                )
+            );
 
         // add new governance permissions
         this.updateGovernor(address(communityGovernance));

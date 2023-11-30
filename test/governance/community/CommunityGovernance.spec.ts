@@ -314,7 +314,11 @@ describe('Community Governance', () => {
         await cg.updateStage()
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
 
-        const realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
+        const realProp = (await deploy(
+          alice,
+          SampleProposal__factory,
+          []
+        )) as SampleProposal
 
         await cg.connect(alice).propose(realProp.address)
         await cg.connect(bigboy).support(realProp.address)
@@ -727,7 +731,11 @@ describe('Community Governance', () => {
 
   describe('execution stage', () => {
     beforeEach(async () => {
-      realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
+      realProp = (await deploy(
+        alice,
+        SampleProposal__factory,
+        []
+      )) as SampleProposal
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(realProp.address)
       await cg.connect(bigboy).support(realProp.address)
@@ -785,7 +793,11 @@ describe('Community Governance', () => {
     })
   })
   it('E2E', async () => {
-    realProp = await deploy(alice, SampleProposal__factory, []) as SampleProposal
+    realProp = (await deploy(
+      alice,
+      SampleProposal__factory,
+      []
+    )) as SampleProposal
     await eco.connect(alice).approve(cg.address, await cg.proposalFee())
     await cg.connect(alice).propose(realProp.address)
     await eco.connect(bob).approve(cg.address, await cg.proposalFee())
