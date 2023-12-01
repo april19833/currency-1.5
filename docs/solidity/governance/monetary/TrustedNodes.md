@@ -12,78 +12,78 @@ governance.
 
 ### GENERATION_TIME
 
-  ```solidity
-  uint256 GENERATION_TIME
-  ```
+```solidity
+uint256 GENERATION_TIME
+```
 
 ### termEnd
 
-  ```solidity
-  uint256 termEnd
-  ```
+```solidity
+uint256 termEnd
+```
 
 ### termLength
 
-  ```solidity
-  uint256 termLength
-  ```
+```solidity
+uint256 termLength
+```
 
 ### currencyGovernance
 
 address with the currencyGovernance role
 
-  ```solidity
-  contract CurrencyGovernance currencyGovernance
-  ```
+```solidity
+contract CurrencyGovernance currencyGovernance
+```
 
 ### ecoX
 
-  ```solidity
-  contract ECOx ecoX
-  ```
+```solidity
+contract ECOx ecoX
+```
 
 ### trusteeNumbers
 
-  ```solidity
-  mapping(address => uint256) trusteeNumbers
-  ```
+```solidity
+mapping(address => uint256) trusteeNumbers
+```
 
 ### trustees
 
-  ```solidity
-  address[] trustees
-  ```
+```solidity
+address[] trustees
+```
 
 ### votingRecord
 
 voting record of each trustee
 
-  ```solidity
-  mapping(address => uint256) votingRecord
-  ```
+```solidity
+mapping(address => uint256) votingRecord
+```
 
 ### voteReward
 
 reward earned per completed and revealed vote
 
-  ```solidity
-  uint256 voteReward
-  ```
+```solidity
+uint256 voteReward
+```
 
 ### GovernanceOnlyFunction
 
-  ```solidity
-  error GovernanceOnlyFunction()
-  ```
+```solidity
+error GovernanceOnlyFunction()
+```
 
 ### NodeAlreadyTrusted
 
 Redundant node trusting error
 error for when an already trusted node tries to be trusted again
 
-  ```solidity
-  error NodeAlreadyTrusted(uint256 trusteeNumber)
-  ```
+```solidity
+error NodeAlreadyTrusted(uint256 trusteeNumber)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -92,23 +92,23 @@ error for when an already trusted node tries to be trusted again
 
 ### DistrustNotTrusted
 
-  ```solidity
-  error DistrustNotTrusted()
-  ```
+```solidity
+error DistrustNotTrusted()
+```
 
 ### WithdrawNoTokens
 
-  ```solidity
-  error WithdrawNoTokens()
-  ```
+```solidity
+error WithdrawNoTokens()
+```
 
 ### TrustedNodeAddition
 
 Event emitted when a node added to a list of trusted nodes.
 
-  ```solidity
-  event TrustedNodeAddition(address trustee)
-  ```
+```solidity
+event TrustedNodeAddition(address trustee)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -119,9 +119,9 @@ Event emitted when a node added to a list of trusted nodes.
 
 Event emitted when a node removed from a list of trusted nodes
 
-  ```solidity
-  event TrustedNodeRemoval(address trustee)
-  ```
+```solidity
+event TrustedNodeRemoval(address trustee)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -132,9 +132,9 @@ Event emitted when a node removed from a list of trusted nodes
 
 Event emitted when a node removed from a list of trusted nodes
 
-  ```solidity
-  event VoteRecorded(address trustee, uint256 newVotingRecord)
-  ```
+```solidity
+event VoteRecorded(address trustee, uint256 newVotingRecord)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -146,9 +146,9 @@ Event emitted when a node removed from a list of trusted nodes
 
 Event emitted when voting rewards are redeemed
 
-  ```solidity
-  event VotingRewardRedemption(address recipient, uint256 amount)
-  ```
+```solidity
+event VotingRewardRedemption(address recipient, uint256 amount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -160,9 +160,9 @@ Event emitted when voting rewards are redeemed
 
 Event emitted when the currencyGovernance role changes
 
-  ```solidity
-  event CurrencyGovernanceChanged(address newRoleHolder)
-  ```
+```solidity
+event CurrencyGovernanceChanged(address newRoleHolder)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -171,17 +171,17 @@ Event emitted when the currencyGovernance role changes
 
 ### onlyCurrencyGovernance
 
-  ```solidity
-  modifier onlyCurrencyGovernance()
-  ```
+```solidity
+modifier onlyCurrencyGovernance()
+```
 
 ### constructor
 
 Creates a new trusted node registry, populated with some initial nodes
 
-  ```solidity
-  constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _EcoX, uint256 _termLength, uint256 _voteReward, address[] _initialTrustees) public
-  ```
+```solidity
+constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _EcoX, uint256 _termLength, uint256 _voteReward, address[] _initialTrustees) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -197,9 +197,9 @@ Creates a new trusted node registry, populated with some initial nodes
 
 Fetches the date of a trustee's last withdrawal
 
-  ```solidity
-  function getLastWithdrawal(address trustee) internal view returns (uint256 time)
-  ```
+```solidity
+function getLastWithdrawal(address trustee) internal view returns (uint256 time)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -210,9 +210,9 @@ Fetches the date of a trustee's last withdrawal
 
 Changes the holder currencyGovernance role
 
-  ```solidity
-  function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
-  ```
+```solidity
+function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -225,9 +225,9 @@ Grant trust to a node.
 
 The node is pushed to trustedNodes array.
 
-  ```solidity
-  function trust(address _node) external
-  ```
+```solidity
+function trust(address _node) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -238,9 +238,9 @@ The node is pushed to trustedNodes array.
 
 Helper for trust
 
-  ```solidity
-  function _trust(address _node) internal
-  ```
+```solidity
+function _trust(address _node) internal
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -252,9 +252,9 @@ Helper for trust
 Removes a trustee from the set
 Node to distrust swaped to be a last element in the trustedNodes, then deleted
 
-  ```solidity
-  function distrust(address _node) external
-  ```
+```solidity
+function distrust(address _node) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -265,9 +265,9 @@ Node to distrust swaped to be a last element in the trustedNodes, then deleted
 
 Incements the counter when the trustee reveals their vote
 
-  ```solidity
-  function recordVote(address _who) external
-  ```
+```solidity
+function recordVote(address _who) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -278,17 +278,17 @@ Incements the counter when the trustee reveals their vote
 
 Return the number of entries in trustedNodes array.
 
-  ```solidity
-  function numTrustees() external view returns (uint256)
-  ```
+```solidity
+function numTrustees() external view returns (uint256)
+```
 
 ### isTrusted
 
 Checks if a node address is trusted in the current cohort
 
-  ```solidity
-  function isTrusted(address _node) public view returns (bool)
-  ```
+```solidity
+function isTrusted(address _node) public view returns (bool)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -299,42 +299,42 @@ Checks if a node address is trusted in the current cohort
 
 withdraws everything that can be withdrawn
 
-  ```solidity
-  function withdraw() public
-  ```
+```solidity
+function withdraw() public
+```
 
 ### currentlyWithdrawable
 
 returns the amount of tokens that are currently withdrawable
 
-  ```solidity
-  function currentlyWithdrawable() public view returns (uint256 amount)
-  ```
+```solidity
+function currentlyWithdrawable() public view returns (uint256 amount)
+```
 
 ### calculateWithdrawal
 
 helper for withdraw
 
-  ```solidity
-  function calculateWithdrawal(address withdrawer) internal view returns (uint256 amount)
-  ```
+```solidity
+function calculateWithdrawal(address withdrawer) internal view returns (uint256 amount)
+```
 
 ### fullyVested
 
 returns the number of tokens the sender is currently entitled to
 which they will be able to withdraw upon vesting
 
-  ```solidity
-  function fullyVested() public view returns (uint256 amount, uint256 timestamp)
-  ```
+```solidity
+function fullyVested() public view returns (uint256 amount, uint256 timestamp)
+```
 
 ### sweep
 
 drains all the ECOx in TrustedNodes to a recipient address
 
-  ```solidity
-  function sweep(address recipient) public
-  ```
+```solidity
+function sweep(address recipient) public
+```
 #### Parameters
 
 | Name | Type | Description |

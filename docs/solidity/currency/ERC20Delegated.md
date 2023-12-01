@@ -18,15 +18,15 @@ their own internal ledger of delegations and will prevent you from transferring 
 
 ### voter
 
-  ```solidity
-  mapping(address => bool) voter
-  ```
+```solidity
+mapping(address => bool) voter
+```
 
 ### _voteBalances
 
-  ```solidity
-  mapping(address => uint256) _voteBalances
-  ```
+```solidity
+mapping(address => uint256) _voteBalances
+```
 
 ### _primaryDelegates
 
@@ -35,107 +35,107 @@ a mapping that tracks the primaryDelegates of each user
 Primary delegates can only be chosen using delegate() which sends the full balance
 The exist to maintain the functionality that recieving tokens gives those votes to the delegate
 
-  ```solidity
-  mapping(address => address) _primaryDelegates
-  ```
+```solidity
+mapping(address => address) _primaryDelegates
+```
 
 ### delegationToAddressEnabled
 
-  ```solidity
-  mapping(address => bool) delegationToAddressEnabled
-  ```
+```solidity
+mapping(address => bool) delegationToAddressEnabled
+```
 
 ### delegationFromAddressDisabled
 
-  ```solidity
-  mapping(address => bool) delegationFromAddressDisabled
-  ```
+```solidity
+mapping(address => bool) delegationFromAddressDisabled
+```
 
 ### DelegatedVotes
 
 Emitted when a delegatee is delegated new votes.
 
-  ```solidity
-  event DelegatedVotes(address delegator, address delegatee, uint256 amount)
-  ```
+```solidity
+event DelegatedVotes(address delegator, address delegatee, uint256 amount)
+```
 
 ### VoteTransfer
 
 Emitted when a token transfer or delegate change results a transfer of voting power.
 
-  ```solidity
-  event VoteTransfer(address sendingVoter, address recievingVoter, uint256 votes)
-  ```
+```solidity
+event VoteTransfer(address sendingVoter, address recievingVoter, uint256 votes)
+```
 
 ### NewPrimaryDelegate
 
 Emitted when an account denotes a primary delegate.
 
-  ```solidity
-  event NewPrimaryDelegate(address delegator, address primaryDelegate)
-  ```
+```solidity
+event NewPrimaryDelegate(address delegator, address primaryDelegate)
+```
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
-  ```
+```solidity
+constructor(contract Policy _policy, string _name, string _symbol, address _initialPauser) internal
+```
 
 ### enableVoting
 
-  ```solidity
-  function enableVoting() public
-  ```
+```solidity
+function enableVoting() public
+```
 
 ### enableDelegationTo
 
 Set yourself as willing to recieve delegates.
 
-  ```solidity
-  function enableDelegationTo() public
-  ```
+```solidity
+function enableDelegationTo() public
+```
 
 ### disableDelegationTo
 
 Set yourself as no longer recieving delegates.
 
-  ```solidity
-  function disableDelegationTo() public
-  ```
+```solidity
+function disableDelegationTo() public
+```
 
 ### reenableDelegating
 
 Set yourself as being able to delegate again.
 also disables delegating to you
 
-  ```solidity
-  function reenableDelegating() public
-  ```
+```solidity
+function reenableDelegating() public
+```
 
 ### isOwnDelegate
 
 Returns true if the user has no amount of their balance delegated, otherwise false.
 
-  ```solidity
-  function isOwnDelegate(address account) public view returns (bool)
-  ```
+```solidity
+function isOwnDelegate(address account) public view returns (bool)
+```
 
 ### getPrimaryDelegate
 
 Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
 The primary delegate is the one that is delegated any new funds the address recieves.
 
-  ```solidity
-  function getPrimaryDelegate(address account) public view virtual returns (address)
-  ```
+```solidity
+function getPrimaryDelegate(address account) public view virtual returns (address)
+```
 
 ### _setPrimaryDelegate
 
 sets the primaryDelegate and emits an event to track it
 
-  ```solidity
-  function _setPrimaryDelegate(address delegator, address delegatee) internal
-  ```
+```solidity
+function _setPrimaryDelegate(address delegator, address delegatee) internal
+```
 
 ### delegate
 
@@ -143,9 +143,9 @@ Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
 
-  ```solidity
-  function delegate(address delegatee) public
-  ```
+```solidity
+function delegate(address delegatee) public
+```
 
 ### delegateBySig
 
@@ -153,17 +153,17 @@ Delegate all votes from the sender to `delegatee`.
 NOTE: This function assumes that you do not have partial delegations
 It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
 
-  ```solidity
-  function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
-  ```
+```solidity
+function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
+```
 
 ### delegateAmount
 
 Delegate an `amount` of votes from the sender to `delegatee`.
 
-  ```solidity
-  function delegateAmount(address delegatee, uint256 amount) public
-  ```
+```solidity
+function delegateAmount(address delegatee, uint256 amount) public
+```
 
 ### _delegate
 
@@ -171,56 +171,56 @@ Change delegation for `delegator` to `delegatee`.
 
 Emits events {NewDelegatedAmount} and {VoteTransfer}.
 
-  ```solidity
-  function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
-  ```
+```solidity
+function _delegate(address delegator, address delegatee, uint256 amount) internal virtual
+```
 
 ### undelegate
 
 Undelegate all votes from the sender's primary delegate.
 
-  ```solidity
-  function undelegate() public
-  ```
+```solidity
+function undelegate() public
+```
 
 ### undelegateFromAddress
 
 Undelegate votes from the `delegatee` back to the sender.
 
-  ```solidity
-  function undelegateFromAddress(address delegatee) public
-  ```
+```solidity
+function undelegateFromAddress(address delegatee) public
+```
 
 ### revokeDelegation
 
 A primary delegated individual can revoke delegations of unwanted delegators
 Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
 
-  ```solidity
-  function revokeDelegation(address delegator) public
-  ```
+```solidity
+function revokeDelegation(address delegator) public
+```
 
 ### _undelegateFromAddress
 
 Undelegate votes from the `delegatee` back to the delegator.
 
-  ```solidity
-  function _undelegateFromAddress(address delegator, address delegatee) internal
-  ```
+```solidity
+function _undelegateFromAddress(address delegator, address delegatee) internal
+```
 
 ### undelegateAmountFromAddress
 
 Undelegate a specific amount of votes from the `delegatee` back to the sender.
 
-  ```solidity
-  function undelegateAmountFromAddress(address delegatee, uint256 amount) public
-  ```
+```solidity
+function undelegateAmountFromAddress(address delegatee, uint256 amount) public
+```
 
 ### _undelegate
 
-  ```solidity
-  function _undelegate(address delegator, address delegatee, uint256 amount) internal virtual
-  ```
+```solidity
+function _undelegate(address delegator, address delegatee, uint256 amount) internal virtual
+```
 
 ### _afterTokenTransfer
 
@@ -228,17 +228,17 @@ Move voting power when tokens are transferred.
 
 Emits a {VoteTransfer} event.
 
-  ```solidity
-  function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
-  ```
+```solidity
+function _afterTokenTransfer(address from, address to, uint256 amount) internal virtual
+```
 
 ### voteBalanceOf
 
 See {IERC20-balanceOf}.
 
-  ```solidity
-  function voteBalanceOf(address account) public view virtual returns (uint256)
-  ```
+```solidity
+function voteBalanceOf(address account) public view virtual returns (uint256)
+```
 
 ### voteTransfer
 
@@ -249,17 +249,17 @@ Requirements:
 - `recipient` cannot be the zero address.
 - the caller must have a balance of at least `amount`.
 
-  ```solidity
-  function voteTransfer(address recipient, uint256 amount) internal virtual returns (bool)
-  ```
+```solidity
+function voteTransfer(address recipient, uint256 amount) internal virtual returns (bool)
+```
 
 ### voteAllowance
 
 See {IERC20-allowance}.
 
-  ```solidity
-  function voteAllowance(address owner, address spender) internal view virtual returns (uint256)
-  ```
+```solidity
+function voteAllowance(address owner, address spender) internal view virtual returns (uint256)
+```
 
 ### voteApprove
 
@@ -269,18 +269,18 @@ Requirements:
 
 - `spender` cannot be the zero address.
 
-  ```solidity
-  function voteApprove(address spender, uint256 amount) internal virtual returns (bool)
-  ```
+```solidity
+function voteApprove(address spender, uint256 amount) internal virtual returns (bool)
+```
 
 ### _voteTransferFrom
 
 not the same as ERC20 transferFrom
 is instead more restrictive, only allows for transfers where the recipient owns the allowance
 
-  ```solidity
-  function _voteTransferFrom(address sender, address recipient, uint256 amount) internal virtual returns (bool)
-  ```
+```solidity
+function _voteTransferFrom(address sender, address recipient, uint256 amount) internal virtual returns (bool)
+```
 
 ### _voteTransfer
 
@@ -297,9 +297,9 @@ Requirements:
 - `recipient` cannot be the zero address.
 - `sender` must have a balance of at least `amount`.
 
-  ```solidity
-  function _voteTransfer(address sender, address recipient, uint256 amount) internal virtual
-  ```
+```solidity
+function _voteTransfer(address sender, address recipient, uint256 amount) internal virtual
+```
 
 ### _voteMint
 
@@ -312,9 +312,9 @@ Requirements:
 
 - `account` cannot be the zero address.
 
-  ```solidity
-  function _voteMint(address account, uint256 amount) internal virtual returns (uint256)
-  ```
+```solidity
+function _voteMint(address account, uint256 amount) internal virtual returns (uint256)
+```
 
 ### _voteBurn
 
@@ -328,9 +328,9 @@ Requirements:
 - `account` cannot be the zero address.
 - `account` must have at least `amount` tokens.
 
-  ```solidity
-  function _voteBurn(address account, uint256 amount) internal virtual returns (uint256)
-  ```
+```solidity
+function _voteBurn(address account, uint256 amount) internal virtual returns (uint256)
+```
 
 ### _voteApprove
 
@@ -346,9 +346,9 @@ Requirements:
 - `owner` cannot be the zero address.
 - `spender` cannot be the zero address.
 
-  ```solidity
-  function _voteApprove(address owner, address spender, uint256 amount) internal virtual
-  ```
+```solidity
+function _voteApprove(address owner, address spender, uint256 amount) internal virtual
+```
 
 ### _increaseVoteAllowance
 
@@ -363,9 +363,9 @@ Requirements:
 
 - `spender` cannot be the zero address.
 
-  ```solidity
-  function _increaseVoteAllowance(address owner, address spender, uint256 addedValue) internal virtual returns (bool)
-  ```
+```solidity
+function _increaseVoteAllowance(address owner, address spender, uint256 addedValue) internal virtual returns (bool)
+```
 
 ### _decreaseVoteAllowance
 
@@ -382,9 +382,9 @@ Requirements:
 - `spender` must have allowance for the caller of at least
 `subtractedValue`.
 
-  ```solidity
-  function _decreaseVoteAllowance(address owner, address spender, uint256 subtractedValue) internal virtual returns (bool)
-  ```
+```solidity
+function _decreaseVoteAllowance(address owner, address spender, uint256 subtractedValue) internal virtual returns (bool)
+```
 
 ### _beforeVoteTokenTransfer
 
@@ -401,9 +401,9 @@ will be transferred to `to`.
 
 To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
 
-  ```solidity
-  function _beforeVoteTokenTransfer(address, address, uint256 amount) internal virtual
-  ```
+```solidity
+function _beforeVoteTokenTransfer(address, address, uint256 amount) internal virtual
+```
 
 ### _afterVoteTokenTransfer
 
@@ -420,7 +420,7 @@ has been transferred to `to`.
 
 To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
 
-  ```solidity
-  function _afterVoteTokenTransfer(address, address, uint256 amount) internal virtual
-  ```
+```solidity
+function _afterVoteTokenTransfer(address, address, uint256 amount) internal virtual
+```
 

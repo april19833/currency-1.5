@@ -15,7 +15,7 @@ Determine the current time as perceived by the policy timing contract.
 Used extensively in testing, but also useful in production for
 determining what processes can currently be run.
 
-  ```solidity
-  function getTime() internal view returns (uint256)
-  ```
+```solidity
+function getTime() internal view returns (uint256)
+```
 

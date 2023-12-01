@@ -10,34 +10,34 @@ Copyright (c) 2023 Eco Association
 
 the ECOx contract address
 
-  ```solidity
-  contract IERC20 ecoXToken
-  ```
+```solidity
+contract IERC20 ecoXToken
+```
 
 ### NoZeroECOx
 
 error for if the constructor tries to set the ECOx address to zero
 
-  ```solidity
-  error NoZeroECOx()
-  ```
+```solidity
+error NoZeroECOx()
+```
 
 ### NonTransferrable
 
 error for if any transfer function is attempted to be used
 
-  ```solidity
-  error NonTransferrable()
-  ```
+```solidity
+error NonTransferrable()
+```
 
 ### Deposit
 
 The Deposit event indicates that ECOx has been locked up, credited
 to a particular address in a particular amount.
 
-  ```solidity
-  event Deposit(address source, uint256 amount)
-  ```
+```solidity
+event Deposit(address source, uint256 amount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -50,9 +50,9 @@ to a particular address in a particular amount.
 The Withdrawal event indicates that a withdrawal has been made to a particular
 address in a particular amount.
 
-  ```solidity
-  event Withdrawal(address destination, uint256 amount)
-  ```
+```solidity
+event Withdrawal(address destination, uint256 amount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -62,43 +62,43 @@ address in a particular amount.
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy, contract IERC20 _ecoXAddr) public
-  ```
+```solidity
+constructor(contract Policy _policy, contract IERC20 _ecoXAddr) public
+```
 
 ### deposit
 
-  ```solidity
-  function deposit(uint256 _amount) external
-  ```
+```solidity
+function deposit(uint256 _amount) external
+```
 
 ### withdraw
 
-  ```solidity
-  function withdraw(uint256 _amount) external
-  ```
+```solidity
+function withdraw(uint256 _amount) external
+```
 
 ### votingECOx
 
-  ```solidity
-  function votingECOx(address _voter, uint256 _blockNumber) external view returns (uint256)
-  ```
+```solidity
+function votingECOx(address _voter, uint256 _blockNumber) external view returns (uint256)
+```
 
 ### totalVotingECOx
 
-  ```solidity
-  function totalVotingECOx(uint256 _blockNumber) external view returns (uint256)
-  ```
+```solidity
+function totalVotingECOx(uint256 _blockNumber) external view returns (uint256)
+```
 
 ### transfer
 
-  ```solidity
-  function transfer(address, uint256) public pure returns (bool)
-  ```
+```solidity
+function transfer(address, uint256) public pure returns (bool)
+```
 
 ### transferFrom
 
-  ```solidity
-  function transferFrom(address, address, uint256) public pure returns (bool)
-  ```
+```solidity
+function transferFrom(address, address, uint256) public pure returns (bool)
+```
 

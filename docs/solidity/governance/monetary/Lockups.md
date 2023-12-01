@@ -29,83 +29,83 @@ struct Lockup {
 
 ### BASE
 
-  ```solidity
-  uint256 BASE
-  ```
+```solidity
+uint256 BASE
+```
 
 ### MAX_RATE
 
-  ```solidity
-  uint256 MAX_RATE
-  ```
+```solidity
+uint256 MAX_RATE
+```
 
 ### MIN_DURATION
 
-  ```solidity
-  uint256 MIN_DURATION
-  ```
+```solidity
+uint256 MIN_DURATION
+```
 
 ### MAX_DURATION
 
-  ```solidity
-  uint256 MAX_DURATION
-  ```
+```solidity
+uint256 MAX_DURATION
+```
 
 ### nextId
 
-  ```solidity
-  uint256 nextId
-  ```
+```solidity
+uint256 nextId
+```
 
 ### eco
 
-  ```solidity
-  contract ECO eco
-  ```
+```solidity
+contract ECO eco
+```
 
 ### depositWindow
 
-  ```solidity
-  uint256 depositWindow
-  ```
+```solidity
+uint256 depositWindow
+```
 
 ### currentInflationMultiplier
 
-  ```solidity
-  uint256 currentInflationMultiplier
-  ```
+```solidity
+uint256 currentInflationMultiplier
+```
 
 ### lockups
 
-  ```solidity
-  mapping(uint256 => struct Lockups.Lockup) lockups
-  ```
+```solidity
+mapping(uint256 => struct Lockups.Lockup) lockups
+```
 
 ### penalties
 
-  ```solidity
-  uint256 penalties
-  ```
+```solidity
+uint256 penalties
+```
 
 ### BadRate
 
-  ```solidity
-  error BadRate()
-  ```
+```solidity
+error BadRate()
+```
 
 ### BadDuration
 
-  ```solidity
-  error BadDuration()
-  ```
+```solidity
+error BadDuration()
+```
 
 ### EarlyWithdrawFor
 
 withdrawFor called before lockup end
 
-  ```solidity
-  error EarlyWithdrawFor(uint256 lockupId, address withdrawer, address recipient)
-  ```
+```solidity
+error EarlyWithdrawFor(uint256 lockupId, address withdrawer, address recipient)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -118,9 +118,9 @@ withdrawFor called before lockup end
 
 attempted deposit after deposit window has closed
 
-  ```solidity
-  error LateDeposit(uint256 lockupId, address depositor)
-  ```
+```solidity
+error LateDeposit(uint256 lockupId, address depositor)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -132,9 +132,9 @@ attempted deposit after deposit window has closed
 
 lockup created
 
-  ```solidity
-  event LockupCreation(uint256 lockupId, uint256 duration, uint256 rate)
-  ```
+```solidity
+event LockupCreation(uint256 lockupId, uint256 duration, uint256 rate)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -147,9 +147,9 @@ lockup created
 
 deposit made to lockup
 
-  ```solidity
-  event LockupDeposit(uint256 lockupId, address depositor, uint256 gonsDepositAmount)
-  ```
+```solidity
+event LockupDeposit(uint256 lockupId, address depositor, uint256 gonsDepositAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -162,9 +162,9 @@ deposit made to lockup
 
 withdrawal made from lockup
 
-  ```solidity
-  event LockupWithdrawal(uint256 lockupId, address recipient, uint256 gonsWithdrawnAmount)
-  ```
+```solidity
+event LockupWithdrawal(uint256 lockupId, address recipient, uint256 gonsWithdrawnAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -177,9 +177,9 @@ withdrawal made from lockup
 
 constructor
 
-  ```solidity
-  constructor(contract Policy _policy, contract ECO _eco, uint256 _depositWindow) public
-  ```
+```solidity
+constructor(contract Policy _policy, contract ECO _eco, uint256 _depositWindow) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -192,9 +192,9 @@ constructor
 
 Creates a lockup
 
-  ```solidity
-  function createLockup(uint256 _duration, uint256 _rate) external
-  ```
+```solidity
+function createLockup(uint256 _duration, uint256 _rate) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -207,9 +207,9 @@ Creates a lockup
 User deposits on their own behalf. Requires that the user has approved this contract
 to transfer _amount of their eco.
 
-  ```solidity
-  function deposit(uint256 _lockupId, uint256 _amount) external
-  ```
+```solidity
+function deposit(uint256 _lockupId, uint256 _amount) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -222,9 +222,9 @@ to transfer _amount of their eco.
 User deposits on someone else's behalf. Requires that the beneficiary has approved this contract
 to transfer _amount of their eco.
 
-  ```solidity
-  function depositFor(uint256 _lockupId, address _beneficiary, uint256 _amount) external
-  ```
+```solidity
+function depositFor(uint256 _lockupId, address _beneficiary, uint256 _amount) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -235,18 +235,18 @@ to transfer _amount of their eco.
 
 ### _deposit
 
-  ```solidity
-  function _deposit(uint256 _lockupId, address _beneficiary, uint256 _amount) internal
-  ```
+```solidity
+function _deposit(uint256 _lockupId, address _beneficiary, uint256 _amount) internal
+```
 
 ### withdraw
 
 User withdraws their own funds. Withdrawing before the lockup has ended will result in a
 forfeiture of yield and penalty equal to that yield.
 
-  ```solidity
-  function withdraw(uint256 _lockupId) external
-  ```
+```solidity
+function withdraw(uint256 _lockupId) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -257,9 +257,9 @@ forfeiture of yield and penalty equal to that yield.
 
 User withdraws recipient's funds to recipient. Reverts if withdrawn prior to lockup ending
 
-  ```solidity
-  function withdrawFor(uint256 _lockupId, address _recipient) external
-  ```
+```solidity
+function withdrawFor(uint256 _lockupId, address _recipient) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -269,17 +269,17 @@ User withdraws recipient's funds to recipient. Reverts if withdrawn prior to loc
 
 ### _withdraw
 
-  ```solidity
-  function _withdraw(uint256 _lockupId, address _recipient) internal
-  ```
+```solidity
+function _withdraw(uint256 _lockupId, address _recipient) internal
+```
 
 ### getGonsBalance
 
 getter function for gonsBalances
 
-  ```solidity
-  function getGonsBalance(uint256 _lockupId, address _who) public view returns (uint256 gonsAmount)
-  ```
+```solidity
+function getGonsBalance(uint256 _lockupId, address _who) public view returns (uint256 gonsAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -291,9 +291,9 @@ getter function for gonsBalances
 
 getter function for inflation-adjusted deposits
 
-  ```solidity
-  function getBalance(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount)
-  ```
+```solidity
+function getBalance(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -305,9 +305,9 @@ getter function for inflation-adjusted deposits
 
 getter function for yield
 
-  ```solidity
-  function getYield(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount)
-  ```
+```solidity
+function getYield(uint256 _lockupId, address _who) public view returns (uint256 ecoAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -319,9 +319,9 @@ getter function for yield
 
 getter function for yield
 
-  ```solidity
-  function getDelegate(uint256 _lockupId, address _who) public view returns (address lockupDelegate)
-  ```
+```solidity
+function getDelegate(uint256 _lockupId, address _who) public view returns (address lockupDelegate)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -333,9 +333,9 @@ getter function for yield
 
 sweep accumulated penalty eco to a destination address
 
-  ```solidity
-  function sweep(address _destination) external
-  ```
+```solidity
+function sweep(address _destination) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -344,7 +344,7 @@ sweep accumulated penalty eco to a destination address
 
 ### updateInflationMultiplier
 
-  ```solidity
-  function updateInflationMultiplier() external
-  ```
+```solidity
+function updateInflationMultiplier() external
+```
 

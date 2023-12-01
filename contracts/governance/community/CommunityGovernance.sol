@@ -339,6 +339,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /**
      * allows a user to submit a community governance proposal
+     *
+     * Register a new proposal for community review. Registration is necessary but does not guarantee a vote for its implementation. The proposal is stored in proposals which is an array of all submissions as well as allProposals which stores the proposal addresses. A Register event is emitted.
+     *
+     * Registering a proposal requires a deposit of 1000 ECO (COST_REGISTER), which is transferred from the caller's balance to this contract. An allowance for this transfer must be made before calling. If the proposal does not get voted on then the caller will be entitled to claim a refund of 800 ECO (REFUND_IF_LOST). If the Circuit Breaker is enacted, this registration fee is waived as transfers cannot be made. This will confuse the refund function, but that is deprioritized in the case of a circuit breaker emergency.
+     *
+     * **Security Notes**
+     *
+     * * Can only be called during the proposing period.
+     * * Requires creating an allowance for payment to call to prevent abuse.
+     * * You cannot propose the 0 address.
+     * * A proposal can only be registered once, regardless of proposer.
+     *
+     *
      * @param _proposal the address of the deployed proposal
      * fee is only levied if community governance is paused - we want to still be usable
      * in the event that ECO transfers are paused.
@@ -541,6 +554,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /**
      * fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
      * @param voter the supporting address
+     * @return enactVotes Votes for enacting the policy
+     * @return rejectVotes Votes for rejecting the policy
+     * @return abstainVotes Votes for abstaining on the policy
      */
     function getVotes(
         address voter
@@ -553,6 +569,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             revert WrongStage();
         }
         PropData storage prop = proposals[selectedProposal];
+        // enactVotes = prop.enactVotes[voter];
+        // rejectVotes = prop.rejectVotes[voter];
+        // abstainVotes = prop.abstainVotes[voter];
+        // return (enactVotes, rejectVotes, abstainVotes);
         return (
             prop.enactVotes[voter],
             prop.rejectVotes[voter],

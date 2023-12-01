@@ -12,19 +12,19 @@ For minimally testing the abstract contract's functionality
 
 A value that will be changed by a policy action.
 
-  ```solidity
-  uint256 value
-  ```
+```solidity
+uint256 value
+```
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy) public
-  ```
+```solidity
+constructor(contract Policy _policy) public
+```
 
 ### setValue
 
-  ```solidity
-  function setValue(uint256 _newValue) public
-  ```
+```solidity
+function setValue(uint256 _newValue) public
+```
 

@@ -9,23 +9,23 @@ When paused by the pauser admin, transfers revert.
 
 ### roleAdmin
 
-  ```solidity
-  address roleAdmin
-  ```
+```solidity
+address roleAdmin
+```
 
 ### pauser
 
-  ```solidity
-  address pauser
-  ```
+```solidity
+address pauser
+```
 
 ### PauserAssignment
 
 event indicating the pauser was updated
 
-  ```solidity
-  event PauserAssignment(address pauser)
-  ```
+```solidity
+event PauserAssignment(address pauser)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -34,21 +34,21 @@ event indicating the pauser was updated
 
 ### constructor
 
-  ```solidity
-  constructor(string name, string symbol, address _roleAdmin, address _initialPauser) public
-  ```
+```solidity
+constructor(string name, string symbol, address _roleAdmin, address _initialPauser) public
+```
 
 ### onlyAdmin
 
-  ```solidity
-  modifier onlyAdmin()
-  ```
+```solidity
+modifier onlyAdmin()
+```
 
 ### onlyPauser
 
-  ```solidity
-  modifier onlyPauser()
-  ```
+```solidity
+modifier onlyPauser()
+```
 
 ### _beforeTokenTransfer
 
@@ -57,35 +57,35 @@ minting and burning.
 
 If the token is not paused, it will pass through the amount
 
-  ```solidity
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
-  ```
+```solidity
+function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
+```
 
 ### pause
 
 pauses transfers of this token
 only callable by the pauser
 
-  ```solidity
-  function pause() external
-  ```
+```solidity
+function pause() external
+```
 
 ### unpause
 
 unpauses transfers of this token
 only callable by the pauser
 
-  ```solidity
-  function unpause() external
-  ```
+```solidity
+function unpause() external
+```
 
 ### setPauser
 
 set the given address as the pauser
 
-  ```solidity
-  function setPauser(address _pauser) public
-  ```
+```solidity
+function setPauser(address _pauser) public
+```
 #### Parameters
 
 | Name | Type | Description |

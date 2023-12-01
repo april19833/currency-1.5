@@ -10,53 +10,53 @@ This contract is a generic monetary policy lever and is inherited by all lever i
 
 ### authorized
 
-  ```solidity
-  mapping(address => bool) authorized
-  ```
+```solidity
+mapping(address => bool) authorized
+```
 
 ### notifier
 
-  ```solidity
-  contract Notifier notifier
-  ```
+```solidity
+contract Notifier notifier
+```
 
 ### AuthorizedOnly
 
-  ```solidity
-  error AuthorizedOnly()
-  ```
+```solidity
+error AuthorizedOnly()
+```
 
 ### AuthorizationChanged
 
-  ```solidity
-  event AuthorizationChanged(address agent, bool status)
-  ```
+```solidity
+event AuthorizationChanged(address agent, bool status)
+```
 
 ### NotifierChanged
 
-  ```solidity
-  event NotifierChanged(contract Notifier oldNotifier, contract Notifier newNotifier)
-  ```
+```solidity
+event NotifierChanged(contract Notifier oldNotifier, contract Notifier newNotifier)
+```
 
 ### onlyAuthorized
 
-  ```solidity
-  modifier onlyAuthorized()
-  ```
+```solidity
+modifier onlyAuthorized()
+```
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy) public
-  ```
+```solidity
+constructor(contract Policy _policy) public
+```
 
 ### setAuthorized
 
 Changes the authorized status of an address.
 
-  ```solidity
-  function setAuthorized(address _agent, bool _status) public
-  ```
+```solidity
+function setAuthorized(address _agent, bool _status) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -68,9 +68,9 @@ Changes the authorized status of an address.
 
 Changes the notifier for the lever.
 
-  ```solidity
-  function setNotifier(contract Notifier _notifier) public
-  ```
+```solidity
+function setNotifier(contract Notifier _notifier) public
+```
 #### Parameters
 
 | Name | Type | Description |

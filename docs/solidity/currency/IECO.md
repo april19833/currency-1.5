@@ -8,9 +8,9 @@ Copyright (c) 2023 Eco Association
 
 Only available to minters
 
-  ```solidity
-  function mint(address to, uint256 amount) external
-  ```
+```solidity
+function mint(address to, uint256 amount) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -22,9 +22,9 @@ Only available to minters
 
 Only available to token holders for their own tokens and burners
 
-  ```solidity
-  function burn(address from, uint256 amount) external
-  ```
+```solidity
+function burn(address from, uint256 amount) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -36,9 +36,9 @@ Only available to token holders for their own tokens and burners
 
 Returns the votes for the current snapshot
 
-  ```solidity
-  function voteBalanceSnapshot(address account) external view returns (uint256)
-  ```
+```solidity
+function voteBalanceSnapshot(address account) external view returns (uint256)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -55,9 +55,9 @@ Returns the votes for the current snapshot
 
 Returns the inflation multiplier value for the current snapshot
 
-  ```solidity
-  function inflationMultiplierSnapshot() external view returns (uint256)
-  ```
+```solidity
+function inflationMultiplierSnapshot() external view returns (uint256)
+```
 
 #### Return Values
 
@@ -69,9 +69,9 @@ Returns the inflation multiplier value for the current snapshot
 
 Returns the total supply for the current snapshot
 
-  ```solidity
-  function totalSupplySnapshot() external view returns (uint256)
-  ```
+```solidity
+function totalSupplySnapshot() external view returns (uint256)
+```
 
 #### Return Values
 

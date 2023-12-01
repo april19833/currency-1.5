@@ -8,15 +8,15 @@ Copyright (c) 2023 Eco Association
 
 ### onlyConstruction
 
-  ```solidity
-  modifier onlyConstruction()
-  ```
+```solidity
+modifier onlyConstruction()
+```
 
 ### constructor
 
-  ```solidity
-  constructor() internal
-  ```
+```solidity
+constructor() internal
+```
 
 ### initialize
 
@@ -29,9 +29,9 @@ done in the constructor of the proxied contract.
 Implementations of ForwardTarget should override this function,
 and chain to super.initialize(_self).
 
-  ```solidity
-  function initialize(address _self) public virtual
-  ```
+```solidity
+function initialize(address _self) public virtual
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -42,15 +42,15 @@ and chain to super.initialize(_self).
 
 Get the address of the proxy target contract.
 
-  ```solidity
-  function implementation() public view returns (address _impl)
-  ```
+```solidity
+function implementation() public view returns (address _impl)
+```
 
 ### setImplementation
 
 Set new implementation
 
-  ```solidity
-  function setImplementation(address _impl) internal
-  ```
+```solidity
+function setImplementation(address _impl) internal
+```
 

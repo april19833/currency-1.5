@@ -21,9 +21,9 @@ struct distribution {
 
 Transfer held tokens for the initial distribution.
 
-  ```solidity
-  function distributeTokens(address _token, struct TokenInit.distribution[] _distributions) external
-  ```
+```solidity
+function distributeTokens(address _token, struct TokenInit.distribution[] _distributions) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -33,7 +33,7 @@ Transfer held tokens for the initial distribution.
 
 ### constructor
 
-  ```solidity
-  constructor() public
-  ```
+```solidity
+constructor() public
+```
 

@@ -13,9 +13,9 @@ Adds the `{_verifyDelegatePermit}` internal method, verifies a signature specify
 
 Verify that the given delegate signature is valid, throws if not
 
-  ```solidity
-  function _verifyDelegatePermit(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) internal
-  ```
+```solidity
+function _verifyDelegatePermit(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) internal
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -31,9 +31,9 @@ Verify that the given delegate signature is valid, throws if not
 
 get the current nonce for the given address
 
-  ```solidity
-  function delegationNonce(address owner) public view returns (uint256 nonce)
-  ```
+```solidity
+function delegationNonce(address owner) public view returns (uint256 nonce)
+```
 #### Parameters
 
 | Name | Type | Description |

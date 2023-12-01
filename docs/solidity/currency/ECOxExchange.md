@@ -12,41 +12,41 @@ Exchange for ECOx to ECO
 
 bits of precision used in the exponentiation approximation
 
-  ```solidity
-  uint8 PRECISION_BITS
-  ```
+```solidity
+uint8 PRECISION_BITS
+```
 
 ### initialSupply
 
 initial supply of ECOx at deployment
 
-  ```solidity
-  uint256 initialSupply
-  ```
+```solidity
+uint256 initialSupply
+```
 
 ### ecox
 
 ECOx token contract
 
-  ```solidity
-  contract ECOx ecox
-  ```
+```solidity
+contract ECOx ecox
+```
 
 ### eco
 
 ECO token contract
 
-  ```solidity
-  contract ECO eco
-  ```
+```solidity
+contract ECO eco
+```
 
 ### constructor
 
 constructor
 
-  ```solidity
-  constructor(contract Policy policy, contract ECOx _ECOx, contract ECO _eco, uint256 _initialSupply) public
-  ```
+```solidity
+constructor(contract Policy policy, contract ECOx _ECOx, contract ECO _eco, uint256 _initialSupply) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -60,9 +60,9 @@ constructor
 
 Calculates the value of ECOx by multiplying value by supply
 
-  ```solidity
-  function ecoValueOf(uint256 _ecoXValue) public view returns (uint256 ecoValue)
-  ```
+```solidity
+function ecoValueOf(uint256 _ecoXValue) public view returns (uint256 ecoValue)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -79,9 +79,9 @@ Calculates the value of ECOx by multiplying value by supply
 
 Calculates the value of ECOx at the total supply snapshot
 
-  ```solidity
-  function valueAt(uint256 _ecoXValue) public view returns (uint256 ecoValue)
-  ```
+```solidity
+function valueAt(uint256 _ecoXValue) public view returns (uint256 ecoValue)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -98,9 +98,9 @@ Calculates the value of ECOx at the total supply snapshot
 
 Exchange ECOx for ECO by burning ECOx and minting ECO
 
-  ```solidity
-  function exchange(uint256 _ecoXValue) external
-  ```
+```solidity
+function exchange(uint256 _ecoXValue) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -111,9 +111,9 @@ Exchange ECOx for ECO by burning ECOx and minting ECO
 
 Computes the value of ECO from the ECOx value and the ECO supply
 
-  ```solidity
-  function computeValue(uint256 _ecoXValue, uint256 _ecoSupply) internal view returns (uint256 ecoValue)
-  ```
+```solidity
+function computeValue(uint256 _ecoXValue, uint256 _ecoSupply) internal view returns (uint256 ecoValue)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -131,9 +131,9 @@ Computes the value of ECO from the ECOx value and the ECO supply
 
 Safe Left Shift
 
-  ```solidity
-  function safeLeftShift(uint256 value, uint8 shift) internal pure returns (uint256 shiftedAmount)
-  ```
+```solidity
+function safeLeftShift(uint256 value, uint8 shift) internal pure returns (uint256 shiftedAmount)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -159,9 +159,9 @@ the global `maxExpArray` maps each `precision` to `((maximumExponent + 1) << (MA
 
 the maximum permitted value for `x` is therefore given by `maxExpArray[precision] >> (MAX_PRECISION - precision)`.
 
-  ```solidity
-  function generalExp(uint256 _x, uint8 _precision) internal pure returns (uint256 result)
-  ```
+```solidity
+function generalExp(uint256 _x, uint8 _precision) internal pure returns (uint256 result)
+```
 #### Parameters
 
 | Name | Type | Description |

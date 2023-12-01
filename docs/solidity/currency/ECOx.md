@@ -10,26 +10,26 @@ Copyright (c) 2023 Eco Association
 
 address of ECOxExchange contract
 
-  ```solidity
-  address ecoXExchange
-  ```
+```solidity
+address ecoXExchange
+```
 
 ### TransferFailed
 
 error for when transfer returns false
 used by contracts that import this contract
 
-  ```solidity
-  error TransferFailed()
-  ```
+```solidity
+error TransferFailed()
+```
 
 ### UpdatedECOxExchange
 
 emits when the ECOxExchange address is changed
 
-  ```solidity
-  event UpdatedECOxExchange(address _old, address _new)
-  ```
+```solidity
+event UpdatedECOxExchange(address _old, address _new)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -41,9 +41,9 @@ emits when the ECOxExchange address is changed
 
 Constructor
 
-  ```solidity
-  constructor(contract Policy _policy, address _pauser) public
-  ```
+```solidity
+constructor(contract Policy _policy, address _pauser) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -55,9 +55,9 @@ Constructor
 
 unlikely this will need to be used again since the proxy has already been initialized.
 
-  ```solidity
-  function initialize(address _self) public virtual
-  ```
+```solidity
+function initialize(address _self) public virtual
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -68,9 +68,9 @@ unlikely this will need to be used again since the proxy has already been initia
 
 change the ECOxExchange address
 
-  ```solidity
-  function updateECOxExchange(address _newRoleHolder) public
-  ```
+```solidity
+function updateECOxExchange(address _newRoleHolder) public
+```
 #### Parameters
 
 | Name | Type | Description |

@@ -10,41 +10,41 @@ Copyright (c) 2023 Eco Association
 
 Mapping storing contracts able to mint tokens
 
-  ```solidity
-  mapping(address => bool) minters
-  ```
+```solidity
+mapping(address => bool) minters
+```
 
 ### burners
 
 Mapping storing contracts able to burn tokens
 
-  ```solidity
-  mapping(address => bool) burners
-  ```
+```solidity
+mapping(address => bool) burners
+```
 
 ### OnlyMinters
 
 error for when an address tries to mint tokens without permission
 
-  ```solidity
-  error OnlyMinters()
-  ```
+```solidity
+error OnlyMinters()
+```
 
 ### OnlyBurners
 
 error for when an address tries to burn tokens without permission
 
-  ```solidity
-  error OnlyBurners()
-  ```
+```solidity
+error OnlyBurners()
+```
 
 ### UpdatedMinters
 
 emits when the minters permissions are changed
 
-  ```solidity
-  event UpdatedMinters(address actor, bool newPermission)
-  ```
+```solidity
+event UpdatedMinters(address actor, bool newPermission)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -56,9 +56,9 @@ emits when the minters permissions are changed
 
 emits when the burners permissions are changed
 
-  ```solidity
-  event UpdatedBurners(address actor, bool newPermission)
-  ```
+```solidity
+event UpdatedBurners(address actor, bool newPermission)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -70,18 +70,18 @@ emits when the burners permissions are changed
 
 Modifier for checking if the sender is a minter
 
-  ```solidity
-  modifier onlyMinterRole()
-  ```
+```solidity
+modifier onlyMinterRole()
+```
 
 ### onlyBurnerRoleOrSelf
 
 Modifier for checking if the sender is allowed to burn
 both burners and the message sender can burn
 
-  ```solidity
-  modifier onlyBurnerRoleOrSelf(address _from)
-  ```
+```solidity
+modifier onlyBurnerRoleOrSelf(address _from)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -90,18 +90,18 @@ both burners and the message sender can burn
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy policy, string name, string ticker, address pauser) public
-  ```
+```solidity
+constructor(contract Policy policy, string name, string ticker, address pauser) public
+```
 
 ### updateMinters
 
 change the minting permissions for an address
 only callable by tokenRoleAdmin
 
-  ```solidity
-  function updateMinters(address _key, bool _value) public
-  ```
+```solidity
+function updateMinters(address _key, bool _value) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -114,9 +114,9 @@ only callable by tokenRoleAdmin
 change the burning permissions for an address
 only callable by tokenRoleAdmin
 
-  ```solidity
-  function updateBurners(address _key, bool _value) public
-  ```
+```solidity
+function updateBurners(address _key, bool _value) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -128,9 +128,9 @@ only callable by tokenRoleAdmin
 
 mints tokens to a given address
 
-  ```solidity
-  function mint(address _to, uint256 _value) external
-  ```
+```solidity
+function mint(address _to, uint256 _value) external
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -142,9 +142,9 @@ mints tokens to a given address
 
 burns tokens to a given address
 
-  ```solidity
-  function burn(address _from, uint256 _value) external
-  ```
+```solidity
+function burn(address _from, uint256 _value) external
+```
 #### Parameters
 
 | Name | Type | Description |

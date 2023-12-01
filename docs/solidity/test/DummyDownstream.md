@@ -6,25 +6,25 @@ Copyright (c) 2023 Eco Association
 
 ### notified
 
-  ```solidity
-  bool notified
-  ```
+```solidity
+bool notified
+```
 
 ### pigsFly
 
-  ```solidity
-  bool pigsFly
-  ```
+```solidity
+bool pigsFly
+```
 
 ### callThatSucceeds
 
-  ```solidity
-  function callThatSucceeds() public
-  ```
+```solidity
+function callThatSucceeds() public
+```
 
 ### callThatFails
 
-  ```solidity
-  function callThatFails() public
-  ```
+```solidity
+function callThatFails() public
+```
 

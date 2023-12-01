@@ -10,9 +10,9 @@ Copyright (c) 2023 Eco Association
 
 Construct a new proxy.
 
-  ```solidity
-  constructor(contract ForwardTarget _impl) public
-  ```
+```solidity
+constructor(contract ForwardTarget _impl) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -23,7 +23,7 @@ Construct a new proxy.
 
 Default function that forwards call to proxy target
 
-  ```solidity
-  fallback() external payable
-  ```
+```solidity
+fallback() external payable
+```
 

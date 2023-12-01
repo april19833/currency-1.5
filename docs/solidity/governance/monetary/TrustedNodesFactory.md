@@ -6,23 +6,23 @@ Copyright (c) 2023 Eco Association
 
 ### ecoX
 
-  ```solidity
-  contract ECOx ecoX
-  ```
+```solidity
+contract ECOx ecoX
+```
 
 ### currencyGovernance
 
-  ```solidity
-  contract CurrencyGovernance currencyGovernance
-  ```
+```solidity
+contract CurrencyGovernance currencyGovernance
+```
 
 ### NewCohort
 
 Event emitted when a new cohort is deployed
 
-  ```solidity
-  event NewCohort(contract TrustedNodes trustedNodes)
-  ```
+```solidity
+event NewCohort(contract TrustedNodes trustedNodes)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -34,9 +34,9 @@ Event emitted when a new cohort is deployed
 configures the factory to easily deploy
 new TrustedNodes contracts after election
 
-  ```solidity
-  constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX) public
-  ```
+```solidity
+constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -49,9 +49,9 @@ new TrustedNodes contracts after election
 
 Deploys a new TrustedNodes instance
 
-  ```solidity
-  function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (address)
-  ```
+```solidity
+function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (address)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -64,9 +64,9 @@ Deploys a new TrustedNodes instance
 
 Changes the holder currencyGovernance role
 
-  ```solidity
-  function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
-  ```
+```solidity
+function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
+```
 #### Parameters
 
 | Name | Type | Description |

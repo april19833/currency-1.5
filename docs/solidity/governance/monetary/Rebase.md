@@ -11,43 +11,43 @@ the decision made by the slate of trustees.
 
 ### eco
 
-  ```solidity
-  contract ECO eco
-  ```
+```solidity
+contract ECO eco
+```
 
 ### INFLATION_FLOOR
 
-  ```solidity
-  uint256 INFLATION_FLOOR
-  ```
+```solidity
+uint256 INFLATION_FLOOR
+```
 
 ### INFLATION_CEILING
 
-  ```solidity
-  uint256 INFLATION_CEILING
-  ```
+```solidity
+uint256 INFLATION_CEILING
+```
 
 ### BadInflationMultiplier
 
-  ```solidity
-  error BadInflationMultiplier(uint256 rate)
-  ```
+```solidity
+error BadInflationMultiplier(uint256 rate)
+```
 
 ### Rebased
 
-  ```solidity
-  event Rebased(uint256 newInflation)
-  ```
+```solidity
+event Rebased(uint256 newInflation)
+```
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy policy, contract ECO _eco) public
-  ```
+```solidity
+constructor(contract Policy policy, contract ECO _eco) public
+```
 
 ### execute
 
-  ```solidity
-  function execute(uint256 _newMultiplier) public
-  ```
+```solidity
+function execute(uint256 _newMultiplier) public
+```
 

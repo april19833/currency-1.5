@@ -12,29 +12,29 @@ This module can be replaced, but it eases the difficulty of the potentially more
 
 ### currencyGovernance
 
-  ```solidity
-  contract CurrencyGovernance currencyGovernance
-  ```
+```solidity
+contract CurrencyGovernance currencyGovernance
+```
 
 ### NonZeroCurrencyGovernanceAddr
 
-  ```solidity
-  error NonZeroCurrencyGovernanceAddr()
-  ```
+```solidity
+error NonZeroCurrencyGovernanceAddr()
+```
 
 ### CurrencyGovernanceOnlyFunction
 
-  ```solidity
-  error CurrencyGovernanceOnlyFunction()
-  ```
+```solidity
+error CurrencyGovernanceOnlyFunction()
+```
 
 ### NewCurrencyGovernance
 
 emits when the currencyGovernance contract is changed
 
-  ```solidity
-  event NewCurrencyGovernance(contract CurrencyGovernance newCurrencyGovernance, contract CurrencyGovernance oldCurrencyGovernance)
-  ```
+```solidity
+event NewCurrencyGovernance(contract CurrencyGovernance newCurrencyGovernance, contract CurrencyGovernance oldCurrencyGovernance)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -46,9 +46,9 @@ emits when the currencyGovernance contract is changed
 
 emits when enaction happens to keep record of enaction
 
-  ```solidity
-  event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance, bool[] successes)
-  ```
+```solidity
+event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance, bool[] successes)
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -61,32 +61,32 @@ emits when enaction happens to keep record of enaction
 
 emits when a part of enacting a policy reverts
 
-  ```solidity
-  event FailedPolicySubcall(address target, string reason)
-  ```
+```solidity
+event FailedPolicySubcall(address target, string reason)
+```
 
 ### onlyCurrencyGovernance
 
 Restrict method access to the root policy instance only.
 
-  ```solidity
-  modifier onlyCurrencyGovernance()
-  ```
+```solidity
+modifier onlyCurrencyGovernance()
+```
 
 ### constructor
 
-  ```solidity
-  constructor(contract Policy _policy) public
-  ```
+```solidity
+constructor(contract Policy _policy) public
+```
 
 ### setCurrencyGovernance
 
 setter function for currencyGovernance var
 only available to the owning policy contract
 
-  ```solidity
-  function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
-  ```
+```solidity
+function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -95,13 +95,13 @@ only available to the owning policy contract
 
 ### _setCurrencyGovernance
 
-  ```solidity
-  function _setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) internal
-  ```
+```solidity
+function _setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) internal
+```
 
 ### enact
 
-  ```solidity
-  function enact(bytes32 proposalId, address[] targets, bytes4[] signatures, bytes[] calldatas) external virtual
-  ```
+```solidity
+function enact(bytes32 proposalId, address[] targets, bytes4[] signatures, bytes[] calldatas) external virtual
+```
 

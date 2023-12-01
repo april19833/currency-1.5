@@ -19,33 +19,33 @@ Initializes the {EIP712} domain separator using the `name` parameter, and settin
 
 It's a good idea to use the same `name` that is defined as the ERC20 token name.
 
-  ```solidity
-  constructor(string name) internal
-  ```
+```solidity
+constructor(string name) internal
+```
 
 ### permit
 
 See {IERC20Permit-permit}.
 
-  ```solidity
-  function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public virtual
-  ```
+```solidity
+function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public virtual
+```
 
 ### nonces
 
 See {IERC20Permit-nonces}.
 
-  ```solidity
-  function nonces(address owner) public view virtual returns (uint256)
-  ```
+```solidity
+function nonces(address owner) public view virtual returns (uint256)
+```
 
 ### DOMAIN_SEPARATOR
 
 See {IERC20Permit-DOMAIN_SEPARATOR}.
 
-  ```solidity
-  function DOMAIN_SEPARATOR() external view returns (bytes32)
-  ```
+```solidity
+function DOMAIN_SEPARATOR() external view returns (bytes32)
+```
 
 ### _useNonce
 
@@ -53,9 +53,9 @@ See {IERC20Permit-DOMAIN_SEPARATOR}.
 
 _Available since v4.1._
 
-  ```solidity
-  function _useNonce(address owner) internal virtual returns (uint256 current)
-  ```
+```solidity
+function _useNonce(address owner) internal virtual returns (uint256 current)
+```
 
 ### _approve
 
@@ -71,7 +71,7 @@ Requirements:
 - `owner` cannot be the zero address.
 - `spender` cannot be the zero address.
 
-  ```solidity
-  function _approve(address owner, address spender, uint256 amount) internal virtual
-  ```
+```solidity
+function _approve(address owner, address spender, uint256 amount) internal virtual
+```
 

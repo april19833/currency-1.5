@@ -12,47 +12,47 @@ A proposal used for testing proposal failures.
 
 Apologize in case of failure
 
-  ```solidity
-  error ImSorry()
-  ```
+```solidity
+error ImSorry()
+```
 
 ### constructor
 
-  ```solidity
-  constructor() public
-  ```
+```solidity
+constructor() public
+```
 
 ### name
 
 The name of the proposal.
 
-  ```solidity
-  function name() public pure returns (string)
-  ```
+```solidity
+function name() public pure returns (string)
+```
 
 ### description
 
 A description of what the proposal does.
 
-  ```solidity
-  function description() public pure returns (string)
-  ```
+```solidity
+function description() public pure returns (string)
+```
 
 ### url
 
 A URL for more information.
 
-  ```solidity
-  function url() public pure returns (string)
-  ```
+```solidity
+function url() public pure returns (string)
+```
 
 ### enacted
 
 Enact the proposal.
 
-  ```solidity
-  function enacted(address _self) public
-  ```
+```solidity
+function enacted(address _self) public
+```
 
 ## WorseFailureProposal
 
@@ -62,41 +62,41 @@ A proposal used for testing proposal failures.
 
 ### constructor
 
-  ```solidity
-  constructor() public
-  ```
+```solidity
+constructor() public
+```
 
 ### name
 
 The name of the proposal.
 
-  ```solidity
-  function name() public pure returns (string)
-  ```
+```solidity
+function name() public pure returns (string)
+```
 
 ### description
 
 A description of what the proposal does.
 
-  ```solidity
-  function description() public pure returns (string)
-  ```
+```solidity
+function description() public pure returns (string)
+```
 
 ### url
 
 A URL for more information.
 
-  ```solidity
-  function url() public pure returns (string)
-  ```
+```solidity
+function url() public pure returns (string)
+```
 
 ### enacted
 
 Enact the proposal.
 
-  ```solidity
-  function enacted(address _self) public
-  ```
+```solidity
+function enacted(address _self) public
+```
 
 ## ClumsyFailureProposal
 
@@ -106,41 +106,41 @@ A proposal used for testing proposal failures.
 
 ### constructor
 
-  ```solidity
-  constructor() public
-  ```
+```solidity
+constructor() public
+```
 
 ### name
 
 The name of the proposal.
 
-  ```solidity
-  function name() public pure returns (string)
-  ```
+```solidity
+function name() public pure returns (string)
+```
 
 ### description
 
 A description of what the proposal does.
 
-  ```solidity
-  function description() public pure returns (string)
-  ```
+```solidity
+function description() public pure returns (string)
+```
 
 ### url
 
 A URL for more information.
 
-  ```solidity
-  function url() public pure returns (string)
-  ```
+```solidity
+function url() public pure returns (string)
+```
 
 ### enacted
 
 Enact the proposal.
 
-  ```solidity
-  function enacted(address _self) public
-  ```
+```solidity
+function enacted(address _self) public
+```
 
 ## TotalFailureProposal
 
@@ -150,39 +150,39 @@ A proposal used for testing proposal failures.
 
 ### constructor
 
-  ```solidity
-  constructor() public
-  ```
+```solidity
+constructor() public
+```
 
 ### name
 
 The name of the proposal.
 
-  ```solidity
-  function name() public pure returns (string)
-  ```
+```solidity
+function name() public pure returns (string)
+```
 
 ### description
 
 A description of what the proposal does.
 
-  ```solidity
-  function description() public pure returns (string)
-  ```
+```solidity
+function description() public pure returns (string)
+```
 
 ### url
 
 A URL for more information.
 
-  ```solidity
-  function url() public pure returns (string)
-  ```
+```solidity
+function url() public pure returns (string)
+```
 
 ### enacted
 
 Enact the proposal.
 
-  ```solidity
-  function enacted(address _self) public
-  ```
+```solidity
+function enacted(address _self) public
+```
 
