@@ -16,9 +16,9 @@ import "../governance/monetary/TrustedNodes.sol";
 import {Policed as PolicedOld} from "@helix-foundation/currency-dev/contracts/policy/Policed.sol";
 import {ImplementationUpdatingTarget} from "@helix-foundation/currency-dev/contracts/test/ImplementationUpdatingTarget.sol";
 
-/** @title Testnet Linking Proposal
+/** @title Migration Proposal
  *
- * A proposal used to link upwards permissions for all necessary contracts and mint tokens
+ * A proposal used to update the 1.0 proxies and link upwards permissions for all necessary contracts
  */
 contract MigrationLinker is Policy, Proposal {
     address public immutable newEcoImpl;
@@ -36,10 +36,6 @@ contract MigrationLinker is Policy, Proposal {
     CommunityGovernance public immutable communityGovernance;
 
     ECOxExchange public immutable ecoXExchange;
-
-    // address public immutable lockups;
-
-    // Notifier public immutable lockupsNotifier;
 
     address public immutable rebase;
 
@@ -60,7 +56,6 @@ contract MigrationLinker is Policy, Proposal {
     constructor(
         CommunityGovernance _communityGovernance,
         ECOxExchange _ecoXExchange,
-        // Notifier _lockupsNotifier,
         Notifier _rebaseNotifier,
         TrustedNodes _trustedNodes,
         address _newPolicyImpl,
@@ -71,7 +66,6 @@ contract MigrationLinker is Policy, Proposal {
     ) Policy(address(0x0)) {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
-        // lockupsNotifier = _lockupsNotifier;
         rebaseNotifier = _rebaseNotifier;
         trustedNodes = _trustedNodes;
 
@@ -83,7 +77,6 @@ contract MigrationLinker is Policy, Proposal {
 
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
-        // lockups = _lockupsNotifier.lever();
         rebase = _rebaseNotifier.lever();
         currencyGovernance = _trustedNodes.currencyGovernance();
         monetaryPolicyAdapter = currencyGovernance.enacter();
@@ -120,6 +113,8 @@ contract MigrationLinker is Policy, Proposal {
                 )
             );
 
+        if (!success) { revert(string(returnedData)); }
+
         // add new governance permissions
         this.updateGovernor(address(communityGovernance));
 
@@ -144,7 +139,6 @@ contract MigrationLinker is Policy, Proposal {
 
         // link eco
         ECO(ecoProxyAddress).updateMinters(address(ecoXExchange), true);
-        // ECO(ecoProxyAddress).updateMinters(lockups, true);
         ECO(ecoProxyAddress).updateRebasers(rebase, true);
         ECO(ecoProxyAddress).updateSnapshotters(
             address(communityGovernance),
@@ -160,9 +154,7 @@ contract MigrationLinker is Policy, Proposal {
             )
         );
 
-        // link levers
-        // Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
-        // Lockups(lockups).setNotifier(lockupsNotifier);
+        // link rebase lever
         Rebase(rebase).setAuthorized(address(monetaryPolicyAdapter), true);
         Rebase(rebase).setNotifier(rebaseNotifier);
 
