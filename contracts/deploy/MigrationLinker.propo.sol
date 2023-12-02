@@ -14,6 +14,7 @@ import "../governance/monetary/MonetaryPolicyAdapter.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 import "../governance/monetary/TrustedNodes.sol";
 import {Policed as PolicedOld} from "@helix-foundation/currency-dev/contracts/policy/Policed.sol";
+import {ECO as ECOOld} from "@helix-foundation/currency-dev/contracts/currency/ECO.sol";
 import {ImplementationUpdatingTarget} from "@helix-foundation/currency-dev/contracts/test/ImplementationUpdatingTarget.sol";
 
 /** @title Migration Proposal
@@ -53,6 +54,10 @@ contract MigrationLinker is Policy, Proposal {
      */
     address public immutable implementationUpdatingTarget;
 
+    /** The address of the updating contract for inflationMultiplier
+     */
+    address public immutable inflationMultiplierUpdatingTarget;
+
     constructor(
         CommunityGovernance _communityGovernance,
         ECOxExchange _ecoXExchange,
@@ -62,7 +67,8 @@ contract MigrationLinker is Policy, Proposal {
         address _newEcoImpl,
         address _newEcoxImpl,
         address _newEcoxStakingImpl,
-        address _implementationUpdatingTarget
+        address _implementationUpdatingTarget,
+        address _inflationMultiplierUpdatingTarget
     ) Policy(address(0x0)) {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
@@ -74,6 +80,7 @@ contract MigrationLinker is Policy, Proposal {
         newEcoxImpl = _newEcoxImpl;
         newEcoxStakingImpl = _newEcoxStakingImpl;
         implementationUpdatingTarget = _implementationUpdatingTarget;
+        inflationMultiplierUpdatingTarget = _inflationMultiplierUpdatingTarget;
 
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
@@ -113,7 +120,9 @@ contract MigrationLinker is Policy, Proposal {
                 )
             );
 
-        if (!success) { revert(string(returnedData)); }
+        if (!success) {
+            revert(string(returnedData));
+        }
 
         // add new governance permissions
         this.updateGovernor(address(communityGovernance));
@@ -131,6 +140,19 @@ contract MigrationLinker is Policy, Proposal {
         ECOx(ecoxProxyAddress).updateECOxExchange(address(ecoXExchange));
         ECOx(ecoxProxyAddress).updateBurners(address(ecoXExchange), true);
 
+        // get old inflation multiplier
+        uint256 _inflationMultiplier = ECOOld(ecoProxyAddress)
+            .getPastLinearInflation(block.number);
+
+        // give eco the new multiplier
+        PolicedOld(ecoProxyAddress).policyCommand(
+            inflationMultiplierUpdatingTarget,
+            abi.encodeWithSignature(
+                "setInflationMultiplier(uint256)",
+                _inflationMultiplier
+            )
+        );
+
         // update eco
         PolicedOld(ecoProxyAddress).policyCommand(
             implementationUpdatingTarget,
@@ -144,6 +166,16 @@ contract MigrationLinker is Policy, Proposal {
             address(communityGovernance),
             true
         );
+
+        // perform eco initialization
+        ECO(ecoProxyAddress).updateRebasers(address(this), true);
+        ECO(ecoProxyAddress).rebase(
+            ECO(ecoProxyAddress).INITIAL_INFLATION_MULTIPLIER()
+        );
+        ECO(ecoProxyAddress).updateRebasers(address(this), false);
+        ECO(ecoProxyAddress).updateSnapshotters(address(this), true);
+        ECO(ecoProxyAddress).snapshot();
+        ECO(ecoProxyAddress).updateSnapshotters(address(this), false);
 
         // update ecoXStaking
         PolicedOld(ecoXStakingProxyAddress).policyCommand(
