@@ -10,6 +10,7 @@ import {
   FixtureAddresses,
   MonetaryGovernanceContracts,
   CommunityGovernanceContracts,
+  deployLockups,
 } from '../../deploy/standalone.fixture'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
@@ -30,6 +31,8 @@ import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOxStaking } from '../../typechain-types/contracts/governance/community'
 import { MigrationLinker } from '../../typechain-types/contracts/deploy/MigrationLinker.propo.sol'
 import { MigrationLinker__factory } from '../../typechain-types/factories/contracts/deploy/MigrationLinker.propo.sol'
+import { InflationMultiplierUpdatingTarget__factory } from '../../typechain-types/factories/contracts/deploy'
+import { LockupLinker__factory } from '../../typechain-types/factories/contracts/deploy/LockupLinker.propo.sol'
 import { deploy } from '../../deploy/utils'
 import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
 import {
@@ -37,6 +40,7 @@ import {
   ECOx__factory,
 } from '../../typechain-types/factories/contracts/currency'
 import { ECOxStaking__factory } from '../../typechain-types/factories/contracts/governance/community'
+import { BigNumber } from 'ethers'
 
 const { ecoFixture, policyFor } = fixtures
 
@@ -46,7 +50,7 @@ const PAUSER = '0xDEADBEeFbAdf00dC0fFee1Ceb00dAFACEB00cEc0'
 
 const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
-// const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
+const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
 const stake = ethers.utils.parseEther('5000000')
 
@@ -205,29 +209,6 @@ describe('Migration tests', () => {
       contracts.base.ecoXStaking.address
     )
 
-    // expect(await contracts.monetary.lockupsLever.policy()).to.eq(
-    //   contracts.base.policy.address
-    // )
-    // expect(await contracts.monetary.lockupsLever.eco()).to.eq(
-    //   contracts.base.eco.address
-    // )
-    // expect(await contracts.monetary.lockupsLever.depositWindow()).to.eq(
-    //   LOCKUP_DEPOSIT_WINDOW
-    // )
-    // expect(
-    //   await contracts.monetary.lockupsLever.currentInflationMultiplier()
-    // ).to.eq(await contracts.base.eco.inflationMultiplier())
-    // expect(
-    //   await contracts.base.eco.voter(contracts.monetary.lockupsLever.address)
-    // ).to.be.true
-
-    // expect(await contracts.monetary.lockupsNotifier.policy()).to.eq(
-    //   contracts.base.policy.address
-    // )
-    // expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(
-    //   contracts.monetary.lockupsLever.address
-    // )
-
     expect(await contracts.monetary.rebaseLever.policy()).to.eq(
       contracts.base.policy.address
     )
@@ -287,10 +268,14 @@ describe('Migration tests', () => {
         ImplementationUpdatingTarget__factory
       )
 
+      const inflationMultiplierUpdatingTarget = await deploy(
+        alice,
+        InflationMultiplierUpdatingTarget__factory
+      )
+
       const proposalParams = [
         fixtureAddresses.communityGovernance,
         fixtureAddresses.ecoXExchange,
-        // fixtureAddresses.lockupNotifier,
         fixtureAddresses.rebaseNotifier,
         fixtureAddresses.trustedNodes,
         fixtureAddresses.policy,
@@ -298,6 +283,7 @@ describe('Migration tests', () => {
         fixtureAddresses.ecox,
         fixtureAddresses.ecoXStaking,
         implementationUpdatingTarget.address,
+        inflationMultiplierUpdatingTarget.address,
       ]
 
       proposal = (await deploy(
@@ -365,6 +351,7 @@ describe('Migration tests', () => {
       let oldEcoImpl
       let oldEcoxImpl
       let oldEcoXStakingImpl
+      let oldInflationMult: BigNumber
 
       beforeEach(async () => {
         // confirm start state
@@ -372,6 +359,9 @@ describe('Migration tests', () => {
         oldEcoImpl = await ecoProxy.implementation()
         oldEcoxImpl = await ecoxProxy.implementation()
         oldEcoXStakingImpl = await ecoXStakingProxy.implementation()
+        oldInflationMult = await ecoProxy.getPastLinearInflation(
+          await time.latestBlock()
+        )
 
         expect(fixtureAddresses.policy).to.not.eq(oldPolicyImpl)
         expect(fixtureAddresses.eco).to.not.eq(oldEcoImpl)
@@ -440,6 +430,12 @@ describe('Migration tests', () => {
         expect(fixtureAddresses.ecoXStaking).to.eq(newEcoXStakingImpl)
       })
 
+      it('check preservation of inflation multiplier', async () => {
+        expect(await baseContracts.eco.inflationMultiplier()).to.eq(
+          oldInflationMult
+        )
+      })
+
       it('check deployment linking', async () => {
         const contracts = new Fixture(
           baseContracts,
@@ -461,9 +457,6 @@ describe('Migration tests', () => {
         expect(
           await contracts.base.eco.minters(contracts.base.ecoXExchange.address)
         ).to.be.true
-        // expect(
-        //   await contracts.base.eco.minters(contracts.monetary.lockupsLever.address)
-        // ).to.be.true
         expect(
           await contracts.base.eco.rebasers(
             contracts.monetary.rebaseLever.address
@@ -475,14 +468,6 @@ describe('Migration tests', () => {
           )
         ).to.be.true
 
-        // expect(
-        //   await contracts.monetary.lockupsLever.authorized(
-        //     contracts.monetary.adapter.address
-        //   )
-        // ).to.be.true
-        // expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
-        //   contracts.monetary.lockupsNotifier.address
-        // )
         expect(
           await contracts.monetary.rebaseLever.authorized(
             contracts.monetary.adapter.address
@@ -498,6 +483,104 @@ describe('Migration tests', () => {
         expect(
           await contracts.monetary.monetaryGovernance.trustedNodes()
         ).to.eq(contracts.monetary.trustedNodes.address)
+      })
+
+      context('adding lockups after migration', () => {
+        beforeEach(async () => {
+          // deploy the lockups contract and its notifier
+          const lockups = await deployLockups(alice, baseContracts, false, {})
+
+          // fill in the new contracts into the object
+          monetaryGovernanceContracts.lockupsLever = lockups.lockupsLever
+          monetaryGovernanceContracts.lockupsNotifier = lockups.lockupsNotifier
+
+          // deploy proposal
+          const proposal = await deploy(alice, LockupLinker__factory, [
+            monetaryGovernanceContracts.lockupsNotifier.address,
+            monetaryGovernanceContracts.adapter.address,
+          ])
+
+          // alice must become a voter
+          expect(await baseContracts.eco.voteBalanceOf(alice.address)).to.eq(0)
+          await baseContracts.eco.connect(alice).enableVoting()
+          const aliceBalance = await baseContracts.eco.voteBalanceOf(
+            alice.address
+          )
+
+          // go to next voting cycle
+          await time.increase(14 * DAY)
+          // update stage to Done
+          await communityGovernanceContracts.communityGovernance.updateStage()
+
+          // push to next cycle which snapshots alice's new voting power
+          await communityGovernanceContracts.communityGovernance.updateStage()
+          expect(
+            await baseContracts.eco.voteBalanceSnapshot(alice.address)
+          ).to.eq(aliceBalance)
+
+          // push the proposal through voting
+          await baseContracts.eco
+            .connect(alice)
+            .approve(
+              communityGovernanceContracts.communityGovernance.address,
+              await communityGovernanceContracts.communityGovernance.proposalFee()
+            )
+          await communityGovernanceContracts.communityGovernance
+            .connect(alice)
+            .propose(proposal.address)
+          await communityGovernanceContracts.communityGovernance
+            .connect(alice)
+            .support(proposal.address)
+          await communityGovernanceContracts.communityGovernance
+            .connect(alice)
+            .vote(1)
+          await communityGovernanceContracts.communityGovernance
+            .connect(alice)
+            .execute()
+        })
+
+        it('confirm contract params', async () => {
+          // constructed
+          expect(await monetaryGovernanceContracts.lockupsLever.policy()).to.eq(
+            baseContracts.policy.address
+          )
+          expect(await monetaryGovernanceContracts.lockupsLever.eco()).to.eq(
+            baseContracts.eco.address
+          )
+          expect(
+            await monetaryGovernanceContracts.lockupsLever.depositWindow()
+          ).to.eq(LOCKUP_DEPOSIT_WINDOW)
+          expect(
+            await monetaryGovernanceContracts.lockupsLever.currentInflationMultiplier()
+          ).to.eq(await baseContracts.eco.inflationMultiplier())
+          expect(
+            await baseContracts.eco.voter(
+              monetaryGovernanceContracts.lockupsLever.address
+            )
+          ).to.be.true
+
+          expect(
+            await monetaryGovernanceContracts.lockupsNotifier.policy()
+          ).to.eq(baseContracts.policy.address)
+          expect(
+            await monetaryGovernanceContracts.lockupsNotifier.lever()
+          ).to.eq(monetaryGovernanceContracts.lockupsLever.address)
+
+          // linked
+          expect(
+            await baseContracts.eco.minters(
+              monetaryGovernanceContracts.lockupsLever.address
+            )
+          ).to.be.true
+          expect(
+            await monetaryGovernanceContracts.lockupsLever.authorized(
+              monetaryGovernanceContracts.adapter.address
+            )
+          ).to.be.true
+          expect(
+            await monetaryGovernanceContracts.lockupsLever.notifier()
+          ).to.eq(monetaryGovernanceContracts.lockupsNotifier.address)
+        })
       })
     })
   })

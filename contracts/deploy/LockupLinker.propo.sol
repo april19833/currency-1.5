@@ -54,7 +54,7 @@ contract LockupLinker is Policy, Proposal {
     function enacted(address) public override {
         // link to eco
         eco.updateMinters(lockups, true);
-        
+
         // link lockup lever
         Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
         Lockups(lockups).setNotifier(lockupsNotifier);
