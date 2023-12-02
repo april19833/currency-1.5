@@ -110,6 +110,22 @@ export class MonetaryGovernanceContracts {
   }
 }
 
+export type LockupAddresses = {
+  lockupsLever: string
+  lockupsNotifier: string
+}
+
+export class LockupContracts {
+  constructor(public lockupsLever: Lockups, public lockupsNotifier: Notifier) {}
+
+  toAddresses(): LockupAddresses {
+    return {
+      lockupsLever: this.lockupsLever.address,
+      lockupsNotifier: this.lockupsNotifier.address,
+    }
+  }
+}
+
 export type CommunityGovernanceAddresses = {
   communityGovernance: string
 }
@@ -318,6 +334,47 @@ export async function deployMonetary(
     rebaseContract,
     rebaseNotifier
   )
+}
+
+export async function deployLockups(
+  wallet: Signer,
+  base: BaseContracts,
+  verbose = false,
+  config: any
+): Promise<LockupContracts> {
+  if (verbose) {
+    console.log('deploying lockups lever')
+  }
+
+  const lockupsLeverParams = [
+    base.policy.address,
+    base.eco.address,
+    config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
+  ]
+
+  const lockupsContract = config.noLockups
+    ? ((await deploy(wallet, DummyLever__factory)) as Lockups)
+    : ((await deploy(wallet, Lockups__factory, lockupsLeverParams)) as Lockups)
+
+  if (verbose) {
+    console.log('deploying lockups notifier')
+  }
+
+  const lockupsNotifierParams = [
+    base.policy.address,
+    lockupsContract.address,
+    [],
+    [],
+    [],
+  ]
+
+  const lockupsNotifier = (await deploy(
+    wallet,
+    Notifier__factory,
+    lockupsNotifierParams
+  )) as Notifier
+
+  return new LockupContracts(lockupsContract, lockupsNotifier)
 }
 
 export async function deployBase(
