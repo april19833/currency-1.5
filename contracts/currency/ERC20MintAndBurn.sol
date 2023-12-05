@@ -1,13 +1,13 @@
 /* -*- c-basic-offset: 4 -*- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "../policy/Policed.sol";
+import "../policy/PolicedUpgradeable.sol";
 import "./ERC20Pausable.sol";
 
 /** @title An ERC20 token interface for ECOx
  *
  */
-contract ERC20MintAndBurn is ERC20Pausable, Policed {
+contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////

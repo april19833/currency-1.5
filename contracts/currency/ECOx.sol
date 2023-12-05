@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./IECO.sol";
-import "../policy/Policed.sol";
 import "./ERC20Pausable.sol";
 import "./ERC20MintAndBurn.sol";
 
@@ -57,8 +56,6 @@ contract ECOx is ERC20MintAndBurn {
         address _self
     ) public virtual override onlyConstruction {
         super.initialize(_self);
-
-        // policy = Policed(_self).policy();
         pauser = ERC20Pausable(_self).pauser();
     }
 
