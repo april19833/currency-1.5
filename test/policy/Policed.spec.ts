@@ -22,7 +22,7 @@ describe('Policed', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+      { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
     DummyPoliced = (await deploy(policyImpersonator, DummyPoliced__factory, [

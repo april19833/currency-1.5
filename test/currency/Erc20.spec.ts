@@ -45,7 +45,7 @@ describe('Erc20', () => {
 
     Fake__Policy = await smock.fake<Policy>(
       'Policy',
-      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+      { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
     const ecoDeployParams = [Fake__Policy.address, bob.address]
