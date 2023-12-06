@@ -363,6 +363,7 @@ describe('Migration tests', () => {
           await time.latestBlock()
         )
 
+        // the addresses in fixtureAddresses have the new impls, and this check confirms that fact
         expect(fixtureAddresses.policy).to.not.eq(oldPolicyImpl)
         expect(fixtureAddresses.eco).to.not.eq(oldEcoImpl)
         expect(fixtureAddresses.ecox).to.not.eq(oldEcoxImpl)
