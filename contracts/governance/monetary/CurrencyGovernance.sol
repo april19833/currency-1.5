@@ -93,7 +93,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public constant MAX_DESCRIPTION_DATA = 160;
 
     /**  max length of the targets array
-     * idk man, gotta have some kind of limit
      */
     uint256 public constant MAX_TARGETS = 10;
 

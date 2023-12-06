@@ -15,9 +15,8 @@ import "./ERC20Permit.sol";
  * that a supply mechanism has to be added in a derived contract using {_mint}.
  * For a generic mechanism see {ERC20PresetMinterPauser}.
  *
- * TIP: For a detailed writeup see our guide
- * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
- * to implement supply mechanisms].
+ * TIP: For a detailed writeup see open zeppelin guide
+ * [How to implement supply mechanisms](https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226).
  *
  * We have followed general OpenZeppelin Contracts guidelines: functions revert
  * instead returning `false` on failure. This behavior is nonetheless

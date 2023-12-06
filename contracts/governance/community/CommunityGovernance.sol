@@ -206,9 +206,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /**
      An event indicating that the fee for a proposal was refunded
-     @param proposal The address of the proposal being refunded
-     @param proposer The address that registered the proposal
-     @param refund The amount of tokens refunded to proposer
+     * @param proposal The address of the proposal being refunded
+     * @param proposer The address that registered the proposal
+     * @param refund The amount of tokens refunded to proposer
      */
     event FeeRefunded(address proposal, address proposer, uint256 refund);
 

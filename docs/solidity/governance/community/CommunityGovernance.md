@@ -392,13 +392,17 @@ event NewCycle(uint256 cycleNumber)
 ### FeeRefunded
 
 An event indicating that the fee for a proposal was refunded
-     @param proposal The address of the proposal being refunded
-     @param proposer The address that registered the proposal
-     @param refund The amount of tokens refunded to proposer
 
 ```solidity
 event FeeRefunded(address proposal, address proposer, uint256 refund)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proposal | address | The address of the proposal being refunded |
+| proposer | address | The address that registered the proposal |
+| refund | uint256 | The amount of tokens refunded to proposer |
 
 ### Sweep
 

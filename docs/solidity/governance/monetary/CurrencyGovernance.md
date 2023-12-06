@@ -125,7 +125,6 @@ uint256 MAX_DESCRIPTION_DATA
 ### MAX_TARGETS
 
 max length of the targets array
-idk man, gotta have some kind of limit
 
 ```solidity
 uint256 MAX_TARGETS
