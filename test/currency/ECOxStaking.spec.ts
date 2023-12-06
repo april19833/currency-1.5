@@ -10,14 +10,12 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import { ERRORS } from '../utils/errors'
-import {
-  ECOx,
-  ECOxStaking,
-  ECOxStaking__factory,
-  ECOx__factory,
-  Policy,
-} from '../../typechain-types'
 import { deployProxy } from '../../deploy/utils'
+import { Policy } from '../../typechain-types/contracts/policy'
+import { ECOx } from '../../typechain-types/contracts/currency'
+import { ECOxStaking } from '../../typechain-types/contracts/governance/community'
+import { ECOx__factory } from '../../typechain-types/factories/contracts/currency'
+import { ECOxStaking__factory } from '../../typechain-types/factories/contracts/governance/community'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 const one = ethers.utils.parseEther('1')
@@ -42,12 +40,12 @@ describe('ECOxStaking', () => {
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: await policyImpersonater.getAddress() } // This allows us to make calls from the address
     )
 
     const EcoXFact: MockContractFactory<ECOx__factory> = await smock.mock(
-      'ECOx'
+      'contracts/currency/ECOx.sol:ECOx'
     )
     ecoX = await EcoXFact.connect(policyImpersonater).deploy(
       Fake__Policy.address,

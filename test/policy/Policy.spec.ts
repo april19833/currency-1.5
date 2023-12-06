@@ -2,21 +2,23 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../utils/errors'
-import {
-  Policy__factory,
-  Policy,
-  SampleProposal__factory,
-  SampleProposal,
-  FailureProposal__factory,
-  FailureProposal,
-  WorseFailureProposal,
-  WorseFailureProposal__factory,
-  TotalFailureProposal__factory,
-  TotalFailureProposal,
-  ClumsyFailureProposal,
-  ClumsyFailureProposal__factory,
-} from '../../typechain-types'
 import { deployProxy } from '../../deploy/utils'
+import { Policy } from '../../typechain-types/contracts/policy'
+import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
+import { SampleProposal__factory } from '../../typechain-types/factories/contracts/test'
+import { SampleProposal } from '../../typechain-types/contracts/test'
+import {
+  ClumsyFailureProposal,
+  FailureProposal,
+  TotalFailureProposal,
+  WorseFailureProposal,
+} from '../../typechain-types/contracts/test/FailureProposal.sol'
+import {
+  ClumsyFailureProposal__factory,
+  FailureProposal__factory,
+  TotalFailureProposal__factory,
+  WorseFailureProposal__factory,
+} from '../../typechain-types/factories/contracts/test/FailureProposal.sol'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 

@@ -11,16 +11,16 @@ import {
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
-import {
-  TrustedNodes,
-  TrustedNodes__factory,
-  Policy,
-  ECOx,
-  ECOx__factory,
-  CurrencyGovernance,
-} from '../../../typechain-types'
 import { DAY } from '../../utils/constants'
 import { deploy } from '../../../deploy/utils'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import {
+  CurrencyGovernance,
+  TrustedNodes,
+} from '../../../typechain-types/contracts/governance/monetary'
+import { ECOx } from '../../../typechain-types/contracts/currency'
+import { ECOx__factory } from '../../../typechain-types/factories/contracts/currency'
+import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 describe('TrustedNodes', () => {
   let policyImpersonator: SignerWithAddress
@@ -53,16 +53,16 @@ describe('TrustedNodes', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
     currencyGovernance = await smock.fake<CurrencyGovernance>(
-      'CurrencyGovernance',
+      'contracts/governance/monetary/CurrencyGovernance.sol:CurrencyGovernance',
       { address: currencyGovernanceImpersonator.address }
     )
 
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
-      'ECOx'
+      'contracts/currency/ECOx.sol:ECOx'
     )
     ecoX = await ecoXFactory.deploy(policy.address, policy.address)
 
