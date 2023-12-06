@@ -260,9 +260,7 @@ describe('Policy E2E Tests', () => {
   })
 
   it('change eco pauser', async () => {
-    expect(await contracts.base.eco.pauser()).to.eq(
-      alice.address
-    )
+    expect(await contracts.base.eco.pauser()).to.eq(alice.address)
     const proposal1 = await deploy(alice, UpdateTokenPauserProposal__factory, [
       contracts.base.eco.address,
       bob.address,
@@ -272,9 +270,7 @@ describe('Policy E2E Tests', () => {
   })
 
   it('change ecox pauser', async () => {
-    expect(await contracts.base.ecox.pauser()).to.eq(
-      alice.address
-    )
+    expect(await contracts.base.ecox.pauser()).to.eq(alice.address)
     const proposal1 = await deploy(alice, UpdateTokenPauserProposal__factory, [
       contracts.base.ecox.address,
       bob.address,
@@ -287,20 +283,24 @@ describe('Policy E2E Tests', () => {
     expect(await contracts.community.communityGovernance.pauser()).to.eq(
       alice.address
     )
-    const proposal1 = await deploy(alice, UpdateGovernancePauserProposal__factory, [
-      contracts.community.communityGovernance.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      UpdateGovernancePauserProposal__factory,
+      [contracts.community.communityGovernance.address, bob.address]
+    )
     await passProposal(proposal1)
-    expect(await contracts.community.communityGovernance.pauser()).to.eq(bob.address)
+    expect(await contracts.community.communityGovernance.pauser()).to.eq(
+      bob.address
+    )
   })
 
   it('sweep governance fees', async () => {
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(0)
-    const proposal1 = await deploy(alice, SweepGovernanceFeesProposal__factory, [
-      contracts.community.communityGovernance.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      SweepGovernanceFeesProposal__factory,
+      [contracts.community.communityGovernance.address, bob.address]
+    )
     // seed the pot with fees
     await contracts.base.eco
       .connect(alice)
@@ -311,108 +311,149 @@ describe('Policy E2E Tests', () => {
     await contracts.community.communityGovernance
       .connect(alice)
       .propose(bob.address) // non-sense value but it doesn't matter
-    
+
     await passProposal(proposal1)
-    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq((await contracts.community.communityGovernance.proposalFee()).sub(await contracts.community.communityGovernance.feeRefund()))
+    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(
+      (await contracts.community.communityGovernance.proposalFee()).sub(
+        await contracts.community.communityGovernance.feeRefund()
+      )
+    )
   })
 
   it('change governance trusted nodes contract', async () => {
     expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
       contracts.monetary.trustedNodes.address
     )
-    const proposal1 = await deploy(alice, UpdateGovernanceTrustedNodesProposal__factory, [
-      contracts.monetary.monetaryGovernance.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      UpdateGovernanceTrustedNodesProposal__factory,
+      [contracts.monetary.monetaryGovernance.address, bob.address]
+    )
     await passProposal(proposal1)
-    expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(bob.address)
+    expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
+      bob.address
+    )
   })
 
   it('change governance enacter contract', async () => {
     expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
       contracts.monetary.adapter.address
     )
-    const proposal1 = await deploy(alice, UpdateGovernanceEnacterProposal__factory, [
-      contracts.monetary.monetaryGovernance.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      UpdateGovernanceEnacterProposal__factory,
+      [contracts.monetary.monetaryGovernance.address, bob.address]
+    )
     await passProposal(proposal1)
-    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(bob.address)
+    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
+      bob.address
+    )
   })
 
   it('change adapter governance contract', async () => {
     expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
       contracts.monetary.monetaryGovernance.address
     )
-    const proposal1 = await deploy(alice, UpdateAdapterGovernanceProposal__factory, [
-      contracts.monetary.adapter.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      UpdateAdapterGovernanceProposal__factory,
+      [contracts.monetary.adapter.address, bob.address]
+    )
     await passProposal(proposal1)
-    expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(bob.address)
+    expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
+      bob.address
+    )
   })
 
   it('change lever notifier contract', async () => {
     expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
       contracts.monetary.lockupsNotifier.address
     )
-    const proposal1 = await deploy(alice, UpdateLeverNotifierProposal__factory, [
-      contracts.monetary.lockupsLever.address,
-      bob.address,
-    ])
+    const proposal1 = await deploy(
+      alice,
+      UpdateLeverNotifierProposal__factory,
+      [contracts.monetary.lockupsLever.address, bob.address]
+    )
     await passProposal(proposal1)
     expect(await contracts.monetary.lockupsLever.notifier()).to.eq(bob.address)
 
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
       contracts.monetary.rebaseNotifier.address
     )
-    const proposal2 = await deploy(alice, UpdateLeverNotifierProposal__factory, [
-      contracts.monetary.rebaseLever.address,
-      bob.address,
-    ])
+    const proposal2 = await deploy(
+      alice,
+      UpdateLeverNotifierProposal__factory,
+      [contracts.monetary.rebaseLever.address, bob.address]
+    )
     await passProposal(proposal2)
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(bob.address)
   })
 
-  it.only('add lever authorized', async () => {
-    expect(await contracts.monetary.lockupsLever.authorized(alice.address)).to.be.false
-    const proposal1 = await deploy(alice, UpdateLeverAuthorizedProposal__factory, [
-      contracts.monetary.lockupsLever.address,
-      alice.address,
-      true,
-    ])
+  it('add lever authorized', async () => {
+    expect(await contracts.monetary.lockupsLever.authorized(alice.address)).to
+      .be.false
+    const proposal1 = await deploy(
+      alice,
+      UpdateLeverAuthorizedProposal__factory,
+      [contracts.monetary.lockupsLever.address, alice.address, true]
+    )
     await passProposal(proposal1)
-    expect(await contracts.monetary.lockupsLever.authorized(alice.address)).to.be.true
+    expect(await contracts.monetary.lockupsLever.authorized(alice.address)).to
+      .be.true
 
-    expect(await contracts.monetary.rebaseLever.authorized(alice.address)).to.be.false
-    const proposal2 = await deploy(alice, UpdateLeverAuthorizedProposal__factory, [
-      contracts.monetary.rebaseLever.address,
-      alice.address,
-      true,
-    ])
+    expect(await contracts.monetary.rebaseLever.authorized(alice.address)).to.be
+      .false
+    const proposal2 = await deploy(
+      alice,
+      UpdateLeverAuthorizedProposal__factory,
+      [contracts.monetary.rebaseLever.address, alice.address, true]
+    )
     await passProposal(proposal2)
-    expect(await contracts.monetary.rebaseLever.authorized(alice.address)).to.be.true
+    expect(await contracts.monetary.rebaseLever.authorized(alice.address)).to.be
+      .true
   })
 
   it('remove lever authorized', async () => {
-    expect(await contracts.monetary.lockupsLever.authorized(contracts.monetary.adapter.address)).to.be.true
-    const proposal1 = await deploy(alice, UpdateLeverAuthorizedProposal__factory, [
-      contracts.monetary.lockupsLever.address,
-      contracts.monetary.adapter.address,
-      false,
-    ])
+    expect(
+      await contracts.monetary.lockupsLever.authorized(
+        contracts.monetary.adapter.address
+      )
+    ).to.be.true
+    const proposal1 = await deploy(
+      alice,
+      UpdateLeverAuthorizedProposal__factory,
+      [
+        contracts.monetary.lockupsLever.address,
+        contracts.monetary.adapter.address,
+        false,
+      ]
+    )
     await passProposal(proposal1)
-    expect(await contracts.monetary.lockupsLever.authorized(contracts.monetary.adapter.address)).to.be.false
+    expect(
+      await contracts.monetary.lockupsLever.authorized(
+        contracts.monetary.adapter.address
+      )
+    ).to.be.false
 
-    expect(await contracts.monetary.rebaseLever.authorized(contracts.monetary.adapter.address)).to.be.true
-    const proposal2 = await deploy(alice, UpdateLeverAuthorizedProposal__factory, [
-      contracts.monetary.rebaseLever.address,
-      contracts.monetary.adapter.address,
-      false,
-    ])
+    expect(
+      await contracts.monetary.rebaseLever.authorized(
+        contracts.monetary.adapter.address
+      )
+    ).to.be.true
+    const proposal2 = await deploy(
+      alice,
+      UpdateLeverAuthorizedProposal__factory,
+      [
+        contracts.monetary.rebaseLever.address,
+        contracts.monetary.adapter.address,
+        false,
+      ]
+    )
     await passProposal(proposal2)
-    expect(await contracts.monetary.rebaseLever.authorized(contracts.monetary.adapter.address)).to.be.false
+    expect(
+      await contracts.monetary.rebaseLever.authorized(
+        contracts.monetary.adapter.address
+      )
+    ).to.be.false
   })
-
-
 })

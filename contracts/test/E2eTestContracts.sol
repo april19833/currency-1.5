@@ -402,10 +402,7 @@ contract UpdateLeverNotifierProposal is Policy, Proposal {
 
     Notifier public immutable newNotifier;
 
-    constructor(
-        Lever _lever,
-        Notifier _newNotifier
-    ) Policy(address(0x0)) {
+    constructor(Lever _lever, Notifier _newNotifier) Policy(address(0x0)) {
         lever = _lever;
         newNotifier = _newNotifier;
     }
