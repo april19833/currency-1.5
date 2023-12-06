@@ -14,12 +14,14 @@ import {
   UpdateTokenPauserProposal__factory,
   UpdateGovernancePauserProposal__factory,
   SweepGovernanceFeesProposal__factory,
+  UpdateGovernanceTrustedNodesProposal__factory,
+  UpdateGovernanceEnacterProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe('Policy Integration Tests', () => {
+describe('Policy E2E Tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -309,5 +311,29 @@ describe('Policy Integration Tests', () => {
     
     await passProposal(proposal1)
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq((await contracts.community.communityGovernance.proposalFee()).sub(await contracts.community.communityGovernance.feeRefund()))
+  })
+
+  it('change governance trusted nodes contract', async () => {
+    expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
+      contracts.monetary.trustedNodes.address
+    )
+    const proposal1 = await deploy(alice, UpdateGovernanceTrustedNodesProposal__factory, [
+      contracts.monetary.monetaryGovernance.address,
+      bob.address,
+    ])
+    await passProposal(proposal1)
+    expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(bob.address)
+  })
+
+  it('change governance enacter contract', async () => {
+    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
+      contracts.monetary.adapter.address
+    )
+    const proposal1 = await deploy(alice, UpdateGovernanceEnacterProposal__factory, [
+      contracts.monetary.monetaryGovernance.address,
+      bob.address,
+    ])
+    await passProposal(proposal1)
+    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(bob.address)
   })
 })

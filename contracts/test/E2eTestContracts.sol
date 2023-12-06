@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../governance/community/proposals/Proposal.sol";
 import "../governance/community/CommunityGovernance.sol";
+import "../governance/monetary/CurrencyGovernance.sol";
 import "../policy/Policy.sol";
 import "../currency/ECO.sol";
 import "../currency/ECOx.sol";
@@ -286,5 +287,73 @@ contract SweepGovernanceFeesProposal is Policy, Proposal {
 
     function enacted(address) public override {
         governance.sweep(destination);
+    }
+}
+
+/** @title governance new trustedNodes proposal
+ *
+ * A proposal used to change the trustedNodes contract for the currency governance
+ */
+contract UpdateGovernanceTrustedNodesProposal is Policy, Proposal {
+    CurrencyGovernance public immutable governance;
+
+    TrustedNodes public immutable newTrustedNodes;
+
+    constructor(
+        CurrencyGovernance _governance,
+        TrustedNodes _newTrustedNodes
+    ) Policy(address(0x0)) {
+        governance = _governance;
+        newTrustedNodes = _newTrustedNodes;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "governance new trustedNodes proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the trustedNodes contract for the currency governance";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        governance.setTrustedNodes(newTrustedNodes);
+    }
+}
+
+/** @title governance new enacter proposal
+ *
+ * A proposal used to change the enacter contract for the currency governance
+ */
+contract UpdateGovernanceEnacterProposal is Policy, Proposal {
+    CurrencyGovernance public immutable governance;
+
+    MonetaryPolicyAdapter public immutable newEnacter;
+
+    constructor(
+        CurrencyGovernance _governance,
+        MonetaryPolicyAdapter _newEnacter
+    ) Policy(address(0x0)) {
+        governance = _governance;
+        newEnacter = _newEnacter;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "governance new enacter proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the enacter contract for the currency governance";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        governance.setEnacter(newEnacter);
     }
 }
