@@ -20,7 +20,7 @@ import {
 } from '../../../typechain-types'
 import { deploy } from '../../../deploy/utils'
 
-describe.only('Lockups', () => {
+describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
 
   let eco: MockContract<ECO>
