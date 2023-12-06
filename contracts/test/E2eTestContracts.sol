@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../governance/community/proposals/Proposal.sol";
 import "../governance/community/CommunityGovernance.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
+import "../governance/monetary/Lever.sol";
 import "../policy/Policy.sol";
 import "../currency/ECO.sol";
 import "../currency/ECOx.sol";
@@ -355,5 +356,111 @@ contract UpdateGovernanceEnacterProposal is Policy, Proposal {
 
     function enacted(address) public override {
         governance.setEnacter(newEnacter);
+    }
+}
+
+/** @title adapter new governance proposal
+ *
+ * A proposal used to change the governance contract for the monetary policy adapter
+ */
+contract UpdateAdapterGovernanceProposal is Policy, Proposal {
+    MonetaryPolicyAdapter public immutable enacter;
+
+    CurrencyGovernance public immutable newGovernance;
+
+    constructor(
+        MonetaryPolicyAdapter _enacter,
+        CurrencyGovernance _newGovernance
+    ) Policy(address(0x0)) {
+        enacter = _enacter;
+        newGovernance = _newGovernance;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "adapter new governance proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the governance contract for the monetary policy adapter";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        enacter.setCurrencyGovernance(newGovernance);
+    }
+}
+
+/** @title lever new notifier proposal
+ *
+ * A proposal used to change the notifier contract for a monetary policy lever
+ */
+contract UpdateLeverNotifierProposal is Policy, Proposal {
+    Lever public immutable lever;
+
+    Notifier public immutable newNotifier;
+
+    constructor(
+        Lever _lever,
+        Notifier _newNotifier
+    ) Policy(address(0x0)) {
+        lever = _lever;
+        newNotifier = _newNotifier;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "lever new notifier proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the notifier contract for a monetary policy lever";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        lever.setNotifier(newNotifier);
+    }
+}
+
+/** @title update lever authorized proposal
+ *
+ * A proposal used to add or remove an authorized caller of the lever
+ */
+contract UpdateLeverAuthorizedProposal is Policy, Proposal {
+    Lever public immutable lever;
+
+    address public immutable authorized;
+
+    bool public immutable permission;
+
+    constructor(
+        Lever _lever,
+        address _authorized,
+        bool _permission
+    ) Policy(address(0x0)) {
+        lever = _lever;
+        authorized = _authorized;
+        permission = _permission;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "update lever authorized proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "add or remove an authorized caller of the lever";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        lever.setAuthorized(authorized, permission);
     }
 }
