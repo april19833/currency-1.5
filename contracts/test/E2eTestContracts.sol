@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../governance/community/proposals/Proposal.sol";
+import "../governance/community/CommunityGovernance.sol";
 import "../policy/Policy.sol";
 import "../currency/ECO.sol";
 import "../currency/ECOx.sol";
@@ -17,7 +18,11 @@ contract MinterProposal is Policy, Proposal {
 
     bool public immutable permission;
 
-    constructor(ERC20MintAndBurn _token, address _minter, bool _permission) Policy(address(0x0)) {
+    constructor(
+        ERC20MintAndBurn _token,
+        address _minter,
+        bool _permission
+    ) Policy(address(0x0)) {
         token = _token;
         minter = _minter;
         permission = _permission;
@@ -51,7 +56,11 @@ contract BurnerProposal is Policy, Proposal {
 
     bool public immutable permission;
 
-    constructor(ERC20MintAndBurn _token, address _burner, bool _permission) Policy(address(0x0)) {
+    constructor(
+        ERC20MintAndBurn _token,
+        address _burner,
+        bool _permission
+    ) Policy(address(0x0)) {
         token = _token;
         burner = _burner;
         permission = _permission;
@@ -85,7 +94,11 @@ contract RebaserProposal is Policy, Proposal {
 
     bool public immutable permission;
 
-    constructor(ECO _token, address _rebaser, bool _permission) Policy(address(0x0)) {
+    constructor(
+        ECO _token,
+        address _rebaser,
+        bool _permission
+    ) Policy(address(0x0)) {
         token = _token;
         rebaser = _rebaser;
         permission = _permission;
@@ -119,7 +132,11 @@ contract SnapshotterProposal is Policy, Proposal {
 
     bool public immutable permission;
 
-    constructor(ECO _token, address _snapshotter, bool _permission) Policy(address(0x0)) {
+    constructor(
+        ECO _token,
+        address _snapshotter,
+        bool _permission
+    ) Policy(address(0x0)) {
         token = _token;
         snapshotter = _snapshotter;
         permission = _permission;
@@ -170,5 +187,70 @@ contract UpdateECOxExchangeProposal is Policy, Proposal {
 
     function enacted(address) public override {
         token.updateECOxExchange(newECOxExchange);
+    }
+}
+
+/** @title token new pauser proposal
+ *
+ * A proposal used for changing the pauser on the tokens
+ */
+contract UpdateTokenPauserProposal is Policy, Proposal {
+    ERC20Pausable public immutable token;
+
+    address public immutable newPauser;
+
+    constructor(ERC20Pausable _token, address _newPauser) Policy(address(0x0)) {
+        token = _token;
+        newPauser = _newPauser;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "token new pauser proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the pauser for the tokens";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        token.setPauser(newPauser);
+    }
+}
+
+/** @title governance new pauser proposal
+ *
+ * A proposal used for changing the pauser on the community governance contract
+ */
+contract UpdateGovernancePauserProposal is Policy, Proposal {
+    CommunityGovernance public immutable governance;
+
+    address public immutable newPauser;
+
+    constructor(
+        CommunityGovernance _governance,
+        address _newPauser
+    ) Policy(address(0x0)) {
+        governance = _governance;
+        newPauser = _newPauser;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "governance new pauser proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the pauser for the governance";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        governance.setPauser(newPauser);
     }
 }
