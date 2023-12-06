@@ -37,7 +37,7 @@ function burn(address from, uint256 amount) external
 Returns the votes for the current snapshot
 
 ```solidity
-function voteBalanceSnapshot(address account) external view returns (uint256)
+function voteBalanceSnapshot(address account) external view returns (uint256 balance)
 ```
 #### Parameters
 
@@ -49,33 +49,33 @@ function voteBalanceSnapshot(address account) external view returns (uint256)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | the balance of the account at the time of the Snapshot |
+| balance | uint256 | the balance of the account at the time of the Snapshot |
 
 ### inflationMultiplierSnapshot
 
 Returns the inflation multiplier value for the current snapshot
 
 ```solidity
-function inflationMultiplierSnapshot() external view returns (uint256)
+function inflationMultiplierSnapshot() external view returns (uint256 multiplier)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | inflation multipler value |
+| multiplier | uint256 | inflation multipler value |
 
 ### totalSupplySnapshot
 
 Returns the total supply for the current snapshot
 
 ```solidity
-function totalSupplySnapshot() external view returns (uint256)
+function totalSupplySnapshot() external view returns (uint256 total)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | total supply of the current snapshot |
+| total | uint256 | total supply of the current snapshot |
 

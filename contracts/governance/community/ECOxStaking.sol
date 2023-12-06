@@ -53,6 +53,11 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         ecoXToken = _ecoXAddr;
     }
 
+    /**
+     * deposit transfers ECOx to the contract and mints sECOx to the source of the transfer determined by `msg.sender`.
+     * @param _amount the amount of ECOx to deposit
+     *
+     */
     function deposit(uint256 _amount) external {
         address _source = msg.sender;
 
@@ -66,6 +71,11 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         emit Deposit(_source, _amount);
     }
 
+    /**
+     * withdraw burns the senders sECOx and transfers ECOx to the source of the transfer determined by `msg.sender`.
+     * @param _amount the amount of ECOx to withdraw
+     *
+     */
     function withdraw(uint256 _amount) external {
         address _destination = msg.sender;
 
@@ -77,23 +87,40 @@ contract ECOxStaking is VoteCheckpoints, Policed {
         emit Withdrawal(_destination, _amount);
     }
 
+    /**
+     * Gets the past votes for a voter at a specific block
+     * @param _voter the address of the voter
+     * @param _blockNumber the block number to retrieve the votes from
+     * @return pastVotes the past votes at the block number
+     */
     function votingECOx(
         address _voter,
         uint256 _blockNumber
-    ) external view returns (uint256) {
+    ) external view returns (uint256 pastVotes) {
         return getPastVotes(_voter, _blockNumber);
     }
 
+    /**
+     * Gets the total supply at a specific block number
+     * @param _blockNumber the block to get the votes for
+     * @return totalSupply the total supply at the block number
+     */
     function totalVotingECOx(
         uint256 _blockNumber
-    ) external view returns (uint256) {
+    ) external view returns (uint256 totalSupply) {
         return totalSupplyAt(_blockNumber);
     }
 
+    /**
+     * transfers are disabled and revert with a NonTransferrable error
+     */
     function transfer(address, uint256) public pure override returns (bool) {
         revert NonTransferrable();
     }
 
+    /**
+     * transferFroms are disabled and revert with a NonTransferrable error
+     */
     function transferFrom(
         address,
         address,

@@ -110,9 +110,9 @@ error EarlyWithdrawFor(uint256 lockupId, address withdrawer, address recipient)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| lockupId | uint256 |  |
-| withdrawer | address |  |
-| recipient | address |  |
+| lockupId | uint256 | ID of lockup from which withdrawal was attempted |
+| withdrawer | address | address that called withdrawFor |
+| recipient | address | address on whose behalf withdrawFor was called |
 
 ### LateDeposit
 
@@ -125,8 +125,8 @@ error LateDeposit(uint256 lockupId, address depositor)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| lockupId | uint256 |  |
-| depositor | address |  |
+| lockupId | uint256 | ID of lockup to which deposit was attempted |
+| depositor | address | address that tried to deposit |
 
 ### LockupCreation
 
@@ -139,9 +139,9 @@ event LockupCreation(uint256 lockupId, uint256 duration, uint256 rate)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| lockupId | uint256 |  |
-| duration | uint256 | of lockup |
-| rate | uint256 |  |
+| lockupId | uint256 | ID of lockup |
+| duration | uint256 | duration of lockup |
+| rate | uint256 | yield rate of lockup at creation |
 
 ### LockupDeposit
 
@@ -154,9 +154,9 @@ event LockupDeposit(uint256 lockupId, address depositor, uint256 gonsDepositAmou
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| lockupId | uint256 |  |
-| depositor | address |  |
-| gonsDepositAmount | uint256 |  |
+| lockupId | uint256 | ID of lockup |
+| depositor | address | address whose ECO were deposited |
+| gonsDepositAmount | uint256 | amount in gons that was deposited to lockup |
 
 ### LockupWithdrawal
 
@@ -169,9 +169,9 @@ event LockupWithdrawal(uint256 lockupId, address recipient, uint256 gonsWithdraw
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| lockupId | uint256 |  |
-| recipient | address |  |
-| gonsWithdrawnAmount | uint256 |  |
+| lockupId | uint256 | ID of lockup |
+| recipient | address | address receiving withdrawal |
+| gonsWithdrawnAmount | uint256 | amount in gons that was withdrawn |
 
 ### constructor
 
@@ -343,6 +343,10 @@ function sweep(address _destination) external
 | _destination | address | the address that will receive |
 
 ### updateInflationMultiplier
+
+updates currentInflationMultiplier
+
+this function needs to be called each time the currency rebases to keep the inflation multiplier current for the lockup
 
 ```solidity
 function updateInflationMultiplier() external

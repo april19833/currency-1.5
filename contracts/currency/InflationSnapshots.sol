@@ -107,9 +107,13 @@ abstract contract InflationSnapshots is VoteSnapshots {
 
     /**
      * Inflation Multiplier Snapshot
-     * @return Inflation Value Muliplier at time of the Snapshot
+     * @return inflationValueMultiplier Inflation Value Muliplier at time of the Snapshot
      */
-    function inflationMultiplierSnapshot() public view returns (uint256) {
+    function inflationMultiplierSnapshot()
+        public
+        view
+        returns (uint256 inflationValueMultiplier)
+    {
         if (_inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock) {
             return inflationMultiplier;
         } else {
@@ -120,43 +124,59 @@ abstract contract InflationSnapshots is VoteSnapshots {
     /**
      * wrapper for inflationMultiplierSnapshot to maintain compatability with older interfaces
      * no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability
-     * @return Inflation Value Muliplier at time of the Snapshot
+     * @return pastLinearInflationMultiplier Inflation Value Muliplier at time of the Snapshot
      */
-    function getPastLinearInflation(uint256) public view returns (uint256) {
+    function getPastLinearInflation(
+        uint256
+    ) public view returns (uint256 pastLinearInflationMultiplier) {
         return inflationMultiplierSnapshot();
     }
 
     /**
      * Access function to determine the token balance held by some address.
+     * @param _owner address of the owner of the voting balance
+     * @return inflationBalance value of the owner divided by the inflation multiplier
      */
-    function balanceOf(address _owner) public view override returns (uint256) {
+    function balanceOf(
+        address _owner
+    ) public view override returns (uint256 inflationBalance) {
         return _balances[_owner] / inflationMultiplier;
     }
 
     /**
      * Access function to determine the voting balance (includes delegation) of some address.
      * @param _owner the address of the account to get the balance for
-     * @return The vote balance fo the owner divided by the inflation multiplier
+     * @return votingBalance The vote balance fo the owner divided by the inflation multiplier
      */
     function voteBalanceOf(
         address _owner
-    ) public view override returns (uint256) {
+    ) public view override returns (uint256 votingBalance) {
         return _voteBalances[_owner] / inflationMultiplier;
     }
 
     /**
      * Returns the total (inflation corrected) token supply
-     * @return The total supply divided by the inflation multiplier
+     * @return totalInflatedSupply The total supply divided by the inflation multiplier
      */
-    function totalSupply() public view override returns (uint256) {
+    function totalSupply()
+        public
+        view
+        override
+        returns (uint256 totalInflatedSupply)
+    {
         return _totalSupply / inflationMultiplier;
     }
 
     /**
      * Returns the total (inflation corrected) token supply for the current snapshot
-     * @return The total supply snapshot divided by the inflation multiplier
+     * @return totalInflatedSupply The total supply snapshot divided by the inflation multiplier
      */
-    function totalSupplySnapshot() public view override returns (uint256) {
+    function totalSupplySnapshot()
+        public
+        view
+        override
+        returns (uint256 totalInflatedSupply)
+    {
         return super.totalSupplySnapshot() / inflationMultiplierSnapshot();
     }
 

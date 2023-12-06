@@ -38,16 +38,28 @@ contract VotingPower is Policed {
         ecoXStaking = _ecoXStakingAddr;
     }
 
-    function totalVotingPower() public view returns (uint256) {
+    /**
+     * Calculates the total Voting Power by getting the total supply of ECO
+     * and adding total ECOX (multiplied by 10) and subtracting the excluded Voting Power
+     * @return total the total Voting Power
+     */
+    function totalVotingPower() public view returns (uint256 total) {
         uint256 _supply = ecoToken.totalSupplySnapshot();
 
         return _supply + 10 * totalECOxSnapshot - excludedVotingPower;
     }
 
+    /**
+     * Calculates the voting power for an address at a specifc block
+     * @param _who the address to calculate the voting power for
+     * @param _snapshotBlock the block to use when calculating voting power
+     * @return total the total vorting power for an address at the Snapshot Block
+     */
+
     function votingPower(
         address _who,
         uint256 _snapshotBlock
-    ) public view returns (uint256) {
+    ) public view returns (uint256 total) {
         uint256 _power = ecoToken.voteBalanceSnapshot(_who);
         uint256 _powerx = ecoXStaking.votingECOx(_who, _snapshotBlock);
         // ECOx has 10x the voting power of ECO per unit

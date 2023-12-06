@@ -132,14 +132,14 @@ function _beforeTokenTransfer(address from, address to, uint256 amount) internal
 Inflation Multiplier Snapshot
 
 ```solidity
-function inflationMultiplierSnapshot() public view returns (uint256)
+function inflationMultiplierSnapshot() public view returns (uint256 inflationValueMultiplier)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | Inflation Value Muliplier at time of the Snapshot |
+| inflationValueMultiplier | uint256 | Inflation Value Muliplier at time of the Snapshot |
 
 ### getPastLinearInflation
 
@@ -147,29 +147,40 @@ wrapper for inflationMultiplierSnapshot to maintain compatability with older int
 no requires even though return value might be misleading given inability to query old snapshots just to maintain maximum compatability
 
 ```solidity
-function getPastLinearInflation(uint256) public view returns (uint256)
+function getPastLinearInflation(uint256) public view returns (uint256 pastLinearInflationMultiplier)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | Inflation Value Muliplier at time of the Snapshot |
+| pastLinearInflationMultiplier | uint256 | Inflation Value Muliplier at time of the Snapshot |
 
 ### balanceOf
 
 Access function to determine the token balance held by some address.
 
 ```solidity
-function balanceOf(address _owner) public view returns (uint256)
+function balanceOf(address _owner) public view returns (uint256 inflationBalance)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _owner | address | address of the owner of the voting balance |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| inflationBalance | uint256 | value of the owner divided by the inflation multiplier |
 
 ### voteBalanceOf
 
 Access function to determine the voting balance (includes delegation) of some address.
 
 ```solidity
-function voteBalanceOf(address _owner) public view returns (uint256)
+function voteBalanceOf(address _owner) public view returns (uint256 votingBalance)
 ```
 #### Parameters
 
@@ -181,35 +192,35 @@ function voteBalanceOf(address _owner) public view returns (uint256)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The vote balance fo the owner divided by the inflation multiplier |
+| votingBalance | uint256 | The vote balance fo the owner divided by the inflation multiplier |
 
 ### totalSupply
 
 Returns the total (inflation corrected) token supply
 
 ```solidity
-function totalSupply() public view returns (uint256)
+function totalSupply() public view returns (uint256 totalInflatedSupply)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The total supply divided by the inflation multiplier |
+| totalInflatedSupply | uint256 | The total supply divided by the inflation multiplier |
 
 ### totalSupplySnapshot
 
 Returns the total (inflation corrected) token supply for the current snapshot
 
 ```solidity
-function totalSupplySnapshot() public view returns (uint256)
+function totalSupplySnapshot() public view returns (uint256 totalInflatedSupply)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The total supply snapshot divided by the inflation multiplier |
+| totalInflatedSupply | uint256 | The total supply snapshot divided by the inflation multiplier |
 
 ### voteBalanceSnapshot
 

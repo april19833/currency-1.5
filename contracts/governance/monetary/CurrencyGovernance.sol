@@ -66,14 +66,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
 
-    // this var stores the current contract that holds the trusted nodes role
+    /// this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
-    //
+    /** enacter of the monetary policy */
     MonetaryPolicyAdapter public enacter;
 
-    // this variable tracks the start of governance
-    // it is use to track the voting cycle and stage
+    /** this variable tracks the start of governance
+     * it is used to track the voting cycle and stage
+     */
     uint256 public immutable governanceStartTime;
 
     // timescales
@@ -83,26 +84,28 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public constant CYCLE_LENGTH =
         PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 
-    // start with cycle 1000 to avoid underflow and initial value issues
+    /**  start with cycle 1000 to avoid underflow and initial value issues */
     uint256 public constant START_CYCLE = 1000;
 
     uint256 public constant IDEMPOTENT_INFLATION_MULTIPLIER = 1e18;
 
-    // max length of description field
+    /**  max length of description field */
     uint256 public constant MAX_DESCRIPTION_DATA = 160;
 
-    // max length of the targets array
-    // idk man, gotta have some kind of limit
+    /**  max length of the targets array
+     * idk man, gotta have some kind of limit
+     */
     uint256 public constant MAX_TARGETS = 10;
 
-    // mapping of proposal IDs to submitted proposals
-    // proposalId hashes include the _cycle as a parameter
+    /** mapping of proposal IDs to submitted proposals
+     * proposalId hashes include the _cycle as a parameter
+     */
     mapping(bytes32 => MonetaryPolicy) public proposals;
-    // mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
+    /**  mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again) */
     mapping(address => uint256) public trusteeSupports;
-    // mapping of trustee addresses to their most recent hash commits for voting
+    /**  mapping of trustee addresses to their most recent hash commits for voting */
     mapping(address => bytes32) public commitments;
-    // mapping proposalIds to their voting score, accumulated during reveal
+    /**  mapping proposalIds to their voting score, accumulated during reveal */
     mapping(bytes32 => uint256) public scores;
 
     /** used to track the leading proposalId during the vote totalling
@@ -115,16 +118,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    // setting the trusted nodes address to the zero address stops governance
+    /**  setting the trusted nodes address to the zero address stops governance */
     error NonZeroTrustedNodesAddr();
 
-    // setting the enacter address to the zero address stops governance
+    /** setting the enacter address to the zero address stops governance */
     error NonZeroEnacterAddr();
 
-    // For if a non-trustee address tries to access trustee role gated functionality
+    /** For if a non-trustee address tries to access trustee role gated functionality */
     error TrusteeOnlyFunction();
 
-    // For when governance calls are made before or after their time windows for their stage
+    /** For when governance calls are made before or after their time windows for their stage */
     error WrongStage();
 
     /** Early finazilation error
@@ -146,34 +149,34 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     error BadNumTargets(uint256 submittedLength);
 
-    // error for when the 3 arrays submitted for the proposal don't all have the same number of elements
+    /** error for when the 3 arrays submitted for the proposal don't all have the same number of elements */
     error ProposalActionsArrayMismatch();
 
-    // error for when a trustee is already supporting a policy and tries to propose or support another policy
+    /** error for when a trustee is already supporting a policy and tries to propose or support another policy */
     error SupportAlreadyGiven();
 
-    // error for when a trustee is not supporting a policy and tries unsupport
+    /** error for when a trustee is not supporting a policy and tries unsupport */
     error SupportNotGiven();
 
-    // error for when a proposal is submitted that's a total duplicate of an existing one
+    /** error for when a proposal is submitted that's a total duplicate of an existing one */
     error DuplicateProposal();
 
-    // error for when a proposal is supported that hasn't actually been proposed
+    /** error for when a proposal is supported that hasn't actually been proposed */
     error NoSuchProposal();
 
-    // error for when a proposal is supported that has already been supported by the msg.sender
+    /** error for when a proposal is supported that has already been supported by the msg.sender */
     error DuplicateSupport();
 
-    // error for when a reveal is submitted with no votes
+    /** error for when a reveal is submitted with no votes */
     error CannotVoteEmpty();
 
-    // error for when a trustee with a commmitment tries to abstain
+    /** error for when a trustee with a commmitment tries to abstain */
     error NoAbstainWithCommit();
 
-    // error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted
+    /** error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted */
     error NoCommitFound();
 
-    // error for when the submitted vote doesn't match the stored commit
+    /** error for when the submitted vote doesn't match the stored commit */
     error CommitMismatch();
 
     /** error for when a proposalId in a trustee's vote is not one from the current cycle or is completely invalid
@@ -192,10 +195,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     error InvalidVoteBadScore(Vote vote);
 
-    // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
+    /** error for when the scores for proposals are not monotonically increasing, accounting for support weighting */
     error InvalidVotesOutOfBounds();
 
-    // error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
+    /** error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader */
     error EnactCycleNotCurrent();
 
     //////////////////////////////////////////////
@@ -287,6 +290,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
     );
 
     /** Fired when an address choses to abstain
+     * @param voter the address of the voter
+     * @param cycle the cycle for which the voter abstained
      */
     event Abstain(address indexed voter, uint256 indexed cycle);
 
@@ -309,7 +314,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    // for functions related to proposing monetary policy
+    /**  for functions related to proposing monetary policy */
     modifier duringProposePhase() {
         if ((getTime() - governanceStartTime) % CYCLE_LENGTH >= PROPOSAL_TIME) {
             revert WrongStage();
@@ -317,7 +322,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    // for functions related to committing votes
+    /** for functions related to committing votes */
     modifier duringVotePhase() {
         uint256 governanceTime = (getTime() - governanceStartTime) %
             CYCLE_LENGTH;
@@ -331,7 +336,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    // for functions related to revealing votes
+    /** for functions related to revealing votes */
     modifier duringRevealPhase() {
         if (
             (getTime() - governanceStartTime) % CYCLE_LENGTH <
@@ -342,7 +347,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    // for finalizing the outcome of a vote
+    /** for finalizing the outcome of a vote */
     modifier cycleComplete(uint256 cycle) {
         uint256 completedCycles = START_CYCLE +
             (getTime() - governanceStartTime) /
@@ -360,6 +365,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
+     * @param _enacter the monetary policy enacter
      */
     constructor(
         Policy _policy,
@@ -407,9 +413,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** getter for timing data
      * calculates and returns the current cycle and the current stage
-     * @return TimingData type of { uint256 cycle, Stage stage }
+     * @return timingData Timin Data type of { uint256 cycle, Stage stage }
      */
-    function getCurrentStage() public view returns (TimingData memory) {
+    function getCurrentStage()
+        public
+        view
+        returns (TimingData memory timingData)
+    {
         uint256 timeDifference = getTime() - governanceStartTime;
         uint256 completedCycles = START_CYCLE + timeDifference / CYCLE_LENGTH;
         uint256 governanceTime = timeDifference % CYCLE_LENGTH;
@@ -427,14 +437,17 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * calculates and returns, used internally
      * @return cycle the index for the currently used governance recording mappings
      */
-    function getCurrentCycle() public view returns (uint256) {
+    function getCurrentCycle() public view returns (uint256 cycle) {
         return START_CYCLE + (getTime() - governanceStartTime) / CYCLE_LENGTH;
     }
 
     /** propose a monetary policy
      * this function allows trustees to submit a potential monetary policy
      * if there is already a proposed monetary policy by the trustee, this overwrites it
-     * \\param these will be done later when I change this whole function
+     * @param targets array of target addresses
+     * @param signatures array of signatures
+     * @param calldatas array of calldata
+     * @param description descrption of the monetary policy
      */
     function propose(
         address[] calldata targets,

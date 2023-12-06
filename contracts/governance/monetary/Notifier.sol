@@ -8,6 +8,7 @@ import "../../policy/Policed.sol";
  * @title Notifier
  * @notice This contract notifies downstream contracts of actions taken by the attached monetary policy
  * levers.
+ *
  * Calls made to these downstream contracts are non-atomic with the lever actions themselves,
  * allowing the levers to operate as expected even if the notifier calls fail.
  */

@@ -346,10 +346,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      *
      * **Security Notes**
      *
-     * * Can only be called during the proposing period.
-     * * Requires creating an allowance for payment to call to prevent abuse.
-     * * You cannot propose the 0 address.
-     * * A proposal can only be registered once, regardless of proposer.
+     * - Can only be called during the proposing period.
+     * - Requires creating an allowance for payment to call to prevent abuse.
+     * - You cannot propose the 0 address.
+     * - A proposal can only be registered once, regardless of proposer.
      *
      *
      * @param _proposal the address of the deployed proposal

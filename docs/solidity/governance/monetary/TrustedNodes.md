@@ -206,6 +206,12 @@ function getLastWithdrawal(address trustee) internal view returns (uint256 time)
 | ---- | ---- | ----------- |
 | trustee | address | the trustee whose last withdrawal date is being fetched |
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| time | uint256 | the date of a trustee's last withdrawal |
+
 ### updateCurrencyGovernance
 
 Changes the holder currencyGovernance role
@@ -311,6 +317,12 @@ returns the amount of tokens that are currently withdrawable
 function currentlyWithdrawable() public view returns (uint256 amount)
 ```
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| amount | uint256 | the amount of tokens that are currently withdrawable |
+
 ### calculateWithdrawal
 
 helper for withdraw
@@ -318,6 +330,17 @@ helper for withdraw
 ```solidity
 function calculateWithdrawal(address withdrawer) internal view returns (uint256 amount)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawer | address | the addres fo the withdrawer |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| amount | uint256 | the amount of withdrawals for the withdrawer |
 
 ### fullyVested
 
@@ -327,6 +350,13 @@ which they will be able to withdraw upon vesting
 ```solidity
 function fullyVested() public view returns (uint256 amount, uint256 timestamp)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| amount | uint256 | the amount of tokens the message sender will be entitled to when fully vested |
+| timestamp | uint256 | the timestamp when the message sender will be fully vested |
 
 ### sweep
 

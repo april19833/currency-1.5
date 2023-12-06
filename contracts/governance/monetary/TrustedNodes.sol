@@ -119,6 +119,7 @@ contract TrustedNodes is Policed, TimeUtils {
 
     /** Fetches the date of a trustee's last withdrawal
      * @param trustee the trustee whose last withdrawal date is being fetched
+     * @return time the date of a trustee's last withdrawal
      */
     function getLastWithdrawal(
         address trustee
@@ -220,12 +221,15 @@ contract TrustedNodes is Policed, TimeUtils {
     }
 
     /** returns the amount of tokens that are currently withdrawable
+     * @return amount  the amount of tokens that are currently withdrawable
      */
     function currentlyWithdrawable() public view returns (uint256 amount) {
         return voteReward * calculateWithdrawal(msg.sender);
     }
 
     /** helper for withdraw
+     * @param withdrawer the addres fo the withdrawer
+     * @return amount the amount of withdrawals for the withdrawer
      */
     function calculateWithdrawal(
         address withdrawer
@@ -245,6 +249,8 @@ contract TrustedNodes is Policed, TimeUtils {
 
     /** returns the number of tokens the sender is currently entitled to
      * which they will be able to withdraw upon vesting
+     * @return amount the amount of tokens the message sender will be entitled to when fully vested
+     * @return timestamp the timestamp when the message sender will be fully vested
      */
     function fullyVested()
         public

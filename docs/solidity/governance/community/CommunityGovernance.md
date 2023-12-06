@@ -484,10 +484,10 @@ Registering a proposal requires a deposit of 1000 ECO (COST_REGISTER), which is 
 
 **Security Notes**
 
-* Can only be called during the proposing period.
-* Requires creating an allowance for payment to call to prevent abuse.
-* You cannot propose the 0 address.
-* A proposal can only be registered once, regardless of proposer.
+- Can only be called during the proposing period.
+- Requires creating an allowance for payment to call to prevent abuse.
+- You cannot propose the 0 address.
+- A proposal can only be registered once, regardless of proposer.
 
 ```solidity
 function propose(contract Proposal _proposal) public

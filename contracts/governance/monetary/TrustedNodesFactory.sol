@@ -31,12 +31,13 @@ contract TrustedNodesFactory is Policed, TimeUtils {
      * @param _termLength the length of term for trustees in the new cohort
      * @param _voteReward the reward earned by each trustee each time they participate in voting
      * @param _newTrustees the new cohort of trustees
+     * @return TrustedNodesAddress the address of the new TrustedNodes contract
      */
     function newCohort(
         uint256 _termLength,
         uint256 _voteReward,
         address[] calldata _newTrustees
-    ) public onlyPolicy returns (address) {
+    ) public onlyPolicy returns (address TrustedNodesAddress) {
         TrustedNodes trustedNodes = new TrustedNodes(
             policy,
             currencyGovernance,

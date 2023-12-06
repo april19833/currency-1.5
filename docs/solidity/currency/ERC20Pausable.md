@@ -64,7 +64,11 @@ function _beforeTokenTransfer(address from, address to, uint256 amount) internal
 ### pause
 
 pauses transfers of this token
-only callable by the pauser
+
+Security Notes
+
+- only callable by the pause
+- reverts if already paused
 
 ```solidity
 function pause() external
@@ -74,6 +78,11 @@ function pause() external
 
 unpauses transfers of this token
 only callable by the pauser
+
+Security Notes
+
+- only callable by the pause
+- reverts if already unpaused
 
 ```solidity
 function unpause() external

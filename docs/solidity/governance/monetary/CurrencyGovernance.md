@@ -53,17 +53,24 @@ enum Stage {
 
 ### trustedNodes
 
+this var stores the current contract that holds the trusted nodes role
+
 ```solidity
 contract TrustedNodes trustedNodes
 ```
 
 ### enacter
 
+enacter of the monetary policy
+
 ```solidity
 contract MonetaryPolicyAdapter enacter
 ```
 
 ### governanceStartTime
+
+this variable tracks the start of governance
+it is used to track the voting cycle and stage
 
 ```solidity
 uint256 governanceStartTime
@@ -95,6 +102,8 @@ uint256 CYCLE_LENGTH
 
 ### START_CYCLE
 
+start with cycle 1000 to avoid underflow and initial value issues
+
 ```solidity
 uint256 START_CYCLE
 ```
@@ -107,11 +116,16 @@ uint256 IDEMPOTENT_INFLATION_MULTIPLIER
 
 ### MAX_DESCRIPTION_DATA
 
+max length of description field
+
 ```solidity
 uint256 MAX_DESCRIPTION_DATA
 ```
 
 ### MAX_TARGETS
+
+max length of the targets array
+idk man, gotta have some kind of limit
 
 ```solidity
 uint256 MAX_TARGETS
@@ -119,11 +133,16 @@ uint256 MAX_TARGETS
 
 ### proposals
 
+mapping of proposal IDs to submitted proposals
+proposalId hashes include the _cycle as a parameter
+
 ```solidity
 mapping(bytes32 => struct CurrencyGovernance.MonetaryPolicy) proposals
 ```
 
 ### trusteeSupports
+
+mapping of trustee addresses to cycle number to track if they have supported (and can therefore not support again)
 
 ```solidity
 mapping(address => uint256) trusteeSupports
@@ -131,11 +150,15 @@ mapping(address => uint256) trusteeSupports
 
 ### commitments
 
+mapping of trustee addresses to their most recent hash commits for voting
+
 ```solidity
 mapping(address => bytes32) commitments
 ```
 
 ### scores
+
+mapping proposalIds to their voting score, accumulated during reveal
 
 ```solidity
 mapping(bytes32 => uint256) scores
@@ -153,11 +176,15 @@ bytes32 leader
 
 ### NonZeroTrustedNodesAddr
 
+setting the trusted nodes address to the zero address stops governance
+
 ```solidity
 error NonZeroTrustedNodesAddr()
 ```
 
 ### NonZeroEnacterAddr
+
+setting the enacter address to the zero address stops governance
 
 ```solidity
 error NonZeroEnacterAddr()
@@ -165,11 +192,15 @@ error NonZeroEnacterAddr()
 
 ### TrusteeOnlyFunction
 
+For if a non-trustee address tries to access trustee role gated functionality
+
 ```solidity
 error TrusteeOnlyFunction()
 ```
 
 ### WrongStage
+
+For when governance calls are made before or after their time windows for their stage
 
 ```solidity
 error WrongStage()
@@ -220,11 +251,15 @@ error BadNumTargets(uint256 submittedLength)
 
 ### ProposalActionsArrayMismatch
 
+error for when the 3 arrays submitted for the proposal don't all have the same number of elements
+
 ```solidity
 error ProposalActionsArrayMismatch()
 ```
 
 ### SupportAlreadyGiven
+
+error for when a trustee is already supporting a policy and tries to propose or support another policy
 
 ```solidity
 error SupportAlreadyGiven()
@@ -232,11 +267,15 @@ error SupportAlreadyGiven()
 
 ### SupportNotGiven
 
+error for when a trustee is not supporting a policy and tries unsupport
+
 ```solidity
 error SupportNotGiven()
 ```
 
 ### DuplicateProposal
+
+error for when a proposal is submitted that's a total duplicate of an existing one
 
 ```solidity
 error DuplicateProposal()
@@ -244,11 +283,15 @@ error DuplicateProposal()
 
 ### NoSuchProposal
 
+error for when a proposal is supported that hasn't actually been proposed
+
 ```solidity
 error NoSuchProposal()
 ```
 
 ### DuplicateSupport
+
+error for when a proposal is supported that has already been supported by the msg.sender
 
 ```solidity
 error DuplicateSupport()
@@ -256,11 +299,15 @@ error DuplicateSupport()
 
 ### CannotVoteEmpty
 
+error for when a reveal is submitted with no votes
+
 ```solidity
 error CannotVoteEmpty()
 ```
 
 ### NoAbstainWithCommit
+
+error for when a trustee with a commmitment tries to abstain
 
 ```solidity
 error NoAbstainWithCommit()
@@ -268,11 +315,15 @@ error NoAbstainWithCommit()
 
 ### NoCommitFound
 
+error for when a reveal is submitted for an empty commitment, usually the sign of no commit being submitted
+
 ```solidity
 error NoCommitFound()
 ```
 
 ### CommitMismatch
+
+error for when the submitted vote doesn't match the stored commit
 
 ```solidity
 error CommitMismatch()
@@ -320,11 +371,15 @@ error InvalidVoteBadScore(struct CurrencyGovernance.Vote vote)
 
 ### InvalidVotesOutOfBounds
 
+error for when the scores for proposals are not monotonically increasing, accounting for support weighting
+
 ```solidity
 error InvalidVotesOutOfBounds()
 ```
 
 ### EnactCycleNotCurrent
+
+error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
 
 ```solidity
 error EnactCycleNotCurrent()
@@ -459,6 +514,12 @@ Fired when an address choses to abstain
 ```solidity
 event Abstain(address voter, uint256 cycle)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| voter | address | the address of the voter |
+| cycle | uint256 | the cycle for which the voter abstained |
 
 ### VoteResult
 
@@ -484,11 +545,15 @@ modifier onlyTrusted()
 
 ### duringProposePhase
 
+for functions related to proposing monetary policy
+
 ```solidity
 modifier duringProposePhase()
 ```
 
 ### duringVotePhase
+
+for functions related to committing votes
 
 ```solidity
 modifier duringVotePhase()
@@ -496,11 +561,15 @@ modifier duringVotePhase()
 
 ### duringRevealPhase
 
+for functions related to revealing votes
+
 ```solidity
 modifier duringRevealPhase()
 ```
 
 ### cycleComplete
+
+for finalizing the outcome of a vote
 
 ```solidity
 modifier cycleComplete(uint256 cycle)
@@ -518,7 +587,7 @@ constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter) pu
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _policy | contract Policy | the owning policy address for the contract |
-| _enacter | contract MonetaryPolicyAdapter |  |
+| _enacter | contract MonetaryPolicyAdapter | the monetary policy enacter |
 
 ### setTrustedNodes
 
@@ -566,14 +635,14 @@ getter for timing data
 calculates and returns the current cycle and the current stage
 
 ```solidity
-function getCurrentStage() public view returns (struct CurrencyGovernance.TimingData)
+function getCurrentStage() public view returns (struct CurrencyGovernance.TimingData timingData)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct CurrencyGovernance.TimingData | TimingData type of { uint256 cycle, Stage stage } |
+| timingData | struct CurrencyGovernance.TimingData | Timin Data type of { uint256 cycle, Stage stage } |
 
 ### getCurrentCycle
 
@@ -581,25 +650,32 @@ getter for just the current cycle
 calculates and returns, used internally
 
 ```solidity
-function getCurrentCycle() public view returns (uint256)
+function getCurrentCycle() public view returns (uint256 cycle)
 ```
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | cycle the index for the currently used governance recording mappings |
+| cycle | uint256 | the index for the currently used governance recording mappings |
 
 ### propose
 
 propose a monetary policy
 this function allows trustees to submit a potential monetary policy
 if there is already a proposed monetary policy by the trustee, this overwrites it
-\\param these will be done later when I change this whole function
 
 ```solidity
 function propose(address[] targets, bytes4[] signatures, bytes[] calldatas, string description) external
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| targets | address[] | array of target addresses |
+| signatures | bytes4[] | array of signatures |
+| calldatas | bytes[] | array of calldata |
+| description | string | descrption of the monetary policy |
 
 ### canSupport
 

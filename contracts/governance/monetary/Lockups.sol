@@ -72,9 +72,9 @@ contract Lockups is Lever, TimeUtils {
     error BadDuration();
 
     /** withdrawFor called before lockup end
-     * @param lockupId: ID of lockup from which withdrawal was attempted
-     * @param withdrawer: address that called withdrawFor
-     * @param recipient: address on whose behalf withdrawFor was called
+     * @param lockupId ID of lockup from which withdrawal was attempted
+     * @param withdrawer address that called withdrawFor
+     * @param recipient address on whose behalf withdrawFor was called
      */
     error EarlyWithdrawFor(
         uint256 lockupId,
@@ -83,22 +83,22 @@ contract Lockups is Lever, TimeUtils {
     );
 
     /** attempted deposit after deposit window has closed
-     * @param lockupId: ID of lockup to which deposit was attempted
-     * @param depositor: address that tried to deposit
+     * @param lockupId ID of lockup to which deposit was attempted
+     * @param depositor address that tried to deposit
      */
     error LateDeposit(uint256 lockupId, address depositor);
 
     /** lockup created
-     * @param lockupId: ID of lockup
-     * @param duration: duration of lockup
-     * @param rate: yield rate of lockup at creation
+     * @param lockupId ID of lockup
+     * @param duration duration of lockup
+     * @param rate yield rate of lockup at creation
      */
     event LockupCreation(uint256 lockupId, uint256 duration, uint256 rate);
 
     /** deposit made to lockup
-     * @param lockupId: ID of lockup
-     * @param depositor: address whose ECO were deposited
-     * @param gonsDepositAmount: amount in gons that was deposited to lockup
+     * @param lockupId ID of lockup
+     * @param depositor address whose ECO were deposited
+     * @param gonsDepositAmount amount in gons that was deposited to lockup
      */
     event LockupDeposit(
         uint256 lockupId,
@@ -107,9 +107,9 @@ contract Lockups is Lever, TimeUtils {
     );
 
     /** withdrawal made from lockup
-     * @param lockupId: ID of lockup
-     * @param recipient: address receiving withdrawal
-     * @param gonsWithdrawnAmount: amount in gons that was withdrawn
+     * @param lockupId ID of lockup
+     * @param recipient address receiving withdrawal
+     * @param gonsWithdrawnAmount amount in gons that was withdrawn
      */
     event LockupWithdrawal(
         uint256 lockupId,
@@ -325,8 +325,11 @@ contract Lockups is Lever, TimeUtils {
         penalties = 0;
     }
 
-    // updates currentInflationMultiplier
-    // add this to the rebase notifier
+    /**
+     * updates currentInflationMultiplier
+     *
+     * this function needs to be called each time the currency rebases to keep the inflation multiplier current for the lockup
+     */
     function updateInflationMultiplier() external {
         currentInflationMultiplier = eco.inflationMultiplier();
     }

@@ -24,21 +24,24 @@ interface IECO is IERC20 {
     /**
      * Returns the votes for the current snapshot
      * @param account the address whose vote balance to check
-     * @return the balance of the account at the time of the Snapshot
+     * @return balance the balance of the account at the time of the Snapshot
      */
     function voteBalanceSnapshot(
         address account
-    ) external view returns (uint256);
+    ) external view returns (uint256 balance);
 
     /**
      * Returns the inflation multiplier value for the current snapshot
-     * @return inflation multipler value
+     * @return multiplier inflation multipler value
      */
-    function inflationMultiplierSnapshot() external view returns (uint256);
+    function inflationMultiplierSnapshot()
+        external
+        view
+        returns (uint256 multiplier);
 
     /**
      *  Returns the total supply for the current snapshot
-     * @return total supply of the current snapshot
+     * @return total total supply of the current snapshot
      */
-    function totalSupplySnapshot() external view returns (uint256);
+    function totalSupplySnapshot() external view returns (uint256 total);
 }
