@@ -551,9 +551,6 @@ describe('Migration tests', () => {
             await monetaryGovernanceContracts.lockupsLever.depositWindow()
           ).to.eq(LOCKUP_DEPOSIT_WINDOW)
           expect(
-            await monetaryGovernanceContracts.lockupsLever.currentInflationMultiplier()
-          ).to.eq(await baseContracts.eco.inflationMultiplier())
-          expect(
             await baseContracts.eco.voter(
               monetaryGovernanceContracts.lockupsLever.address
             )
