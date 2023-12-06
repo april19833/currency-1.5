@@ -13,6 +13,7 @@ import {
   UpdateECOxExchangeProposal__factory,
   UpdateTokenPauserProposal__factory,
   UpdateGovernancePauserProposal__factory,
+  SweepGovernanceFeesProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 
@@ -287,5 +288,26 @@ describe('Policy Integration Tests', () => {
     ])
     await passProposal(proposal1)
     expect(await contracts.community.communityGovernance.pauser()).to.eq(bob.address)
+  })
+
+  it('sweep governance fees', async () => {
+    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(0)
+    const proposal1 = await deploy(alice, SweepGovernanceFeesProposal__factory, [
+      contracts.community.communityGovernance.address,
+      bob.address,
+    ])
+    // seed the pot with fees
+    await contracts.base.eco
+      .connect(alice)
+      .approve(
+        contracts.community.communityGovernance.address,
+        await contracts.community.communityGovernance.proposalFee()
+      )
+    await contracts.community.communityGovernance
+      .connect(alice)
+      .propose(bob.address) // non-sense value but it doesn't matter
+    
+    await passProposal(proposal1)
+    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq((await contracts.community.communityGovernance.proposalFee()).sub(await contracts.community.communityGovernance.feeRefund()))
   })
 })

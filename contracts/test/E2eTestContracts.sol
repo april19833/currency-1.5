@@ -254,3 +254,37 @@ contract UpdateGovernancePauserProposal is Policy, Proposal {
         governance.setPauser(newPauser);
     }
 }
+
+/** @title governance fee sweep proposal
+ *
+ * A proposal used for sweeping the fees collected by the community governance contract to an address
+ */
+contract SweepGovernanceFeesProposal is Policy, Proposal {
+    CommunityGovernance public immutable governance;
+
+    address public immutable destination;
+
+    constructor(
+        CommunityGovernance _governance,
+        address _destination
+    ) Policy(address(0x0)) {
+        governance = _governance;
+        destination = _destination;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "governance fee sweep proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "sweep the fees from governance to an address";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        governance.sweep(destination);
+    }
+}
