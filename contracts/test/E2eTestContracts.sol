@@ -524,3 +524,37 @@ contract SweepLockupPenaltiesProposal is Policy, Proposal {
         lockups.sweep(destination);
     }
 }
+
+/** @title truested nodes new governance proposal
+ *
+ * A proposal used to change the governance contract for the trusted nodes contract
+ */
+contract UpdateTrustedNodesGovernanceProposal is Policy, Proposal {
+    TrustedNodes public immutable trustedNodes;
+
+    CurrencyGovernance public immutable newGovernance;
+
+    constructor(
+        TrustedNodes _trustedNodes,
+        CurrencyGovernance _newGovernance
+    ) Policy(address(0x0)) {
+        trustedNodes = _trustedNodes;
+        newGovernance = _newGovernance;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "truested nodes new governance proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the governance contract for the trusted nodes contract";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        trustedNodes.updateCurrencyGovernance(newGovernance);
+    }
+}

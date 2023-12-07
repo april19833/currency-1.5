@@ -21,6 +21,7 @@ import {
   UpdateLeverAuthorizedProposal__factory,
   UpdateNotifierLeverProposal__factory,
   SweepLockupPenaltiesProposal__factory,
+  UpdateTrustedNodesGovernanceProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 
@@ -564,6 +565,21 @@ describe('Policy E2E Tests', () => {
     await passProposal(proposal1)
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(
       lockupAmount.div(2)
+    )
+  })
+
+  it('change trusted nodes governance contract', async () => {
+    expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
+      contracts.monetary.monetaryGovernance.address
+    )
+    const proposal1 = await deploy(
+      alice,
+      UpdateTrustedNodesGovernanceProposal__factory,
+      [contracts.monetary.trustedNodes.address, bob.address]
+    )
+    await passProposal(proposal1)
+    expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
+      bob.address
     )
   })
 })
