@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../governance/community/proposals/Proposal.sol";
 import "../governance/community/CommunityGovernance.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
-import "../governance/monetary/Lever.sol";
+import "../governance/monetary/Lockups.sol";
 import "../policy/Policy.sol";
 import "../currency/ECO.sol";
 import "../currency/ECOx.sol";
@@ -493,3 +493,33 @@ contract UpdateNotifierLeverProposal is Policy, Proposal {
     }
 }
 
+/** @title lockups sweep penalties proposal
+ *
+ * A proposal used to sweep the penalties accrued in the lockups contract to an address
+ */
+contract SweepLockupPenaltiesProposal is Policy, Proposal {
+    Lockups public immutable lockups;
+
+    address public immutable destination;
+
+    constructor(Lockups _lockups, address _destination) Policy(address(0x0)) {
+        lockups = _lockups;
+        destination = _destination;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "lockups sweep penalties proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "sweep the penalties accrued in the lockups contract to an address";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        lockups.sweep(destination);
+    }
+}
