@@ -568,7 +568,10 @@ contract SweepTrustedNodesProposal is Policy, Proposal {
 
     address public immutable destination;
 
-    constructor(TrustedNodes _trustedNodes, address _destination) Policy(address(0x0)) {
+    constructor(
+        TrustedNodes _trustedNodes,
+        address _destination
+    ) Policy(address(0x0)) {
         trustedNodes = _trustedNodes;
         destination = _destination;
     }
@@ -590,4 +593,3 @@ contract SweepTrustedNodesProposal is Policy, Proposal {
         trustedNodes.sweep(destination);
     }
 }
-
