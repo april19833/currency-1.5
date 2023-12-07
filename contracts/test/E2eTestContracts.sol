@@ -461,3 +461,35 @@ contract UpdateLeverAuthorizedProposal is Policy, Proposal {
         lever.setAuthorized(authorized, permission);
     }
 }
+
+/** @title notifier new lever proposal
+ *
+ * A proposal used to change the lever contract for a notifier
+ */
+contract UpdateNotifierLeverProposal is Policy, Proposal {
+    Notifier public immutable notifier;
+
+    address public immutable newLever;
+
+    constructor(Notifier _notifier, address _newLever) Policy(address(0x0)) {
+        notifier = _notifier;
+        newLever = _newLever;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "notifier new lever proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return "change the lever contract for a notifier";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        notifier.changeLever(newLever);
+    }
+}
+

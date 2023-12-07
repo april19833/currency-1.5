@@ -19,6 +19,7 @@ import {
   UpdateAdapterGovernanceProposal__factory,
   UpdateLeverNotifierProposal__factory,
   UpdateLeverAuthorizedProposal__factory,
+  UpdateNotifierLeverProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 
@@ -456,4 +457,29 @@ describe('Policy E2E Tests', () => {
       )
     ).to.be.false
   })
+
+  it('change notifier lever contract', async () => {
+    expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(
+      contracts.monetary.lockupsLever.address
+    )
+    const proposal1 = await deploy(
+      alice,
+      UpdateNotifierLeverProposal__factory,
+      [contracts.monetary.lockupsNotifier.address, bob.address]
+    )
+    await passProposal(proposal1)
+    expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(bob.address)
+  
+    expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
+      contracts.monetary.rebaseNotifier.address
+    )
+    const proposal2 = await deploy(
+      alice,
+      UpdateNotifierLeverProposal__factory,
+      [contracts.monetary.rebaseNotifier.address, bob.address]
+    )
+    await passProposal(proposal2)
+    expect(await contracts.monetary.rebaseNotifier.lever()).to.eq(bob.address)
+  })
+  
 })
