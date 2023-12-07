@@ -558,3 +558,36 @@ contract UpdateTrustedNodesGovernanceProposal is Policy, Proposal {
         trustedNodes.updateCurrencyGovernance(newGovernance);
     }
 }
+
+/** @title trusted nodes sweep ecox proposal
+ *
+ * A proposal used to sweep the ecox accrued in the trusted nodes contract to an address
+ */
+contract SweepTrustedNodesProposal is Policy, Proposal {
+    TrustedNodes public immutable trustedNodes;
+
+    address public immutable destination;
+
+    constructor(TrustedNodes _trustedNodes, address _destination) Policy(address(0x0)) {
+        trustedNodes = _trustedNodes;
+        destination = _destination;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "trusted nodes sweep ecox proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return
+            "sweep the ecox accrued in the trusted nodes contract to an address";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        trustedNodes.sweep(destination);
+    }
+}
+

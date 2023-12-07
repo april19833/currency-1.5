@@ -22,12 +22,13 @@ import {
   UpdateNotifierLeverProposal__factory,
   SweepLockupPenaltiesProposal__factory,
   UpdateTrustedNodesGovernanceProposal__factory,
+  SweepTrustedNodesProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe('Policy E2E Tests', () => {
+describe.only('Policy E2E Tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -581,5 +582,19 @@ describe('Policy E2E Tests', () => {
     expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
       bob.address
     )
+  })
+
+  it('sweep trusted nodes ecox', async () => {
+    const sweepAmount = 1000
+    await contracts.base.ecox.connect(alice).transfer(contracts.monetary.trustedNodes.address, sweepAmount)
+    expect(await contracts.base.ecox.balanceOf(contracts.monetary.trustedNodes.address)).to.eq(sweepAmount)
+    const proposal1 = await deploy(
+      alice,
+      SweepTrustedNodesProposal__factory,
+      [contracts.monetary.trustedNodes.address, bob.address]
+    )
+    await passProposal(proposal1)
+    expect(await contracts.base.ecox.balanceOf(contracts.monetary.trustedNodes.address)).to.eq(0)
+    expect(await contracts.base.ecox.balanceOf(bob.address)).to.eq(sweepAmount)
   })
 })
