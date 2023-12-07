@@ -470,7 +470,7 @@ describe('Policy E2E Tests', () => {
     )
     await passProposal(proposal1)
     expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(bob.address)
-  
+
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
       contracts.monetary.rebaseNotifier.address
     )
@@ -485,27 +485,35 @@ describe('Policy E2E Tests', () => {
 
   it('sweep lockup test', async () => {
     // propose the monetary policy with the lockup
-    const tx = await contracts.monetary.monetaryGovernance.connect(bob).propose(
-      [contracts.monetary.lockupsLever.address],
-      [contracts.monetary.lockupsLever.interface.getSighash('createLockup')],
-      [
-        `0x${contracts.monetary.lockupsLever.interface.encodeFunctionData('createLockup', [
-          await contracts.monetary.lockupsLever.MIN_DURATION(),
-          await contracts.monetary.lockupsLever.MAX_RATE()
-        ]).slice(10)}`
-      ],
-      'aoeu',
-    )
+    const tx = await contracts.monetary.monetaryGovernance
+      .connect(bob)
+      .propose(
+        [contracts.monetary.lockupsLever.address],
+        [contracts.monetary.lockupsLever.interface.getSighash('createLockup')],
+        [
+          `0x${contracts.monetary.lockupsLever.interface
+            .encodeFunctionData('createLockup', [
+              await contracts.monetary.lockupsLever.MIN_DURATION(),
+              await contracts.monetary.lockupsLever.MAX_RATE(),
+            ])
+            .slice(10)}`,
+        ],
+        'aoeu'
+      )
     // get proposalId from event cuz it's easier
     const receipt = await tx.wait()
-    const proposalId = receipt.events?.find(e => e.event === 'ProposalCreation')?.args?.id
+    const proposalId = receipt.events?.find(
+      (e) => e.event === 'ProposalCreation'
+    )?.args?.id
     // move to next stage
-    await time.increase(await contracts.monetary.monetaryGovernance.PROPOSAL_TIME())
+    await time.increase(
+      await contracts.monetary.monetaryGovernance.PROPOSAL_TIME()
+    )
     // need cycle number
     const cycle = await contracts.monetary.monetaryGovernance.getCurrentCycle()
     // build commit hash
-    const salt = '0x'+'00'.repeat(32)
-    const vote = [{proposalId, score: 1}]
+    const salt = '0x' + '00'.repeat(32)
+    const vote = [{ proposalId, score: 1 }]
     const commit = ethers.utils.keccak256(
       ethers.utils.defaultAbiCoder.encode(
         [
@@ -514,42 +522,48 @@ describe('Policy E2E Tests', () => {
           'address',
           '(bytes32 proposalId, uint256 score)[]',
         ],
-        [
-          salt,
-          cycle,
-          bob.address,
-          vote
-        ]
+        [salt, cycle, bob.address, vote]
       )
     )
     // vote proposal through
     await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
     // next stage
-    await time.increase(await contracts.monetary.monetaryGovernance.VOTING_TIME())
+    await time.increase(
+      await contracts.monetary.monetaryGovernance.VOTING_TIME()
+    )
     // reveal proposal
-    await contracts.monetary.monetaryGovernance.reveal(bob.address,salt,vote)
+    await contracts.monetary.monetaryGovernance.reveal(bob.address, salt, vote)
     // next stage
-    await time.increase(await contracts.monetary.monetaryGovernance.REVEAL_TIME())
+    await time.increase(
+      await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+    )
     // execute proposal
     await contracts.monetary.monetaryGovernance.enact(cycle)
-    
+
     // lockup now available
 
     // deposit into lockup
     const lockupAmount = ethers.utils.parseUnits('300', 'ether')
-    await contracts.base.eco.connect(alice).approve(contracts.monetary.lockupsLever.address, lockupAmount)
-    await contracts.monetary.lockupsLever.connect(alice).deposit(0, lockupAmount)
+    await contracts.base.eco
+      .connect(alice)
+      .approve(contracts.monetary.lockupsLever.address, lockupAmount)
+    await contracts.monetary.lockupsLever
+      .connect(alice)
+      .deposit(0, lockupAmount)
     // withdraw early
     await contracts.monetary.lockupsLever.connect(alice).withdraw(0)
 
-    expect(await contracts.monetary.lockupsLever.penalties()).to.eq(lockupAmount.div(2).mul(ethers.utils.parseUnits('1', 'ether')))
+    expect(await contracts.monetary.lockupsLever.penalties()).to.eq(
+      lockupAmount.div(2).mul(ethers.utils.parseUnits('1', 'ether'))
+    )
     const proposal1 = await deploy(
       alice,
       SweepLockupPenaltiesProposal__factory,
       [contracts.monetary.lockupsLever.address, bob.address]
     )
     await passProposal(proposal1)
-    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(lockupAmount.div(2))
+    expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(
+      lockupAmount.div(2)
+    )
   })
-  
 })

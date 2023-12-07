@@ -512,7 +512,8 @@ contract SweepLockupPenaltiesProposal is Policy, Proposal {
     }
 
     function description() public pure override returns (string memory) {
-        return "sweep the penalties accrued in the lockups contract to an address";
+        return
+            "sweep the penalties accrued in the lockups contract to an address";
     }
 
     function url() public pure override returns (string memory) {
