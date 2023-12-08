@@ -1,8 +1,9 @@
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 // import { expect } from 'chai'
-import { Policy__factory, Policy } from '../../../typechain-types'
 import { deployProxy } from '../../../deploy/utils'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { Policy__factory } from '../../../typechain-types/factories/contracts/policy'
 
 describe('Policy Integration Tests', () => {
   let alice: SignerWithAddress
