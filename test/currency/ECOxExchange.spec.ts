@@ -7,18 +7,20 @@ import {
   MockContractFactory,
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { BigNumber } from 'ethers'
+import { BigDecimal, RoundingMode } from 'bigdecimal'
+import { deploy } from '../../deploy/utils'
 import {
   ECO,
   ECOx,
   ECOxExchange,
+} from '../../typechain-types/contracts/currency'
+import { Policy } from '../../typechain-types/contracts/policy'
+import {
+  ECO__factory,
   ECOxExchange__factory,
   ECOx__factory,
-  ECO__factory,
-  Policy,
-} from '../../typechain-types'
-import { BigNumber } from 'ethers'
-import { BigDecimal, RoundingMode } from 'bigdecimal'
-import { deploy } from '../../deploy/utils'
+} from '../../typechain-types/factories/contracts/currency'
 
 const INITIAL_SUPPLY = ethers.utils.parseEther('100')
 
@@ -60,19 +62,19 @@ describe('ECOxExchange', () => {
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
+      'contracts/currency/ECO.sol:ECO'
     )
     eco = await ecoFactory.deploy(
       Fake__Policy.address,
       pauser.address // initial pauser
     )
     const ecoXFactory: MockContractFactory<ECOx__factory> = await smock.mock(
-      'ECOx'
+      'contracts/currency/ECOx.sol:ECOx'
     )
 
     ECOx = await ecoXFactory.deploy(

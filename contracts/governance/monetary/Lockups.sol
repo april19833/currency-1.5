@@ -317,7 +317,8 @@ contract Lockups is Lever, TimeUtils {
      * @param _destination the address that will receive
      */
     function sweep(address _destination) external onlyPolicy {
-        eco.transfer(_destination, penalties / eco.inflationMultiplier());
+        uint256 amount = penalties;
         penalties = 0;
+        eco.transfer(_destination, amount / eco.inflationMultiplier());
     }
 }

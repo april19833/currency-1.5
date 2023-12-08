@@ -11,14 +11,12 @@ import {
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
-import {
-  Lockups,
-  Policy,
-  ECO,
-  ECO__factory,
-  Lockups__factory,
-} from '../../../typechain-types'
 import { deploy } from '../../../deploy/utils'
+import { ECO } from '../../../typechain-types/contracts/currency'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { Lockups } from '../../../typechain-types/contracts/governance/monetary'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import { Lockups__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
@@ -60,12 +58,12 @@ describe('Lockups', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
+      'contracts/currency/ECO.sol:ECO'
     )
     eco = await ecoFactory.deploy(
       policy.address,

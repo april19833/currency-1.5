@@ -3,12 +3,10 @@ import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ERRORS } from '../utils/errors'
-import {
-  DummyPoliced,
-  DummyPoliced__factory,
-  Policy,
-} from '../../typechain-types'
 import { deploy } from '../../deploy/utils'
+import { Policy } from '../../typechain-types/contracts/policy'
+import { DummyPoliced } from '../../typechain-types/contracts/test'
+import { DummyPoliced__factory } from '../../typechain-types/factories/contracts/test'
 
 describe('Policed', () => {
   let alice: SignerWithAddress
@@ -21,7 +19,7 @@ describe('Policed', () => {
   let Fake__Policy: FakeContract<Policy>
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
     )
 

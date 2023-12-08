@@ -10,18 +10,20 @@ import {
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../../utils/errors'
+import { deploy } from '../../../deploy/utils'
 import {
-  Notifier,
-  Policy,
-  Rebase,
   Notifier__factory,
   Rebase__factory,
-  DummyDownstream,
-  DummyDownstream__factory,
-  ECO,
-  ECO__factory,
-} from '../../../typechain-types'
-import { deploy } from '../../../deploy/utils'
+} from '../../../typechain-types/factories/contracts/governance/monetary'
+import {
+  Notifier,
+  Rebase,
+} from '../../../typechain-types/contracts/governance/monetary'
+import { DummyDownstream } from '../../../typechain-types/contracts/test'
+import { ECO } from '../../../typechain-types/contracts/currency'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import { DummyDownstream__factory } from '../../../typechain-types/factories/contracts/test'
 
 describe('notifier', () => {
   let policyImpersonator: SignerWithAddress
@@ -48,22 +50,22 @@ describe('notifier', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
+      'contracts/currency/ECO.sol:ECO'
     )
     eco = await ecoFactory.deploy(
       policy.address,
       policy.address // initial pauser
     )
     const downstreamFactory: MockContractFactory<DummyDownstream__factory> =
-      await smock.mock('DummyDownstream')
+      await smock.mock('contracts/test/DummyDownstream.sol:DummyDownstream')
     downstream = await downstreamFactory.deploy()
     const rebaseFactory: MockContractFactory<Rebase__factory> =
-      await smock.mock('Rebase')
+      await smock.mock('contracts/governance/monetary/Rebase.sol:Rebase')
     rebase = await rebaseFactory
       .connect(policyImpersonator)
       .deploy(policy.address, eco.address)
