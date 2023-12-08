@@ -10,7 +10,7 @@ import {
 } from '../../typechain-types'
 import { deploy, deployProxy } from '../../deploy/utils'
 
-describe('Policed', () => {
+describe('PolicedUpgradeable', () => {
   let alice: SignerWithAddress
   let policyImpersonator: SignerWithAddress
   before(async () => {
@@ -22,7 +22,7 @@ describe('Policed', () => {
   let Fake__Policy: FakeContract<Policy>
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
