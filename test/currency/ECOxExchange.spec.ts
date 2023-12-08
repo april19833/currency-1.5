@@ -63,7 +63,7 @@ describe('ECOxExchange', () => {
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
       'contracts/policy/Policy.sol:Policy',
-      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+      { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
