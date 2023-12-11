@@ -117,6 +117,11 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
+
+    function getTrustees() public view returns (address[] memory _trustees) {
+        return trustees;
+    }
+
     /** Fetches the date of a trustee's last withdrawal
      * @param trustee the trustee whose last withdrawal date is being fetched
      */

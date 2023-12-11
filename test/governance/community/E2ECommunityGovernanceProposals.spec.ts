@@ -11,7 +11,9 @@ import { passProposal } from '../../utils/passProposal'
 import {
   AccessRootPolicyFunds__factory,
   AddTxToNotifier__factory,
+  SingleTrusteeReplacement__factory,
 } from '../../../typechain-types'
+import { convertTypeAcquisitionFromJson } from 'typescript'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
@@ -68,7 +70,7 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(25)
     expect(await contracts.base.ecox.balanceOf(bob.address)).to.eq(49)
   })
-  it.only('addTxToNotifier', async () => {
+  it('addTxToNotifier', async () => {
     const notifier = contracts.monetary.rebaseNotifier
     await expect(notifier.transactions(0)).to.be.reverted
     expect(await notifier.totalGasCost()).to.eq(0)
@@ -94,5 +96,25 @@ describe.only('E2E tests for common community governance actions', () => {
     // No matter what data I input the data field of the added transaction is just 0x.
     expect(tx.gasCost).to.eq(123)
     expect(await notifier.totalGasCost()).to.eq(123)
+  })
+  it.only('singleTrusteeReplacement', async () => {
+    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
+    const trusteeToReplace = await contracts.monetary.trustedNodes.trustees(1)
+    expect(await contracts.monetary.trustedNodes.trustees(1)).to.not.eq(
+      alice.address
+    )
+
+    const prop = await deploy(alice, SingleTrusteeReplacement__factory, [
+      contracts.monetary.trustedNodes.address,
+      trusteeToReplace,
+      alice.address,
+    ])
+
+    await passProposal(contracts, prop, alice)
+
+    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
+    expect(await contracts.monetary.trustedNodes.trustees(1)).to.eq(
+      alice.address
+    )
   })
 })
