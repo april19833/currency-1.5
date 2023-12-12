@@ -48,15 +48,17 @@ const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(1000000000).toString() // 
 
 const aliceAddr = '0x99f98ea4A883DB4692Fa317070F4ad2dC94b05CE'
 const bobAddr = '0xA201d3C815AC9D4d8830fb3dE2b490B5b0069ACa'
+const charlieAddr = '0xED83D2f20cF2d218Adbe0a239C0F8AbDca8Fc499'
 const etherWhaleAddr = '0x00000000219ab540356cBB839Cbe05303d7705Fa'
 
 const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-describe.only('Migration tests', () => {
+describe('Migration tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
+  let charlie: SignerWithAddress
   let etherWhale: SignerWithAddress
 
   let proposal: MigrationLinker
@@ -79,16 +81,18 @@ describe.only('Migration tests', () => {
     // setup faked addresses
     alice = await ethers.getImpersonatedSigner(aliceAddr)
     bob = await ethers.getImpersonatedSigner(bobAddr)
+    charlie = await ethers.getImpersonatedSigner(charlieAddr)
     etherWhale = await ethers.getImpersonatedSigner(etherWhaleAddr)
     etherWhale.sendTransaction({to: alice.address, value: ethers.utils.parseEther('100')})
     etherWhale.sendTransaction({to: bob.address, value: ethers.utils.parseEther('100')})
+    etherWhale.sendTransaction({to: charlie.address, value: ethers.utils.parseEther('100')})
 
     ;({
       policy: policyProxy,
       eco: ecoProxy,
       ecox: ecoxProxy,
       ecoXStaking: ecoXStakingProxy,
-    } = await getExistingEco(etherWhale))
+    } = await getExistingEco(alice))
 
     // deploy the new contracts with proxy implementations only
     const config = {
