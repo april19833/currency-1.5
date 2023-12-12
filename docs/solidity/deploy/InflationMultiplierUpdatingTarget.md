@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## InflationMultiplierUpdatingTarget
 
+**Inflation Multiplier delegateCall setter contract
+
+A proposal used to set the inflation multiplier for the ECO contract as part of the migration**
+
 ### constructor
 
 ```solidity

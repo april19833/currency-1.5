@@ -35,7 +35,8 @@
     "publishRepoTest": "cd lib/libTest && npm publish",
     "publishLocal": "cd lib && npm pack",
     "prepareLib": "yarn build && npx ts-node scripts/publish/prepare.ts && cd lib && npx tsup src/index.ts",
-    "prepareLibTest": "yarn build && npx ts-node scripts/publish/prepare-test.ts"
+    "prepareLibTest": "yarn build && npx ts-node scripts/publish/prepare-test.ts",
+    "updateDocs": "rm -rf ./docs/solidity; rm ./docs/slither/*; yarn docgen; yarn callGraph; yarn inheritanceGraph; yarn variableOrder; yarn contractSummary"
   },
   "repository": {
     "type": "git",
@@ -69,6 +70,7 @@
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
+    "@helix-foundation/currency-dev": "1.0.11",
     "@metamask/eth-sig-util": "5.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.2",

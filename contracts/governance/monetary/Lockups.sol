@@ -30,7 +30,7 @@ contract Lockups is Lever, TimeUtils {
         mapping(address => uint256) gonsBalances;
         // interest to be minted to depositors upon timely withdrawal
         // the amount minted will remain the same regardless of changes in linear inflation
-        // multiplying this number by the currentInflationMultiplier yields gons
+        // multiplying this number by the eco inflationMultiplier yields gons
         mapping(address => uint256) interest;
         // the delegates for each user to track delegation
         mapping(address => address) delegates;
@@ -54,9 +54,6 @@ contract Lockups is Lever, TimeUtils {
 
     // length of the deposit window
     uint256 public depositWindow;
-
-    // current linear inflation multiplier for ECO
-    uint256 public currentInflationMultiplier;
 
     // mapping of Lockups, indexed by lockupId
     // TODO: consider using an array for this after John solidifies gas optimization infra
@@ -129,7 +126,6 @@ contract Lockups is Lever, TimeUtils {
     ) Lever(_policy) {
         eco = _eco;
         depositWindow = _depositWindow;
-        currentInflationMultiplier = eco.inflationMultiplier();
         eco.enableVoting();
     }
 
@@ -192,7 +188,7 @@ contract Lockups is Lever, TimeUtils {
 
         eco.transferFrom(_beneficiary, address(this), _amount);
 
-        uint256 _gonsAmount = _amount * currentInflationMultiplier;
+        uint256 _gonsAmount = _amount * eco.inflationMultiplier();
 
         if (eco.voter(_beneficiary)) {
             address _primaryDelegate = eco.getPrimaryDelegate(_beneficiary);
@@ -240,7 +236,8 @@ contract Lockups is Lever, TimeUtils {
     function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
         uint256 gonsAmount = lockup.gonsBalances[_recipient];
-        uint256 amount = gonsAmount / currentInflationMultiplier;
+        uint256 _currentInflationMultiplier = eco.inflationMultiplier();
+        uint256 amount = gonsAmount / _currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
         address delegate = lockup.delegates[_recipient];
 
@@ -253,7 +250,7 @@ contract Lockups is Lever, TimeUtils {
                 revert EarlyWithdrawFor(_lockupId, msg.sender, _recipient);
             } else {
                 amount -= interest;
-                penalties += interest * currentInflationMultiplier;
+                penalties += interest * _currentInflationMultiplier;
             }
         } else {
             eco.mint(address(this), interest);
@@ -268,7 +265,7 @@ contract Lockups is Lever, TimeUtils {
         emit LockupWithdrawal(
             _lockupId,
             _recipient,
-            amount * currentInflationMultiplier
+            amount * _currentInflationMultiplier
         );
     }
 
@@ -292,7 +289,7 @@ contract Lockups is Lever, TimeUtils {
         address _who
     ) public view returns (uint256 ecoAmount) {
         return
-            lockups[_lockupId].gonsBalances[_who] / currentInflationMultiplier;
+            lockups[_lockupId].gonsBalances[_who] / eco.inflationMultiplier();
     }
 
     /** getter function for yield
@@ -321,16 +318,8 @@ contract Lockups is Lever, TimeUtils {
      * @param _destination the address that will receive
      */
     function sweep(address _destination) external onlyPolicy {
-        eco.transfer(_destination, penalties / currentInflationMultiplier);
+        uint256 amount = penalties;
         penalties = 0;
-    }
-
-    /**
-     * updates currentInflationMultiplier
-     *
-     * this function needs to be called each time the currency rebases to keep the inflation multiplier current for the lockup
-     */
-    function updateInflationMultiplier() external {
-        currentInflationMultiplier = eco.inflationMultiplier();
+        eco.transfer(_destination, amount / eco.inflationMultiplier());
     }
 }

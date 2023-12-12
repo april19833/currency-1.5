@@ -69,12 +69,6 @@ contract ECO eco
 uint256 depositWindow
 ```
 
-### currentInflationMultiplier
-
-```solidity
-uint256 currentInflationMultiplier
-```
-
 ### lockups
 
 ```solidity
@@ -341,14 +335,4 @@ function sweep(address _destination) external
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _destination | address | the address that will receive |
-
-### updateInflationMultiplier
-
-updates currentInflationMultiplier
-
-this function needs to be called each time the currency rebases to keep the inflation multiplier current for the lockup
-
-```solidity
-function updateInflationMultiplier() external
-```
 

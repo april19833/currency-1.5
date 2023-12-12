@@ -117,9 +117,6 @@ describe('Deployment tests', () => {
       LOCKUP_DEPOSIT_WINDOW
     )
     expect(
-      await contracts.monetary.lockupsLever.currentInflationMultiplier()
-    ).to.eq(await contracts.base.eco.inflationMultiplier())
-    expect(
       await contracts.base.eco.voter(contracts.monetary.lockupsLever.address)
     ).to.be.true
 

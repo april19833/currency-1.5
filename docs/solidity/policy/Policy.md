@@ -124,3 +124,9 @@ function updateGovernor(address _newGovernor) public
 function enact(address proposal) external virtual
 ```
 
+### removeSelf
+
+```solidity
+function removeSelf(bytes32) external
+```
+

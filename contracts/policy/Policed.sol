@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../proxy/ForwardTarget.sol";
 import "./Policy.sol";
 
 /**
  * @title Policed Contracts
  * @notice A policed contract is any contract managed by a policy.
  */
-abstract contract Policed is ForwardTarget {
+abstract contract Policed {
     /** The address of the root policy instance overseeing this instance.
      */
     Policy public immutable policy;

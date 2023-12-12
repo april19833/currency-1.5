@@ -105,4 +105,7 @@ contract Policy is ForwardTarget {
 
         emit EnactedGovernanceProposal(proposal, msg.sender);
     }
+
+    // function required for backwards compatability of the contract interface to allow for the old governance execution call to complete
+    function removeSelf(bytes32) external {}
 }

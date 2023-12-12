@@ -626,9 +626,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * only the policy contract can call this
      */
     function sweep(address recipient) public onlyPolicy {
-        uint256 pan = pot;
+        uint256 amount = pot;
         pot = 0;
-        ecoToken.transfer(recipient, pan);
+        ecoToken.transfer(recipient, amount);
         emit Sweep(recipient);
     }
 }

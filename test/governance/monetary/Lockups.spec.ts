@@ -11,14 +11,12 @@ import {
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
-import {
-  Lockups,
-  Policy,
-  ECO,
-  ECO__factory,
-  Lockups__factory,
-} from '../../../typechain-types'
 import { deploy } from '../../../deploy/utils'
+import { ECO } from '../../../typechain-types/contracts/currency'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { Lockups } from '../../../typechain-types/contracts/governance/monetary'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import { Lockups__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
@@ -60,12 +58,12 @@ describe('Lockups', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
+      'contracts/currency/ECO.sol:ECO'
     )
     eco = await ecoFactory.deploy(
       policy.address,
@@ -106,7 +104,6 @@ describe('Lockups', () => {
   it('constructs', async () => {
     expect(await lockups.eco()).to.eq(eco.address)
     expect(await lockups.depositWindow()).to.eq(depositWindow)
-    expect(await lockups.currentInflationMultiplier()).to.eq(BASE)
   })
 
   describe('permissions', async () => {
@@ -167,7 +164,7 @@ describe('Lockups', () => {
       await eco.connect(alice).approve(lockups.address, 10000)
       await eco.connect(bob).approve(lockups.address, 10000)
       await eco.connect(matthew).approve(lockups.address, 10000)
-      inflationMultiplier = await lockups.currentInflationMultiplier()
+      inflationMultiplier = await eco.inflationMultiplier()
     })
     it('does not allow late deposit', async () => {
       await time.increase(Number(await lockups.depositWindow()) / 2 + 1)
@@ -342,23 +339,13 @@ describe('Lockups', () => {
     })
   })
 
-  it('updates inflation multiplier', async () => {
-    expect(await lockups.currentInflationMultiplier()).to.eq(BASE)
-    const newInflationMultiplier = '123123123123123123'
-    await eco.setVariable('inflationMultiplier', newInflationMultiplier)
-    await lockups.updateInflationMultiplier()
-    expect(await lockups.currentInflationMultiplier()).to.eq(
-      newInflationMultiplier
-    )
-  })
-
   describe('withdraw early', async () => {
     let inflationMultiplier: BigNumber
 
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
-      inflationMultiplier = await lockups.currentInflationMultiplier()
+      inflationMultiplier = await eco.inflationMultiplier()
 
       depositAmount = await eco.balanceOf(alice.address)
       gons = depositAmount.mul(inflationMultiplier)
@@ -431,7 +418,6 @@ describe('Lockups', () => {
 
       const newInflationMultiplier = inflationMultiplier.mul(2)
       await eco.setVariable('inflationMultiplier', newInflationMultiplier)
-      await lockups.updateInflationMultiplier()
 
       await expect(lockups.connect(alice).withdraw(0))
         .to.emit(lockups, 'LockupWithdrawal')
@@ -457,7 +443,7 @@ describe('Lockups', () => {
     beforeEach(async () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
-      inflationMultiplier = await lockups.currentInflationMultiplier()
+      inflationMultiplier = await eco.inflationMultiplier()
 
       depositAmount = await eco.balanceOf(alice.address)
       gons = depositAmount.mul(inflationMultiplier)
@@ -595,7 +581,6 @@ describe('Lockups', () => {
 
       const newInflationMultiplier = inflationMultiplier.mul(2)
       await eco.setVariable('inflationMultiplier', newInflationMultiplier)
-      await lockups.updateInflationMultiplier()
 
       await expect(lockups.connect(alice).withdraw(0))
         .to.emit(lockups, 'LockupWithdrawal')
@@ -770,7 +755,7 @@ describe('Lockups', () => {
       await lockups.connect(alice).createLockup(goodDuration, goodRate)
       await time.increase(Number(await lockups.depositWindow()) / 2)
       depositAmount = await eco.balanceOf(alice.address)
-      gons = depositAmount.mul(await lockups.currentInflationMultiplier())
+      gons = depositAmount.mul(await eco.inflationMultiplier())
       interest = depositAmount.mul(goodRate).div(BASE)
 
       await eco.connect(alice).approve(lockups.address, depositAmount)

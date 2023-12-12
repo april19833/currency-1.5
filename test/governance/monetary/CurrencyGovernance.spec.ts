@@ -6,18 +6,24 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../../utils/constants'
 import { ERRORS } from '../../utils/errors'
-import {
-  TrustedNodes__factory,
-  TrustedNodes,
-  CurrencyGovernance__factory,
-  CurrencyGovernance,
-  StageTestCurrencyGovernance__factory,
-  StageTestCurrencyGovernance,
-  DummyMonetaryPolicyAdapter__factory,
-  DummyMonetaryPolicyAdapter,
-  Policy,
-} from '../../../typechain-types'
 import { deploy } from '../../../deploy/utils'
+import {
+  DummyMonetaryPolicyAdapter,
+  StageTestCurrencyGovernance,
+} from '../../../typechain-types/contracts/test'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import {
+  DummyMonetaryPolicyAdapter__factory,
+  StageTestCurrencyGovernance__factory,
+} from '../../../typechain-types/factories/contracts/test'
+import {
+  CurrencyGovernance__factory,
+  TrustedNodes__factory,
+} from '../../../typechain-types/factories/contracts/governance/monetary'
+import {
+  TrustedNodes,
+  CurrencyGovernance,
+} from '../../../typechain-types/contracts/governance/monetary'
 
 const PROPOSE_STAGE_LENGTH = 10 * DAY
 const COMMIT_STAGE_LENGTH = 3 * DAY
@@ -152,13 +158,13 @@ describe('CurrencyGovernance', () => {
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
-      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+      'contracts/policy/Policy.sol:Policy',
+      { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
     Enacter = await (
       await smock.mock<DummyMonetaryPolicyAdapter__factory>(
-        'DummyMonetaryPolicyAdapter'
+        'contracts/test/DummyMonetaryPolicyAdapter.sol:DummyMonetaryPolicyAdapter'
       )
     ).deploy(Fake__Policy.address)
 
@@ -169,7 +175,9 @@ describe('CurrencyGovernance', () => {
     )) as CurrencyGovernance
 
     TrustedNodes = await (
-      await smock.mock<TrustedNodes__factory>('TrustedNodes')
+      await smock.mock<TrustedNodes__factory>(
+        'contracts/governance/monetary/TrustedNodes.sol:TrustedNodes'
+      )
     ).deploy(
       Fake__Policy.address,
       CurrencyGovernance.address,

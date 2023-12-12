@@ -1,7 +1,7 @@
 import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import { ethers } from 'hardhat'
 import { BigNumberish, Wallet } from 'ethers'
-import { ECO, ERC20 } from '../../typechain-types'
+import { ECO, ERC20 } from '../../typechain-types/contracts/currency'
 
 interface PermitMessageDataDTO {
   name: string

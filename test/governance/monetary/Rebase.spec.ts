@@ -9,16 +9,18 @@ import {
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../../utils/errors'
+import { deploy } from '../../../deploy/utils'
 import {
   Notifier,
-  Policy,
   Rebase,
+} from '../../../typechain-types/contracts/governance/monetary'
+import { ECO } from '../../../typechain-types/contracts/currency'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
   Notifier__factory,
   Rebase__factory,
-  ECO,
-  ECO__factory,
-} from '../../../typechain-types'
-import { deploy } from '../../../deploy/utils'
+} from '../../../typechain-types/factories/contracts/governance/monetary'
 
 describe('Rebase', () => {
   let policyImpersonator: SignerWithAddress
@@ -42,12 +44,12 @@ describe('Rebase', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
     const ecoFactory: MockContractFactory<ECO__factory> = await smock.mock(
-      'ECO'
+      'contracts/currency/ECO.sol:ECO'
     )
     eco = await ecoFactory.deploy(
       policy.address,
@@ -60,7 +62,7 @@ describe('Rebase', () => {
     ])) as Rebase
 
     const notifierFactory: MockContractFactory<Notifier__factory> =
-      await smock.mock('Notifier')
+      await smock.mock('contracts/governance/monetary/Notifier.sol:Notifier')
     notifier = await notifierFactory.deploy(
       policy.address,
       rebase.address,

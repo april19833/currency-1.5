@@ -10,14 +10,16 @@ import {
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../../utils/errors'
-import {
-  Notifier,
-  Policy,
-  Lever,
-  Notifier__factory,
-  Lever__factory,
-} from '../../../typechain-types'
 import { deploy } from '../../../deploy/utils'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import {
+  Lever,
+  Notifier,
+} from '../../../typechain-types/contracts/governance/monetary'
+import {
+  Lever__factory,
+  Notifier__factory,
+} from '../../../typechain-types/factories/contracts/governance/monetary'
 
 describe('Lever', () => {
   let policyImpersonator: SignerWithAddress
@@ -36,7 +38,7 @@ describe('Lever', () => {
 
   beforeEach(async () => {
     policy = await smock.fake<Policy>(
-      'Policy',
+      'contracts/policy/Policy.sol:Policy',
       { address: policyImpersonator.address } // This allows us to use an ethers override {from: Fake__Policy.address} to mock calls
     )
 
@@ -45,7 +47,7 @@ describe('Lever', () => {
     ])) as Lever
 
     const notifierFactory: MockContractFactory<Notifier__factory> =
-      await smock.mock('Notifier')
+      await smock.mock('contracts/governance/monetary/Notifier.sol:Notifier')
     notifier = await notifierFactory.deploy(
       policy.address,
       lever.address,

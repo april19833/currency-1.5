@@ -4,15 +4,15 @@ import { expect } from 'chai'
 import { smock, FakeContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ERRORS } from '../../utils/errors'
+import { deploy } from '../../../deploy/utils'
 import {
   CurrencyGovernance,
-  Policy,
   MonetaryPolicyAdapter,
-  MonetaryPolicyAdapter__factory,
-  DummyLever,
-  DummyLever__factory,
-} from '../../../typechain-types'
-import { deploy } from '../../../deploy/utils'
+} from '../../../typechain-types/contracts/governance/monetary'
+import { DummyLever__factory } from '../../../typechain-types/factories/contracts/test'
+import { DummyLever } from '../../../typechain-types/contracts/test'
+import { Policy } from '../../../typechain-types/contracts/policy'
+import { MonetaryPolicyAdapter__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 const executeSig = ethers.utils
   .solidityKeccak256(['string'], ['execute(uint256,address,bytes32)'])
@@ -62,12 +62,12 @@ describe('MonetaryPolicyAdapter', () => {
 
   beforeEach(async () => {
     Fake__Policy = await smock.fake<Policy>(
-      'Policy',
-      { address: await policyImpersonator.getAddress() } // This allows us to make calls from the address
+      'contracts/policy/Policy.sol:Policy',
+      { address: policyImpersonator.address } // This allows us to make calls from the address
     )
 
     Fake__CurrencyGovernance = await smock.fake<CurrencyGovernance>(
-      'CurrencyGovernance',
+      'contracts/governance/monetary/CurrencyGovernance.sol:CurrencyGovernance',
       { address: await cgImpersonater.getAddress() } // This allows us to make calls from the address
     )
 

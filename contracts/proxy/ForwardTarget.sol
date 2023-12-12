@@ -22,7 +22,7 @@ abstract contract ForwardTarget {
     }
 
     constructor() {
-        setImplementation(address(this));
+        _setImplementation(address(this));
     }
 
     /** Storage initialization of cloned contract
@@ -43,7 +43,7 @@ abstract contract ForwardTarget {
             _implAddress != address(0),
             "initialization failure: nothing to implement"
         );
-        setImplementation(_implAddress);
+        _setImplementation(_implAddress);
     }
 
     /** Get the address of the proxy target contract.
@@ -55,7 +55,7 @@ abstract contract ForwardTarget {
     }
 
     /** Set new implementation */
-    function setImplementation(address _impl) internal {
+    function _setImplementation(address _impl) internal {
         require(implementation() != _impl, "Implementation already matching");
         assembly {
             sstore(IMPLEMENTATION_SLOT, _impl)

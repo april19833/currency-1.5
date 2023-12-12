@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../currency/VoteCheckpoints.sol";
 import "../../currency/ECOx.sol";
-import "../../policy/Policed.sol";
+import "../../policy/PolicedUpgradeable.sol";
 
 /**
  * @title ECOxStaking
  *
  */
-contract ECOxStaking is VoteCheckpoints, Policed {
+contract ECOxStaking is VoteCheckpoints, PolicedUpgradeable {
     /// the ECOx contract address
     IERC20 public immutable ecoXToken;
 

@@ -46,11 +46,11 @@ Get the address of the proxy target contract.
 function implementation() public view returns (address _impl)
 ```
 
-### setImplementation
+### _setImplementation
 
 Set new implementation
 
 ```solidity
-function setImplementation(address _impl) internal
+function _setImplementation(address _impl) internal
 ```
 

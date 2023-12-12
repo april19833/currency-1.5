@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## MinterProposal
 
+**MinterProposal
+
+A proposal used for changing a minter**
+
 ### token
 
 ```solidity
@@ -30,30 +34,30 @@ constructor(contract ERC20MintAndBurn _token, address _minter, bool _permission)
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -62,6 +66,10 @@ function enacted(address) public
 ```
 
 ## BurnerProposal
+
+**BurnerProposal
+
+A proposal used for changing a burner**
 
 ### token
 
@@ -89,30 +97,30 @@ constructor(contract ERC20MintAndBurn _token, address _burner, bool _permission)
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -121,6 +129,10 @@ function enacted(address) public
 ```
 
 ## RebaserProposal
+
+**RebaserProposal
+
+A proposal used for changing a rebaser**
 
 ### token
 
@@ -148,30 +160,30 @@ constructor(contract ECO _token, address _rebaser, bool _permission) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -180,6 +192,10 @@ function enacted(address) public
 ```
 
 ## SnapshotterProposal
+
+**SnapshotterProposal
+
+A proposal used for changing a snapshotter**
 
 ### token
 
@@ -207,30 +223,30 @@ constructor(contract ECO _token, address _snapshotter, bool _permission) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -239,6 +255,10 @@ function enacted(address) public
 ```
 
 ## UpdateECOxExchangeProposal
+
+**updateECOxExchangeProposal
+
+A proposal used for changing the ECOxExchange var**
 
 ### token
 
@@ -260,30 +280,30 @@ constructor(contract ECOx _token, address _newECOxExchange) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -292,6 +312,10 @@ function enacted(address) public
 ```
 
 ## UpdateTokenPauserProposal
+
+**token new pauser proposal
+
+A proposal used for changing the pauser on the tokens**
 
 ### token
 
@@ -313,30 +337,30 @@ constructor(contract ERC20Pausable _token, address _newPauser) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -345,6 +369,10 @@ function enacted(address) public
 ```
 
 ## UpdateGovernancePauserProposal
+
+**governance new pauser proposal
+
+A proposal used for changing the pauser on the community governance contract**
 
 ### governance
 
@@ -366,30 +394,30 @@ constructor(contract CommunityGovernance _governance, address _newPauser) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -398,6 +426,10 @@ function enacted(address) public
 ```
 
 ## SweepGovernanceFeesProposal
+
+**governance fee sweep proposal
+
+A proposal used for sweeping the fees collected by the community governance contract to an address**
 
 ### governance
 
@@ -419,30 +451,30 @@ constructor(contract CommunityGovernance _governance, address _destination) publ
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -451,6 +483,10 @@ function enacted(address) public
 ```
 
 ## UpdateGovernanceTrustedNodesProposal
+
+**governance new trustedNodes proposal
+
+A proposal used to change the trustedNodes contract for the currency governance**
 
 ### governance
 
@@ -472,30 +508,30 @@ constructor(contract CurrencyGovernance _governance, contract TrustedNodes _newT
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -504,6 +540,10 @@ function enacted(address) public
 ```
 
 ## UpdateGovernanceEnacterProposal
+
+**governance new enacter proposal
+
+A proposal used to change the enacter contract for the currency governance**
 
 ### governance
 
@@ -525,30 +565,30 @@ constructor(contract CurrencyGovernance _governance, contract MonetaryPolicyAdap
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -557,6 +597,10 @@ function enacted(address) public
 ```
 
 ## UpdateAdapterGovernanceProposal
+
+**adapter new governance proposal
+
+A proposal used to change the governance contract for the monetary policy adapter**
 
 ### enacter
 
@@ -578,30 +622,30 @@ constructor(contract MonetaryPolicyAdapter _enacter, contract CurrencyGovernance
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -610,6 +654,10 @@ function enacted(address) public
 ```
 
 ## UpdateLeverNotifierProposal
+
+**lever new notifier proposal
+
+A proposal used to change the notifier contract for a monetary policy lever**
 
 ### lever
 
@@ -631,30 +679,30 @@ constructor(contract Lever _lever, contract Notifier _newNotifier) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -663,6 +711,10 @@ function enacted(address) public
 ```
 
 ## UpdateLeverAuthorizedProposal
+
+**update lever authorized proposal
+
+A proposal used to add or remove an authorized caller of the lever**
 
 ### lever
 
@@ -690,30 +742,30 @@ constructor(contract Lever _lever, address _authorized, bool _permission) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -722,6 +774,10 @@ function enacted(address) public
 ```
 
 ## UpdateNotifierLeverProposal
+
+**notifier new lever proposal
+
+A proposal used to change the lever contract for a notifier**
 
 ### notifier
 
@@ -743,30 +799,30 @@ constructor(contract Notifier _notifier, address _newLever) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -775,6 +831,10 @@ function enacted(address) public
 ```
 
 ## SweepLockupPenaltiesProposal
+
+**lockups sweep penalties proposal
+
+A proposal used to sweep the penalties accrued in the lockups contract to an address**
 
 ### lockups
 
@@ -796,30 +856,30 @@ constructor(contract Lockups _lockups, address _destination) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -828,6 +888,10 @@ function enacted(address) public
 ```
 
 ## UpdateTrustedNodesGovernanceProposal
+
+**truested nodes new governance proposal
+
+A proposal used to change the governance contract for the trusted nodes contract**
 
 ### trustedNodes
 
@@ -849,30 +913,30 @@ constructor(contract TrustedNodes _trustedNodes, contract CurrencyGovernance _ne
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
@@ -881,6 +945,10 @@ function enacted(address) public
 ```
 
 ## SweepTrustedNodesProposal
+
+**trusted nodes sweep ecox proposal
+
+A proposal used to sweep the ecox accrued in the trusted nodes contract to an address**
 
 ### trustedNodes
 
@@ -902,30 +970,30 @@ constructor(contract TrustedNodes _trustedNodes, address _destination) public
 
 ### name
 
-```solidity
-function name() public pure returns (string)
-```
-
 The name of the proposal.
 
 This should be relatively unique and descriptive.
 
+```solidity
+function name() public pure returns (string)
+```
+
 ### description
+
+A longer description of what this proposal achieves.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A longer description of what this proposal achieves.
-
 ### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
 
 ```solidity
 function url() public pure returns (string)
 ```
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
 
 ### enacted
 
