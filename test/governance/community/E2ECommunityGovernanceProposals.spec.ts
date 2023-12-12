@@ -11,9 +11,12 @@ import { passProposal } from '../../utils/passProposal'
 import {
   AccessRootPolicyFunds__factory,
   AddTxToNotifier__factory,
+  NewTrusteeCohort__factory,
   SingleTrusteeReplacement__factory,
+  TrustedNodesFactory__factory,
 } from '../../../typechain-types'
 import { convertTypeAcquisitionFromJson } from 'typescript'
+import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
@@ -21,11 +24,14 @@ describe.only('E2E tests for common community governance actions', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
+  let dave: SignerWithAddress
+  let edith: SignerWithAddress
+  let francine: SignerWithAddress
 
   let contracts: Fixture
 
   beforeEach(async () => {
-    ;[alice, bob, charlie] = await ethers.getSigners()
+    ;[alice, bob, charlie, dave, edith, francine] = await ethers.getSigners()
     contracts = await testnetFixture(
       [bob.address, charlie.address],
       alice.address,
@@ -91,13 +97,13 @@ describe.only('E2E tests for common community governance actions', () => {
     const tx = await notifier.transactions(0)
 
     expect(tx.target).to.eq(bob.address)
+    expect(tx.gasCost).to.eq(123)
+    expect(await notifier.totalGasCost()).to.eq(123)
     expect(tx.data).to.eq(bytesData) // this is failing
     // i don't understand why, going to move on for now.
     // No matter what data I input the data field of the added transaction is just 0x.
-    expect(tx.gasCost).to.eq(123)
-    expect(await notifier.totalGasCost()).to.eq(123)
   })
-  it.only('singleTrusteeReplacement', async () => {
+  it('singleTrusteeReplacement', async () => {
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
     const trusteeToReplace = await contracts.monetary.trustedNodes.trustees(1)
     expect(await contracts.monetary.trustedNodes.trustees(1)).to.not.eq(
@@ -116,5 +122,53 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(await contracts.monetary.trustedNodes.trustees(1)).to.eq(
       alice.address
     )
+  })
+  it('NewTrusteeCohort', async () => {
+    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
+    let trustees = await contracts.monetary.trustedNodes.getTrustees()
+    expect(trustees[0]).to.eq(bob.address)
+    expect(trustees[1]).to.eq(charlie.address)
+    expect(await contracts.monetary.trustedNodes.termLength()).to.eq(2419200)
+    expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(1000)
+
+    const initialTrustedNodesAddress =
+      await contracts.monetary.monetaryGovernance.trustedNodes()
+
+    const trustedNodesFactory = await deploy(
+      alice,
+      TrustedNodesFactory__factory,
+      [
+        contracts.base.policy.address,
+        contracts.monetary.monetaryGovernance.address,
+        contracts.base.ecox.address,
+      ]
+    )
+
+    const prop = await deploy(alice, NewTrusteeCohort__factory, [
+      trustedNodesFactory.address,
+      [dave.address, edith.address, francine.address],
+      10101010,
+      12341234,
+    ])
+
+    await passProposal(contracts, prop, alice)
+
+    const newTrustedNodesAddress =
+      await contracts.monetary.monetaryGovernance.trustedNodes()
+    expect(newTrustedNodesAddress).to.not.eq(initialTrustedNodesAddress)
+    const newTrustedNodes = new Contract(
+      newTrustedNodesAddress,
+      TrustedNodes__factory.abi,
+      alice
+    )
+
+    expect(await newTrustedNodes.termLength()).to.eq(10101010)
+    expect(await newTrustedNodes.voteReward()).to.eq(12341234)
+
+    expect(await newTrustedNodes.numTrustees()).to.eq(3)
+    trustees = await newTrustedNodes.getTrustees()
+    expect(trustees[0]).to.eq(dave.address)
+    expect(trustees[1]).to.eq(edith.address)
+    expect(trustees[2]).to.eq(francine.address)
   })
 })

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./CurrencyGovernance.sol";
+import "../../currency/ECOx.sol";
 
 contract TrustedNodesFactory is Policed, TimeUtils {
     ECOx public immutable ecoX;

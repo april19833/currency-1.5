@@ -5,13 +5,14 @@ import "../../../policy/Policy.sol";
 import "../../../policy/Policed.sol";
 import "./Proposal.sol";
 import "../../monetary/TrustedNodes.sol";
+import "../../monetary/TrustedNodesFactory.sol";
 
-/** @title TrusteeReplacement
+/** @title NewTrusteeCohort
  * A proposal to replace the current cohort of trustees
  */
-contract TrusteeReplacement is Policy, Proposal {
+contract NewTrusteeCohort is Policy, Proposal {
     // the factory that creates new trustedNodes contracts
-    address immutable public trustedNodesFactory;
+    TrustedNodesFactory immutable public trustedNodesFactory;
 
     // the new trustees that will be trusted
     address[] public newTrustees;
@@ -26,9 +27,9 @@ contract TrusteeReplacement is Policy, Proposal {
      *
      * @param _newTrustees The array of new addresses to become trusted
      */
-    constructor(address[] memory _newTrustees, address _trustedNodesFactory, uint256 _termLength, uint256 _voteReward) {
-        newTrustees = _newTrustees;
+    constructor(TrustedNodesFactory _trustedNodesFactory, address[] memory _newTrustees, uint256 _termLength, uint256 _voteReward) Policy(address(0x0)) {
         trustedNodesFactory = _trustedNodesFactory;
+        newTrustees = _newTrustees;
         termLength = _termLength;
         voteReward = _voteReward;
     }
@@ -70,9 +71,9 @@ contract TrusteeReplacement is Policy, Proposal {
      * @param _self The address of the proposal.
      */
     function enacted(address _self) public virtual override {
-        TrustedNodes newTrustedNodes = TrustedNodestrustedNodesFactory.newCohort(termLength, voteReward, newTrustees);
+        TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(termLength, voteReward, newTrustees);
         CurrencyGovernance(trustedNodesFactory.currencyGovernance()).setTrustedNodes(newTrustedNodes);
         uint256 rewards = (termLength / (14 days)) * voteReward * newTrustees.length;
-        trustedNodesFactory.ecoX().transfer(newTrustedNodes, rewards);
+        trustedNodesFactory.ecoX().transfer(address(newTrustedNodes), rewards);
     }
 }
