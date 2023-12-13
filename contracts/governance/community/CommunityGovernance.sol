@@ -71,9 +71,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice end time of current */
     uint256 public currentStageEnd;
 
-    /** @notice snapshot block for calculating voting power */
-    uint256 public snapshotBlock;
-
     /** @notice cost in ECO to submit a proposal */
     uint256 public proposalFee = 10000;
 
@@ -368,7 +365,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function support(address _proposal) public {
-        uint256 vp = votingPower(msg.sender, snapshotBlock);
+        uint256 vp = votingPower(msg.sender);
         _changeSupport(msg.sender, _proposal, vp);
     }
 
@@ -388,7 +385,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         // uint256 sumSupport = 0;
-        uint256 vp = votingPower(msg.sender, snapshotBlock);
+        uint256 vp = votingPower(msg.sender);
         for (uint256 i = 0; i < length; i++) {
             uint256 support = _allocations[i];
             if (support > vp) {
@@ -466,11 +463,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function vote(Vote choice) public {
         if (choice == Vote.Enact) {
-            _vote(msg.sender, votingPower(msg.sender, snapshotBlock), 0, 0);
+            _vote(msg.sender, votingPower(msg.sender), 0, 0);
         } else if (choice == Vote.Reject) {
-            _vote(msg.sender, 0, votingPower(msg.sender, snapshotBlock), 0);
+            _vote(msg.sender, 0, votingPower(msg.sender), 0);
         } else if (choice == Vote.Abstain) {
-            _vote(msg.sender, 0, 0, votingPower(msg.sender, snapshotBlock));
+            _vote(msg.sender, 0, 0, votingPower(msg.sender));
         } else {
             revert BadVoteType();
         }
@@ -489,7 +486,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     ) public {
         if (
             enactVotes + rejectVotes + abstainVotes >
-            votingPower(msg.sender, snapshotBlock)
+            votingPower(msg.sender)
         ) {
             revert BadVotingPower();
         }
