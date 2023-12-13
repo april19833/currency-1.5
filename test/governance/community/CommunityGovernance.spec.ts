@@ -413,10 +413,7 @@ describe('Community Governance', () => {
       })
       context('support', () => {
         it('performs a single support correctly', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           await expect(cg.connect(alice).support(A1))
             .to.emit(cg, 'SupportChanged')
             .withArgs(alice.address, A1, 0, vp)
@@ -425,20 +422,14 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
         })
         it('allows one address to support multiple proposals', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           await cg.connect(alice).support(A1)
           await cg.connect(alice).support(A2)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
           expect((await cg.proposals(A2)).totalSupport).to.eq(vp)
         })
         it('does not change state when an address re-supports the same proposal again', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           await cg.connect(alice).support(A1)
           expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
@@ -456,10 +447,7 @@ describe('Community Governance', () => {
           ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.ARRAY_LENGTH_MISMATCH)
         })
         it('fails if support allocations are greater than senders vp', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           const proposals = [A1, A2]
           const allocations = [vp.mul(2), vp.mul(2).add(1)]
           await expect(
@@ -467,10 +455,7 @@ describe('Community Governance', () => {
           ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER)
         })
         it('works if sum > senders vp', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           const proposals = [A1, A2]
           const vp1 = vp.div(2).add(1)
           const vp2 = vp.div(2).add(1)
@@ -488,10 +473,7 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A2)).totalSupport).to.eq(vp2)
         })
         it('overwrites previous supports as expected', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           const proposals = [A1, A2]
           const vp1 = vp.div(2).sub(1)
           const vp2 = vp.div(2).add(1)
@@ -508,10 +490,7 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A2)).totalSupport).to.eq(vp1)
         })
         it('handles double supporting well in the same supportPartial', async () => {
-          const vp = await cg.votingPower(
-            alice.address,
-            await cg.snapshotBlock()
-          )
+          const vp = await cg.votingPower(alice.address)
           const proposals = [A1, A2, A1, A1]
           const vp1 = vp.div(2).sub(1)
           const vp2 = vp.div(2).add(1)
@@ -604,7 +583,7 @@ describe('Community Governance', () => {
     })
     context('vote', () => {
       it('votes correctly', async () => {
-        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const vp = await cg.votingPower(alice.address)
 
         const votes = await cg.getVotes(alice.address)
         expect(votes.enactVotes).to.eq(0)
@@ -626,7 +605,7 @@ describe('Community Governance', () => {
       })
 
       it('votes again correctly', async () => {
-        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const vp = await cg.votingPower(alice.address)
         await cg.connect(alice).vote(ABSTAIN)
 
         const votes = await cg.getVotes(alice.address)
@@ -652,7 +631,7 @@ describe('Community Governance', () => {
     })
     context('votePartial', () => {
       it('fails if sum of allocations > voting power', async () => {
-        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const vp = await cg.votingPower(alice.address)
         const enactVotes = vp / 2
         const rejectVotes = vp / 2
         const abstainVotes = 1
@@ -661,7 +640,7 @@ describe('Community Governance', () => {
         ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER)
       })
       it('suceeds if allocations total to less than senders voting power', async () => {
-        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const vp = await cg.votingPower(alice.address)
         const votes1 = vp / 4
         const votes2 = vp / 2
         const votes3 = vp / 4
@@ -680,7 +659,7 @@ describe('Community Governance', () => {
         expect(await cg.totalAbstainVotes()).to.eq(votes3)
       })
       it('overwrites votes properly when voting a second time in same cycle', async () => {
-        const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+        const vp = await cg.votingPower(alice.address)
         const votes1 = vp / 5
         const votes2 = vp / 10
         const votes3 = vp / 20
@@ -805,7 +784,7 @@ describe('Community Governance', () => {
 
     const currCycle = await cg.cycleCount()
 
-    const vp = await cg.votingPower(alice.address, await cg.snapshotBlock())
+    const vp = await cg.votingPower(alice.address)
 
     await cg
       .connect(bob)
