@@ -486,10 +486,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 rejectVotes,
         uint256 abstainVotes
     ) public {
-        if (
-            enactVotes + rejectVotes + abstainVotes >
-            votingPower(msg.sender)
-        ) {
+        if (enactVotes + rejectVotes + abstainVotes > votingPower(msg.sender)) {
             revert BadVotingPower();
         }
         _vote(msg.sender, enactVotes, rejectVotes, abstainVotes);
