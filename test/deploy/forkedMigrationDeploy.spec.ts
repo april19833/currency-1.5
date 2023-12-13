@@ -19,7 +19,6 @@ import {
   ECOx as ECOxold,
   ECOxStaking as ECOxStakingold,
   Policy as Policyold,
-  TimedPolicies,
   PolicyProposals__factory,
   fixtures,
   ImplementationUpdatingTarget__factory,
@@ -67,7 +66,6 @@ describe('Migration tests', () => {
   let ecoProxy: ECOold
   let ecoxProxy: ECOxold
   let ecoXStakingProxy: ECOxStakingold
-//   let timedPolicies: TimedPolicies // might be used for later tests
 
   let fixtureAddresses: FixtureAddresses
   let baseContracts: BaseContracts
@@ -395,10 +393,15 @@ describe('Migration tests', () => {
           await policyFor(policyProxy, policyVotesIdentifierHash)
         )
 
+        const snapshotBlock = await policyVotes.blockNumber()
+        console.log(await policyVotes.totalVotingPower(snapshotBlock))
+        console.log(await ecoProxy.getPastVotes(alice.address, snapshotBlock))
+        console.log(await policyVotes.votingPower(alice.address, snapshotBlock))
+
         // confirm vote
         await policyVotes.connect(alice).vote(true)
         // wait until end of voting phase
-        await time.increase(3600 * 24 * 4)
+        await time.increase(4 * DAY)
         // executes
         await policyVotes.execute()
 
@@ -481,7 +484,7 @@ describe('Migration tests', () => {
         ).to.eq(contracts.monetary.trustedNodes.address)
       })
 
-      context('adding lockups after migration', () => {
+      context('adding lockups after migration (tests community governance cycle)', () => {
         beforeEach(async () => {
           // deploy the lockups contract and its notifier
           const lockups = await deployLockups(alice, baseContracts, false, {})
@@ -521,6 +524,11 @@ describe('Migration tests', () => {
               communityGovernanceContracts.communityGovernance.address,
               await communityGovernanceContracts.communityGovernance.proposalFee()
             )
+          console.log(await communityGovernanceContracts.communityGovernance.cycleTotalVotingPower())
+          console.log(await communityGovernanceContracts.communityGovernance.snapshotBlock())
+          console.log(await baseContracts.eco.totalSupplySnapshot())
+          console.log(await baseContracts.eco.voteBalanceSnapshot(alice.address))
+          console.log(await communityGovernanceContracts.communityGovernance.votingPower(alice.address, await communityGovernanceContracts.communityGovernance.snapshotBlock()))
           await communityGovernanceContracts.communityGovernance
             .connect(alice)
             .propose(proposal.address)
@@ -573,6 +581,87 @@ describe('Migration tests', () => {
           expect(
             await monetaryGovernanceContracts.lockupsLever.notifier()
           ).to.eq(monetaryGovernanceContracts.lockupsNotifier.address)
+        })
+
+        it.only('can create a lockup (tests monetary governance cycle)', async () => {
+            const contracts = new Fixture(
+                baseContracts,
+                monetaryGovernanceContracts,
+                communityGovernanceContracts
+            )
+
+            const lockupRate = await contracts.monetary.lockupsLever.MAX_RATE()
+            const lockupDuration = await contracts.monetary.lockupsLever.MIN_DURATION()
+
+            // propose the monetary policy with the lockup
+            const tx = await contracts.monetary.monetaryGovernance
+                .connect(bob)
+                .propose(
+                    [contracts.monetary.lockupsLever.address],
+                    [contracts.monetary.lockupsLever.interface.getSighash('createLockup')],
+                    [
+                        `0x${contracts.monetary.lockupsLever.interface
+                        .encodeFunctionData('createLockup', [
+                            lockupDuration,
+                            lockupRate,
+                        ])
+                        .slice(10)}`,
+                    ],
+                    'aoeu'
+                )
+            console.log('test')
+            // get proposalId from event cuz it's easier
+            const receipt = await tx.wait()
+            const proposalId = receipt.events?.find(
+                (e) => e.event === 'ProposalCreation'
+            )?.args?.id
+            // move to next stage
+            await time.increase(
+                await contracts.monetary.monetaryGovernance.PROPOSAL_TIME()
+            )
+            // need cycle number
+            const cycle = await contracts.monetary.monetaryGovernance.getCurrentCycle()
+            // build commit hash
+            const salt = '0x' + '00'.repeat(32)
+            const vote = [{ proposalId, score: 1 }]
+            const commit = ethers.utils.keccak256(
+                ethers.utils.defaultAbiCoder.encode(
+                [
+                    'bytes32',
+                    'uint256',
+                    'address',
+                    '(bytes32 proposalId, uint256 score)[]',
+                ],
+                [salt, cycle, bob.address, vote]
+                )
+            )
+            // vote proposal through
+            await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
+            console.log('tast')
+            // next stage
+            await time.increase(
+                await contracts.monetary.monetaryGovernance.VOTING_TIME()
+            )
+            // reveal proposal
+            await contracts.monetary.monetaryGovernance.reveal(bob.address, salt, vote)
+            console.log('tost')
+            // next stage
+            await time.increase(
+                await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+            )
+            // execute proposal
+            await contracts.monetary.monetaryGovernance.enact(cycle)
+            console.log('teast')
+
+            const lockupParams = await contracts.monetary.lockupsLever.lockups(0)
+            const now = Math.floor(Date.now() / 1000)
+            expect(lockupParams.depositWindowEnd).to.eq(now + LOCKUP_DEPOSIT_WINDOW)
+            expect(lockupParams.end).to.eq(now + lockupDuration.toNumber())
+            expect(lockupParams.rate).to.eq(lockupRate)
+        })
+
+        it('can rebase (tests monetary governance cycle)', async () => {
+
         })
       })
     })
