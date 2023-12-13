@@ -13,19 +13,42 @@ The project is organized into components:
   - [Community governance](contracts/governance/community)
   - [Monetary governance](contracts/governance/monetary)
 - [Testing Framework](test)
-- [The deployment tooling](contracts/deploy) TODO
+- [The deployment tooling](contracts/deploy)
 
 Each component is documented in a README file in the corresponding contracts directory. See the [Background](#background) section for an overview of how they fit together.
 
 ## Table of Contents
 
-- [Security](#security)
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Components](#components)
-- [Contributing](#contributing)
-- [License](#license)
+- [Eco Currency and Governance _(currency 1.5)_](#eco-currency-and-governance-currency-15)
+  - [Table of Contents](#table-of-contents)
+  - [Security](#security)
+    - [Note on Solidity Optimizations](#note-on-solidity-optimizations)
+    - [Reporting Vulnerabilities](#reporting-vulnerabilities)
+  - [Background](#background)
+  - [Currency 1.5 Enhancements](#currency-15-enhancements)
+    - [The ECOsystem](#the-ecosystem)
+      - [Tokens /currency](#tokens-currency)
+        - [The Base Currency](#the-base-currency)
+        - [The Secondary Token](#the-secondary-token)
+      - [The Governance System /governance](#the-governance-system-governance)
+        - [Monetary Governance /governance/monetary](#monetary-governance-governancemonetary)
+        - [Community Governance /governance/community](#community-governance-governancecommunity)
+    - [Infrastructure](#infrastructure)
+      - [The Policies Framework /policy](#the-policies-framework-policy)
+      - [The Proxy Framework /proxy](#the-proxy-framework-proxy)
+      - [The Deployment Tooling /deploy](#the-deployment-tooling-deploy)
+  - [Install](#install)
+  - [Usage](#usage)
+    - [Compiling the contracts](#compiling-the-contracts)
+    - [Running the Linter, Tests and Coverage Report](#running-the-linter-tests-and-coverage-report)
+      - [Linting + prettier](#linting--prettier)
+      - [Testing](#testing)
+      - [Coverage Reporting](#coverage-reporting)
+      - [Generating Documentation](#generating-documentation)
+    - [Running a deployment](#running-a-deployment)
+  - [Components](#components)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Security
 
@@ -61,7 +84,7 @@ Currency 1.5 was inspired by the desire to simplify and modularize the Eco Proto
 
 The user-facing logic comprises of the `currency` and the `governance`, of which the latter can be further subdivided into `monetary governance` (managed by trustees) and `community governance` (managed by all stakeholders):
 
-#### Tokens [/currency](./contracts/currency)
+#### Tokens [/currency](./contracts/currency/README.md)
 
 ##### The Base Currency
 
@@ -71,7 +94,7 @@ ECO is a variable supply base currency. The token (ECO) implementation provides 
 
 The secondary token (ECOx) is a deflationary supply asset intended to incentivize long-term holders and bootstrap governance and an open market signaling expectations for ECO adoption. It is also an ERC20 token. Its initial main functionality, aside from governance, is being convertible to an amount of ECO proportionally based on percentage of the total supply of each token.
 
-#### The Governance System [/governance](./contracts/governance)
+#### The Governance System [/governance](./contracts/governance/README.md)
 
 The Governance module contains the monetary and community governance submodules, as well as the general governance logic for pushing the ECOsystem into a new generation. Monetary and community governance operate on a timescale defined by this logic.
 
@@ -79,7 +102,7 @@ The Governance module contains the monetary and community governance submodules,
 
 The monetary governance submodule allows community-elected trustees to make decisions about the monetary supply in the economy. It initially involves 3 possible actions: minting tokens and distributing them at random (Random Inflation), minting tokens and using them as rewards for lockup contracts (Lockups), and re-scaling each account balance equally (Linear Inflation).
 
-##### Community Governance [/governance/community](./contracts/governance/community)
+##### Community Governance [/governance/community](./contracts/governance/community/README.md)
 
 The community governance submodule allows anyone with tokens (ECO or ECOx) to propose arbitrary changes to contracts and then participate in a vote on those changes, all facilitated to by the policy framework. This allows for the ECOsystem to adapt to changing economic circumstances and evolve to meet users' needs and giving users direct influence over the economy in which they all participate.
 
