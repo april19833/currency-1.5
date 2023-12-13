@@ -315,15 +315,17 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         cycleCount += cycles;
 
         if (cycleTime < PROPOSAL_LENGTH) {
-            ecoToken.snapshot();
-            snapshotBlock = block.number;
-            cycleTotalVotingPower = totalVotingPower();
             stage = Stage.Proposal;
             currentStageEnd = cycleStart + PROPOSAL_LENGTH;
         } else {
             stage = Stage.Done;
             currentStageEnd = cycleStart + CYCLE_LENGTH;
         }
+
+        ecoToken.snapshot();
+        snapshotBlock = block.number;
+        cycleTotalVotingPower = totalVotingPower();
+
         delete selectedProposal;
         delete totalEnactVotes;
         delete totalRejectVotes;
