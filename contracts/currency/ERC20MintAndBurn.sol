@@ -8,9 +8,10 @@ import "./ERC20Pausable.sol";
  *
  */
 contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
-    // storage gap covers all of ECO contract's old delegation functionality
-    // no effect on ECOx storage
-    uint256[50] private __gapMintAndBurn;
+    // storage gap covers all of ECO contract's old delegation functionality (no ECOx storage to be gapped)
+    uint256[10] private __gapMintAndBurn;
+    // additional useable gap for future upgradeability
+    uint256[50] private __gapMintAndBurn2;
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
@@ -133,5 +134,5 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     }
 
     // protecting future upgradeability
-    uint256[50] private __gapMintAndBurn2;
+    uint256[50] private __gapMintAndBurn3;
 }
