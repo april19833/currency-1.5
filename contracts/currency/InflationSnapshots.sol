@@ -160,4 +160,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
             _inflationMultiplierSnapshot.value = uint224(currentValue);
         }
     }
+
+    // protecting future upgradeability
+    uint256[50] private __gapInflationSnapshots;
 }
