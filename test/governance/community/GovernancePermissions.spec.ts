@@ -3,7 +3,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { Fixture, testnetFixture } from '../../../deploy/standalone.fixture'
 import { DAY } from '../../utils/constants'
-import { Contract } from 'ethers'
+import { passProposal } from '../../utils/passProposal'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import {
   BurnerProposal__factory,
@@ -35,36 +35,6 @@ describe('Policy E2E Tests', () => {
 
   let contracts: Fixture
 
-  const passProposal = async (proposal: Contract) => {
-    if (!(await contracts.base.eco.voter(alice.address))) {
-      await contracts.base.eco.connect(alice).enableVoting()
-    }
-
-    // go to next voting cycle
-    await time.increase(14 * DAY)
-    // update stage to Done
-    await contracts.community.communityGovernance.updateStage()
-
-    // push to next cycle which snapshots alice's new voting power
-    await contracts.community.communityGovernance.updateStage()
-
-    // push the proposal through voting
-    await contracts.base.eco
-      .connect(alice)
-      .approve(
-        contracts.community.communityGovernance.address,
-        await contracts.community.communityGovernance.proposalFee()
-      )
-    await contracts.community.communityGovernance
-      .connect(alice)
-      .propose(proposal.address)
-    await contracts.community.communityGovernance
-      .connect(alice)
-      .support(proposal.address)
-    await contracts.community.communityGovernance.connect(alice).vote(1)
-    await contracts.community.communityGovernance.connect(alice).execute()
-  }
-
   before(async () => {
     ;[alice, bob, charlie] = await ethers.getSigners()
   })
@@ -87,7 +57,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.minters(alice.address)).to.be.true
 
     expect(await contracts.base.ecox.minters(alice.address)).to.be.false
@@ -96,7 +66,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.base.ecox.minters(alice.address)).to.be.true
   })
 
@@ -109,7 +79,7 @@ describe('Policy E2E Tests', () => {
       contracts.monetary.lockupsLever.address,
       false,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(
       await contracts.base.eco.minters(contracts.monetary.lockupsLever.address)
     ).to.be.false
@@ -122,7 +92,7 @@ describe('Policy E2E Tests', () => {
       contracts.base.ecoXExchange.address,
       false,
     ])
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(
       await contracts.base.eco.minters(contracts.base.ecoXExchange.address)
     ).to.be.false
@@ -132,14 +102,14 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal3)
+    await passProposal(contracts, alice, proposal3)
     expect(await contracts.base.ecox.minters(alice.address)).to.be.true
     const proposal4 = await deploy(alice, MinterProposal__factory, [
       contracts.base.ecox.address,
       alice.address,
       false,
     ])
-    await passProposal(proposal4)
+    await passProposal(contracts, alice, proposal4)
     expect(await contracts.base.ecox.minters(alice.address)).to.be.false
   })
 
@@ -150,7 +120,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.burners(alice.address)).to.be.true
 
     expect(await contracts.base.ecox.burners(alice.address)).to.be.false
@@ -159,7 +129,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.base.ecox.burners(alice.address)).to.be.true
   })
 
@@ -169,14 +139,14 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.burners(alice.address)).to.be.true
     const proposal2 = await deploy(alice, BurnerProposal__factory, [
       contracts.base.eco.address,
       alice.address,
       false,
     ])
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.base.eco.burners(alice.address)).to.be.false
 
     const proposal3 = await deploy(alice, BurnerProposal__factory, [
@@ -184,14 +154,14 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal3)
+    await passProposal(contracts, alice, proposal3)
     expect(await contracts.base.ecox.burners(alice.address)).to.be.true
     const proposal4 = await deploy(alice, BurnerProposal__factory, [
       contracts.base.ecox.address,
       alice.address,
       false,
     ])
-    await passProposal(proposal4)
+    await passProposal(contracts, alice, proposal4)
     expect(await contracts.base.ecox.burners(alice.address)).to.be.false
   })
 
@@ -202,7 +172,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.rebasers(alice.address)).to.be.true
   })
 
@@ -215,7 +185,7 @@ describe('Policy E2E Tests', () => {
       contracts.monetary.rebaseLever.address,
       false,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(
       await contracts.base.eco.rebasers(contracts.monetary.rebaseLever.address)
     ).to.be.false
@@ -228,7 +198,7 @@ describe('Policy E2E Tests', () => {
       alice.address,
       true,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.snapshotters(alice.address)).to.be.true
   })
 
@@ -243,7 +213,7 @@ describe('Policy E2E Tests', () => {
       contracts.community.communityGovernance.address,
       false,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(
       await contracts.base.eco.snapshotters(
         contracts.community.communityGovernance.address
@@ -259,7 +229,7 @@ describe('Policy E2E Tests', () => {
       contracts.base.ecox.address,
       alice.address,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.ecox.ecoXExchange()).to.eq(alice.address)
   })
 
@@ -269,7 +239,7 @@ describe('Policy E2E Tests', () => {
       contracts.base.eco.address,
       bob.address,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.pauser()).to.eq(bob.address)
   })
 
@@ -279,7 +249,7 @@ describe('Policy E2E Tests', () => {
       contracts.base.ecox.address,
       bob.address,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.ecox.pauser()).to.eq(bob.address)
   })
 
@@ -292,7 +262,7 @@ describe('Policy E2E Tests', () => {
       UpdateGovernancePauserProposal__factory,
       [contracts.community.communityGovernance.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.community.communityGovernance.pauser()).to.eq(
       bob.address
     )
@@ -316,7 +286,7 @@ describe('Policy E2E Tests', () => {
       .connect(alice)
       .propose(bob.address) // non-sense value but it doesn't matter
 
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(
       (await contracts.community.communityGovernance.proposalFee()).sub(
         await contracts.community.communityGovernance.feeRefund()
@@ -333,7 +303,7 @@ describe('Policy E2E Tests', () => {
       UpdateGovernanceTrustedNodesProposal__factory,
       [contracts.monetary.monetaryGovernance.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
       bob.address
     )
@@ -348,7 +318,7 @@ describe('Policy E2E Tests', () => {
       UpdateGovernanceEnacterProposal__factory,
       [contracts.monetary.monetaryGovernance.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
       bob.address
     )
@@ -363,7 +333,7 @@ describe('Policy E2E Tests', () => {
       UpdateAdapterGovernanceProposal__factory,
       [contracts.monetary.adapter.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
       bob.address
     )
@@ -378,7 +348,7 @@ describe('Policy E2E Tests', () => {
       UpdateLeverNotifierProposal__factory,
       [contracts.monetary.lockupsLever.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.lockupsLever.notifier()).to.eq(bob.address)
 
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
@@ -389,7 +359,7 @@ describe('Policy E2E Tests', () => {
       UpdateLeverNotifierProposal__factory,
       [contracts.monetary.rebaseLever.address, bob.address]
     )
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(bob.address)
   })
 
@@ -401,7 +371,7 @@ describe('Policy E2E Tests', () => {
       UpdateLeverAuthorizedProposal__factory,
       [contracts.monetary.lockupsLever.address, alice.address, true]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.lockupsLever.authorized(alice.address)).to
       .be.true
 
@@ -412,7 +382,7 @@ describe('Policy E2E Tests', () => {
       UpdateLeverAuthorizedProposal__factory,
       [contracts.monetary.rebaseLever.address, alice.address, true]
     )
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.monetary.rebaseLever.authorized(alice.address)).to.be
       .true
   })
@@ -432,7 +402,7 @@ describe('Policy E2E Tests', () => {
         false,
       ]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(
       await contracts.monetary.lockupsLever.authorized(
         contracts.monetary.adapter.address
@@ -453,7 +423,7 @@ describe('Policy E2E Tests', () => {
         false,
       ]
     )
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(
       await contracts.monetary.rebaseLever.authorized(
         contracts.monetary.adapter.address
@@ -470,7 +440,7 @@ describe('Policy E2E Tests', () => {
       UpdateNotifierLeverProposal__factory,
       [contracts.monetary.lockupsNotifier.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(bob.address)
 
     expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
@@ -481,7 +451,7 @@ describe('Policy E2E Tests', () => {
       UpdateNotifierLeverProposal__factory,
       [contracts.monetary.rebaseNotifier.address, bob.address]
     )
-    await passProposal(proposal2)
+    await passProposal(contracts, alice, proposal2)
     expect(await contracts.monetary.rebaseNotifier.lever()).to.eq(bob.address)
   })
 
@@ -563,7 +533,7 @@ describe('Policy E2E Tests', () => {
       SweepLockupPenaltiesProposal__factory,
       [contracts.monetary.lockupsLever.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(
       lockupAmount.div(2)
     )
@@ -578,7 +548,7 @@ describe('Policy E2E Tests', () => {
       UpdateTrustedNodesGovernanceProposal__factory,
       [contracts.monetary.trustedNodes.address, bob.address]
     )
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
       bob.address
     )
@@ -598,7 +568,7 @@ describe('Policy E2E Tests', () => {
       contracts.monetary.trustedNodes.address,
       bob.address,
     ])
-    await passProposal(proposal1)
+    await passProposal(contracts, alice, proposal1)
     expect(
       await contracts.base.ecox.balanceOf(
         contracts.monetary.trustedNodes.address

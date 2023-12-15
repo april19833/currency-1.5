@@ -4,10 +4,11 @@ import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { DAY } from './constants'
 
+// assumes that the signer has a super majority
 async function passProposal(
   contracts: Fixture,
+  signer: SignerWithAddress,
   proposal: Contract,
-  signer: SignerWithAddress
 ) {
   if (!(await contracts.base.eco.voter(signer.address))) {
     await contracts.base.eco.connect(signer).enableVoting()

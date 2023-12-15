@@ -4,7 +4,6 @@ import { expect } from 'chai'
 import { Fixture, testnetFixture } from '../../../deploy/standalone.fixture'
 import { DAY } from '../../utils/constants'
 import { Contract } from 'ethers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 import { deploy } from '../../../deploy/utils'
 import { passProposal } from '../../utils/passProposal'
@@ -15,12 +14,11 @@ import {
   SingleTrusteeReplacement__factory,
   TrustedNodesFactory__factory,
 } from '../../../typechain-types'
-import { convertTypeAcquisitionFromJson } from 'typescript'
 import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe.only('E2E tests for common community governance actions', () => {
+describe('E2E tests for common community governance actions', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -66,7 +64,7 @@ describe.only('E2E tests for common community governance actions', () => {
       'url',
     ])
 
-    await passProposal(contracts, prop, alice)
+    await passProposal(contracts, alice, prop)
     expect(
       await contracts.base.eco.balanceOf(contracts.base.policy.address)
     ).to.eq(75)
@@ -76,7 +74,8 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(25)
     expect(await contracts.base.ecox.balanceOf(bob.address)).to.eq(49)
   })
-  it.only('addTxToNotifier', async () => {
+
+  it('addTxToNotifier', async () => {
     const notifier = contracts.monetary.rebaseNotifier
     await expect(notifier.transactions(0)).to.be.reverted
     expect(await notifier.totalGasCost()).to.eq(0)
@@ -91,7 +90,7 @@ describe.only('E2E tests for common community governance actions', () => {
     ])
 
     expect(await prop.txData()).to.eq(bytesData)
-    await passProposal(contracts, prop, alice)
+    await passProposal(contracts, alice, prop)
 
     await expect(notifier.transactions(0)).to.not.be.reverted
     const tx = await notifier.transactions(0)
@@ -101,6 +100,7 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(await notifier.totalGasCost()).to.eq(123)
     expect(tx.data).to.eq(bytesData)
   })
+
   it('singleTrusteeReplacement', async () => {
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
     const trusteeToReplace = await contracts.monetary.trustedNodes.trustees(1)
@@ -114,14 +114,15 @@ describe.only('E2E tests for common community governance actions', () => {
       alice.address,
     ])
 
-    await passProposal(contracts, prop, alice)
+    await passProposal(contracts, alice, prop)
 
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
     expect(await contracts.monetary.trustedNodes.trustees(1)).to.eq(
       alice.address
     )
   })
-  it.only('NewTrusteeCohort', async () => {
+
+  it('NewTrusteeCohort', async () => {
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
     let trustees = await contracts.monetary.trustedNodes.getTrustees()
     expect(trustees[0]).to.eq(bob.address)
@@ -149,7 +150,7 @@ describe.only('E2E tests for common community governance actions', () => {
       12341234,
     ])
 
-    await passProposal(contracts, prop, alice)
+    await passProposal(contracts, alice, prop)
 
     const newTrustedNodesAddress =
       await contracts.monetary.monetaryGovernance.trustedNodes()
