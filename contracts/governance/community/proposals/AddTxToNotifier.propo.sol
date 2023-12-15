@@ -61,7 +61,7 @@ contract AddTxToNotifier is Policy, Proposal {
     }
 
     /** Adds new tx to notifier */
-    function enacted(address) public override {
-        notifier.addTransaction(target, txData, gasCost);
+    function enacted(address self) public override {
+        notifier.addTransaction(target, AddTxToNotifier(self).txData(), gasCost);
     }
 }

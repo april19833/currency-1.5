@@ -68,10 +68,10 @@ contract NewTrusteeCohort is Policy, Proposal {
      *
      * This is executed in the storage context of the root policy contract.
      *
-     * @param _self The address of the proposal.
+     * @param self The address of the proposal.
      */
-    function enacted(address _self) public virtual override {
-        TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(termLength, voteReward, newTrustees);
+    function enacted(address self) public virtual override {
+        TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(termLength, voteReward, NewTrusteeCohort(self).returnNewTrustees());
         CurrencyGovernance(trustedNodesFactory.currencyGovernance()).setTrustedNodes(newTrustedNodes);
         uint256 rewards = (termLength / (14 days)) * voteReward * newTrustees.length;
         trustedNodesFactory.ecoX().transfer(address(newTrustedNodes), rewards);

@@ -76,7 +76,7 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(await contracts.base.eco.balanceOf(bob.address)).to.eq(25)
     expect(await contracts.base.ecox.balanceOf(bob.address)).to.eq(49)
   })
-  it('addTxToNotifier', async () => {
+  it.only('addTxToNotifier', async () => {
     const notifier = contracts.monetary.rebaseNotifier
     await expect(notifier.transactions(0)).to.be.reverted
     expect(await notifier.totalGasCost()).to.eq(0)
@@ -99,9 +99,7 @@ describe.only('E2E tests for common community governance actions', () => {
     expect(tx.target).to.eq(bob.address)
     expect(tx.gasCost).to.eq(123)
     expect(await notifier.totalGasCost()).to.eq(123)
-    expect(tx.data).to.eq(bytesData) // this is failing
-    // i don't understand why, going to move on for now.
-    // No matter what data I input the data field of the added transaction is just 0x.
+    expect(tx.data).to.eq(bytesData)
   })
   it('singleTrusteeReplacement', async () => {
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
@@ -123,7 +121,7 @@ describe.only('E2E tests for common community governance actions', () => {
       alice.address
     )
   })
-  it('NewTrusteeCohort', async () => {
+  it.only('NewTrusteeCohort', async () => {
     expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
     let trustees = await contracts.monetary.trustedNodes.getTrustees()
     expect(trustees[0]).to.eq(bob.address)
