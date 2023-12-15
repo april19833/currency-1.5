@@ -273,7 +273,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 if (totalEnactVotes > totalRejectVotes) {
                     // vote passes
                     stage = Stage.Delay;
-                    currentStageEnd = time + DELAY_LENGTH;
+                    currentStageEnd = currentStageEnd + DELAY_LENGTH;
                 } else {
                     // vote fails
                     stage = Stage.Done;
@@ -282,6 +282,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             } else if (stage == Stage.Delay) {
                 // delay period ended, time to execute
                 stage = Stage.Execution;
+                //TODO: this comment needs corrected
                 //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
                 currentStageEnd = cycleStart + CYCLE_LENGTH;
             } else if (stage == Stage.Execution) {
