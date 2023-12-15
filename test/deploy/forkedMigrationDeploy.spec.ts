@@ -479,6 +479,13 @@ describe.only('Mainnet fork migration tests', () => {
         ).to.eq(contracts.monetary.trustedNodes.address)
       })
 
+      it('can withdraw from staking contract', async () => {
+        const aliceEcoxBalance = await baseContracts.ecox.balanceOf(alice.address)
+        const withdrawAmount = ethers.utils.parseUnits('1', 'ether')
+        await baseContracts.ecoXStaking.connect(alice).withdraw(withdrawAmount)
+        expect(await baseContracts.ecox.balanceOf(alice.address)).to.eq(aliceEcoxBalance.add(withdrawAmount))
+      })
+
       context('adding lockups after migration (tests community governance cycle)', () => {
         beforeEach(async () => {
           // deploy the lockups contract and its notifier
