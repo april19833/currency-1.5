@@ -25,6 +25,8 @@ import {
   SweepTrustedNodesProposal__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
+import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import { UpdatePolicedProxyImplProposal__factory } from '../../../typechain-types/factories/contracts/test/UpdatePolicedProxyImpl.propo.sol'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
@@ -575,5 +577,29 @@ describe('Policy E2E Tests', () => {
       )
     ).to.eq(0)
     expect(await contracts.base.ecox.balanceOf(bob.address)).to.eq(sweepAmount)
+  })
+
+  it('upgrade proxy contract', async () => {
+    const oldEcoImplAddr = await contracts.base.eco.implementation()
+    expect(await contracts.base.eco.pauser()).to.eq(alice.address)
+
+    const newEcoImpl = await deploy(alice, ECO__factory, [
+      alice.address, // the policy address is alice now
+      bob.address, // attempting to change the pauser from alice doesn't do anything since it's not immutable
+    ])
+
+    const proposal = await deploy(
+      alice,
+      UpdatePolicedProxyImplProposal__factory,
+      [contracts.base.eco.address, newEcoImpl.address]
+    )
+
+    await passProposal(contracts, alice, proposal)
+
+    const newEcoImplAddr = await contracts.base.eco.implementation()
+    expect(newEcoImplAddr).to.eq(newEcoImpl.address)
+    expect(newEcoImplAddr).to.not.eq(oldEcoImplAddr)
+    expect(await contracts.base.eco.policy()).to.eq(alice.address) // policy is changed by implementation with a new policy
+    expect(await contracts.base.eco.pauser()).to.eq(alice.address) // old pauser is kept because it is data in the proxy storage space
   })
 })
