@@ -117,7 +117,6 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
-
     function getTrustees() public view returns (address[] memory _trustees) {
         return trustees;
     }

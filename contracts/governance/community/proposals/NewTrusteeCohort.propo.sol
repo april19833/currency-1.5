@@ -12,22 +12,27 @@ import "../../monetary/TrustedNodesFactory.sol";
  */
 contract NewTrusteeCohort is Policy, Proposal {
     // the factory that creates new trustedNodes contracts
-    TrustedNodesFactory immutable public trustedNodesFactory;
+    TrustedNodesFactory public immutable trustedNodesFactory;
 
     // the new trustees that will be trusted
     address[] public newTrustees;
 
     // length of trustee term for this cohort
-    uint256 immutable public termLength;
-    
+    uint256 public immutable termLength;
+
     // trustee vote reward for this cohort
-    uint256 immutable public voteReward;
+    uint256 public immutable voteReward;
 
     /** Instantiate a new proposal.
      *
      * @param _newTrustees The array of new addresses to become trusted
      */
-    constructor(TrustedNodesFactory _trustedNodesFactory, address[] memory _newTrustees, uint256 _termLength, uint256 _voteReward) Policy(address(0x0)) {
+    constructor(
+        TrustedNodesFactory _trustedNodesFactory,
+        address[] memory _newTrustees,
+        uint256 _termLength,
+        uint256 _voteReward
+    ) Policy(address(0x0)) {
         trustedNodesFactory = _trustedNodesFactory;
         newTrustees = _newTrustees;
         termLength = _termLength;
@@ -71,9 +76,16 @@ contract NewTrusteeCohort is Policy, Proposal {
      * @param self The address of the proposal.
      */
     function enacted(address self) public virtual override {
-        TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(termLength, voteReward, NewTrusteeCohort(self).returnNewTrustees());
-        CurrencyGovernance(trustedNodesFactory.currencyGovernance()).setTrustedNodes(newTrustedNodes);
-        uint256 rewards = (termLength / (14 days)) * voteReward * newTrustees.length;
+        TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(
+            termLength,
+            voteReward,
+            NewTrusteeCohort(self).returnNewTrustees()
+        );
+        CurrencyGovernance(trustedNodesFactory.currencyGovernance())
+            .setTrustedNodes(newTrustedNodes);
+        uint256 rewards = (termLength / (14 days)) *
+            voteReward *
+            newTrustees.length;
         trustedNodesFactory.ecoX().transfer(address(newTrustedNodes), rewards);
     }
 }

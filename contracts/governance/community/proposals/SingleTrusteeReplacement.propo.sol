@@ -24,7 +24,11 @@ contract SingleTrusteeReplacement is Policy, Proposal {
      * @param _oldTrustee The existing trustee to distrust
      * @param _newTrustee The new address to become trusted
      */
-    constructor(TrustedNodes _trustedNodes, address _oldTrustee, address _newTrustee) Policy (address(0x0)) {
+    constructor(
+        TrustedNodes _trustedNodes,
+        address _oldTrustee,
+        address _newTrustee
+    ) Policy(address(0x0)) {
         trustedNodes = _trustedNodes;
         oldTrustee = _oldTrustee;
         newTrustee = _newTrustee;

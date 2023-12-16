@@ -8,7 +8,7 @@ import { DAY } from './constants'
 async function passProposal(
   contracts: Fixture,
   signer: SignerWithAddress,
-  proposal: Contract,
+  proposal: Contract
 ) {
   if (!(await contracts.base.eco.voter(signer.address))) {
     await contracts.base.eco.connect(signer).enableVoting()

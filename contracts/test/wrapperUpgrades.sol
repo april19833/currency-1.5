@@ -24,9 +24,10 @@ contract UpgradedWrapper {
 }
 
 contract OZProxy is TransparentUpgradeableProxy {
-    constructor(address _wrapper, address _policy)
-        TransparentUpgradeableProxy(_wrapper, _policy, bytes(""))
-    {}
+    constructor(
+        address _wrapper,
+        address _policy
+    ) TransparentUpgradeableProxy(_wrapper, _policy, bytes("")) {}
 
     function whoAmI() external ifAdmin returns (uint256) {
         return 3;
@@ -43,7 +44,10 @@ contract WrapperUpgradeProposal is Policy, Proposal {
 
     OZProxy public immutable ozProxy;
 
-    constructor(UpgradedWrapper _upgradedWrapper, OZProxy _ozProxy) Policy (address(0x0)) {
+    constructor(
+        UpgradedWrapper _upgradedWrapper,
+        OZProxy _ozProxy
+    ) Policy(address(0x0)) {
         upgradedWrapper = _upgradedWrapper;
         ozProxy = _ozProxy;
     }
@@ -61,6 +65,8 @@ contract WrapperUpgradeProposal is Policy, Proposal {
     }
 
     function enacted(address) external {
-        ITransparentUpgradeableProxy(address(ozProxy)).upgradeTo(address(upgradedWrapper));
+        ITransparentUpgradeableProxy(address(ozProxy)).upgradeTo(
+            address(upgradedWrapper)
+        );
     }
 }
