@@ -11,8 +11,12 @@ import {
   AccessRootPolicyFunds__factory,
   AddTxToNotifier__factory,
   NewTrusteeCohort__factory,
+  OZProxy__factory,
   SingleTrusteeReplacement__factory,
   TrustedNodesFactory__factory,
+  UpgradedWrapper__factory,
+  WrapperUpgradeProposal__factory,
+  Wrapper__factory,
 } from '../../../typechain-types'
 import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
@@ -169,5 +173,47 @@ describe('E2E tests for common community governance actions', () => {
     expect(trustees[0]).to.eq(dave.address)
     expect(trustees[1]).to.eq(edith.address)
     expect(trustees[2]).to.eq(francine.address)
+  })
+
+  it('Transparent Upgradable Proxy upgrade', async () => {
+    // deploy impls
+    const oldImpl = await deploy(alice, Wrapper__factory)
+    const newImpl = await deploy(alice, UpgradedWrapper__factory)
+    // deploy proxy
+    const proxy = await deploy(alice, OZProxy__factory, [
+      oldImpl.address,
+      contracts.base.policy.address,
+    ])
+    // test proxy
+    const whoiamtest = await proxy.connect(alice).whoAmINonAdmin()
+    expect(whoiamtest).to.equal(4)
+    // created proxied impl object
+    const oldTypedProxy = new Wrapper__factory(alice).attach(proxy.address)
+    // test typed object
+    await expect(oldTypedProxy.connect(alice).whoAmI())
+      .to.emit(oldTypedProxy, 'HereIAm')
+      .withArgs(1)
+
+    // construct proposal
+    const proposal = await deploy(alice, WrapperUpgradeProposal__factory, [
+      newImpl.address,
+      proxy.address,
+    ])
+    const name = await proposal.name()
+    expect(name).to.equal('I am the wrapper upgrade proposal')
+    const description = await proposal.description()
+    expect(description).to.equal('I upgrade the wrapper to say it is poodled')
+    const url = await proposal.url()
+    expect(url).to.equal('www.wrapper-upgrayedd.com')
+
+    await passProposal(contracts, alice, proposal)
+
+    // confirm that upgrade occured
+    const newTypedProxy = new UpgradedWrapper__factory(alice).attach(
+      proxy.address
+    )
+    await expect(proxy.connect(alice).whoAmI())
+      .to.emit(newTypedProxy, 'HereIAm')
+      .withArgs(2)
   })
 })
