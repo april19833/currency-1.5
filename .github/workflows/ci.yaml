@@ -1,5 +1,8 @@
 name: ECO-1.5 Lint / Tests
 
+env:
+  RPCKEY: ${{ secrets.INFURA }}
+
 on:
   push:
     branches: [main]
