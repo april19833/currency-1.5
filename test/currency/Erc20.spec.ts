@@ -461,7 +461,7 @@ describe('Erc20', () => {
       const amount = ethers.utils.parseEther('1').mul(1000)
 
       it('fails if signed from non-owner', async () => {
-        const deadline = Math.floor(await time.latest() + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -498,7 +498,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid nonce', async () => {
-        const deadline = Math.floor(await time.latest() + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -535,7 +535,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid spender', async () => {
-        const deadline = Math.floor(await time.latest() + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -572,7 +572,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid deadline', async () => {
-        const deadline = Math.floor(await time.latest() - 100)
+        const deadline = Math.floor((await time.latest()) - 100)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -609,7 +609,7 @@ describe('Erc20', () => {
       })
 
       it('fails with signature reuse', async () => {
-        const deadline = Math.floor(await time.latest() + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
