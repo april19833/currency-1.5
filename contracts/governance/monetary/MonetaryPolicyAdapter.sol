@@ -23,7 +23,7 @@ contract MonetaryPolicyAdapter is Policed {
     /**
      * error for when a part of enacting a policy reverts
      */
-    error FailedPolicy(address target, string reason);
+    error FailedPolicy();
 
     /**
      * emits when the currencyGovernance contract is changed
@@ -91,7 +91,7 @@ contract MonetaryPolicyAdapter is Policed {
 
             // we might not actually need to fail gracefully, lets consider if reverting here is just fine
             if (!success) {
-                revert FailedPolicy(targets[i], string(returnData));
+                revert FailedPolicy();
             }
         }
 
