@@ -336,17 +336,19 @@ describe('MonetaryPolicyAdapter', () => {
     })
 
     // despite including reverts, these are still normal behavior tests as the revert safety is part of the normal functionality
-    describe.only('reverts', () => {
+    describe('reverts', () => {
       it('cannot enact a policy that reverts', async () => {
         const targets = [DummyLever1.address]
         const signatures = [alwaysRevertSig]
         const calldatas = [PLACEHOLDER_BYTES32_2]
-        await expect(Enacter.connect(cgImpersonater).enact(
-          proposalId,
-          targets,
-          signatures,
-          calldatas
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
 
         const count = await DummyLever1.executeMarker()
         expect(count).to.eq(0)
@@ -362,12 +364,14 @@ describe('MonetaryPolicyAdapter', () => {
             [REVERTING_UINT156_1, PLACEHOLDER_ADDRESS1, PLACEHOLDER_BYTES32_2]
           ),
         ]
-        await expect(Enacter.connect(cgImpersonater).enact(
-          proposalId,
-          targets,
-          signatures,
-          calldatas
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
 
         const count = await DummyLever1.executeMarker()
         expect(count).to.eq(0)
@@ -378,12 +382,14 @@ describe('MonetaryPolicyAdapter', () => {
         const signatures = [executeSig]
         // calldata is garbage and doesn't match the function
         const calldatas = [PLACEHOLDER_BYTES32_1]
-        await expect(Enacter.connect(cgImpersonater).enact(
-          proposalId,
-          targets,
-          signatures,
-          calldatas
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
 
         const count = await DummyLever1.executeMarker()
         expect(count).to.eq(0)
@@ -403,18 +409,20 @@ describe('MonetaryPolicyAdapter', () => {
             ]
           ),
         ]
-        await expect(Enacter.connect(cgImpersonater).enact(
-          proposalId,
-          targets,
-          signatures,
-          calldatas
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
 
         const count = await DummyLever1.executeMarker()
         expect(count).to.eq(0)
       })
 
-      it("reverts block other txs in the policy", async () => {
+      it('reverts block other txs in the policy', async () => {
         const targets = [
           DummyLever1.address,
           DummyLever2.address,
@@ -431,12 +439,14 @@ describe('MonetaryPolicyAdapter', () => {
           [REVERTING_UINT156_3, PLACEHOLDER_ADDRESS1, PLACEHOLDER_BYTES32_2]
         )
         const calldatas = [calldata1, calldata2, calldata3]
-        await expect(Enacter.connect(cgImpersonater).enact(
-          proposalId,
-          targets,
-          signatures,
-          calldatas
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
+            proposalId,
+            targets,
+            signatures,
+            calldatas
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
 
         const count1 = await DummyLever1.executeMarker()
         expect(count1).to.eq(0)
