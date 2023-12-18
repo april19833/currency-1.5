@@ -230,10 +230,10 @@ describe('Community Governance', () => {
       await time.increaseTo(await cg.currentStageEnd())
       await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DELAY)
 
-      expect(await cg.stage()).to.eq(DELAY)
       expect(await cg.currentStageEnd()).to.eq(
         (await cg.DELAY_LENGTH()).add(await time.latest())
       )
+      expect(await cg.stage()).to.eq(DELAY)
     })
     it('updates to done from voting if there are fewer enact votes than reject', async () => {
       // manually get to voting stage
