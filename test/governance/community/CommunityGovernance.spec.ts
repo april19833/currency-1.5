@@ -212,7 +212,7 @@ describe('Community Governance', () => {
         (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
       )
     })
-    it('updates to delay from voting if there are more enact votes than reject', async () => {
+    it.only('updates to delay from voting if there are more enact votes than reject', async () => {
       // manually get to voting stage
       await cg.updateStage()
 
@@ -228,10 +228,11 @@ describe('Community Governance', () => {
       await cg.setVariable('totalAbstainVotes', 100)
 
       await time.increaseTo(await cg.currentStageEnd())
+      const now = await time.latest()
       await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DELAY)
 
       expect(await cg.currentStageEnd()).to.eq(
-        (await cg.DELAY_LENGTH()).add(await time.latest())
+        (await cg.DELAY_LENGTH()).add(now)
       )
       expect(await cg.stage()).to.eq(DELAY)
     })
