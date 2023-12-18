@@ -21,6 +21,11 @@ contract MonetaryPolicyAdapter is Policed {
     error CurrencyGovernanceOnlyFunction();
 
     /**
+     * error for when a part of enacting a policy reverts
+     */
+    error FailedPolicy(address target, string reason);
+
+    /**
      * emits when the currencyGovernance contract is changed
      * @param newCurrencyGovernance denotes the new currencyGovernance contract address
      * @param oldCurrencyGovernance denotes the old currencyGovernance contract address
@@ -34,18 +39,11 @@ contract MonetaryPolicyAdapter is Policed {
      * emits when enaction happens to keep record of enaction
      * @param proposalId the proposal lookup that got successfully enacted
      * @param currencyGovernance the CurrencyGovernance contract where you can look up the proposal calldata
-     * @param successes the return success values from each of the calls to the targets in order
      */
     event EnactedMonetaryPolicy(
         bytes32 proposalId,
-        CurrencyGovernance currencyGovernance,
-        bool[] successes
+        CurrencyGovernance currencyGovernance
     );
-
-    /**
-     * emits when a part of enacting a policy reverts
-     */
-    event FailedPolicySubcall(address target, string reason);
 
     /** Restrict method access to the root policy instance only.
      */
@@ -84,7 +82,6 @@ contract MonetaryPolicyAdapter is Policed {
         bytes4[] calldata signatures,
         bytes[] memory calldatas
     ) external virtual onlyCurrencyGovernance {
-        bool[] memory successes = new bool[](targets.length);
         // the array lengths have all been vetted already by the proposal-making process
         // upstream is just trusted
         for (uint256 i = 0; i < targets.length; i++) {
@@ -94,11 +91,10 @@ contract MonetaryPolicyAdapter is Policed {
 
             // we might not actually need to fail gracefully, lets consider if reverting here is just fine
             if (!success) {
-                emit FailedPolicySubcall(targets[i], string(returnData));
+                revert FailedPolicy(targets[i], string(returnData));
             }
-            successes[i] = success;
         }
 
-        emit EnactedMonetaryPolicy(proposalId, currencyGovernance, successes);
+        emit EnactedMonetaryPolicy(proposalId, currencyGovernance);
     }
 }
