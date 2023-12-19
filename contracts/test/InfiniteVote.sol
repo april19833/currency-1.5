@@ -41,7 +41,10 @@ contract InfiniteVote {
         ecoaddress.approve(address(communityGovernance), COST_REGISTER);
         communityGovernance.propose(Proposal(PROPOSAL));
         for (uint256 i = 0; i < NUM_SUBVOTERS; i++) {
-            if (communityGovernance.stage() == CommunityGovernance.Stage.Proposal) {
+            if (
+                communityGovernance.stage() ==
+                CommunityGovernance.Stage.Proposal
+            ) {
                 ecoaddress.transfer(
                     address(subvoters[i]),
                     ecoaddress.balanceOf(address(this))
@@ -54,7 +57,9 @@ contract InfiniteVote {
 
         // never gets to this point due to a number of previous failures including failure to add voting power
         for (uint256 i = 0; i < (NUM_SUBVOTERS * 11) / 3; i++) {
-            if (communityGovernance.stage() == CommunityGovernance.Stage.Voting) {
+            if (
+                communityGovernance.stage() == CommunityGovernance.Stage.Voting
+            ) {
                 ecoaddress.transfer(
                     address(subvoters[i]),
                     ecoaddress.balanceOf(address(this))

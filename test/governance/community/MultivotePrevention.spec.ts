@@ -3,7 +3,6 @@ import { expect } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
-import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
 import { ECO } from '../../../typechain-types/contracts/currency'
@@ -11,13 +10,19 @@ import {
   CommunityGovernance,
   ECOxStaking,
 } from '../../../typechain-types/contracts/governance/community'
-import { InfiniteVote, SampleProposal } from '../../../typechain-types/contracts/test'
+import {
+  InfiniteVote,
+  SampleProposal,
+} from '../../../typechain-types/contracts/test'
 import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
 import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
 } from '../../../typechain-types/factories/contracts/governance/community'
-import { InfiniteVote__factory, SampleProposal__factory } from '../../../typechain-types/factories/contracts/test'
+import {
+  InfiniteVote__factory,
+  SampleProposal__factory,
+} from '../../../typechain-types/factories/contracts/test'
 import { BigNumber } from 'ethers'
 
 const A1 = '0x1111111111111111111111111111111111111111'
@@ -31,8 +36,7 @@ describe('Community Governance', () => {
   let alice: SignerWithAddress
   let bigboy: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bigboy] =
-      await ethers.getSigners()
+    ;[policyImpersonator, alice, bigboy] = await ethers.getSigners()
   })
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
@@ -83,13 +87,18 @@ describe('Community Governance', () => {
       A1 // pauser
     )
 
-    proposal = await deploy(alice, SampleProposal__factory) as SampleProposal
-    exploitContract = await deploy(alice, InfiniteVote__factory, [NUM_SUBVOTERS, cg.address, eco.address, proposal.address]) as InfiniteVote
+    proposal = (await deploy(alice, SampleProposal__factory)) as SampleProposal
+    exploitContract = (await deploy(alice, InfiniteVote__factory, [
+      NUM_SUBVOTERS,
+      cg.address,
+      eco.address,
+      proposal.address,
+    ])) as InfiniteVote
 
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
 
-  it.only('attempt to multivote', async () => {
+  it('attempt to multivote', async () => {
     // this setup more realistically sets up a governance cycle
     await cg.updateStage()
     await time.increase(await cg.PROPOSAL_LENGTH())
@@ -99,7 +108,7 @@ describe('Community Governance', () => {
     await expect(exploitContract.infiniteVote()).to.be.reverted
 
     expect((await cg.proposals(proposal.address)).totalSupport).to.eq(0)
-    
+
     // /**
     //  * several guards prevent getting to this state
     //  * ECOxStaking simply cannot be forced to fetch voting power for the current block, so the voting power calculation fails
@@ -118,5 +127,4 @@ describe('Community Governance', () => {
     // expect(await cg.stage()).to.eq(4) // execution
     // await cg.execute() // this could be done atomically in the multivoter, but it's better done here
   })
-
 })

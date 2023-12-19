@@ -16,9 +16,7 @@ contract Subvoter {
         ecoaddress.enableVoting();
     }
 
-    function support(address _proposalToSupport)
-        public
-    {
+    function support(address _proposalToSupport) public {
         communityGovernance.support(_proposalToSupport);
         ecoaddress.transfer(msg.sender, ecoaddress.balanceOf(address(this)));
     }
