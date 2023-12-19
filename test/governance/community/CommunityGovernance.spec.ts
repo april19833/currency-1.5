@@ -212,7 +212,7 @@ describe('Community Governance', () => {
         (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
       )
     })
-    it.only('updates to delay from voting if there are more enact votes than reject', async () => {
+    it('updates to delay from voting if there are more enact votes than reject', async () => {
       // manually get to voting stage
       await cg.updateStage()
 
