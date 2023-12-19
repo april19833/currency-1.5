@@ -80,7 +80,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
      */
     function totalSupplySnapshot() public view virtual returns (uint256) {
         if (
-            currentSnapshotBlock != block.number &&
+            // currentSnapshotBlock != block.number && // this line fucks up the current abliity to snapshot total power, but might need implemented
             _totalSupplySnapshot.snapshotBlock < currentSnapshotBlock
         ) {
             return _totalSupply;

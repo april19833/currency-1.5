@@ -368,6 +368,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function support(address _proposal) public {
         uint256 vp = votingPower(msg.sender);
+        // require(vp > 0, "can't support with zero"); // should consider this guard
         _changeSupport(msg.sender, _proposal, vp);
     }
 
