@@ -92,7 +92,10 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     function inflationMultiplierSnapshot() public view returns (uint256) {
-        if (currentSnapshotBlock != block.number && _inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock) {
+        if (
+            currentSnapshotBlock != block.number &&
+            _inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock
+        ) {
             return inflationMultiplier;
         } else {
             return _inflationMultiplierSnapshot.value;
@@ -152,7 +155,9 @@ abstract contract InflationSnapshots is VoteSnapshots {
     function _updateInflationSnapshot() private {
         // rebase function is guaranteed to have a new snapshot before manipulating the value so we don't need as strict checks as balances
         uint32 _currentSnapshotBlock = currentSnapshotBlock;
-        if (_inflationMultiplierSnapshot.snapshotBlock < _currentSnapshotBlock) {
+        if (
+            _inflationMultiplierSnapshot.snapshotBlock < _currentSnapshotBlock
+        ) {
             uint256 currentValue = inflationMultiplier;
             require(
                 currentValue <= type(uint224).max,
