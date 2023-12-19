@@ -504,7 +504,7 @@ describe('MonetaryPolicyAdapter', () => {
         expect(count4).to.eq(3)
       })
 
-      it.only('revert due to out of gas still safe at 350k+ gas', async () => {
+      it('revert due to out of gas still safe at 350k+ gas', async () => {
         const targets = [DummyLever1.address, DummyLever2.address]
         const signatures = [alwaysPassSig, veryExpensiveSig]
         const calldata1 = PLACEHOLDER_BYTES32_1
@@ -533,13 +533,16 @@ describe('MonetaryPolicyAdapter', () => {
 
         // gas estimation is less reliable at this level of expense so if we undercut by too little, it's actually just enough gas for everything to succeed
         // this large delegateCall is able to revert the subcall and still have gas to get to the revert statement
-        await expect(Enacter.connect(cgImpersonater).enact(
+        await expect(
+          Enacter.connect(cgImpersonater).enact(
             proposalId,
             targets,
             signatures,
             calldatas,
             { gasLimit: necessaryGas2.sub(1000) }
-        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+          )
+        ).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
+
         const count3 = await DummyLever1.executeMarker()
         expect(count3).to.eq(3)
         const count4 = await DummyLever2.executeMarker()
