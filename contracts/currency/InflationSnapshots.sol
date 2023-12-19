@@ -151,13 +151,14 @@ abstract contract InflationSnapshots is VoteSnapshots {
 
     function _updateInflationSnapshot() private {
         // rebase function is guaranteed to have a new snapshot before manipulating the value so we don't need as strict checks as balances
-        if (_inflationMultiplierSnapshot.snapshotBlock < currentSnapshotBlock) {
+        uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        if (_inflationMultiplierSnapshot.snapshotBlock < _currentSnapshotBlock) {
             uint256 currentValue = inflationMultiplier;
             require(
                 currentValue <= type(uint224).max,
                 "InflationSnapshots: new snapshot cannot be casted safely"
             );
-            _inflationMultiplierSnapshot.snapshotBlock = currentSnapshotBlock;
+            _inflationMultiplierSnapshot.snapshotBlock = _currentSnapshotBlock;
             _inflationMultiplierSnapshot.value = uint224(currentValue);
         }
     }
