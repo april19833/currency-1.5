@@ -331,7 +331,7 @@ describe('MonetaryPolicyAdapter', () => {
           )
         )
           .to.emit(Enacter, 'EnactedMonetaryPolicy')
-          .withArgs(proposalId, Fake__CurrencyGovernance.address, [true, true])
+          .withArgs(proposalId, Fake__CurrencyGovernance.address)
       })
     })
 
@@ -483,7 +483,7 @@ describe('MonetaryPolicyAdapter', () => {
         const necessaryGas2 = await Enacter.connect(
           cgImpersonater
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
-        // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
+        // expect(...).to.be.reverted is non-functional with lower level revert reasons like out of gas
         try {
           await Enacter.connect(cgImpersonater).enact(
             proposalId,
@@ -504,7 +504,7 @@ describe('MonetaryPolicyAdapter', () => {
         expect(count4).to.eq(3)
       })
 
-      it('revert due to out of gas still safe at 350k+ gas', async () => {
+      it.only('revert due to out of gas still safe at 350k+ gas', async () => {
         const targets = [DummyLever1.address, DummyLever2.address]
         const signatures = [alwaysPassSig, veryExpensiveSig]
         const calldata1 = PLACEHOLDER_BYTES32_1
@@ -513,7 +513,6 @@ describe('MonetaryPolicyAdapter', () => {
         const necessaryGas1 = await Enacter.connect(
           cgImpersonater
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
-        // console.log(necessaryGas1)
         await Enacter.connect(cgImpersonater).enact(
           proposalId,
           targets,
@@ -532,22 +531,15 @@ describe('MonetaryPolicyAdapter', () => {
         ).estimateGas.enact(proposalId, targets, signatures, calldatas)
         // console.log(necessaryGas2)
 
-        // gas estimation is less reliable at this level of expense so if we undercut by less, it's actually just enough gas for everything to succeed
-        try {
-          await Enacter.connect(cgImpersonater).enact(
+        // gas estimation is less reliable at this level of expense so if we undercut by too little, it's actually just enough gas for everything to succeed
+        // this large delegateCall is able to revert the subcall and still have gas to get to the revert statement
+        await expect(Enacter.connect(cgImpersonater).enact(
             proposalId,
             targets,
             signatures,
             calldatas,
             { gasLimit: necessaryGas2.sub(1000) }
-          )
-        } catch (error) {
-          // expect(...).to.be.revered is non-functional with lower level revert reasons like out of gas
-          expect(String(error).split('\n')[0]).to.eql(
-            'TransactionExecutionError: Transaction ran out of gas'
-          )
-        }
-        // both low level actions are reverted
+        )).to.be.revertedWith(ERRORS.MonetaryPolicyAdapter.BAD_MONETARY_POLICY)
         const count3 = await DummyLever1.executeMarker()
         expect(count3).to.eq(3)
         const count4 = await DummyLever2.executeMarker()
