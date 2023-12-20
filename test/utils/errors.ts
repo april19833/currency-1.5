@@ -29,6 +29,7 @@ export const ERRORS = {
   MonetaryPolicyAdapter: {
     CURRENCYGOVERNANCE_ONLY: 'CurrencyGovernanceOnlyFunction',
     REQUIRE_NON_ZERO_CURRENCYGOVERNANCE: 'NonZeroCurrencyGovernanceAddr',
+    BAD_MONETARY_POLICY: 'FailedPolicy',
   },
   Policed: {
     POLICY_ONLY: 'PolicyOnlyFunction',
