@@ -673,7 +673,7 @@ describe('Erc20', () => {
       it('returns proper domain separator', async () => {
         const domain = {
           name: await ECOproxy.name(),
-          version: '1',
+          version: '2',
           chainId,
           verifyingContract: ECOproxy.address,
         }
