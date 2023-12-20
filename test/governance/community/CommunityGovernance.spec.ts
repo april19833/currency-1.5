@@ -405,7 +405,7 @@ describe('Community Governance', () => {
         expect((await cg.proposals(A1)).refund).to.eq(0)
       })
     })
-    describe.only('supporting', () => {
+    describe('supporting', () => {
       beforeEach(async () => {
         await cg.updateStage() // alice can rob herself of the fee's voting power by atomically pushing to the next stage and proposing
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
