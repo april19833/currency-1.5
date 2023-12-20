@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../governance/community/proposals/Proposal.sol";
-import "../policy/Policy.sol";
-import "../currency/ECO.sol";
-import "../currency/ECOx.sol";
-import "../currency/ECOxExchange.sol";
-import "../governance/community/CommunityGovernance.sol";
-import "../governance/monetary/Lockups.sol";
-import "../governance/monetary/Rebase.sol";
-import "../governance/monetary/Notifier.sol";
-import "../governance/monetary/MonetaryPolicyAdapter.sol";
-import "../governance/monetary/CurrencyGovernance.sol";
-import "../governance/monetary/TrustedNodes.sol";
+import "../../governance/community/proposals/Proposal.sol";
+import "../../policy/Policy.sol";
+import "../../currency/ECO.sol";
+import "../../currency/ECOx.sol";
+import "../../currency/ECOxExchange.sol";
+import "../../governance/community/CommunityGovernance.sol";
+import "../../governance/monetary/Lockups.sol";
+import "../../governance/monetary/Rebase.sol";
+import "../../governance/monetary/Notifier.sol";
+import "../../governance/monetary/MonetaryPolicyAdapter.sol";
+import "../../governance/monetary/CurrencyGovernance.sol";
+import "../../governance/monetary/TrustedNodes.sol";
 import {Policed as PolicedOld} from "@helix-foundation/currency-dev/contracts/policy/Policed.sol";
 import {ECO as ECOOld} from "@helix-foundation/currency-dev/contracts/currency/ECO.sol";
 import {ImplementationUpdatingTarget} from "@helix-foundation/currency-dev/contracts/test/ImplementationUpdatingTarget.sol";

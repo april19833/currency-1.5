@@ -10,6 +10,7 @@ import { deployProxy } from '../../deploy/utils'
 import { ECO } from '../../typechain-types/contracts/currency'
 import { Policy } from '../../typechain-types/contracts/policy'
 import { ECO__factory } from '../../typechain-types/factories/contracts/currency'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const PLACEHOLDER_ADDRESS1 = '0x1111111111111111111111111111111111111111'
 
@@ -460,7 +461,7 @@ describe('Erc20', () => {
       const amount = ethers.utils.parseEther('1').mul(1000)
 
       it('fails if signed from non-owner', async () => {
-        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -497,7 +498,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid nonce', async () => {
-        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -534,7 +535,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid spender', async () => {
-        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -571,7 +572,7 @@ describe('Erc20', () => {
       })
 
       it('fails with invalid deadline', async () => {
-        const deadline = Math.floor(new Date().getTime() / 1000 - 100)
+        const deadline = Math.floor((await time.latest()) - 100)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
@@ -608,7 +609,7 @@ describe('Erc20', () => {
       })
 
       it('fails with signature reuse', async () => {
-        const deadline = Math.floor(new Date().getTime() / 1000 + 86400 * 3000)
+        const deadline = Math.floor((await time.latest()) + 86400 * 3000)
         const nonce = await ECOproxy.nonces(owner.address)
 
         const permitData = createPermitMessageData({
