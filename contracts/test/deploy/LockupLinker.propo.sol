@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../governance/community/proposals/Proposal.sol";
-import "../policy/Policy.sol";
-import "../currency/ECO.sol";
-import "../governance/monetary/Lockups.sol";
-import "../governance/monetary/Notifier.sol";
+import "../../governance/community/proposals/Proposal.sol";
+import "../../policy/Policy.sol";
+import "../../currency/ECO.sol";
+import "../../governance/monetary/Lockups.sol";
+import "../../governance/monetary/Notifier.sol";
 
 /** @title Lockup-only Linking Proposal
  *
