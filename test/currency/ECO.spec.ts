@@ -1278,7 +1278,7 @@ describe('ECO', () => {
       it('does not allow delegation after deadline', async () => {
         await expect(
           delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
-            deadline: Math.floor(new Date().getTime() / 1000 - 5),
+            deadline: Math.floor((await time.latest()) - 5),
           })
         ).to.be.revertedWith('DelegatePermit: expired deadline')
       })

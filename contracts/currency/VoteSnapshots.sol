@@ -179,4 +179,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
             _totalSupplySnapshot.value = uint224(currentValue);
         }
     }
+
+    // protecting future upgradeability
+    uint256[50] private __gapVoteSnapshots;
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../currency/ECO.sol";
-import "../policy/Policy.sol";
+import "../../currency/ECO.sol";
+import "../../policy/Policy.sol";
 
 /** @title Inflation Multiplier delegateCall setter contract
  *

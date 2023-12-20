@@ -36,8 +36,8 @@ import {
   ECOxExchange__factory,
   ECOx__factory,
 } from '../typechain-types/factories/contracts/currency'
-import { TestnetLinker__factory } from '../typechain-types/factories/contracts/deploy/TestnetLinker.propo.sol'
-import { TestnetLinker } from '../typechain-types/contracts/deploy/TestnetLinker.propo.sol'
+import { TestnetLinker__factory } from '../typechain-types/factories/contracts/test/deploy/TestnetLinker.propo.sol'
+import { TestnetLinker } from '../typechain-types/contracts/test/deploy/TestnetLinker.propo.sol'
 import { DummyLever__factory } from '../typechain-types/factories/contracts/test'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
