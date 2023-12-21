@@ -9,7 +9,7 @@ import "../proxy/ForwardTarget.sol";
  * governance systems for other contracts.
  */
 contract Policy is ForwardTarget {
-    uint256 private __gap; // to cover setters mapping
+    uint256 private __gapPolicy; // to cover setters mapping
 
     /**
      * the contract allowed enact proposals

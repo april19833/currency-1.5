@@ -8,22 +8,6 @@ Copyright (c) 2023 Eco Association
 
 Compute voting power for user
 
-### totalECOxSnapshot
-
-ECOx voting power is snapshotted when the contract is cloned
-
-```solidity
-uint256 totalECOxSnapshot
-```
-
-### excludedVotingPower
-
-voting power to exclude from totalVotingPower
-
-```solidity
-uint256 excludedVotingPower
-```
-
 ### ecoToken
 
 ```solidity
@@ -32,10 +16,16 @@ contract ECO ecoToken
 
 ### ecoXStaking
 
-the ECO contract address
-
 ```solidity
 contract ECOxStaking ecoXStaking
+```
+
+### snapshotBlock
+
+snapshot block for calculating voting power
+
+```solidity
+uint256 snapshotBlock
 ```
 
 ### constructor
@@ -64,14 +54,13 @@ function totalVotingPower() public view returns (uint256 total)
 Calculates the voting power for an address at a specifc block
 
 ```solidity
-function votingPower(address _who, uint256 _snapshotBlock) public view returns (uint256 total)
+function votingPower(address _who) public view returns (uint256 total)
 ```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _who | address | the address to calculate the voting power for |
-| _snapshotBlock | uint256 | the block to use when calculating voting power |
 
 #### Return Values
 

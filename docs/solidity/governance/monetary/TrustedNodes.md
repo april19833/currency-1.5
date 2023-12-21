@@ -193,6 +193,12 @@ constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovern
 | _voteReward | uint256 | the reward awarded to a trustee for each successfully revealed vote |
 | _initialTrustees | address[] | the initial cohort of trustees |
 
+### getTrustees
+
+```solidity
+function getTrustees() public view returns (address[] _trustees)
+```
+
 ### getLastWithdrawal
 
 Fetches the date of a trustee's last withdrawal

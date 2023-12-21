@@ -71,9 +71,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** end time of current */
     uint256 public currentStageEnd;
 
-    /** snapshot block for calculating voting power */
-    uint256 public snapshotBlock;
-
     /** cost in ECO to submit a proposal */
     uint256 public proposalFee = 10000;
 
@@ -276,7 +273,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 if (totalEnactVotes > totalRejectVotes) {
                     // vote passes
                     stage = Stage.Delay;
-                    currentStageEnd = time + DELAY_LENGTH;
+                    currentStageEnd = currentStageEnd + DELAY_LENGTH;
                 } else {
                     // vote fails
                     stage = Stage.Done;
@@ -285,6 +282,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             } else if (stage == Stage.Delay) {
                 // delay period ended, time to execute
                 stage = Stage.Execution;
+                //TODO: this comment needs corrected
                 //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
                 currentStageEnd = cycleStart + CYCLE_LENGTH;
             } else if (stage == Stage.Execution) {
@@ -320,15 +318,17 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         cycleCount += cycles;
 
         if (cycleTime < PROPOSAL_LENGTH) {
-            ecoToken.snapshot();
             stage = Stage.Proposal;
             currentStageEnd = cycleStart + PROPOSAL_LENGTH;
         } else {
             stage = Stage.Done;
             currentStageEnd = cycleStart + CYCLE_LENGTH;
         }
+
+        ecoToken.snapshot();
         snapshotBlock = block.number;
         cycleTotalVotingPower = totalVotingPower();
+
         delete selectedProposal;
         delete totalEnactVotes;
         delete totalRejectVotes;
@@ -383,7 +383,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function support(address _proposal) public {
-        uint256 vp = votingPower(msg.sender, snapshotBlock);
+        uint256 vp = votingPower(msg.sender);
         _changeSupport(msg.sender, _proposal, vp);
     }
 
@@ -403,7 +403,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         // uint256 sumSupport = 0;
-        uint256 vp = votingPower(msg.sender, snapshotBlock);
+        uint256 vp = votingPower(msg.sender);
         for (uint256 i = 0; i < length; i++) {
             uint256 theSupport = _allocations[i];
             if (theSupport > vp) {
@@ -483,11 +483,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function vote(Vote choice) public {
         if (choice == Vote.Enact) {
-            _vote(msg.sender, votingPower(msg.sender, snapshotBlock), 0, 0);
+            _vote(msg.sender, votingPower(msg.sender), 0, 0);
         } else if (choice == Vote.Reject) {
-            _vote(msg.sender, 0, votingPower(msg.sender, snapshotBlock), 0);
+            _vote(msg.sender, 0, votingPower(msg.sender), 0);
         } else if (choice == Vote.Abstain) {
-            _vote(msg.sender, 0, 0, votingPower(msg.sender, snapshotBlock));
+            _vote(msg.sender, 0, 0, votingPower(msg.sender));
         } else {
             revert BadVoteType();
         }
@@ -504,10 +504,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 rejectVotes,
         uint256 abstainVotes
     ) public {
-        if (
-            enactVotes + rejectVotes + abstainVotes >
-            votingPower(msg.sender, snapshotBlock)
-        ) {
+        if (enactVotes + rejectVotes + abstainVotes > votingPower(msg.sender)) {
             revert BadVotingPower();
         }
         _vote(msg.sender, enactVotes, rejectVotes, abstainVotes);

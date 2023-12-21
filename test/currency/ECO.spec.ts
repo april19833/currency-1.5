@@ -9,6 +9,7 @@ import { ECO__factory } from '../../typechain-types/factories/contracts/currency
 import { deployProxy } from '../../deploy/utils'
 import { BigNumber, BigNumberish } from 'ethers'
 import { delegateBySig } from '../utils/permit'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 ECO initially
 const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
@@ -1277,7 +1278,7 @@ describe('ECO', () => {
       it('does not allow delegation after deadline', async () => {
         await expect(
           delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
-            deadline: Math.floor(new Date().getTime() / 1000 - 5),
+            deadline: Math.floor((await time.latest()) - 5),
           })
         ).to.be.revertedWith('DelegatePermit: expired deadline')
       })

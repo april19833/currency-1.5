@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../governance/community/proposals/Proposal.sol";
-import "../policy/Policy.sol";
-import "../currency/ECO.sol";
-import "../currency/ECOx.sol";
-import "../currency/ECOxExchange.sol";
-import "../governance/monetary/Lockups.sol";
-import "../governance/monetary/Rebase.sol";
-import "../governance/monetary/Notifier.sol";
-import "../governance/monetary/MonetaryPolicyAdapter.sol";
-import "../governance/monetary/CurrencyGovernance.sol";
-import "../governance/monetary/TrustedNodes.sol";
+import "../../governance/community/proposals/Proposal.sol";
+import "../../policy/Policy.sol";
+import "../../currency/ECO.sol";
+import "../../currency/ECOx.sol";
+import "../../currency/ECOxExchange.sol";
+import "../../governance/monetary/Lockups.sol";
+import "../../governance/monetary/Rebase.sol";
+import "../../governance/monetary/Notifier.sol";
+import "../../governance/monetary/MonetaryPolicyAdapter.sol";
+import "../../governance/monetary/CurrencyGovernance.sol";
+import "../../governance/monetary/TrustedNodes.sol";
 
 /**
  * @title Testnet Linking Proposal

@@ -80,7 +80,7 @@ export function createPermitMessageData(data: PermitMessageDataDTO) {
     primaryType: 'Permit',
     domain: {
       name,
-      version: '1',
+      version: '2',
       chainId,
       verifyingContract: address,
     },
@@ -178,7 +178,7 @@ export function createDelegatePermitMessageData(data: PermitMessageDataDTO) {
     primaryType: 'Delegate',
     domain: {
       name,
-      version: '1',
+      version: '2',
       chainId,
       verifyingContract: address,
     },

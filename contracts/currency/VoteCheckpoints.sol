@@ -285,7 +285,7 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
         uint256 blockNumber
     ) public view returns (uint256 pastTotalSupply) {
         require(
-            blockNumber < block.number,
+            blockNumber <= block.number,
             "VoteCheckpoints: block not yet mined"
         );
         pastTotalSupply = _checkpointsLookup(

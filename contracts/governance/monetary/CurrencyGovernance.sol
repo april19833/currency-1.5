@@ -775,9 +775,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
         bytes32 _leader = leader;
-        // this ensures that this function can only be called once per winning MP
-        // however it doesn't allow compute to be re-called if there's a downstream non-reverting failure
-        // this is by design
+        // this ensures that this function can only be called maximum once per winning MP
         delete leader;
 
         // the default proposal doesn't do anything
@@ -799,6 +797,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
             _winner.calldatas
         );
 
-        emit VoteResult(_cycle, _leader);
+        emit VoteResult(_cycle, _leader); // will not be emittable if enact cannot be called without reverting (downstream error)
     }
 }

@@ -121,14 +121,6 @@ end time of current
 uint256 currentStageEnd
 ```
 
-### snapshotBlock
-
-snapshot block for calculating voting power
-
-```solidity
-uint256 snapshotBlock
-```
-
 ### proposalFee
 
 cost in ECO to submit a proposal

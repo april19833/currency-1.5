@@ -702,4 +702,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         address, // to
         uint256 amount
     ) internal virtual {}
+
+    // protecting future upgradeability
+    uint256[50] private __gapERC20Delegated;
 }

@@ -28,6 +28,14 @@ error NonZeroCurrencyGovernanceAddr()
 error CurrencyGovernanceOnlyFunction()
 ```
 
+### FailedPolicy
+
+error for when a part of enacting a policy reverts
+
+```solidity
+error FailedPolicy()
+```
+
 ### NewCurrencyGovernance
 
 emits when the currencyGovernance contract is changed
@@ -47,7 +55,7 @@ event NewCurrencyGovernance(contract CurrencyGovernance newCurrencyGovernance, c
 emits when enaction happens to keep record of enaction
 
 ```solidity
-event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance, bool[] successes)
+event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance)
 ```
 #### Parameters
 
@@ -55,15 +63,6 @@ event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance curr
 | ---- | ---- | ----------- |
 | proposalId | bytes32 | the proposal lookup that got successfully enacted |
 | currencyGovernance | contract CurrencyGovernance | the CurrencyGovernance contract where you can look up the proposal calldata |
-| successes | bool[] | the return success values from each of the calls to the targets in order |
-
-### FailedPolicySubcall
-
-emits when a part of enacting a policy reverts
-
-```solidity
-event FailedPolicySubcall(address target, string reason)
-```
 
 ### onlyCurrencyGovernance
 
