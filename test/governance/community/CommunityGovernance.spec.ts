@@ -536,6 +536,25 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A2)).totalSupport).to.eq(20)
         })
       })
+      it('doesnt allow supporting of a proposal from the previous cycle', async () => {
+        const initialCycle = await cg.cycleCount()
+        expect((await cg.proposals(A1)).cycle).to.eq(initialCycle)
+
+        await time.increaseTo((await cg.currentStageEnd()).add(1))
+        await cg.updateStage()
+        expect(await cg.stage()).to.eq(DONE)
+
+        await time.increaseTo((await cg.currentStageEnd()).add(1))
+        await cg.updateStage()
+        expect(await cg.stage()).to.eq(PROPOSAL)
+
+        const newCycle = await cg.cycleCount()
+        expect(newCycle).to.eq(initialCycle.add(1))
+
+        await expect(cg.connect(alice).support(A1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.OLD_PROPOSAL_SUPPORT
+        )
+      })
       it('fails to support if called during not-proposal stage', async () => {
         await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
         await cg.updateStage()
@@ -784,7 +803,6 @@ describe('Community Governance', () => {
     await cg.connect(bob).propose(A1)
 
     const currCycle = await cg.cycleCount()
-
     const vp = await cg.votingPower(alice.address)
 
     await cg
@@ -803,7 +821,6 @@ describe('Community Governance', () => {
       ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
     )
 
-    // console.log(currCycle)
     await cg.execute()
     await time.increaseTo((await cg.cycleStart()).add(await cg.CYCLE_LENGTH()))
     await expect(cg.updateStage()).to.emit(cg, 'NewCycle').withArgs(1002)

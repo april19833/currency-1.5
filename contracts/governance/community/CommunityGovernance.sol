@@ -114,6 +114,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
 
+    /** @notice thrown when there is an attempt to support a proposal submitted in a non-current cycle */
+    error OldProposalSupport();
+
     /** @notice thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
 
@@ -426,6 +429,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[proposal];
+        if (prop.cycle != cycleCount) {
+            revert OldProposalSupport();
+        }
         uint256 support = prop.support[supporter];
 
         emit SupportChanged(supporter, Proposal(proposal), support, amount);
