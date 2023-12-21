@@ -131,7 +131,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         address to,
         uint256 amount
     ) internal virtual override {
-        super._beforeTokenTransfer(from, to, amount);
+        super._beforeVoteTokenTransfer(from, to, amount);
 
         if (from != address(0) && voter[from]) {
             _updateAccountSnapshot(from);
