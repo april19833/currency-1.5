@@ -590,6 +590,9 @@ contract SweepTrustedNodesProposal is Policy, Proposal {
     }
 
     function enacted(address) public override {
-        trustedNodes.sweep(destination);
+        trustedNodes.sweep(
+            destination,
+            ECOx(trustedNodes.ecoX()).balanceOf(address(trustedNodes))
+        );
     }
 }

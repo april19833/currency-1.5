@@ -262,8 +262,8 @@ contract TrustedNodes is Policed, TimeUtils {
     /** drains all the ECOx in TrustedNodes to a recipient address
      * @param recipient the address to receive the ECOx
      */
-    function sweep(address recipient) public onlyPolicy {
-        if (!ecoX.transfer(recipient, ecoX.balanceOf(address(this)))) {
+    function sweep(address recipient, uint256 amount) public onlyPolicy {
+        if (!ecoX.transfer(recipient, amount)) {
             revert ECOx.TransferFailed();
         }
     }
