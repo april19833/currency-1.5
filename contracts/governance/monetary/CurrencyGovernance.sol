@@ -105,6 +105,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping proposalIds to their voting score, accumulated during reveal
     mapping(bytes32 => uint256) public scores;
 
+    /**
+     * @notice minimum number of votes required for a policy to be enacted
+     */
+    uint256 public quorum;
+
     /** used to track the leading proposalId during the vote totalling
      * tracks the winner between reveal phases
      * is deleted on enact to ensure it can only be enacted once
@@ -121,13 +126,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // setting the enacter address to the zero address stops governance
     error NonZeroEnacterAddr();
 
+    /**
+     * setting the quorum greater than the number of trustees stops governance
+     * something to keep in mind for the case in which trustees are removed via community governance
+     */
+    error BadQuorum();
+
     // For if a non-trustee address tries to access trustee role gated functionality
     error TrusteeOnlyFunction();
 
     // For when governance calls are made before or after their time windows for their stage
     error WrongStage();
 
-    /** Early finazilation error
+    /** Early finalization error
      * for when a cycle is attempted to be finalized before it finishes
      * @param requestedCycle the cycle submitted by the end user to access
      * @param currentCycle the current cycle as calculated by the contract
@@ -195,6 +206,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
     error InvalidVotesOutOfBounds();
 
+    // error for when the leader's score is less than the quorum
+    error QuorumNotMet();
+
     // error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
     error EnactCycleNotCurrent();
 
@@ -213,7 +227,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     );
 
     /**
-     * emits when the enacter contract is changed
+     * @notice emits when the enacter contract is changed
      * @param newEnacter denotes the new enacter contract address
      * @param oldEnacter denotes the old enacter contract address
      */
@@ -221,6 +235,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
         MonetaryPolicyAdapter newEnacter,
         MonetaryPolicyAdapter oldEnacter
     );
+
+    /**
+     * @notice emits when setQuorum is called successfully
+     * @param newQuorum the new quorum
+     * @param oldQuorum the old quorum
+     */
+    event NewQuorum(uint256 newQuorum, uint256 oldQuorum);
 
     /** Tracking for proposal creation
      * emitted when a proposal is submitted to track the values
@@ -403,6 +424,18 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert NonZeroEnacterAddr();
         }
         enacter = _enacter;
+    }
+
+    function setQuorum(uint256 _quorum) external onlyPolicy {
+        emit NewQuorum(_quorum, quorum);
+        _setQuorum(_quorum);
+    }
+
+    function _setQuorum(uint256 _quorum) internal {
+        if (quorum > trustedNodes.numTrustees()) {
+            revert BadQuorum();
+        }
+        quorum = _quorum;
     }
 
     /** getter for timing data
@@ -763,6 +796,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
         bytes32 _leader = leader;
+        if (scores(_leader) < quorum) {
+            revert QuorumNotMet();
+        }
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
 
