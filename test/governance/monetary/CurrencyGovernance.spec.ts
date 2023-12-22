@@ -325,6 +325,11 @@ describe('CurrencyGovernance', () => {
         )
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_QUORUM)
     })
+    it('cannot be set to zero', async () => {
+      await expect(
+        CurrencyGovernance.connect(policyImpersonator).setQuorum(0)
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_QUORUM)
+    })
   })
 
   describe('time calculations', () => {
@@ -1404,7 +1409,9 @@ describe('CurrencyGovernance', () => {
       it('reveal correctly changes state', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
         const initialParticipation = await CurrencyGovernance.participation()
-        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.emit(CurrencyGovernance, 'QuorumReached')
         expect(await CurrencyGovernance.participation()).to.eq(
           initialParticipation.add(1)
         )

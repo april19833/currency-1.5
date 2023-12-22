@@ -312,6 +312,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         Vote[] votes
     );
 
+    // fired when cycle participation is high enough to enact monetary policy
+    event QuorumReached();
+
     /** Fired when an address choses to abstain
      */
     event Abstain(address indexed voter, uint256 indexed cycle);
@@ -393,6 +396,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     ) Policed(_policy) {
         _setEnacter(_enacter);
         governanceStartTime = getTime();
+        quorum = 1;
     }
 
     //////////////////////////////////////////////
@@ -437,7 +441,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     function _setQuorum(uint256 _quorum) internal {
-        if (_quorum > trustedNodes.numTrustees()) {
+        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
             revert BadQuorum();
         }
         quorum = _quorum;
@@ -702,7 +706,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // an easy way to prevent double counting votes
         delete commitments[_trustee];
+
         participation += 1;
+        if (participation == quorum) {
+            emit QuorumReached();
+        }
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
