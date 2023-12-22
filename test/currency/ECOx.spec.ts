@@ -7,6 +7,7 @@ import { ECOx } from '../../typechain-types/contracts/currency'
 import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOx__factory } from '../../typechain-types/factories/contracts/currency'
 import { deployProxy } from '../../deploy/utils'
+import exp from 'constants'
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
@@ -115,6 +116,32 @@ describe('EcoX', () => {
         await expect(
           ecoXProxy.connect(charlie).updateBurners(charlie.address, true)
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+      })
+    })
+
+    describe('pauser role', () => {
+      it('can be changed by the policy', async () => {
+        await ecoXProxy
+          .connect(policyImpersonator)
+          .setPauser(charlie.address)
+        const charliePausing = await ecoXProxy.pauser()
+        expect(charliePausing).to.eq(charlie.address)
+      })
+
+      it('emits an event', async () => {
+        expect(
+          await ecoXProxy
+            .connect(policyImpersonator)
+            .setPauser(charlie.address)
+        )
+          .to.emit(ecoXProxy, 'PauserAssignment')
+          .withArgs(charlie.address)
+      })
+
+      it('is onlyPolicy gated', async () => {
+        await expect(
+          ecoXProxy.connect(charlie).setPauser(charlie.address)
+        ).to.be.revertedWith("ERC20Pausable: not admin")
       })
     })
 

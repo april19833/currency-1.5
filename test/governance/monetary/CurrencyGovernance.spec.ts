@@ -1628,6 +1628,20 @@ describe('CurrencyGovernance', () => {
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(charlieProposalId)
       })
+
+      it('records TrustedNodes vote', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(0)
+        await CurrencyGovernance.connect(charlie).reveal(
+          charlie.address,
+          salt,
+          votes
+        )
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(1)
+        expect(await TrustedNodes.votingRecord(niko.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(dave.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(bob.address)).to.be.eq(0)
+      })
     })
 
     describe('reverts', () => {

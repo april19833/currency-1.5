@@ -14,9 +14,11 @@ import {
   Notifier,
   Rebase,
 } from '../../../typechain-types/contracts/governance/monetary'
+import { DummyDownstream } from '../../../typechain-types/contracts/test'
 import { ECO } from '../../../typechain-types/contracts/currency'
 import { Policy } from '../../../typechain-types/contracts/policy'
 import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import { DummyDownstream__factory } from '../../../typechain-types/factories/contracts/test'
 import {
   Notifier__factory,
   Rebase__factory,
@@ -27,7 +29,9 @@ describe('Rebase', () => {
 
   let currencyGovernanceImpersonator: SignerWithAddress
 
-  let notifier: MockContract<Notifier>
+  let notifier: Notifier
+
+  let downstream: MockContract<DummyDownstream>
 
   let eco: MockContract<ECO>
 
@@ -61,15 +65,19 @@ describe('Rebase', () => {
       eco.address,
     ])) as Rebase
 
+    const downstreamFactory: MockContractFactory<DummyDownstream__factory> =
+    await smock.mock('contracts/test/DummyDownstream.sol:DummyDownstream')
+    downstream = await downstreamFactory.deploy()
+
     const notifierFactory: MockContractFactory<Notifier__factory> =
       await smock.mock('contracts/governance/monetary/Notifier.sol:Notifier')
-    notifier = await notifierFactory.deploy(
+    notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
-      rebase.address,
-      [],
-      [],
-      []
-    )
+      rebase.address, // lever
+      [downstream.address], // targets
+      [downstream.interface.encodeFunctionData('callThatSucceeds')],
+      [12341234], // gasCosts
+    ])) as Notifier
     rebase.connect(policyImpersonator).setNotifier(notifier.address)
 
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
@@ -117,4 +125,48 @@ describe('Rebase', () => {
       rebase.connect(currencyGovernanceImpersonator).execute(highMultiplier)
     ).to.be.revertedWith(ERRORS.Rebase.BAD_INFLATION_MULTIPLIER)
   })
+
+  it('can change authorized', async () => {
+    expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
+      .be.false
+
+    expect(rebase.connect(alice).setAuthorized(currencyGovernanceImpersonator.address, true))
+      .to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+
+    await rebase.connect(policyImpersonator).setAuthorized(currencyGovernanceImpersonator.address, true)
+    expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
+      .be.true
+
+    await rebase.connect(policyImpersonator).setAuthorized(currencyGovernanceImpersonator.address, false)
+    expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
+      .be.false
+  })
+
+  it('can change notifier', async () => {
+    const oldNotifier = await rebase.notifier()
+
+    await rebase.connect(policyImpersonator).setNotifier(alice.address)
+
+    const newNotifier = await rebase.notifier()
+    expect(newNotifier !== oldNotifier).to.be.true
+    expect(newNotifier === alice.address).to.be.true
+
+  }
+)
+
+  it('notifies successfully on execute call to lever', async () => {
+    const newInflationMult = 123123
+    const target = DummyDownstream__factory.connect(
+      (await notifier.transactions(0)).target,
+      alice
+    )
+    await rebase
+      .connect(policyImpersonator)
+      .setAuthorized(alice.address, true)
+
+    expect(await target.notified()).to.be.false
+    await rebase.connect(alice).execute(newInflationMult)
+    expect(await target.notified()).to.be.true
+  })
+
 })
