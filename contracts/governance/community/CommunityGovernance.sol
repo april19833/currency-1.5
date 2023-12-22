@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "../../currency/ECO.sol";
 import "./VotingPower.sol";
 import "./ECOxStaking.sol";
 import "./proposals/Proposal.sol";
@@ -233,10 +232,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     constructor(
         Policy policy,
         ECO _eco,
+        ECOx _ecox,
         ECOxStaking _ecoXStaking,
         uint256 _cycleStart,
         address _pauser
-    ) VotingPower(policy, _eco, _ecoXStaking) {
+    ) VotingPower(policy, _eco, _ecox, _ecoXStaking) {
         pauser = _pauser;
         cycleCount = 1000;
         currentStageEnd = _cycleStart;
@@ -324,6 +324,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         ecoToken.snapshot();
+        ecoXToken.snapshot();
         snapshotBlock = block.number;
         cycleTotalVotingPower = totalVotingPower();
 

@@ -173,6 +173,7 @@ export async function deployCommunity(
   const communityGovernanceParams = [
     base.policy.address,
     base.eco.address,
+    base.ecox.address,
     base.ecoXStaking.address,
     config.governanceStartTime || Math.floor(now / 1000),
     pauser,

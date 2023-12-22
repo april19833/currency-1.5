@@ -167,6 +167,12 @@ contract MigrationLinker is Policy, Proposal {
             true
         );
 
+        // link ecox
+        ECOx(ecoxProxyAddress).updateSnapshotters(
+            address(communityGovernance),
+            true
+        );
+
         // perform eco initialization
         ECO(ecoProxyAddress).updateRebasers(address(this), true);
         ECO(ecoProxyAddress).rebase(
@@ -176,6 +182,11 @@ contract MigrationLinker is Policy, Proposal {
         ECO(ecoProxyAddress).updateSnapshotters(address(this), true);
         ECO(ecoProxyAddress).snapshot();
         ECO(ecoProxyAddress).updateSnapshotters(address(this), false);
+        
+        // perform ecox initialization
+        ECOx(ecoxProxyAddress).updateSnapshotters(address(this), true);
+        ECOx(ecoxProxyAddress).snapshot();
+        ECOx(ecoxProxyAddress).updateSnapshotters(address(this), false);
 
         // update ecoXStaking
         PolicedOld(ecoXStakingProxyAddress).policyCommand(
