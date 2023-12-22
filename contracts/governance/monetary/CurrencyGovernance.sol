@@ -69,7 +69,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
-    //
+    // this var stores the current contract that holds the enacter role
     MonetaryPolicyAdapter public enacter;
 
     // this variable tracks the start of governance
@@ -106,9 +106,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
     mapping(bytes32 => uint256) public scores;
 
     /**
-     * @notice minimum number of votes required for a policy to be enacted
+     * @notice minimum number participating trustees required for a policy to be enacted in any given cycle
      */
     uint256 public quorum;
+
+    /**
+     * @notice number of trustees that participated this cycle
+     */
+    uint256 public participants;
 
     /** used to track the leading proposalId during the vote totalling
      * tracks the winner between reveal phases
@@ -476,6 +481,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         string calldata description
     ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
+        if (participants != 0) {
+            participants = 0;
+        }
         if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
@@ -694,6 +702,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // an easy way to prevent double counting votes
         delete commitments[_trustee];
+        participants += 1;
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
@@ -796,9 +805,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
         bytes32 _leader = leader;
-        if (scores(_leader) < quorum) {
+        if (participants < quorum) {
             revert QuorumNotMet();
         }
+
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
 
