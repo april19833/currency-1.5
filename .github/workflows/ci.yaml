@@ -61,9 +61,9 @@ jobs:
       - name: build project
         uses: borales/actions-yarn@v4
         with:
-          cmd: build # will run `yarn build` command
+          cmd: build # will run `yarn build` -> `hardhat compile` command
 
       - name: Run Test
         uses: borales/actions-yarn@v4
         with:
-          cmd: test # will run `yarn build` command
+          cmd: testParallel # will run `yarn testParallel` -> `hardhat test --parallel` command
