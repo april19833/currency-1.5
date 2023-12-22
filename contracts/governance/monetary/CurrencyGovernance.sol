@@ -113,7 +113,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /**
      * @notice number of trustees that participated this cycle
      */
-    uint256 public participants;
+    uint256 public participation;
 
     /** used to track the leading proposalId during the vote totalling
      * tracks the winner between reveal phases
@@ -437,7 +437,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     function _setQuorum(uint256 _quorum) internal {
-        if (quorum > trustedNodes.numTrustees()) {
+        if (_quorum > trustedNodes.numTrustees()) {
             revert BadQuorum();
         }
         quorum = _quorum;
@@ -481,8 +481,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
         string calldata description
     ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
-        if (participants != 0) {
-            participants = 0;
+        if (participation != 0) {
+            participation = 0;
         }
         if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
@@ -702,7 +702,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // an easy way to prevent double counting votes
         delete commitments[_trustee];
-        participants += 1;
+        participation += 1;
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
@@ -805,7 +805,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
         bytes32 _leader = leader;
-        if (participants < quorum) {
+        if (participation < quorum) {
             revert QuorumNotMet();
         }
 
