@@ -103,6 +103,7 @@ describe('Migration tests', () => {
       ecoxProxyAddress: ecoxProxy.address,
       ecoXStakingProxyAddress: ecoXStakingProxy.address,
       noLockups: true,
+      governanceStartTime: await time.latest(),
     }
 
     // deploy base contracts

@@ -409,6 +409,7 @@ describe('Community Governance', () => {
     })
     describe('supporting', () => {
       beforeEach(async () => {
+        await cg.updateStage() // alice can rob herself of the fee's voting power by atomically pushing to the next stage and proposing
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await eco.connect(bob).approve(cg.address, await cg.proposalFee())
         await cg.connect(alice).propose(A1)
