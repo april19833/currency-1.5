@@ -109,7 +109,7 @@ describe('TrustedNodes', () => {
           .updateCurrencyGovernance(constants.AddressZero)
       ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       await expect(
-        trustedNodes.connect(alice).sweep(alice.address)
+        trustedNodes.connect(alice).sweep(alice.address, 1)
       ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     })
     it("doesn't allow non-currencyGovernance role to record a vote", async () => {
@@ -321,8 +321,20 @@ describe('TrustedNodes', () => {
   describe('sweep', async () => {
     it('works', async () => {
       expect(await ecoX.balanceOf(alice.address)).to.eq(0)
-      await trustedNodes.connect(policyImpersonator).sweep(alice.address)
-      expect(await ecoX.balanceOf(alice.address)).to.eq(1000)
+      await trustedNodes.connect(policyImpersonator).sweep(alice.address, 123)
+      expect(await ecoX.balanceOf(alice.address)).to.eq(123)
+    })
+    it('doesnt work when amount is higher than balance', async () => {
+      expect(await ecoX.balanceOf(alice.address)).to.eq(0)
+      await expect(
+        trustedNodes
+          .connect(policyImpersonator)
+          .sweep(
+            alice.address,
+            (await ecoX.balanceOf(trustedNodes.address)).add(1)
+          )
+      ).to.be.reverted
+      expect(await ecoX.balanceOf(alice.address)).to.eq(0)
     })
   })
 })
