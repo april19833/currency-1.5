@@ -372,6 +372,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function support(address _proposal) public {
         uint256 vp = votingPower(msg.sender);
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         _changeSupport(msg.sender, _proposal, vp);
     }
 
@@ -471,12 +474,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
+        uint256 vp = votingPower(msg.sender);
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         if (choice == Vote.Enact) {
-            _vote(msg.sender, votingPower(msg.sender), 0, 0);
+            _vote(msg.sender, vp, 0, 0);
         } else if (choice == Vote.Reject) {
-            _vote(msg.sender, 0, votingPower(msg.sender), 0);
+            _vote(msg.sender, 0, vp, 0);
         } else if (choice == Vote.Abstain) {
-            _vote(msg.sender, 0, 0, votingPower(msg.sender));
+            _vote(msg.sender, 0, 0, vp);
         } else {
             revert BadVoteType();
         }

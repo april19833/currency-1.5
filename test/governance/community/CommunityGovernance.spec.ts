@@ -44,8 +44,9 @@ describe('Community Governance', () => {
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let bigboy: SignerWithAddress
+  let lilboy: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bob, charlie, bigboy] =
+    ;[policyImpersonator, alice, bob, charlie, bigboy, lilboy] =
       await ethers.getSigners()
   })
   let policy: FakeContract<Policy>
@@ -77,6 +78,7 @@ describe('Community Governance', () => {
     await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
     await eco.connect(bigboy).enableVoting()
     await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
+    await eco.connect(lilboy).enableVoting()
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>(
@@ -438,6 +440,12 @@ describe('Community Governance', () => {
           expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
         })
+        it('fails to support if voting power = 0', async () => {
+          expect(await cg.votingPower(lilboy.address)).to.eq(0)
+          await expect(cg.connect(lilboy).support(A1)).to.be.revertedWith(
+            ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER
+          )
+        })
       })
       context('supportPartial', () => {
         it('fails if proposal and allocation arrays are different lengths', async () => {
@@ -647,6 +655,12 @@ describe('Community Governance', () => {
 
         expect(await cg.totalAbstainVotes()).to.eq(0)
         expect(await cg.totalRejectVotes()).to.eq(vp)
+      })
+      it('fails to vote if voting power = 0', async () => {
+        expect(await cg.votingPower(lilboy.address)).to.eq(0)
+        await expect(cg.connect(lilboy).vote(1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER
+        )
       })
     })
     context('votePartial', () => {
