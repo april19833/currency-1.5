@@ -812,10 +812,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _cycle cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
-        bytes32 _leader = leader;
         if (participation < quorum) {
             revert QuorumNotMet();
         }
+        bytes32 _leader = leader;
 
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
