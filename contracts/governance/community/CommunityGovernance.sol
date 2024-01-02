@@ -113,6 +113,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
 
+    /** @notice thrown when there is an attempt to support a proposal submitted in a non-current cycle */
+    error OldProposalSupport();
+
     /** @notice thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
 
@@ -370,7 +373,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function support(address _proposal) public {
         uint256 vp = votingPower(msg.sender);
-        // require(vp > 0, "can't support with zero"); // should consider this guard
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         _changeSupport(msg.sender, _proposal, vp);
     }
 
@@ -428,6 +433,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[proposal];
+        if (prop.cycle != cycleCount) {
+            revert OldProposalSupport();
+        }
         uint256 support = prop.support[supporter];
 
         emit SupportChanged(supporter, Proposal(proposal), support, amount);
@@ -467,12 +475,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
+        uint256 vp = votingPower(msg.sender);
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         if (choice == Vote.Enact) {
-            _vote(msg.sender, votingPower(msg.sender), 0, 0);
+            _vote(msg.sender, vp, 0, 0);
         } else if (choice == Vote.Reject) {
-            _vote(msg.sender, 0, votingPower(msg.sender), 0);
+            _vote(msg.sender, 0, vp, 0);
         } else if (choice == Vote.Abstain) {
-            _vote(msg.sender, 0, 0, votingPower(msg.sender));
+            _vote(msg.sender, 0, 0, vp);
         } else {
             revert BadVoteType();
         }

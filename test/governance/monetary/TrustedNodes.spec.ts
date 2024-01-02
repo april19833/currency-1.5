@@ -285,6 +285,22 @@ describe('TrustedNodes', () => {
       await trustedNodes.connect(alice).withdraw()
       expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
     })
+
+    it('allows correct withdrawal when trustee is distrusted', async () => {
+      await trustedNodes
+        .connect(currencyGovernanceImpersonator)
+        .recordVote(alice.address)
+      await trustedNodes.connect(policyImpersonator).distrust(alice.address)
+      await time.increaseTo(
+        (
+          await trustedNodes.termEnd()
+        ).add((await trustedNodes.GENERATION_TIME()).mul(5))
+      )
+
+      await trustedNodes.connect(alice).withdraw()
+      expect(await ecoX.balanceOf(alice.address)).to.eq(initialReward)
+    })
+
     it('allows correct withdrawal when withdrawal time is limiting factor', async () => {
       await trustedNodes
         .connect(currencyGovernanceImpersonator)
