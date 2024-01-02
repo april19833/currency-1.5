@@ -65,7 +65,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
     ) public view virtual returns (uint256) {
         Snapshot memory _accountSnapshot = _voteSnapshots[account];
 
-        if (_accountSnapshot.snapshotBlock < currentSnapshotBlock) {
+        if (
+            currentSnapshotBlock != block.number &&
+            _accountSnapshot.snapshotBlock < currentSnapshotBlock
+        ) {
             return _voteBalances[account];
         } else {
             return _accountSnapshot.value;
@@ -76,7 +79,10 @@ abstract contract VoteSnapshots is ERC20Delegated {
      * @dev Retrieve the `totalSupply` for the snapshot
      */
     function totalSupplySnapshot() public view virtual returns (uint256) {
-        if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
+        if (
+            // currentSnapshotBlock != block.number && // this line fucks up the current abliity to snapshot total power, but might need implemented
+            _totalSupplySnapshot.snapshotBlock < currentSnapshotBlock
+        ) {
             return _totalSupply;
         } else {
             return _totalSupplySnapshot.value;
@@ -136,29 +142,44 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
+        // take no action during the snapshot block, only after it
+        uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        if (_currentSnapshotBlock == block.number) {
+            return;
+        }
+
         Snapshot storage snapshot = _voteSnapshots[account];
         uint256 currentValue = _voteBalances[account];
 
-        if (snapshot.snapshotBlock < currentSnapshotBlock) {
+        if (snapshot.snapshotBlock < _currentSnapshotBlock) {
             require(
                 currentValue <= type(uint224).max,
                 "VoteSnapshots: new snapshot cannot be casted safely"
             );
 
-            snapshot.snapshotBlock = currentSnapshotBlock;
+            snapshot.snapshotBlock = _currentSnapshotBlock;
             snapshot.value = uint224(currentValue);
         }
     }
 
     function _updateTotalSupplySnapshot() private {
-        if (_totalSupplySnapshot.snapshotBlock < currentSnapshotBlock) {
+        // take no action during the snapshot block, only after it
+        uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        if (_currentSnapshotBlock == block.number) {
+            return;
+        }
+
+        if (_totalSupplySnapshot.snapshotBlock < _currentSnapshotBlock) {
             uint256 currentValue = _totalSupply;
             require(
                 currentValue <= type(uint224).max,
                 "VoteSnapshots: new snapshot cannot be casted safely"
             );
-            _totalSupplySnapshot.snapshotBlock = currentSnapshotBlock;
+            _totalSupplySnapshot.snapshotBlock = _currentSnapshotBlock;
             _totalSupplySnapshot.value = uint224(currentValue);
         }
     }
+
+    // protecting future upgradeability
+    uint256[50] private __gapVoteSnapshots;
 }

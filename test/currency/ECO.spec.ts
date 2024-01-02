@@ -9,6 +9,7 @@ import { ECO__factory } from '../../typechain-types/factories/contracts/currency
 import { deployProxy } from '../../deploy/utils'
 import { BigNumber, BigNumberish } from 'ethers'
 import { delegateBySig } from '../utils/permit'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 
 const INITIAL_SUPPLY = ethers.BigNumber.from('1' + '0'.repeat(21)) // 1000 ECO initially
 const DENOMINATOR = ethers.BigNumber.from('1' + '0'.repeat(18))
@@ -1457,7 +1458,7 @@ describe('ECO', () => {
       it('does not allow delegation after deadline', async () => {
         await expect(
           delegateBySig(ECOproxy, delegator, delegatee, chainId, sender, {
-            deadline: Math.floor(new Date().getTime() / 1000 - 5),
+            deadline: Math.floor((await time.latest()) - 5),
           })
         ).to.be.revertedWith('DelegatePermit: expired deadline')
       })
@@ -1794,6 +1795,7 @@ describe('ECO', () => {
         )
 
         await ECOproxy.connect(snapshotterImpersonator).snapshot()
+        await mine() // hardhat block mining is not realistic
 
         await ECOproxy.connect(bob).transfer(bob.address, amount.div(4))
 
@@ -1808,6 +1810,7 @@ describe('ECO', () => {
         )
 
         await ECOproxy.connect(snapshotterImpersonator).snapshot()
+        await mine() // hardhat block mining is not realistic
 
         expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.equal(
           amount.mul(3).div(4)
@@ -2165,6 +2168,7 @@ describe('ECO', () => {
 
           it("doesn't require an action to access current balances", async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               INITIAL_SUPPLY
@@ -2178,8 +2182,29 @@ describe('ECO', () => {
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
           })
 
+          it('does not access new snapshot within the snapshot block', async () => {
+            await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            expect(await time.latestBlock()).to.eq(
+              await ECOproxy.currentSnapshotBlock()
+            )
+
+            expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
+              0
+            )
+            expect(await ECOproxy.voteBalanceSnapshot(bob.address)).to.be.eq(0)
+            expect(
+              await ECOproxy.voteBalanceSnapshot(charlie.address)
+            ).to.be.eq(0)
+            expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
+
+            expect(await time.latestBlock()).to.eq(
+              await ECOproxy.currentSnapshotBlock()
+            )
+          })
+
           it('triggers off of transfer', async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             await ECOproxy.connect(alice).transfer(
               bob.address,
@@ -2206,6 +2231,8 @@ describe('ECO', () => {
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
+
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               INITIAL_SUPPLY.div(4)
             )
@@ -2222,6 +2249,7 @@ describe('ECO', () => {
 
           it('triggers off of delegate', async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             await ECOproxy.connect(alice).delegate(dave.address)
             await ECOproxy.connect(bob).delegateAmount(
@@ -2245,6 +2273,7 @@ describe('ECO', () => {
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               0
@@ -2262,6 +2291,8 @@ describe('ECO', () => {
 
           it('triggers off of undelegate', async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
+
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               INITIAL_SUPPLY
             )
@@ -2295,6 +2326,8 @@ describe('ECO', () => {
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
+
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               0
             )
@@ -2315,6 +2348,8 @@ describe('ECO', () => {
             )
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
+
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               INITIAL_SUPPLY.mul(2)
             )
@@ -2331,6 +2366,7 @@ describe('ECO', () => {
 
           it('rememebers old rebase values', async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             const digits1to9 = Math.floor(Math.random() * 900000000) + 100000000
             const digits10to19 = Math.floor(Math.random() * 10000000000)
@@ -2354,6 +2390,7 @@ describe('ECO', () => {
             expect(await ECOproxy.voteBalanceSnapshot(dave.address)).to.be.eq(0)
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             expect(await ECOproxy.voteBalanceSnapshot(alice.address)).to.be.eq(
               INITIAL_SUPPLY.mul(globalInflationMult).div(
@@ -2377,6 +2414,7 @@ describe('ECO', () => {
 
           it('old linear inflation interface still mostly operable', async () => {
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             const snapshotInflationMult =
               await ECOproxy.inflationMultiplierSnapshot()
@@ -2395,6 +2433,7 @@ describe('ECO', () => {
             await ECOproxy.connect(rebaserImpersonator).rebase(newInflationMult)
 
             await ECOproxy.connect(snapshotterImpersonator).snapshot()
+            await mine() // local execution doesn't mine blocks realistically
 
             expect(cumulativeInflationMult).to.eq(
               await ECOproxy.inflationMultiplierSnapshot()

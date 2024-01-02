@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./CurrencyGovernance.sol";
+import "../../currency/ECOx.sol";
 
 contract TrustedNodesFactory is Policed, TimeUtils {
     ECOx public immutable ecoX;
@@ -36,7 +37,7 @@ contract TrustedNodesFactory is Policed, TimeUtils {
         uint256 _termLength,
         uint256 _voteReward,
         address[] calldata _newTrustees
-    ) public onlyPolicy returns (address) {
+    ) public onlyPolicy returns (TrustedNodes) {
         TrustedNodes trustedNodes = new TrustedNodes(
             policy,
             currencyGovernance,
@@ -46,7 +47,7 @@ contract TrustedNodesFactory is Policed, TimeUtils {
             _newTrustees
         );
         emit NewCohort(trustedNodes);
-        return address(trustedNodes);
+        return trustedNodes;
     }
 
     /** Changes the holder currencyGovernance role

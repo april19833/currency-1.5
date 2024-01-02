@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../currency/ECO.sol";
-import "../policy/Policy.sol";
+import "../../currency/ECO.sol";
+import "../../policy/Policy.sol";
 
 /** @title Inflation Multiplier delegateCall setter contract
  *
@@ -14,5 +14,9 @@ contract InflationMultiplierUpdatingTarget is ECO {
 
     function setInflationMultiplier(uint256 newMultiplier) public {
         inflationMultiplier = newMultiplier;
+        uint32 _currentSnapshotBlock = uint32(block.number);
+        currentSnapshotBlock = _currentSnapshotBlock;
+        _inflationMultiplierSnapshot.snapshotBlock = _currentSnapshotBlock;
+        _inflationMultiplierSnapshot.value = uint224(newMultiplier);
     }
 }

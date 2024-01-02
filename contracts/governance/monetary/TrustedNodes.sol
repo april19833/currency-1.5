@@ -117,6 +117,10 @@ contract TrustedNodes is Policed, TimeUtils {
         }
     }
 
+    function getTrustees() public view returns (address[] memory _trustees) {
+        return trustees;
+    }
+
     /** Fetches the date of a trustee's last withdrawal
      * @param trustee the trustee whose last withdrawal date is being fetched
      */
@@ -258,8 +262,8 @@ contract TrustedNodes is Policed, TimeUtils {
     /** drains all the ECOx in TrustedNodes to a recipient address
      * @param recipient the address to receive the ECOx
      */
-    function sweep(address recipient) public onlyPolicy {
-        if (!ecoX.transfer(recipient, ecoX.balanceOf(address(this)))) {
+    function sweep(address recipient, uint256 amount) public onlyPolicy {
+        if (!ecoX.transfer(recipient, amount)) {
             revert ECOx.TransferFailed();
         }
     }
