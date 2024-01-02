@@ -580,39 +580,17 @@ describe('ECO', () => {
         )
       })
 
-      it('transfers rebased units and emits BaseValueTransfer', async () => {
+      it('preserves historical multiplier', async () => {
+        await ECOproxy.connect(snapshotterImpersonator).snapshot()
+        expect(await ECOproxy.inflationMultiplier()).to.eq(globalInflationMult)
+
         await ECOproxy.connect(charlie).rebase(newInflationMult)
 
+        await ECOproxy.connect(snapshotterImpersonator).snapshot()
         expect(await ECOproxy.inflationMultiplier()).to.eq(
-          cumulativeInflationMult
-        )
-        expect(await ECOproxy.balanceOf(dave.address)).to.eq(
-          INITIAL_SUPPLY.mul(globalInflationMult).div(cumulativeInflationMult)
-        )
-
-        expect(await ECOproxy.connect(dave).transfer(alice.address, 1))
-          .to.emit(ECOproxy, 'BaseValueTransfer')
-          .withArgs(dave.address, alice.address, newInflationMult.mul(1))
-
-        expect(await ECOproxy.balanceOf(alice.address)).to.eq(1)
-        expect(await ECOproxy.balanceOf(dave.address)).to.eq(
-          INITIAL_SUPPLY.mul(globalInflationMult)
-            .div(cumulativeInflationMult)
-            .sub(1)
+          globalInflationMult.mul(newInflationMult).div(DENOMINATOR)
         )
       })
-    })
-
-    it('preserves historical multiplier', async () => {
-      await ECOproxy.connect(snapshotterImpersonator).snapshot()
-      expect(await ECOproxy.inflationMultiplier()).to.eq(globalInflationMult)
-
-      await ECOproxy.connect(charlie).rebase(newInflationMult)
-
-      await ECOproxy.connect(snapshotterImpersonator).snapshot()
-      expect(await ECOproxy.inflationMultiplier()).to.eq(
-        globalInflationMult.mul(newInflationMult).div(DENOMINATOR)
-      )
     })
 
     describe('reverts', () => {

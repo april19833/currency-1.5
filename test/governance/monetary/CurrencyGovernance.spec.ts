@@ -1395,7 +1395,6 @@ describe('CurrencyGovernance', () => {
         expect(leader).to.eq(charlieProposalId)
       })
 
-
       it('reveal records TrustedNodes vote', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
         expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(0)
