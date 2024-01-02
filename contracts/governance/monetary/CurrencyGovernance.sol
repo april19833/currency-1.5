@@ -389,14 +389,17 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
+     * @param _enacter the monetary policy adapter
+     * @param _quorum the required quorum for enactment of monetary policy
      */
     constructor(
         Policy _policy,
-        MonetaryPolicyAdapter _enacter
+        MonetaryPolicyAdapter _enacter,
+        uint256 _quorum
     ) Policed(_policy) {
         _setEnacter(_enacter);
+        _setQuorum(_quorum);
         governanceStartTime = getTime();
-        quorum = 1;
     }
 
     //////////////////////////////////////////////
@@ -436,14 +439,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     function setQuorum(uint256 _quorum) external onlyPolicy {
+        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
+            revert BadQuorum();
+        }
         emit NewQuorum(_quorum, quorum);
         _setQuorum(_quorum);
     }
 
     function _setQuorum(uint256 _quorum) internal {
-        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
-            revert BadQuorum();
-        }
         quorum = _quorum;
     }
 
@@ -485,9 +488,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         string calldata description
     ) external onlyTrusted duringProposePhase {
         uint256 cycle = getCurrentCycle();
-        if (participation != 0) {
-            participation = 0;
-        }
         if (!canSupport(msg.sender)) {
             revert SupportAlreadyGiven();
         }
@@ -661,6 +661,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
+        if (participation != 0) {
+            participation = 0;
+        }
         commitments[msg.sender] = _commitment;
         emit VoteCommit(msg.sender, getCurrentCycle());
     }

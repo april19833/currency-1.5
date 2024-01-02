@@ -171,7 +171,7 @@ describe('CurrencyGovernance', () => {
     CurrencyGovernance = (await deploy(
       policyImpersonator,
       CurrencyGovernance__factory,
-      [Fake__Policy.address, Enacter.address]
+      [Fake__Policy.address, Enacter.address, 1]
     )) as CurrencyGovernance
 
     TrustedNodes = await (
@@ -2321,17 +2321,14 @@ describe('CurrencyGovernance', () => {
       await CurrencyGovernance.reveal(charlie.address, salt1, votes1)
       await CurrencyGovernance.reveal(dave.address, salt2, votes2)
     })
-    it('resets participation to 0 upon new proposal', async () => {
+    it('resets participation to 0 upon commit', async () => {
       const initialParticipation = await CurrencyGovernance.participation()
-      expect(Number(initialParticipation)).to.be.greaterThan(0)
 
       await time.increase(REVEAL_STAGE_LENGTH)
-
-      await CurrencyGovernance.connect(charlie).propose(
-        targets,
-        functions,
-        calldatas,
-        description
+      await time.increase(PROPOSE_STAGE_LENGTH)
+      expect(Number(initialParticipation)).to.be.greaterThan(0)
+      await CurrencyGovernance.connect(dave).commit(
+        ethers.utils.hexlify(ethers.utils.randomBytes(32))
       )
       expect(await CurrencyGovernance.participation()).to.eq(0)
     })
