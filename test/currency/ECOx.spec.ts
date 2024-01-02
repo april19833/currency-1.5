@@ -17,7 +17,14 @@ describe('EcoX', () => {
   let snapshotterImpersonator: SignerWithAddress
   let minterImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonator, snapshotterImpersonator, minterImpersonator] = await ethers.getSigners()
+    ;[
+      alice,
+      bob,
+      charlie,
+      policyImpersonator,
+      snapshotterImpersonator,
+      minterImpersonator,
+    ] = await ethers.getSigners()
   })
 
   let ecoXProxy: ECOx
@@ -38,8 +45,12 @@ describe('EcoX', () => {
       await deployProxy(policyImpersonator, ECOx__factory, ecoXDeployParams)
     )[0] as ECOx
 
-    await ecoXProxy.connect(policyImpersonator).updateSnapshotters(snapshotterImpersonator.address, true)
-    await ecoXProxy.connect(policyImpersonator).updateMinters(minterImpersonator.address, true)
+    await ecoXProxy
+      .connect(policyImpersonator)
+      .updateSnapshotters(snapshotterImpersonator.address, true)
+    await ecoXProxy
+      .connect(policyImpersonator)
+      .updateMinters(minterImpersonator.address, true)
   })
 
   describe('initialization', async () => {
@@ -129,7 +140,9 @@ describe('EcoX', () => {
         await ecoXProxy
           .connect(policyImpersonator)
           .updateSnapshotters(charlie.address, true)
-        const charlieSnapshotting = await ecoXProxy.snapshotters(charlie.address)
+        const charlieSnapshotting = await ecoXProxy.snapshotters(
+          charlie.address
+        )
         expect(charlieSnapshotting).to.be.true
       })
 
@@ -140,7 +153,9 @@ describe('EcoX', () => {
         await ecoXProxy
           .connect(policyImpersonator)
           .updateSnapshotters(charlie.address, false)
-        const charlieSnapshotting = await ecoXProxy.snapshotters(charlie.address)
+        const charlieSnapshotting = await ecoXProxy.snapshotters(
+          charlie.address
+        )
         expect(charlieSnapshotting).to.be.false
       })
 
@@ -306,7 +321,9 @@ describe('EcoX', () => {
       ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_MINTERS)
     })
     it('mints', async () => {
-      await expect(ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount))
+      await expect(
+        ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
+      )
         .to.emit(ecoXProxy, 'Transfer')
         .withArgs(ethers.constants.AddressZero, bob.address, mintAmount)
     })
@@ -316,23 +333,21 @@ describe('EcoX', () => {
 
       await mine()
       await ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
-      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(
-        mintAmount.mul(1)
-      )
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(mintAmount.mul(1))
 
       await ecoXProxy.connect(snapshotterImpersonator).snapshot()
       await mine()
 
       await ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
-      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(
-        mintAmount.mul(2)
-      )
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(mintAmount.mul(2))
     })
   })
   describe('burn', async () => {
     const burnAmount = ethers.utils.parseEther('100')
     beforeEach(async () => {
-      await ecoXProxy.connect(minterImpersonator).mint(alice.address, burnAmount)
+      await ecoXProxy
+        .connect(minterImpersonator)
+        .mint(alice.address, burnAmount)
     })
 
     it('reverts when non-burner non self burns', async () => {
@@ -359,27 +374,22 @@ describe('EcoX', () => {
         .connect(policyImpersonator)
         .updateBurners(charlie.address, true)
 
-      await ecoXProxy.connect(minterImpersonator).mint(
-        bob.address,
-        burnAmount.mul(2)
-      )
+      await ecoXProxy
+        .connect(minterImpersonator)
+        .mint(bob.address, burnAmount.mul(2))
 
       await mine()
       await ecoXProxy.connect(snapshotterImpersonator).snapshot()
       await mine()
 
       await ecoXProxy.connect(charlie).burn(bob.address, burnAmount)
-      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(
-        burnAmount.mul(3)
-      )
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(burnAmount.mul(3))
 
       await ecoXProxy.connect(snapshotterImpersonator).snapshot()
       await mine()
 
       await ecoXProxy.connect(charlie).burn(bob.address, burnAmount)
-      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(
-        burnAmount.mul(2)
-      )
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(burnAmount.mul(2))
     })
   })
 

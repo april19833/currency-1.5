@@ -14,7 +14,10 @@ import {
   InfiniteVote,
   SampleProposal,
 } from '../../../typechain-types/contracts/test'
-import { ECO__factory, ECOx__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
+  ECO__factory,
+  ECOx__factory,
+} from '../../../typechain-types/factories/contracts/currency'
 import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
@@ -60,11 +63,11 @@ describe('Snapshot safety test', () => {
       alice.address // pauser
     )
     ecox = await (
-        await smock.mock<ECOx__factory>('contracts/currency/ECOx.sol:ECOx')
-      ).deploy(
-        policy.address,
-        alice.address // pauser
-      )
+      await smock.mock<ECOx__factory>('contracts/currency/ECOx.sol:ECOx')
+    ).deploy(
+      policy.address,
+      alice.address // pauser
+    )
     await eco.connect(policyImpersonator).updateMinters(policy.address, true)
     await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)

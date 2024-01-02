@@ -12,7 +12,10 @@ import {
   ECOxStaking,
 } from '../../../typechain-types/contracts/governance/community'
 import { SampleProposal } from '../../../typechain-types/contracts/test'
-import { ECO__factory, ECOx__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
+  ECO__factory,
+  ECOx__factory,
+} from '../../../typechain-types/factories/contracts/currency'
 import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
@@ -91,10 +94,7 @@ describe('Community Governance', () => {
       await smock.mock<ECOxStaking__factory>(
         'contracts/governance/community/ECOxStaking.sol:ECOxStaking'
       )
-    ).deploy(
-      policy.address,
-      ecox.address,
-    )
+    ).deploy(policy.address, ecox.address)
 
     currentStageEnd = await time.latest()
 

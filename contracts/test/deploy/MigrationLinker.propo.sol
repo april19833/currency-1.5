@@ -182,7 +182,7 @@ contract MigrationLinker is Policy, Proposal {
         ECO(ecoProxyAddress).updateSnapshotters(address(this), true);
         ECO(ecoProxyAddress).snapshot();
         ECO(ecoProxyAddress).updateSnapshotters(address(this), false);
-        
+
         // perform ecox initialization
         ECOx(ecoxProxyAddress).updateSnapshotters(address(this), true);
         ECOx(ecoxProxyAddress).snapshot();
