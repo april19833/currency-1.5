@@ -255,18 +255,14 @@ describe('ECO', () => {
 
     describe('pauser role', () => {
       it('can be changed by the policy', async () => {
-        await ECOproxy
-          .connect(policyImpersonator)
-          .setPauser(charlie.address)
+        await ECOproxy.connect(policyImpersonator).setPauser(charlie.address)
         const charliePausing = await ECOproxy.pauser()
         expect(charliePausing).to.eq(charlie.address)
       })
 
       it('emits an event', async () => {
         expect(
-          await ECOproxy
-            .connect(policyImpersonator)
-            .setPauser(charlie.address)
+          await ECOproxy.connect(policyImpersonator).setPauser(charlie.address)
         )
           .to.emit(ECOproxy, 'PauserAssignment')
           .withArgs(charlie.address)
@@ -275,19 +271,21 @@ describe('ECO', () => {
       it('is onlyPolicy gated', async () => {
         await expect(
           ECOproxy.connect(charlie).setPauser(charlie.address)
-        ).to.be.revertedWith("ERC20Pausable: not admin")
+        ).to.be.revertedWith('ERC20Pausable: not admin')
       })
     })
   })
 
   describe('pausable', async () => {
     beforeEach(async () => {
-      await ECOproxy
-        .connect(policyImpersonator)
-        .updateBurners(bob.address, true)
-      await ECOproxy
-        .connect(policyImpersonator)
-        .updateMinters(bob.address, true)
+      await ECOproxy.connect(policyImpersonator).updateBurners(
+        bob.address,
+        true
+      )
+      await ECOproxy.connect(policyImpersonator).updateMinters(
+        bob.address,
+        true
+      )
 
       expect(await ECOproxy.paused()).to.be.false
 
@@ -428,21 +426,24 @@ describe('ECO', () => {
             .withArgs(ethers.constants.AddressZero, bob.address, INITIAL_SUPPLY)
         })
 
-        it ('updates total supply snapshot', async () => {
+        it('updates total supply snapshot', async () => {
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-          await ethers.provider.send("evm_mine", []);
+          await ethers.provider.send('evm_mine', [])
 
           await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
-          expect(await ECOproxy.totalSupplySnapshot()).to.eq(INITIAL_SUPPLY.mul(1))
+          expect(await ECOproxy.totalSupplySnapshot()).to.eq(
+            INITIAL_SUPPLY.mul(1)
+          )
 
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
-          await ethers.provider.send("evm_mine", []);
+          await ethers.provider.send('evm_mine', [])
 
           await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
-          expect(await ECOproxy.totalSupplySnapshot()).to.eq(INITIAL_SUPPLY.mul(2))
+          expect(await ECOproxy.totalSupplySnapshot()).to.eq(
+            INITIAL_SUPPLY.mul(2)
+          )
         })
-
       })
     })
 
@@ -496,23 +497,30 @@ describe('ECO', () => {
             )
         })
 
-        it ('updates total supply snapshot', async () => {
-          await ECOproxy.connect(minterImpersonator).mint(bob.address, INITIAL_SUPPLY.mul(2))
+        it('updates total supply snapshot', async () => {
+          await ECOproxy.connect(minterImpersonator).mint(
+            bob.address,
+            INITIAL_SUPPLY.mul(2)
+          )
 
-          await ethers.provider.send("evm_mine", []);
-
-          await ECOproxy.connect(snapshotterImpersonator).snapshot()
-
-          await ethers.provider.send("evm_mine", []);
-
-          await ECOproxy.connect(charlie).burn(bob.address, INITIAL_SUPPLY)
-          expect(await ECOproxy.totalSupplySnapshot()).to.eq(INITIAL_SUPPLY.mul(3))
+          await ethers.provider.send('evm_mine', [])
 
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
-          await ethers.provider.send("evm_mine", []);
+
+          await ethers.provider.send('evm_mine', [])
 
           await ECOproxy.connect(charlie).burn(bob.address, INITIAL_SUPPLY)
-          expect(await ECOproxy.totalSupplySnapshot()).to.eq(INITIAL_SUPPLY.mul(2))
+          expect(await ECOproxy.totalSupplySnapshot()).to.eq(
+            INITIAL_SUPPLY.mul(3)
+          )
+
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
+          await ethers.provider.send('evm_mine', [])
+
+          await ECOproxy.connect(charlie).burn(bob.address, INITIAL_SUPPLY)
+          expect(await ECOproxy.totalSupplySnapshot()).to.eq(
+            INITIAL_SUPPLY.mul(2)
+          )
         })
       })
     })
@@ -583,8 +591,8 @@ describe('ECO', () => {
         )
 
         expect(await ECOproxy.connect(dave).transfer(alice.address, 1))
-        .to.emit(ECOproxy, 'BaseValueTransfer')
-        .withArgs(dave.address, alice.address, newInflationMult.mul(1))
+          .to.emit(ECOproxy, 'BaseValueTransfer')
+          .withArgs(dave.address, alice.address, newInflationMult.mul(1))
 
         expect(await ECOproxy.balanceOf(alice.address)).to.eq(1)
         expect(await ECOproxy.balanceOf(dave.address)).to.eq(
@@ -595,18 +603,17 @@ describe('ECO', () => {
       })
     })
 
-      it('preserves historical multiplier', async () => {
-        await ECOproxy.connect(snapshotterImpersonator).snapshot()
-        expect(await ECOproxy.inflationMultiplier()).to.eq(globalInflationMult)
+    it('preserves historical multiplier', async () => {
+      await ECOproxy.connect(snapshotterImpersonator).snapshot()
+      expect(await ECOproxy.inflationMultiplier()).to.eq(globalInflationMult)
 
-        await ECOproxy.connect(charlie).rebase(newInflationMult)
+      await ECOproxy.connect(charlie).rebase(newInflationMult)
 
-        await ECOproxy.connect(snapshotterImpersonator).snapshot()
-        expect(await ECOproxy.inflationMultiplier()).to.eq(
-          globalInflationMult.mul(newInflationMult).div(DENOMINATOR)
-        )
-      })
-    
+      await ECOproxy.connect(snapshotterImpersonator).snapshot()
+      expect(await ECOproxy.inflationMultiplier()).to.eq(
+        globalInflationMult.mul(newInflationMult).div(DENOMINATOR)
+      )
+    })
 
     describe('reverts', () => {
       it('is rebasers gated', async () => {

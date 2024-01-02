@@ -66,11 +66,9 @@ describe('Rebase', () => {
     ])) as Rebase
 
     const downstreamFactory: MockContractFactory<DummyDownstream__factory> =
-    await smock.mock('contracts/test/DummyDownstream.sol:DummyDownstream')
+      await smock.mock('contracts/test/DummyDownstream.sol:DummyDownstream')
     downstream = await downstreamFactory.deploy()
 
-    const notifierFactory: MockContractFactory<Notifier__factory> =
-      await smock.mock('contracts/governance/monetary/Notifier.sol:Notifier')
     notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
       rebase.address, // lever
@@ -130,14 +128,21 @@ describe('Rebase', () => {
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
       .be.false
 
-    expect(rebase.connect(alice).setAuthorized(currencyGovernanceImpersonator.address, true))
-      .to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+    expect(
+      rebase
+        .connect(alice)
+        .setAuthorized(currencyGovernanceImpersonator.address, true)
+    ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
 
-    await rebase.connect(policyImpersonator).setAuthorized(currencyGovernanceImpersonator.address, true)
+    await rebase
+      .connect(policyImpersonator)
+      .setAuthorized(currencyGovernanceImpersonator.address, true)
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
       .be.true
 
-    await rebase.connect(policyImpersonator).setAuthorized(currencyGovernanceImpersonator.address, false)
+    await rebase
+      .connect(policyImpersonator)
+      .setAuthorized(currencyGovernanceImpersonator.address, false)
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
       .be.false
   })
@@ -150,9 +155,7 @@ describe('Rebase', () => {
     const newNotifier = await rebase.notifier()
     expect(newNotifier !== oldNotifier).to.be.true
     expect(newNotifier === alice.address).to.be.true
-
-  }
-)
+  })
 
   it('notifies successfully on execute call to lever', async () => {
     const newInflationMult = 123123
@@ -160,13 +163,10 @@ describe('Rebase', () => {
       (await notifier.transactions(0)).target,
       alice
     )
-    await rebase
-      .connect(policyImpersonator)
-      .setAuthorized(alice.address, true)
+    await rebase.connect(policyImpersonator).setAuthorized(alice.address, true)
 
     expect(await target.notified()).to.be.false
     await rebase.connect(alice).execute(newInflationMult)
     expect(await target.notified()).to.be.true
   })
-
 })

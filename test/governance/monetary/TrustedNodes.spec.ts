@@ -193,9 +193,7 @@ describe('TrustedNodes', () => {
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(1)
     })
     it('allows for recording votes when being added later', async () => {
-      await trustedNodes
-        .connect(policyImpersonator)
-        .trust(charlie.address)
+      await trustedNodes.connect(policyImpersonator).trust(charlie.address)
       expect(await trustedNodes.votingRecord(charlie.address)).to.eq(0)
       await trustedNodes
         .connect(currencyGovernanceImpersonator)
@@ -203,7 +201,6 @@ describe('TrustedNodes', () => {
       expect(await trustedNodes.votingRecord(charlie.address)).to.eq(1)
     })
   })
-        
 
   describe('currentlyWithdrawable', async () => {
     it('displays the correct amount when voting record is limiting factor', async () => {
@@ -301,9 +298,7 @@ describe('TrustedNodes', () => {
       await trustedNodes
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
-      await trustedNodes
-        .connect(policyImpersonator)
-        .distrust(alice.address)
+      await trustedNodes.connect(policyImpersonator).distrust(alice.address)
       await time.increaseTo(
         (
           await trustedNodes.termEnd()

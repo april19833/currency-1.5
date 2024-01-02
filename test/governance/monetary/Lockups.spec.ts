@@ -121,32 +121,30 @@ describe('Lockups', () => {
     })
 
     it('can change authorized', async () => {
-      expect(await lockups.authorized(bob.address)).to
-        .be.false
-  
-      expect(lockups.connect(alice).setAuthorized(bob.address, true))
-        .to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-  
+      expect(await lockups.authorized(bob.address)).to.be.false
+
+      expect(
+        lockups.connect(alice).setAuthorized(bob.address, true)
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+
       await lockups.connect(policyImpersonator).setAuthorized(bob.address, true)
-      expect(await lockups.authorized(bob.address)).to
-        .be.true
-  
-      await lockups.connect(policyImpersonator).setAuthorized(bob.address, false)
-      expect(await lockups.authorized(bob.address)).to
-        .be.false
+      expect(await lockups.authorized(bob.address)).to.be.true
+
+      await lockups
+        .connect(policyImpersonator)
+        .setAuthorized(bob.address, false)
+      expect(await lockups.authorized(bob.address)).to.be.false
     })
-  
+
     it('can change notifier', async () => {
       const oldNotifier = await lockups.notifier()
-  
+
       await lockups.connect(policyImpersonator).setNotifier(alice.address)
-  
+
       const newNotifier = await lockups.notifier()
       expect(newNotifier !== oldNotifier).to.be.true
       expect(newNotifier === alice.address).to.be.true
-  
-    }
-  )
+    })
   })
 
   describe('createLockup', async () => {

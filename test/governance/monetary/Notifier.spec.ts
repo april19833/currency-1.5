@@ -226,13 +226,13 @@ describe('notifier', () => {
         (await notifier.transactions(0)).target,
         alice
       )
-      
-      expect(await target.notified()).to.be.false
-      await expect( notifier.connect(alice).notify()).to.be.revertedWith(ERRORS.Notifier.NON_LEVER_CALL)
 
-      await notifier
-        .connect(policyImpersonator)
-        .changeLever(alice.address)
+      expect(await target.notified()).to.be.false
+      await expect(notifier.connect(alice).notify()).to.be.revertedWith(
+        ERRORS.Notifier.NON_LEVER_CALL
+      )
+
+      await notifier.connect(policyImpersonator).changeLever(alice.address)
 
       expect(await target.notified()).to.be.false
       await notifier.connect(alice).notify()
