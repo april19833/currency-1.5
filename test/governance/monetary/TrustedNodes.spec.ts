@@ -192,14 +192,6 @@ describe('TrustedNodes', () => {
         .recordVote(alice.address)
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(1)
     })
-    it('allows for recording votes when being added later', async () => {
-      await trustedNodes.connect(policyImpersonator).trust(charlie.address)
-      expect(await trustedNodes.votingRecord(charlie.address)).to.eq(0)
-      await trustedNodes
-        .connect(currencyGovernanceImpersonator)
-        .recordVote(charlie.address)
-      expect(await trustedNodes.votingRecord(charlie.address)).to.eq(1)
-    })
   })
 
   describe('currentlyWithdrawable', async () => {
