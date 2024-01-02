@@ -1441,6 +1441,20 @@ describe('CurrencyGovernance', () => {
         expect(leader).to.eq(charlieProposalId)
       })
 
+      it('reveal records TrustedNodes vote', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(0)
+        await CurrencyGovernance.connect(charlie).reveal(
+          charlie.address,
+          salt,
+          votes
+        )
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(1)
+        expect(await TrustedNodes.votingRecord(niko.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(dave.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(bob.address)).to.be.eq(0)
+      })
+
       it('second reveal can change the leader to the default proposal', async () => {
         // adds votes of default: 5, bob:4, charlie:2
         // total scores after both votes is default:8, charlie:7, bob:5

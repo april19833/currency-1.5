@@ -108,6 +108,7 @@ export const ERRORS = {
     WRONG_STAGE: 'WrongStage',
     BAD_CYCLE_START: 'BadCycleStart',
     DUPLICATE_PROPOSAL: 'DuplicateProposal',
+    OLD_PROPOSAL_SUPPORT: 'OldProposalSupport',
     ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
     BAD_VOTING_POWER: 'BadVotingPower',
     NO_SUPPORT_TO_REVOKE: 'NoSupportToRevoke',
