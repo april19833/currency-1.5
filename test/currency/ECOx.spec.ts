@@ -118,6 +118,28 @@ describe('EcoX', () => {
       })
     })
 
+    describe('pauser role', () => {
+      it('can be changed by the policy', async () => {
+        await ecoXProxy.connect(policyImpersonator).setPauser(charlie.address)
+        const charliePausing = await ecoXProxy.pauser()
+        expect(charliePausing).to.eq(charlie.address)
+      })
+
+      it('emits an event', async () => {
+        expect(
+          await ecoXProxy.connect(policyImpersonator).setPauser(charlie.address)
+        )
+          .to.emit(ecoXProxy, 'PauserAssignment')
+          .withArgs(charlie.address)
+      })
+
+      it('is onlyPolicy gated', async () => {
+        await expect(
+          ecoXProxy.connect(charlie).setPauser(charlie.address)
+        ).to.be.revertedWith('ERC20Pausable: not admin')
+      })
+    })
+
     describe('ECOxExchange role', () => {
       it('is onlyPolicy gated', async () => {
         await expect(

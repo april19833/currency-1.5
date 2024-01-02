@@ -220,5 +220,23 @@ describe('notifier', () => {
       expect(await eco.inflationMultiplier()).to.eq(newInflationMult)
       expect(await downstream.pigsFly()).to.be.false
     })
+
+    it('only Lever can call notify', async () => {
+      const target = DummyDownstream__factory.connect(
+        (await notifier.transactions(0)).target,
+        alice
+      )
+
+      expect(await target.notified()).to.be.false
+      await expect(notifier.connect(alice).notify()).to.be.revertedWith(
+        ERRORS.Notifier.NON_LEVER_CALL
+      )
+
+      await notifier.connect(policyImpersonator).changeLever(alice.address)
+
+      expect(await target.notified()).to.be.false
+      await notifier.connect(alice).notify()
+      expect(await target.notified()).to.be.true
+    })
   })
 })

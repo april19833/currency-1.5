@@ -156,6 +156,18 @@ describe('Erc20', () => {
           .to.emit(ECOproxy, 'Transfer')
           .withArgs(dave.address, charlie.address, INITIAL_SUPPLY)
       })
+
+      it('emits a BaseValueTransfer event', async () => {
+        expect(
+          await ECOproxy.connect(dave).transfer(alice.address, INITIAL_SUPPLY)
+        )
+          .to.emit(ECOproxy, 'BaseValueTransfer')
+          .withArgs(
+            dave.address,
+            alice.address,
+            INITIAL_SUPPLY.mul(globalInflationMult)
+          )
+      })
     })
   })
 
