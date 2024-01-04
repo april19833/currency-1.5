@@ -19,6 +19,9 @@ contract VotingPower is Policed {
     /** @notice snapshot block for calculating voting power */
     uint256 public snapshotBlock;
 
+    // error for if total voting power is accessed during the snapshot block
+    error NoAtomicActionsWithSnapshot();
+
     constructor(
         Policy _policy,
         ECO _ecoAddr,
@@ -35,6 +38,10 @@ contract VotingPower is Policed {
     }
 
     function totalVotingPower() public view returns (uint256) {
+        if (block.number == snapshotBlock) {
+            revert NoAtomicActionsWithSnapshot();
+        }
+
         uint256 _supply = ecoToken.totalSupplySnapshot();
         uint256 _supplyX = ecoXStaking.totalVotingECOx(snapshotBlock);
         // ECOx has 10x the voting power of ECO per unit

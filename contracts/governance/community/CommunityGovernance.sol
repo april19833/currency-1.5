@@ -83,9 +83,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
     uint256 public voteThresholdPercent = 50;
 
-    /** @notice total voting power for the cycle */
-    uint256 public cycleTotalVotingPower;
-
     /** @notice the proposal being voted on this cycle */
     address public selectedProposal;
 
@@ -344,7 +341,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         ecoToken.snapshot();
         snapshotBlock = block.number;
-        cycleTotalVotingPower = totalVotingPower();
 
         delete selectedProposal;
         delete totalEnactVotes;
@@ -461,7 +457,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         if (
             prop.totalSupport >
-            (cycleTotalVotingPower * supportThresholdPercent) / 100
+            (totalVotingPower() * supportThresholdPercent) / 100
         ) {
             selectedProposal = proposal;
             pot -= (proposalFee - prop.refund);
@@ -551,7 +547,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         if (
             (totalEnactVotes) >
-            (cycleTotalVotingPower * voteThresholdPercent) / 100
+            (totalVotingPower() * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
             currentStageEnd = cycleStart + CYCLE_LENGTH;
