@@ -282,7 +282,11 @@ export async function deployMonetary(
     console.log('deploying currencyGovernance')
   }
 
-  const monetaryGovernanceParams = [base.policy.address, adapter.address, 1]
+  const monetaryGovernanceParams = [
+    base.policy.address,
+    adapter.address,
+    config.quorum || 1,
+  ]
 
   const monetaryGovernance = (await deploy(
     wallet,

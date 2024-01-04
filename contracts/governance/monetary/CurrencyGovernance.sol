@@ -398,8 +398,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 _quorum
     ) Policed(_policy) {
         _setEnacter(_enacter);
-        _setQuorum(_quorum);
         governanceStartTime = getTime();
+        quorum = _quorum;
     }
 
     //////////////////////////////////////////////
@@ -439,14 +439,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     function setQuorum(uint256 _quorum) external onlyPolicy {
-        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
-            revert BadQuorum();
-        }
         emit NewQuorum(_quorum, quorum);
         _setQuorum(_quorum);
     }
 
     function _setQuorum(uint256 _quorum) internal {
+        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
+            revert BadQuorum();
+        }
         quorum = _quorum;
     }
 
