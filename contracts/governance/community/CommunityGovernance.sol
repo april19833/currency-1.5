@@ -267,37 +267,53 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function updateStage() public {
         uint256 time = getTime();
-        if (time > currentStageEnd) {
-            if (stage == Stage.Proposal) {
-                // no proposal was selected
-                stage = Stage.Done;
-                currentStageEnd = cycleStart + CYCLE_LENGTH;
-            } else if (stage == Stage.Voting) {
-                if (totalEnactVotes > totalRejectVotes) {
-                    // vote passes
-                    stage = Stage.Delay;
-                    currentStageEnd = currentStageEnd + DELAY_LENGTH;
-                } else {
-                    // vote fails
-                    stage = Stage.Done;
-                    currentStageEnd = cycleStart + CYCLE_LENGTH;
-                }
-            } else if (stage == Stage.Delay) {
-                // delay period ended, time to execute
-                stage = Stage.Execution;
-                //TODO: this comment needs corrected
-                //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
-                currentStageEnd = cycleStart + CYCLE_LENGTH;
-            } else if (stage == Stage.Execution) {
-                // if the execution stage timed out, the proposal was not enacted in time
-                // either nobody called it, or the proposal failed during execution.
-                // this assumes the latter case, the former has been addressed in the end time of the execution stage
-                stage = Stage.Done;
-                nextCycle();
-            } else if (stage == Stage.Done) {
-                nextCycle();
-            }
+        bool emitEvent;
 
+        if (stage == Stage.Proposal && time > currentStageEnd) {
+            // no proposal was selected
+            stage = Stage.Done;
+            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Voting && time > currentStageEnd) {
+            if (totalEnactVotes > totalRejectVotes) {
+                // vote passes
+                stage = Stage.Delay;
+                currentStageEnd = currentStageEnd + DELAY_LENGTH;
+            } else {
+                // vote fails
+                stage = Stage.Done;
+                currentStageEnd = cycleStart + CYCLE_LENGTH;
+            }
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Delay && time > currentStageEnd) {
+            // delay period ended, time to execute
+            stage = Stage.Execution;
+            //TODO: this comment needs corrected
+            //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
+            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Execution && time > currentStageEnd) {
+            // if the execution stage timed out, the proposal was not enacted in time
+            // either nobody called it, or the proposal failed during execution.
+            // this assumes the latter case, the former has been addressed in the end time of the execution stage
+            stage = Stage.Done;
+            nextCycle();
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Done && time > currentStageEnd) {
+            nextCycle();
+            emitEvent = true;
+        }
+
+        // this saves the event spam
+        if (emitEvent) {
             emit StageUpdated(stage);
         }
     }
