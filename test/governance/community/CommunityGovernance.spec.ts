@@ -11,7 +11,10 @@ import {
   CommunityGovernance,
   ECOxStaking,
 } from '../../../typechain-types/contracts/governance/community'
-import { FlashBurner, SampleProposal } from '../../../typechain-types/contracts/test'
+import {
+  FlashBurner,
+  SampleProposal,
+} from '../../../typechain-types/contracts/test'
 import {
   ECO__factory,
   ECOx__factory,
@@ -20,7 +23,10 @@ import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
 } from '../../../typechain-types/factories/contracts/governance/community'
-import { FlashBurner__factory, SampleProposal__factory } from '../../../typechain-types/factories/contracts/test'
+import {
+  FlashBurner__factory,
+  SampleProposal__factory,
+} from '../../../typechain-types/factories/contracts/test'
 
 use(smock.matchers)
 
@@ -360,7 +366,11 @@ describe('Community Governance', () => {
 
       it('no atomic burning misaligning voting power and supply', async () => {
         const oldSupply = await eco.totalSupply()
-        const burner = await deploy(alice, FlashBurner__factory, [cg.address, eco.address, ecox.address]) as FlashBurner
+        const burner = (await deploy(alice, FlashBurner__factory, [
+          cg.address,
+          eco.address,
+          ecox.address,
+        ])) as FlashBurner
         await eco.connect(alice).transfer(burner.address, INIT_BALANCE)
         await burner.exploit()
         await mine()
