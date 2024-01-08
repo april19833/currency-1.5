@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./ERC20Pausable.sol";
 import "./DelegatePermit.sol";
-import "./ERC20MintAndBurn.sol";
+import "./TotalSupplySnapshots.sol";
 
 /**
  * This contract tracks delegations of an ERC20 token by tokenizing the delegations
@@ -19,7 +19,7 @@ import "./ERC20MintAndBurn.sol";
  * Raw delegations can be done in partial amounts via {delegateAmount}. This is intended for contracts which can run
  * their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
  */
-abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
+abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     // this checks who has opted in to voting
     mapping(address => bool) public voter;
 
@@ -77,7 +77,7 @@ abstract contract ERC20Delegated is ERC20MintAndBurn, DelegatePermit {
         string memory _name,
         string memory _symbol,
         address _initialPauser
-    ) ERC20MintAndBurn(_policy, _name, _symbol, _initialPauser) {
+    ) TotalSupplySnapshots(_policy, _name, _symbol, _initialPauser) {
         // call to super constructor
     }
 
