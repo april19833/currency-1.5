@@ -53,7 +53,7 @@ contract TrustedNodes is Policed, TimeUtils {
     // error for when distrust is called but the address is already not trusted
     error DistrustNotTrusted();
 
-    // error for when recordVote is called outside the trustee term
+    // error for when action is taken outside of the trustee term
     error InactiveTerm();
 
     // error for when withdraw is called but no tokens have been earned to withdraw

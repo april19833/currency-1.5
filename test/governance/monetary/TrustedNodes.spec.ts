@@ -22,7 +22,7 @@ import { ECOx } from '../../../typechain-types/contracts/currency'
 import { ECOx__factory } from '../../../typechain-types/factories/contracts/currency'
 import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
-describe.only('TrustedNodes', () => {
+describe('TrustedNodes', () => {
   let policyImpersonator: SignerWithAddress
   let currencyGovernanceImpersonator: SignerWithAddress
 
