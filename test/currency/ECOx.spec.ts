@@ -7,14 +7,24 @@ import { ECOx } from '../../typechain-types/contracts/currency'
 import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOx__factory } from '../../typechain-types/factories/contracts/currency'
 import { deployProxy } from '../../deploy/utils'
+import { mine } from '@nomicfoundation/hardhat-network-helpers'
 
 describe('EcoX', () => {
   let alice: SignerWithAddress // default signer
   let bob: SignerWithAddress // pauser
   let charlie: SignerWithAddress
   let policyImpersonator: SignerWithAddress
+  let snapshotterImpersonator: SignerWithAddress
+  let minterImpersonator: SignerWithAddress
   before(async () => {
-    ;[alice, bob, charlie, policyImpersonator] = await ethers.getSigners()
+    ;[
+      alice,
+      bob,
+      charlie,
+      policyImpersonator,
+      snapshotterImpersonator,
+      minterImpersonator,
+    ] = await ethers.getSigners()
   })
 
   let ecoXProxy: ECOx
@@ -34,6 +44,13 @@ describe('EcoX', () => {
     ecoXProxy = (
       await deployProxy(policyImpersonator, ECOx__factory, ecoXDeployParams)
     )[0] as ECOx
+
+    await ecoXProxy
+      .connect(policyImpersonator)
+      .updateSnapshotters(snapshotterImpersonator.address, true)
+    await ecoXProxy
+      .connect(policyImpersonator)
+      .updateMinters(minterImpersonator.address, true)
   })
 
   describe('initialization', async () => {
@@ -114,6 +131,47 @@ describe('EcoX', () => {
       it('is onlyPolicy gated', async () => {
         await expect(
           ecoXProxy.connect(charlie).updateBurners(charlie.address, true)
+        ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+      })
+    })
+
+    describe('snapshotter role', () => {
+      it('can be added by the policy', async () => {
+        await ecoXProxy
+          .connect(policyImpersonator)
+          .updateSnapshotters(charlie.address, true)
+        const charlieSnapshotting = await ecoXProxy.snapshotters(
+          charlie.address
+        )
+        expect(charlieSnapshotting).to.be.true
+      })
+
+      it('can be removed by the policy', async () => {
+        await ecoXProxy
+          .connect(policyImpersonator)
+          .updateSnapshotters(charlie.address, true)
+        await ecoXProxy
+          .connect(policyImpersonator)
+          .updateSnapshotters(charlie.address, false)
+        const charlieSnapshotting = await ecoXProxy.snapshotters(
+          charlie.address
+        )
+        expect(charlieSnapshotting).to.be.false
+      })
+
+      it('emits an event', async () => {
+        expect(
+          await ecoXProxy
+            .connect(policyImpersonator)
+            .updateSnapshotters(charlie.address, true)
+        )
+          .to.emit(ecoXProxy, 'UpdatedSnapshotters')
+          .withArgs(charlie.address, true)
+      })
+
+      it('is onlyPolicy gated', async () => {
+        await expect(
+          ecoXProxy.connect(charlie).updateSnapshotters(charlie.address, true)
         ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
       })
     })
@@ -256,55 +314,108 @@ describe('EcoX', () => {
   })
 
   describe('mint', async () => {
+    const mintAmount = ethers.utils.parseEther('100')
     it('reverts when non-minter mints', async () => {
       await expect(
-        ecoXProxy.connect(bob).mint(bob.address, 100)
+        ecoXProxy.connect(bob).mint(bob.address, mintAmount)
       ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_MINTERS)
     })
     it('mints', async () => {
-      await ecoXProxy
-        .connect(policyImpersonator)
-        .updateMinters(bob.address, true)
-      await expect(ecoXProxy.connect(bob).mint(bob.address, 100))
+      await expect(
+        ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
+      )
         .to.emit(ecoXProxy, 'Transfer')
-        .withArgs(ethers.constants.AddressZero, bob.address, 100)
+        .withArgs(ethers.constants.AddressZero, bob.address, mintAmount)
+    })
+    it('updates total supply snapshot', async () => {
+      await ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
+      await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+
+      await mine()
+      await ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(mintAmount.mul(1))
+
+      await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+      await mine()
+
+      await ecoXProxy.connect(minterImpersonator).mint(bob.address, mintAmount)
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(mintAmount.mul(2))
     })
   })
   describe('burn', async () => {
-    it('reverts when non-burner non self burns', async () => {
+    const burnAmount = ethers.utils.parseEther('100')
+    beforeEach(async () => {
       await ecoXProxy
-        .connect(policyImpersonator)
-        .updateMinters(bob.address, true)
-      await ecoXProxy.connect(bob).mint(alice.address, 100)
+        .connect(minterImpersonator)
+        .mint(alice.address, burnAmount)
+    })
 
+    it('reverts when non-burner non self burns', async () => {
       await expect(
-        ecoXProxy.connect(bob).burn(alice.address, 100)
+        ecoXProxy.connect(bob).burn(alice.address, burnAmount)
       ).to.be.revertedWith(ERRORS.ERC20ROLES.ONLY_BURNERS)
     })
     it('burns when non-burner burns for self', async () => {
-      await ecoXProxy
-        .connect(policyImpersonator)
-        .updateMinters(bob.address, true)
-      await ecoXProxy.connect(bob).mint(bob.address, 100)
-
-      await expect(ecoXProxy.connect(bob).burn(bob.address, 100))
+      await expect(ecoXProxy.connect(alice).burn(alice.address, burnAmount))
         .to.emit(ecoXProxy, 'Transfer')
-        .withArgs(bob.address, ethers.constants.AddressZero, 100)
+        .withArgs(alice.address, ethers.constants.AddressZero, burnAmount)
     })
     it('burns when burner burns for non-self', async () => {
-      // ow
-      await ecoXProxy
-        .connect(policyImpersonator)
-        .updateMinters(alice.address, true)
       await ecoXProxy
         .connect(policyImpersonator)
         .updateBurners(bob.address, true)
 
-      await ecoXProxy.connect(alice).mint(alice.address, 100)
-
-      await expect(ecoXProxy.connect(bob).burn(alice.address, 100))
+      await expect(ecoXProxy.connect(bob).burn(alice.address, burnAmount))
         .to.emit(ecoXProxy, 'Transfer')
-        .withArgs(alice.address, ethers.constants.AddressZero, 100)
+        .withArgs(alice.address, ethers.constants.AddressZero, burnAmount)
+    })
+    it('updates total supply snapshot', async () => {
+      await ecoXProxy
+        .connect(policyImpersonator)
+        .updateBurners(charlie.address, true)
+
+      await ecoXProxy
+        .connect(minterImpersonator)
+        .mint(bob.address, burnAmount.mul(2))
+
+      await mine()
+      await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+      await mine()
+
+      await ecoXProxy.connect(charlie).burn(bob.address, burnAmount)
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(burnAmount.mul(3))
+
+      await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+      await mine()
+
+      await ecoXProxy.connect(charlie).burn(bob.address, burnAmount)
+      expect(await ecoXProxy.totalSupplySnapshot()).to.eq(burnAmount.mul(2))
+    })
+  })
+
+  describe('snapshotting', () => {
+    context('snapshot', () => {
+      context('happy path', () => {
+        it('can snapshot', async () => {
+          await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+        })
+
+        it('changes state', async () => {
+          const snapshotBlock1 = await ecoXProxy.currentSnapshotBlock()
+          await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+          const snapshotBlock2 = await ecoXProxy.currentSnapshotBlock()
+
+          expect(snapshotBlock2).to.be.greaterThan(snapshotBlock1)
+        })
+
+        it('emits an event', async () => {
+          await ecoXProxy.connect(snapshotterImpersonator).snapshot()
+          const snapshotBlockOld = await ecoXProxy.currentSnapshotBlock()
+          await expect(ecoXProxy.connect(snapshotterImpersonator).snapshot())
+            .to.emit(ecoXProxy, 'NewSnapshotBlock')
+            .withArgs(snapshotBlockOld + 1)
+        })
+      })
     })
   })
 })

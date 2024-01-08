@@ -45,8 +45,8 @@ describe('Policy E2E Tests', () => {
     contracts = await testnetFixture(
       [bob.address, charlie.address],
       alice.address,
-      INITIAL_SUPPLY.toString(),
-      INITIAL_SUPPLY.toString(),
+      INITIAL_SUPPLY.toString(), // eco supply
+      INITIAL_SUPPLY.div(20).toString(), // ecox supply, different amount to make ecox voting power less than eco to allow supermajority passing without having to stake
       false,
       { trusteeTerm: 28 * DAY }
     )

@@ -11,27 +11,8 @@ import "./ERC20Delegated.sol";
  * Only addresses that have opted into voting are snapshotted.
  */
 abstract contract VoteSnapshots is ERC20Delegated {
-    // structure for saving snapshotted values
-    struct Snapshot {
-        uint32 snapshotBlock;
-        uint224 value;
-    }
-
-    // the reference snapshotBlock that the update function checks against
-    uint32 public currentSnapshotBlock;
-
     // mapping of each address to it's latest snapshot of votes
     mapping(address => Snapshot) private _voteSnapshots;
-
-    // the snapshot to track the token total supply
-    Snapshot private _totalSupplySnapshot;
-
-    /**
-     * @dev Emitted by {_snapshot} when a new snapshot is created.
-     *
-     * @param block the new value of currentSnapshotBlock
-     */
-    event NewSnapshotBlock(uint256 block);
 
     /** Construct a new instance.
      *
@@ -43,16 +24,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         string memory _symbol,
         address _initialPauser
     ) ERC20Delegated(_policy, _name, _symbol, _initialPauser) {
-        // snapshot on creation to make it clear that everyone's balances should be updated
-        _snapshot();
-    }
-
-    function initialize(
-        address _self
-    ) public virtual override onlyConstruction {
-        super.initialize(_self);
-        // snapshot on initialization to make it clear that everyone's balances should be updated after upgrade
-        _snapshot();
+        // call to super constructor
     }
 
     /**
@@ -76,53 +48,6 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     /**
-     * @dev Retrieve the `totalSupply` for the snapshot
-     */
-    function totalSupplySnapshot() public view virtual returns (uint256) {
-        if (
-            // currentSnapshotBlock != block.number && // this line fucks up the current abliity to snapshot total power, but might need implemented
-            _totalSupplySnapshot.snapshotBlock < currentSnapshotBlock
-        ) {
-            return _totalSupply;
-        } else {
-            return _totalSupplySnapshot.value;
-        }
-    }
-
-    /**
-     * @dev Creates a new snapshot and returns its snapshot id.
-     *
-     * Emits a {NewSnapshotBlock} event that contains the same id.
-     */
-    function _snapshot() internal virtual returns (uint256) {
-        // the math will error if the snapshot overflows
-        currentSnapshotBlock = uint32(block.number);
-
-        emit NewSnapshotBlock(block.number);
-        return block.number;
-    }
-
-    /**
-     * Update total supply snapshots before the values are modified. This is implemented
-     * in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal virtual override returns (uint256) {
-        if (from == address(0)) {
-            // mint
-            _updateTotalSupplySnapshot();
-        } else if (to == address(0)) {
-            // burn
-            _updateTotalSupplySnapshot();
-        }
-
-        return super._beforeTokenTransfer(from, to, amount);
-    }
-
-    /**
      * Update balance snapshots for votes before the values are modified. This is implemented
      * in the _beforeVoteTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
      */
@@ -131,7 +56,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
         address to,
         uint256 amount
     ) internal virtual override {
-        super._beforeTokenTransfer(from, to, amount);
+        super._beforeVoteTokenTransfer(from, to, amount);
 
         if (from != address(0) && voter[from]) {
             _updateAccountSnapshot(from);
@@ -159,24 +84,6 @@ abstract contract VoteSnapshots is ERC20Delegated {
 
             snapshot.snapshotBlock = _currentSnapshotBlock;
             snapshot.value = uint224(currentValue);
-        }
-    }
-
-    function _updateTotalSupplySnapshot() private {
-        // take no action during the snapshot block, only after it
-        uint32 _currentSnapshotBlock = currentSnapshotBlock;
-        if (_currentSnapshotBlock == block.number) {
-            return;
-        }
-
-        if (_totalSupplySnapshot.snapshotBlock < _currentSnapshotBlock) {
-            uint256 currentValue = _totalSupply;
-            require(
-                currentValue <= type(uint224).max,
-                "VoteSnapshots: new snapshot cannot be casted safely"
-            );
-            _totalSupplySnapshot.snapshotBlock = _currentSnapshotBlock;
-            _totalSupplySnapshot.value = uint224(currentValue);
         }
     }
 

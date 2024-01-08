@@ -5,7 +5,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
-import { ECO } from '../../../typechain-types/contracts/currency'
+import { ECO, ECOx } from '../../../typechain-types/contracts/currency'
 import {
   CommunityGovernance,
   ECOxStaking,
@@ -14,7 +14,10 @@ import {
   InfiniteVote,
   SampleProposal,
 } from '../../../typechain-types/contracts/test'
-import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
+  ECO__factory,
+  ECOx__factory,
+} from '../../../typechain-types/factories/contracts/currency'
 import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
@@ -31,7 +34,7 @@ const INIT_BALANCE = 20000
 const INIT_BIG_BALANCE = 1000000
 const NUM_SUBVOTERS = 16
 
-describe('Community Governance', () => {
+describe('Snapshot safety test', () => {
   let policyImpersonator: SignerWithAddress
   let alice: SignerWithAddress
   let bigboy: SignerWithAddress
@@ -40,6 +43,7 @@ describe('Community Governance', () => {
   })
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
+  let ecox: MockContract<ECOx>
   let ecoXStaking: MockContract<ECOxStaking>
   let exploitContract: InfiniteVote
   let proposal: SampleProposal
@@ -54,6 +58,12 @@ describe('Community Governance', () => {
 
     eco = await (
       await smock.mock<ECO__factory>('contracts/currency/ECO.sol:ECO')
+    ).deploy(
+      policy.address,
+      alice.address // pauser
+    )
+    ecox = await (
+      await smock.mock<ECOx__factory>('contracts/currency/ECOx.sol:ECOx')
     ).deploy(
       policy.address,
       alice.address // pauser
@@ -82,6 +92,7 @@ describe('Community Governance', () => {
     ).deploy(
       policy.address,
       eco.address,
+      ecox.address,
       ecoXStaking.address,
       currentStageEnd,
       A1 // pauser
@@ -96,9 +107,10 @@ describe('Community Governance', () => {
     ])) as InfiniteVote
 
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
+    await ecox.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
 
-  it('attempt to multivote', async () => {
+  it('fail to multivote', async () => {
     // this setup more realistically sets up a governance cycle
     await time.increase(await cg.PROPOSAL_LENGTH())
     await cg.updateStage()

@@ -69,7 +69,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // this var stores the current contract that holds the trusted nodes role
     TrustedNodes public trustedNodes;
 
-    //
+    // this var stores the current contract that holds the enacter role
     MonetaryPolicyAdapter public enacter;
 
     // this variable tracks the start of governance
@@ -105,6 +105,16 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // mapping proposalIds to their voting score, accumulated during reveal
     mapping(bytes32 => uint256) public scores;
 
+    /**
+     * @notice minimum number participating trustees required for a policy to be enacted in any given cycle
+     */
+    uint256 public quorum;
+
+    /**
+     * @notice number of trustees that participated this cycle
+     */
+    uint256 public participation;
+
     /** used to track the leading proposalId during the vote totalling
      * tracks the winner between reveal phases
      * is deleted on enact to ensure it can only be enacted once
@@ -121,13 +131,19 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // setting the enacter address to the zero address stops governance
     error NonZeroEnacterAddr();
 
+    /**
+     * setting the quorum greater than the number of trustees stops governance
+     * something to keep in mind for the case in which trustees are removed via community governance
+     */
+    error BadQuorum();
+
     // For if a non-trustee address tries to access trustee role gated functionality
     error TrusteeOnlyFunction();
 
     // For when governance calls are made before or after their time windows for their stage
     error WrongStage();
 
-    /** Early finazilation error
+    /** Early finalization error
      * for when a cycle is attempted to be finalized before it finishes
      * @param requestedCycle the cycle submitted by the end user to access
      * @param currentCycle the current cycle as calculated by the contract
@@ -195,6 +211,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     // error for when the scores for proposals are not monotonically increasing, accounting for support weighting
     error InvalidVotesOutOfBounds();
 
+    // error for when the leader's score is less than the quorum
+    error QuorumNotMet();
+
     // error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
     error EnactCycleNotCurrent();
 
@@ -213,7 +232,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
     );
 
     /**
-     * emits when the enacter contract is changed
+     * @notice emits when the enacter contract is changed
      * @param newEnacter denotes the new enacter contract address
      * @param oldEnacter denotes the old enacter contract address
      */
@@ -221,6 +240,13 @@ contract CurrencyGovernance is Policed, TimeUtils {
         MonetaryPolicyAdapter newEnacter,
         MonetaryPolicyAdapter oldEnacter
     );
+
+    /**
+     * @notice emits when setQuorum is called successfully
+     * @param newQuorum the new quorum
+     * @param oldQuorum the old quorum
+     */
+    event NewQuorum(uint256 newQuorum, uint256 oldQuorum);
 
     /** Tracking for proposal creation
      * emitted when a proposal is submitted to track the values
@@ -285,6 +311,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 indexed cycle,
         Vote[] votes
     );
+
+    // fired when cycle participation is high enough to enact monetary policy
+    event QuorumReached();
 
     /** Fired when an address choses to abstain
      */
@@ -360,13 +389,17 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
+     * @param _enacter the monetary policy adapter
+     * @param _quorum the required quorum for enactment of monetary policy
      */
     constructor(
         Policy _policy,
-        MonetaryPolicyAdapter _enacter
+        MonetaryPolicyAdapter _enacter,
+        uint256 _quorum
     ) Policed(_policy) {
         _setEnacter(_enacter);
         governanceStartTime = getTime();
+        quorum = _quorum;
     }
 
     //////////////////////////////////////////////
@@ -403,6 +436,18 @@ contract CurrencyGovernance is Policed, TimeUtils {
             revert NonZeroEnacterAddr();
         }
         enacter = _enacter;
+    }
+
+    function setQuorum(uint256 _quorum) external onlyPolicy {
+        emit NewQuorum(_quorum, quorum);
+        _setQuorum(_quorum);
+    }
+
+    function _setQuorum(uint256 _quorum) internal {
+        if (_quorum > trustedNodes.numTrustees() || _quorum == 0) {
+            revert BadQuorum();
+        }
+        quorum = _quorum;
     }
 
     /** getter for timing data
@@ -616,6 +661,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
+        if (participation != 0) {
+            participation = 0;
+        }
         commitments[msg.sender] = _commitment;
         emit VoteCommit(msg.sender, getCurrentCycle());
     }
@@ -661,6 +709,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // an easy way to prevent double counting votes
         delete commitments[_trustee];
+
+        participation += 1;
+        if (participation == quorum) {
+            emit QuorumReached();
+        }
 
         // use memory vars to store and track the changes of the leader
         bytes32 priorLeader = leader;
@@ -762,7 +815,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * @param _cycle cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
+        if (participation < quorum) {
+            revert QuorumNotMet();
+        }
         bytes32 _leader = leader;
+
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
 

@@ -6,7 +6,7 @@ import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
-import { ECO } from '../../../typechain-types/contracts/currency'
+import { ECO, ECOx } from '../../../typechain-types/contracts/currency'
 import {
   CommunityGovernance,
   ECOxStaking,
@@ -54,6 +54,7 @@ describe('Community Governance', () => {
   })
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
+  let ecox: MockContract<ECOx>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
   let currentStageEnd: Number
@@ -68,6 +69,12 @@ describe('Community Governance', () => {
 
     eco = await (
       await smock.mock<ECO__factory>('contracts/currency/ECO.sol:ECO')
+    ).deploy(
+      policy.address,
+      alice.address // pauser
+    )
+    ecox = await (
+      await smock.mock<ECOx__factory>('contracts/currency/ECOx.sol:ECOx')
     ).deploy(
       policy.address,
       alice.address // pauser
@@ -87,10 +94,7 @@ describe('Community Governance', () => {
       await smock.mock<ECOxStaking__factory>(
         'contracts/governance/community/ECOxStaking.sol:ECOxStaking'
       )
-    ).deploy(
-      policy.address,
-      A2 // ECOx
-    )
+    ).deploy(policy.address, ecox.address)
 
     currentStageEnd = await time.latest()
 
@@ -101,12 +105,14 @@ describe('Community Governance', () => {
     ).deploy(
       policy.address,
       eco.address,
+      ecox.address,
       ecoXStaking.address,
       currentStageEnd,
       alice.address // pauser
     )
 
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
+    await ecox.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
   describe('constructor', () => {
     it('Constructs', async () => {
@@ -122,13 +128,24 @@ describe('Community Governance', () => {
       expect(await cg.currentStageEnd()).to.eq(currentStageEnd)
       expect(await cg.stage()).to.eq(DONE)
     })
-    it('bricks when eco or ecoxstaking is 0 address', async () => {
+    it('bricks when eco, ecox, or ecoxstaking is 0 address', async () => {
       const cgmocker = await smock.mock<CommunityGovernance__factory>(
         'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
       )
       await expect(
         cgmocker.deploy(
           policy.address,
+          ethers.constants.AddressZero,
+          ecox.address,
+          ecoXStaking.address,
+          currentStageEnd,
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
           ethers.constants.AddressZero,
           ecoXStaking.address,
           currentStageEnd,
@@ -139,6 +156,7 @@ describe('Community Governance', () => {
         cgmocker.deploy(
           policy.address,
           eco.address,
+          ecox.address,
           ethers.constants.AddressZero,
           currentStageEnd,
           alice.address

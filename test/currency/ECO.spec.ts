@@ -429,7 +429,7 @@ describe('ECO', () => {
         it('updates total supply snapshot', async () => {
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-          await ethers.provider.send('evm_mine', [])
+          await mine()
 
           await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
           expect(await ECOproxy.totalSupplySnapshot()).to.eq(
@@ -437,7 +437,7 @@ describe('ECO', () => {
           )
 
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
-          await ethers.provider.send('evm_mine', [])
+          await mine()
 
           await ECOproxy.connect(charlie).mint(bob.address, INITIAL_SUPPLY)
           expect(await ECOproxy.totalSupplySnapshot()).to.eq(
@@ -503,11 +503,11 @@ describe('ECO', () => {
             INITIAL_SUPPLY.mul(2)
           )
 
-          await ethers.provider.send('evm_mine', [])
+          await mine()
 
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
 
-          await ethers.provider.send('evm_mine', [])
+          await mine()
 
           await ECOproxy.connect(charlie).burn(bob.address, INITIAL_SUPPLY)
           expect(await ECOproxy.totalSupplySnapshot()).to.eq(
@@ -515,7 +515,7 @@ describe('ECO', () => {
           )
 
           await ECOproxy.connect(snapshotterImpersonator).snapshot()
-          await ethers.provider.send('evm_mine', [])
+          await mine()
 
           await ECOproxy.connect(charlie).burn(bob.address, INITIAL_SUPPLY)
           expect(await ECOproxy.totalSupplySnapshot()).to.eq(
@@ -2126,10 +2126,11 @@ describe('ECO', () => {
         })
 
         it('emits an event', async () => {
+          await ECOproxy.connect(snapshotterImpersonator).snapshot()
           const snapshotBlockOld = await ECOproxy.currentSnapshotBlock()
           await expect(ECOproxy.connect(snapshotterImpersonator).snapshot())
             .to.emit(ECOproxy, 'NewSnapshotBlock')
-            .withArgs(snapshotBlockOld + 2) // this is the number of blocks here
+            .withArgs(snapshotBlockOld + 1)
         })
 
         context('allows accessing previous balances', () => {
