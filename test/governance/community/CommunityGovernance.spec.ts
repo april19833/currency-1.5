@@ -2,7 +2,7 @@ import { ethers } from 'hardhat'
 import { expect, use } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
@@ -210,7 +210,7 @@ describe('Community Governance', () => {
     })
   })
 
-  describe.only('updateStage', () => {
+  describe('updateStage', () => {
     it('works fine right after deployment with cycleStart = 0, moves from done to proposal', async () => {
       expect(await cg.stage()).to.eq(DONE)
       await expect(cg.updateStage())
@@ -358,13 +358,15 @@ describe('Community Governance', () => {
         expect(await cg.totalAbstainVotes()).to.eq(0)
       })
 
-      it.only('fishy behavior', async () => {
+      it('no atomic burning misaligning voting power and supply', async () => {
+        const oldSupply = await eco.totalSupply()
         const burner = await deploy(alice, FlashBurner__factory, [cg.address, eco.address, ecox.address]) as FlashBurner
         await eco.connect(alice).transfer(burner.address, INIT_BALANCE)
         await burner.exploit()
-        console.log(await cg.cycleTotalVotingPower())
-        console.log(await eco.totalSupplySnapshot())
-        console.log(await ecox.totalSupplySnapshot())
+        await mine()
+        const newSupply = await eco.totalSupplySnapshot()
+        expect(oldSupply).to.be.gt(newSupply)
+        expect(await cg.totalVotingPower()).to.eq(newSupply) // no ecox in this test
       })
     })
   })
