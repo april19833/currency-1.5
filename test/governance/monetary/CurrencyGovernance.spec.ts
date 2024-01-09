@@ -168,6 +168,8 @@ describe('CurrencyGovernance', () => {
       )
     ).deploy(Fake__Policy.address)
 
+    const termStart = (await time.latest()) + 100
+
     CurrencyGovernance = (await deploy(
       policyImpersonator,
       CurrencyGovernance__factory,
@@ -182,6 +184,7 @@ describe('CurrencyGovernance', () => {
       Fake__Policy.address,
       CurrencyGovernance.address,
       PLACEHOLDER_ADDRESS1, // ecox address not necessary for test
+      termStart,
       1000 * DAY,
       1,
       [bob.address, charlie.address, dave.address, niko.address, mila.address]

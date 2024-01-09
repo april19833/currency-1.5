@@ -39,6 +39,7 @@ import {
 import { TestnetLinker__factory } from '../typechain-types/factories/contracts/test/deploy/TestnetLinker.propo.sol'
 import { TestnetLinker } from '../typechain-types/contracts/test/deploy/TestnetLinker.propo.sol'
 import { DummyLever__factory } from '../typechain-types/factories/contracts/test'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
@@ -298,6 +299,7 @@ export async function deployMonetary(
     base.policy.address,
     monetaryGovernance.address,
     base.ecox.address,
+    await time.latest(),
     config.trusteeTerm || DEFAULT_TRUSTEE_TERM,
     config.voteReward || DEFAULT_VOTE_REWARD,
     trustees,
