@@ -196,7 +196,30 @@ yarn coverageReport
 
 #### Generating Documentation
 
-Additional document can be generated and is placed in the `docs` folder. Some of these require the installation of [slither](https://github.com/crytic/slither) Following are some commands
+Additional document can be generated and is placed in the `docs` folder. Some of these require the installation of [slither](https://github.com/crytic/slither).
+
+The repository holds contracts from 1.0 used for migration purposes. To simplify the documents generated we first remove migration related code, then generate the docs, then reinstate the code this is done as follows
+
+```bash
+# Comment out MigrationLinker.propo.sol
+mv ./contracts/test/deploy/MigrationLinker.propo.sol ./contracts/test/deploy/MigrationLinker.propo.sol.tmp
+
+# Remove the currency 1.0 contracts
+rm -rf ./node_modules/@helix-foundation
+
+# generate the docs
+yarn updateDocs
+
+# reinstate MigrationLinker.propo.sol
+mv ./contracts/test/deploy/MigrationLinker.propo.sol.tmp ./contracts/test/deploy/MigrationLinker.propo.sol
+
+# reinstate the currency 1.0 contracts
+yarn install --force
+
+
+```
+
+Following are some individual commands
 
 - `yarn docgen`: Generate documentation from [solidity natspec comments](https://docs.soliditylang.org/en/latest/natspec-format.html) into [./docs/solidity](./docs/solidity)
 - `yarn callGraph`: Generates a contract call graph into [./docs/slither/call-graph.png](./docs/slither/call-graph.png)

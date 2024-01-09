@@ -27,7 +27,7 @@ describe('Rebase', () => {
 
   let currencyGovernanceImpersonator: SignerWithAddress
 
-  let notifier: MockContract<Notifier>
+  let notifier: Notifier
 
   let eco: MockContract<ECO>
 
@@ -61,15 +61,13 @@ describe('Rebase', () => {
       eco.address,
     ])) as Rebase
 
-    const notifierFactory: MockContractFactory<Notifier__factory> =
-      await smock.mock('contracts/governance/monetary/Notifier.sol:Notifier')
-    notifier = await notifierFactory.deploy(
+    notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
-      rebase.address,
+      rebase.address, // lever
+      [], // targets
       [],
-      [],
-      []
-    )
+      [], // gasCosts
+    ])) as Notifier
     rebase.connect(policyImpersonator).setNotifier(notifier.address)
 
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
@@ -93,7 +91,6 @@ describe('Rebase', () => {
     expect(await rebase.authorized(currencyGovernanceImpersonator.address)).to
       .be.true
 
-    // still need to test this with the actual rebase functionality
     await expect(
       rebase.connect(currencyGovernanceImpersonator).execute(newMultiplier)
     )

@@ -18,7 +18,7 @@ uint256 INITIAL_INFLATION_MULTIPLIER
 ### _inflationMultiplierSnapshot
 
 ```solidity
-struct VoteSnapshots.Snapshot _inflationMultiplierSnapshot
+struct TotalSupplySnapshots.Snapshot _inflationMultiplierSnapshot
 ```
 
 ### inflationMultiplier
@@ -113,19 +113,6 @@ in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _trans
 ```solidity
 function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual returns (uint256)
 ```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| from | address | the from address for the transfer |
-| to | address | the to address for the transfer |
-| amount | uint256 | the amount of the transfer |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 |  |
 
 ### inflationMultiplierSnapshot
 

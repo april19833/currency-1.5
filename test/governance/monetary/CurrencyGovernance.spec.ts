@@ -171,7 +171,7 @@ describe('CurrencyGovernance', () => {
     CurrencyGovernance = (await deploy(
       policyImpersonator,
       CurrencyGovernance__factory,
-      [Fake__Policy.address, Enacter.address]
+      [Fake__Policy.address, Enacter.address, 1]
     )) as CurrencyGovernance
 
     TrustedNodes = await (
@@ -289,6 +289,46 @@ describe('CurrencyGovernance', () => {
       ).to.be.revertedWith(
         ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_TRUSTEDNODES
       )
+    })
+  })
+
+  describe('quorum', () => {
+    it('can be changed by the policy', async () => {
+      const initialQuorum = await CurrencyGovernance.quorum()
+      await CurrencyGovernance.connect(policyImpersonator).setQuorum(
+        initialQuorum.add(1)
+      )
+      const newQuorum = await CurrencyGovernance.quorum()
+      expect(newQuorum).to.eq(initialQuorum.add(1))
+    })
+    it('emits an event', async () => {
+      const initialQuorum = await CurrencyGovernance.quorum()
+      expect(
+        await CurrencyGovernance.connect(policyImpersonator).setQuorum(
+          initialQuorum.add(1)
+        )
+      )
+        .to.emit(CurrencyGovernance, 'NewQuorum')
+        .withArgs(initialQuorum, initialQuorum.add(1))
+    })
+    it('is onlyPolicy gated', async () => {
+      const initialQuorum = await CurrencyGovernance.quorum()
+      await expect(
+        CurrencyGovernance.connect(alice).setQuorum(initialQuorum.add(1))
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+    })
+
+    it('cannot be set to be greater than the number of trustees', async () => {
+      await expect(
+        CurrencyGovernance.connect(policyImpersonator).setQuorum(
+          (await TrustedNodes.numTrustees()).add(1)
+        )
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_QUORUM)
+    })
+    it('cannot be set to zero', async () => {
+      await expect(
+        CurrencyGovernance.connect(policyImpersonator).setQuorum(0)
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_QUORUM)
     })
   })
 
@@ -1368,7 +1408,13 @@ describe('CurrencyGovernance', () => {
 
       it('reveal correctly changes state', async () => {
         await time.increase(COMMIT_STAGE_LENGTH)
-        await CurrencyGovernance.reveal(charlie.address, salt, votes)
+        const initialParticipation = await CurrencyGovernance.participation()
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, votes)
+        ).to.emit(CurrencyGovernance, 'QuorumReached')
+        expect(await CurrencyGovernance.participation()).to.eq(
+          initialParticipation.add(1)
+        )
         votes.sort((a, b) => {
           return b.score - a.score
         })
@@ -1393,6 +1439,20 @@ describe('CurrencyGovernance', () => {
 
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(charlieProposalId)
+      })
+
+      it('reveal records TrustedNodes vote', async () => {
+        await time.increase(COMMIT_STAGE_LENGTH)
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(0)
+        await CurrencyGovernance.connect(charlie).reveal(
+          charlie.address,
+          salt,
+          votes
+        )
+        expect(await TrustedNodes.votingRecord(charlie.address)).to.be.eq(1)
+        expect(await TrustedNodes.votingRecord(niko.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(dave.address)).to.be.eq(0)
+        expect(await TrustedNodes.votingRecord(bob.address)).to.be.eq(0)
       })
 
       it('second reveal can change the leader to the default proposal', async () => {
@@ -2011,7 +2071,7 @@ describe('CurrencyGovernance', () => {
     })
   })
 
-  describe('execute stage', () => {
+  describe('enact stage', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
@@ -2132,6 +2192,16 @@ describe('CurrencyGovernance', () => {
             CurrencyGovernance.enact(initialCycle)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         })
+        it('cannot enact if participation is less than quorum', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH)
+          const participation = await CurrencyGovernance.participation()
+          await CurrencyGovernance.connect(policyImpersonator).setQuorum(
+            participation.add(1)
+          )
+          await expect(
+            CurrencyGovernance.enact(initialCycle)
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
+        })
 
         it('cannot enact the future', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
@@ -2208,6 +2278,73 @@ describe('CurrencyGovernance', () => {
         const leader = await CurrencyGovernance.leader()
         expect(leader).to.eq(ethers.utils.hexZeroPad('0x', 32))
       })
+    })
+  })
+  describe('crossing between cycles', () => {
+    const charlieProposalId = getProposalId(
+      initialCycle,
+      targets,
+      functions,
+      calldatas
+    )
+    const defaultProposalId = ethers.utils.hexZeroPad(
+      ethers.BigNumber.from(initialCycle).toHexString(),
+      32
+    )
+    const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+    const ballot1 = [charlieProposalId]
+    const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+    const ballot2 = [defaultProposalId]
+
+    let votes1: Vote[]
+    let votes2: Vote[]
+
+    beforeEach(async () => {
+      await CurrencyGovernance.connect(charlie).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
+
+      await CurrencyGovernance.connect(dave).supportProposal(defaultProposalId)
+
+      votes1 = await getFormattedBallot(ballot1)
+      const commitHash1 = await getCommit(
+        salt1,
+        initialCycle,
+        charlie.address,
+        ballot1
+      )
+      votes2 = await getFormattedBallot(ballot2)
+      const commitHash2 = await getCommit(
+        salt2,
+        initialCycle,
+        dave.address,
+        ballot2
+      )
+
+      await time.increase(PROPOSE_STAGE_LENGTH)
+
+      // default will win if they both reveal
+      await CurrencyGovernance.connect(charlie).commit(commitHash1)
+      await CurrencyGovernance.connect(dave).commit(commitHash2)
+
+      await time.increase(COMMIT_STAGE_LENGTH)
+
+      await CurrencyGovernance.reveal(charlie.address, salt1, votes1)
+      await CurrencyGovernance.reveal(dave.address, salt2, votes2)
+    })
+    it('resets participation to 0 upon commit', async () => {
+      const initialParticipation = await CurrencyGovernance.participation()
+
+      await time.increase(REVEAL_STAGE_LENGTH)
+      await time.increase(PROPOSE_STAGE_LENGTH)
+      expect(Number(initialParticipation)).to.be.greaterThan(0)
+      await CurrencyGovernance.connect(dave).commit(
+        ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      )
+      expect(await CurrencyGovernance.participation()).to.eq(0)
     })
   })
 })

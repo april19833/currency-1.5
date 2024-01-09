@@ -12,7 +12,7 @@ import {
   CommunityGovernanceContracts,
   deployLockups,
 } from '../../deploy/standalone.fixture'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import {
   ECO as ECOold,
@@ -103,6 +103,7 @@ describe('Migration tests', () => {
       ecoxProxyAddress: ecoxProxy.address,
       ecoXStakingProxyAddress: ecoXStakingProxy.address,
       noLockups: true,
+      governanceStartTime: await time.latest(),
     }
 
     // deploy base contracts
@@ -510,11 +511,10 @@ describe('Migration tests', () => {
 
           // go to next voting cycle
           await time.increase(14 * DAY)
-          // update stage to Done
-          await communityGovernanceContracts.communityGovernance.updateStage()
 
-          // push to next cycle which snapshots alice's new voting power
+          // push to next cycle which snapshots alice's new voting power (this step is only necessary to test the expect)
           await communityGovernanceContracts.communityGovernance.updateStage()
+          await mine() // need to manually increment to the next block to check view function
           expect(
             await baseContracts.eco.voteBalanceSnapshot(alice.address)
           ).to.eq(aliceBalance)

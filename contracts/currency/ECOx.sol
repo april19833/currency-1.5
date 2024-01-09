@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./IECO.sol";
-import "./ERC20Pausable.sol";
-import "./ERC20MintAndBurn.sol";
+import "./TotalSupplySnapshots.sol";
 
 /**
  * @title An ERC20 token interface for ECOx
  *
  */
-contract ECOx is ERC20MintAndBurn {
+contract ECOx is TotalSupplySnapshots {
     //////////////////////////////////////////////
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
@@ -20,7 +19,12 @@ contract ECOx is ERC20MintAndBurn {
     address public ecoXExchange;
 
     /**
-     * bits of precision used in the exponentiation approximation
+     * @dev Mapping storing contracts able to rebase the token
+     */
+    mapping(address => bool) public snapshotters;
+
+    /**
+     * @dev bits of precision used in the exponentiation approximation
      */
     // uint8 public constant PRECISION_BITS = 100;
 
@@ -34,6 +38,11 @@ contract ECOx is ERC20MintAndBurn {
      */
     error TransferFailed();
 
+    /**
+     * error for when an address tries to snapshot without permission
+     */
+    error OnlySnapshotters();
+
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
@@ -46,24 +55,40 @@ contract ECOx is ERC20MintAndBurn {
     event UpdatedECOxExchange(address _old, address _new);
 
     /**
-     * Constructor
-     * @param _policy The policy contract that oversees other contracts
-     * @param _pauser The address of the Pauser
+     * emits when the snapshotters permissions are changed
+     * @param actor denotes the new address whose permissions are being updated
+     * @param newPermission denotes the new ability of the actor address (true for can snapshot, false for cannot)
      */
+    event UpdatedSnapshotters(address actor, bool newPermission);
+
+    //////////////////////////////////////////////
+    ////////////////// MODIFIERS /////////////////
+    //////////////////////////////////////////////
+
+    /**
+     * @dev Modifier for checking if the sender is a snapshotter
+     */
+    modifier onlySnapshotterRole() {
+        if (!snapshotters[msg.sender]) {
+            revert OnlySnapshotters();
+        }
+        _;
+    }
+
     constructor(
         Policy _policy,
         address _pauser
-    ) ERC20MintAndBurn(_policy, "ECOx", "ECOx", _pauser) {}
+    ) TotalSupplySnapshots(_policy, "ECOx", "ECOx", _pauser) {}
 
-    /**
-     * unlikely this will need to be used again since the proxy has already been initialized.
-     * @param _self the address to initialize
-     */
     function initialize(
         address _self
     ) public virtual override onlyConstruction {
         super.initialize(_self);
         pauser = ERC20Pausable(_self).pauser();
+    }
+
+    function snapshot() public onlySnapshotterRole {
+        _snapshot();
     }
 
     /**
@@ -73,5 +98,16 @@ contract ECOx is ERC20MintAndBurn {
     function updateECOxExchange(address _newRoleHolder) public onlyPolicy {
         emit UpdatedECOxExchange(ecoXExchange, _newRoleHolder);
         ecoXExchange = _newRoleHolder;
+    }
+
+    /**
+     * @dev change the rebasing permissions for an address
+     * only callable by tokenRoleAdmin
+     * @param _key the address to change permissions for
+     * @param _value the new permission. true = can snapshot, false = cannot snapshot
+     */
+    function updateSnapshotters(address _key, bool _value) public onlyPolicy {
+        snapshotters[_key] = _value;
+        emit UpdatedSnapshotters(_key, _value);
     }
 }

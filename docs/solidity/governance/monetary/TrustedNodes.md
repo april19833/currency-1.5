@@ -369,11 +369,12 @@ function fullyVested() public view returns (uint256 amount, uint256 timestamp)
 drains all the ECOx in TrustedNodes to a recipient address
 
 ```solidity
-function sweep(address recipient) public
+function sweep(address recipient, uint256 amount) public
 ```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | recipient | address | the address to receive the ECOx |
+| amount | uint256 |  |
 

@@ -14,6 +14,12 @@ Compute voting power for user
 contract ECO ecoToken
 ```
 
+### ecoXToken
+
+```solidity
+contract ECOx ecoXToken
+```
+
 ### ecoXStaking
 
 ```solidity
@@ -28,10 +34,16 @@ snapshot block for calculating voting power
 uint256 snapshotBlock
 ```
 
+### NoAtomicActionsWithSnapshot
+
+```solidity
+error NoAtomicActionsWithSnapshot()
+```
+
 ### constructor
 
 ```solidity
-constructor(contract Policy _policy, contract ECO _ecoAddr, contract ECOxStaking _ecoXStakingAddr) public
+constructor(contract Policy _policy, contract ECO _ecoAddr, contract ECOx _ecoXAddr, contract ECOxStaking _ecoXStakingAddr) public
 ```
 
 ### totalVotingPower

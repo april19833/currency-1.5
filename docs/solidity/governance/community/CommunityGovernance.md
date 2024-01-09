@@ -153,14 +153,6 @@ the percent of total VP that must have voted to enact a proposal in order to byp
 uint256 voteThresholdPercent
 ```
 
-### cycleTotalVotingPower
-
-total voting power for the cycle
-
-```solidity
-uint256 cycleTotalVotingPower
-```
-
 ### selectedProposal
 
 the proposal being voted on this cycle
@@ -223,6 +215,14 @@ thrown when a proposal that already exists is proposed again
 
 ```solidity
 error DuplicateProposal()
+```
+
+### OldProposalSupport
+
+thrown when there is an attempt to support a proposal submitted in a non-current cycle
+
+```solidity
+error OldProposalSupport()
 ```
 
 ### ArrayLengthMismatch
@@ -420,7 +420,7 @@ modifier onlyPauser()
 contract constructor
 
 ```solidity
-constructor(contract Policy policy, contract ECO _eco, contract ECOxStaking _ecoXStaking, uint256 _cycleStart, address _pauser) public
+constructor(contract Policy policy, contract ECO _eco, contract ECOx _ecox, contract ECOxStaking _ecoXStaking, uint256 _cycleStart, address _pauser) public
 ```
 #### Parameters
 
@@ -428,6 +428,7 @@ constructor(contract Policy policy, contract ECO _eco, contract ECOxStaking _eco
 | ---- | ---- | ----------- |
 | policy | contract Policy | the root policy address |
 | _eco | contract ECO | the ECO contract address |
+| _ecox | contract ECOx |  |
 | _ecoXStaking | contract ECOxStaking | the ECOxStaking contract address |
 | _cycleStart | uint256 | the time that the first cycle should begin |
 | _pauser | address | the new pauser |
@@ -536,9 +537,18 @@ function unsupport(address _proposal) public
 
 ### _changeSupport
 
+allows an address to change the support amount for a proposal
+
 ```solidity
 function _changeSupport(address supporter, address proposal, uint256 amount) internal
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| supporter | address | the adress of the supporter that is changing their support amount |
+| proposal | address | the proposal for which the amount is being changed |
+| amount | uint256 | the new support amount |
 
 ### getSupport
 

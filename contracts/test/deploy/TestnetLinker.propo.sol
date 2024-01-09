@@ -109,6 +109,7 @@ contract TestnetLinker is Policy, Proposal {
         // link ecox
         ecox.updateECOxExchange(ecoXExchange);
         ecox.updateBurners(ecoXExchange, true);
+        ecox.updateSnapshotters(communityGovernance, true);
 
         // link eco
         eco.updateMinters(ecoXExchange, true);

@@ -61,7 +61,7 @@ contract TrustedNodes trustedNodes
 
 ### enacter
 
-enacter of the monetary policy
+this var stores the current contract that holds the enacter role
 
 ```solidity
 contract MonetaryPolicyAdapter enacter
@@ -163,6 +163,22 @@ mapping proposalIds to their voting score, accumulated during reveal
 mapping(bytes32 => uint256) scores
 ```
 
+### quorum
+
+minimum number participating trustees required for a policy to be enacted in any given cycle
+
+```solidity
+uint256 quorum
+```
+
+### participation
+
+number of trustees that participated this cycle
+
+```solidity
+uint256 participation
+```
+
 ### leader
 
 used to track the leading proposalId during the vote totalling
@@ -189,6 +205,15 @@ setting the enacter address to the zero address stops governance
 error NonZeroEnacterAddr()
 ```
 
+### BadQuorum
+
+setting the quorum greater than the number of trustees stops governance
+something to keep in mind for the case in which trustees are removed via community governance
+
+```solidity
+error BadQuorum()
+```
+
 ### TrusteeOnlyFunction
 
 For if a non-trustee address tries to access trustee role gated functionality
@@ -207,7 +232,7 @@ error WrongStage()
 
 ### CycleIncomplete
 
-Early finazilation error
+Early finalization error
 for when a cycle is attempted to be finalized before it finishes
 
 ```solidity
@@ -376,6 +401,14 @@ error for when the scores for proposals are not monotonically increasing, accoun
 error InvalidVotesOutOfBounds()
 ```
 
+### QuorumNotMet
+
+error for when the leader's score is less than the quorum
+
+```solidity
+error QuorumNotMet()
+```
+
 ### EnactCycleNotCurrent
 
 error for when enact is called, but the cycle it's called for does not match the proposal that's the current leader
@@ -411,6 +444,20 @@ event NewEnacter(contract MonetaryPolicyAdapter newEnacter, contract MonetaryPol
 | ---- | ---- | ----------- |
 | newEnacter | contract MonetaryPolicyAdapter | denotes the new enacter contract address |
 | oldEnacter | contract MonetaryPolicyAdapter | denotes the old enacter contract address |
+
+### NewQuorum
+
+emits when setQuorum is called successfully
+
+```solidity
+event NewQuorum(uint256 newQuorum, uint256 oldQuorum)
+```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newQuorum | uint256 | the new quorum |
+| oldQuorum | uint256 | the old quorum |
 
 ### ProposalCreation
 
@@ -506,6 +553,12 @@ event VoteReveal(address voter, uint256 cycle, struct CurrencyGovernance.Vote[] 
 | cycle | uint256 | the cycle when the vote was cast and counted |
 | votes | struct CurrencyGovernance.Vote[] | the array of Vote structs that composed the trustee's ballot |
 
+### QuorumReached
+
+```solidity
+event QuorumReached()
+```
+
 ### Abstain
 
 Fired when an address choses to abstain
@@ -579,14 +632,15 @@ modifier cycleComplete(uint256 cycle)
 constructor
 
 ```solidity
-constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter) public
+constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter, uint256 _quorum) public
 ```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _policy | contract Policy | the owning policy address for the contract |
-| _enacter | contract MonetaryPolicyAdapter | the monetary policy enacter |
+| _enacter | contract MonetaryPolicyAdapter | the monetary policy adapter |
+| _quorum | uint256 | the required quorum for enactment of monetary policy |
 
 ### setTrustedNodes
 
@@ -626,6 +680,18 @@ function setEnacter(contract MonetaryPolicyAdapter _enacter) external
 
 ```solidity
 function _setEnacter(contract MonetaryPolicyAdapter _enacter) internal
+```
+
+### setQuorum
+
+```solidity
+function setQuorum(uint256 _quorum) external
+```
+
+### _setQuorum
+
+```solidity
+function _setQuorum(uint256 _quorum) internal
 ```
 
 ### getCurrentStage

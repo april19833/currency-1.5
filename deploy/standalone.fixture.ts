@@ -173,6 +173,7 @@ export async function deployCommunity(
   const communityGovernanceParams = [
     base.policy.address,
     base.eco.address,
+    base.ecox.address,
     base.ecoXStaking.address,
     config.governanceStartTime || Math.floor(now / 1000),
     pauser,
@@ -282,7 +283,11 @@ export async function deployMonetary(
     console.log('deploying currencyGovernance')
   }
 
-  const monetaryGovernanceParams = [base.policy.address, adapter.address]
+  const monetaryGovernanceParams = [
+    base.policy.address,
+    adapter.address,
+    config.quorum || 1,
+  ]
 
   const monetaryGovernance = (await deploy(
     wallet,

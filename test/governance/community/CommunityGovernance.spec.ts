@@ -2,22 +2,31 @@ import { ethers } from 'hardhat'
 import { expect, use } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
-import { ECO } from '../../../typechain-types/contracts/currency'
+import { ECO, ECOx } from '../../../typechain-types/contracts/currency'
 import {
   CommunityGovernance,
   ECOxStaking,
 } from '../../../typechain-types/contracts/governance/community'
-import { SampleProposal } from '../../../typechain-types/contracts/test'
-import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
+import {
+  FlashBurner,
+  SampleProposal,
+} from '../../../typechain-types/contracts/test'
+import {
+  ECO__factory,
+  ECOx__factory,
+} from '../../../typechain-types/factories/contracts/currency'
 import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
 } from '../../../typechain-types/factories/contracts/governance/community'
-import { SampleProposal__factory } from '../../../typechain-types/factories/contracts/test'
+import {
+  FlashBurner__factory,
+  SampleProposal__factory,
+} from '../../../typechain-types/factories/contracts/test'
 
 use(smock.matchers)
 
@@ -44,12 +53,14 @@ describe('Community Governance', () => {
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
   let bigboy: SignerWithAddress
+  let lilboy: SignerWithAddress
   before(async () => {
-    ;[policyImpersonator, alice, bob, charlie, bigboy] =
+    ;[policyImpersonator, alice, bob, charlie, bigboy, lilboy] =
       await ethers.getSigners()
   })
   let policy: FakeContract<Policy>
   let eco: MockContract<ECO>
+  let ecox: MockContract<ECOx>
   let ecoXStaking: MockContract<ECOxStaking>
   let realProp: SampleProposal
   let currentStageEnd: Number
@@ -68,6 +79,12 @@ describe('Community Governance', () => {
       policy.address,
       alice.address // pauser
     )
+    ecox = await (
+      await smock.mock<ECOx__factory>('contracts/currency/ECOx.sol:ECOx')
+    ).deploy(
+      policy.address,
+      alice.address // pauser
+    )
     await eco.connect(policyImpersonator).updateMinters(policy.address, true)
     await eco.connect(alice).enableVoting()
     await eco.connect(policyImpersonator).mint(alice.address, INIT_BALANCE)
@@ -77,15 +94,13 @@ describe('Community Governance', () => {
     await eco.connect(policyImpersonator).mint(charlie.address, INIT_BALANCE)
     await eco.connect(bigboy).enableVoting()
     await eco.connect(policyImpersonator).mint(bigboy.address, INIT_BIG_BALANCE)
+    await eco.connect(lilboy).enableVoting()
 
     ecoXStaking = await (
       await smock.mock<ECOxStaking__factory>(
         'contracts/governance/community/ECOxStaking.sol:ECOxStaking'
       )
-    ).deploy(
-      policy.address,
-      A2 // ECOx
-    )
+    ).deploy(policy.address, ecox.address)
 
     currentStageEnd = await time.latest()
 
@@ -96,12 +111,14 @@ describe('Community Governance', () => {
     ).deploy(
       policy.address,
       eco.address,
+      ecox.address,
       ecoXStaking.address,
       currentStageEnd,
       alice.address // pauser
     )
 
     await eco.connect(policyImpersonator).updateSnapshotters(cg.address, true)
+    await ecox.connect(policyImpersonator).updateSnapshotters(cg.address, true)
   })
   describe('constructor', () => {
     it('Constructs', async () => {
@@ -117,13 +134,24 @@ describe('Community Governance', () => {
       expect(await cg.currentStageEnd()).to.eq(currentStageEnd)
       expect(await cg.stage()).to.eq(DONE)
     })
-    it('bricks when eco or ecoxstaking is 0 address', async () => {
+    it('bricks when eco, ecox, or ecoxstaking is 0 address', async () => {
       const cgmocker = await smock.mock<CommunityGovernance__factory>(
         'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
       )
       await expect(
         cgmocker.deploy(
           policy.address,
+          ethers.constants.AddressZero,
+          ecox.address,
+          ecoXStaking.address,
+          currentStageEnd,
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
           ethers.constants.AddressZero,
           ecoXStaking.address,
           currentStageEnd,
@@ -134,6 +162,7 @@ describe('Community Governance', () => {
         cgmocker.deploy(
           policy.address,
           eco.address,
+          ecox.address,
           ethers.constants.AddressZero,
           currentStageEnd,
           alice.address
@@ -202,7 +231,7 @@ describe('Community Governance', () => {
       expect(await cg.stage()).to.eq(PROPOSAL)
     })
     it('updates to done from proposal stage', async () => {
-      await cg.updateStage()
+      await cg.updateStage() // go to next cycle
       await time.increaseTo(await cg.currentStageEnd())
       // no proposal selected by end of proposal stage
       await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DONE)
@@ -213,9 +242,6 @@ describe('Community Governance', () => {
       )
     })
     it('updates to delay from voting if there are more enact votes than reject', async () => {
-      // manually get to voting stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -237,9 +263,6 @@ describe('Community Governance', () => {
       expect(await cg.stage()).to.eq(DELAY)
     })
     it('updates to done from voting if there are fewer enact votes than reject', async () => {
-      // manually get to voting stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -260,9 +283,6 @@ describe('Community Governance', () => {
       )
     })
     it('updates stage to execution from delay', async () => {
-      // manually get to DELAY stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -284,8 +304,6 @@ describe('Community Governance', () => {
       )
     })
     it('starts a new cycle if updateStage is called at the end of execution', async () => {
-      // manually get to EXECUTION stage
-      await cg.updateStage()
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -311,8 +329,6 @@ describe('Community Governance', () => {
     })
     context('newCycle', () => {
       it('resets everything', async () => {
-        // manually get to DONE stage
-        await cg.updateStage()
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
 
         const realProp = (await deploy(
@@ -346,6 +362,21 @@ describe('Community Governance', () => {
         expect(await cg.totalEnactVotes()).to.eq(0)
         expect(await cg.totalRejectVotes()).to.eq(0)
         expect(await cg.totalAbstainVotes()).to.eq(0)
+      })
+
+      it('no atomic burning misaligning voting power and supply', async () => {
+        const oldSupply = await eco.totalSupply()
+        const burner = (await deploy(alice, FlashBurner__factory, [
+          cg.address,
+          eco.address,
+          ecox.address,
+        ])) as FlashBurner
+        await eco.connect(alice).transfer(burner.address, INIT_BALANCE)
+        await burner.exploit()
+        await mine()
+        const newSupply = await eco.totalSupplySnapshot()
+        expect(oldSupply).to.be.gt(newSupply)
+        expect(await cg.totalVotingPower()).to.eq(newSupply) // no ecox in this test
       })
     })
   })
@@ -407,6 +438,7 @@ describe('Community Governance', () => {
     })
     describe('supporting', () => {
       beforeEach(async () => {
+        await cg.updateStage() // alice can rob herself of the fee's voting power by atomically pushing to the next stage and proposing
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
         await eco.connect(bob).approve(cg.address, await cg.proposalFee())
         await cg.connect(alice).propose(A1)
@@ -437,6 +469,12 @@ describe('Community Governance', () => {
           await cg.connect(alice).support(A1)
           expect(await cg.getSupport(alice.address, A1)).to.eq(vp)
           expect((await cg.proposals(A1)).totalSupport).to.eq(vp)
+        })
+        it('fails to support if voting power = 0', async () => {
+          expect(await cg.votingPower(lilboy.address)).to.eq(0)
+          await expect(cg.connect(lilboy).support(A1)).to.be.revertedWith(
+            ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER
+          )
         })
       })
       context('supportPartial', () => {
@@ -536,6 +574,25 @@ describe('Community Governance', () => {
           expect((await cg.proposals(A2)).totalSupport).to.eq(20)
         })
       })
+      it('doesnt allow supporting of a proposal from the previous cycle', async () => {
+        const initialCycle = await cg.cycleCount()
+        expect((await cg.proposals(A1)).cycle).to.eq(initialCycle)
+
+        await time.increaseTo((await cg.currentStageEnd()).add(1))
+        await cg.updateStage()
+        expect(await cg.stage()).to.eq(DONE)
+
+        await time.increaseTo((await cg.currentStageEnd()).add(1))
+        await cg.updateStage()
+        expect(await cg.stage()).to.eq(PROPOSAL)
+
+        const newCycle = await cg.cycleCount()
+        expect(newCycle).to.eq(initialCycle.add(1))
+
+        await expect(cg.connect(alice).support(A1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.OLD_PROPOSAL_SUPPORT
+        )
+      })
       it('fails to support if called during not-proposal stage', async () => {
         await cg.setVariable('currentStageEnd', (await time.latest()) - 100)
         await cg.updateStage()
@@ -628,6 +685,12 @@ describe('Community Governance', () => {
 
         expect(await cg.totalAbstainVotes()).to.eq(0)
         expect(await cg.totalRejectVotes()).to.eq(vp)
+      })
+      it('fails to vote if voting power = 0', async () => {
+        expect(await cg.votingPower(lilboy.address)).to.eq(0)
+        await expect(cg.connect(lilboy).vote(1)).to.be.revertedWith(
+          ERRORS.COMMUNITYGOVERNANCE.BAD_VOTING_POWER
+        )
       })
     })
     context('votePartial', () => {
@@ -784,7 +847,6 @@ describe('Community Governance', () => {
     await cg.connect(bob).propose(A1)
 
     const currCycle = await cg.cycleCount()
-
     const vp = await cg.votingPower(alice.address)
 
     await cg
@@ -803,7 +865,6 @@ describe('Community Governance', () => {
       ERRORS.COMMUNITYGOVERNANCE.WRONG_STAGE
     )
 
-    // console.log(currCycle)
     await cg.execute()
     await time.increaseTo((await cg.cycleStart()).add(await cg.CYCLE_LENGTH()))
     await expect(cg.updateStage()).to.emit(cg, 'NewCycle').withArgs(1002)

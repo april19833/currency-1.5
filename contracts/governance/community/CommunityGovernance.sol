@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "../../currency/ECO.sol";
 import "./VotingPower.sol";
 import "./ECOxStaking.sol";
 import "./proposals/Proposal.sol";
@@ -83,9 +82,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
     uint256 public voteThresholdPercent = 50;
 
-    /** total voting power for the cycle */
-    uint256 public cycleTotalVotingPower;
-
     /** the proposal being voted on this cycle */
     address public selectedProposal;
 
@@ -113,6 +109,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** thrown when a proposal that already exists is proposed again */
     error DuplicateProposal();
+
+    /** thrown when there is an attempt to support a proposal submitted in a non-current cycle */
+    error OldProposalSupport();
 
     /** thrown when related argument arrays have differing lengths */
     error ArrayLengthMismatch();
@@ -233,10 +232,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     constructor(
         Policy policy,
         ECO _eco,
+        ECOx _ecox,
         ECOxStaking _ecoXStaking,
         uint256 _cycleStart,
         address _pauser
-    ) VotingPower(policy, _eco, _ecoXStaking) {
+    ) VotingPower(policy, _eco, _ecox, _ecoXStaking) {
         pauser = _pauser;
         cycleCount = 1000;
         currentStageEnd = _cycleStart;
@@ -264,37 +264,53 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function updateStage() public {
         uint256 time = getTime();
-        if (time > currentStageEnd) {
-            if (stage == Stage.Proposal) {
-                // no proposal was selected
-                stage = Stage.Done;
-                currentStageEnd = cycleStart + CYCLE_LENGTH;
-            } else if (stage == Stage.Voting) {
-                if (totalEnactVotes > totalRejectVotes) {
-                    // vote passes
-                    stage = Stage.Delay;
-                    currentStageEnd = currentStageEnd + DELAY_LENGTH;
-                } else {
-                    // vote fails
-                    stage = Stage.Done;
-                    currentStageEnd = cycleStart + CYCLE_LENGTH;
-                }
-            } else if (stage == Stage.Delay) {
-                // delay period ended, time to execute
-                stage = Stage.Execution;
-                //TODO: this comment needs corrected
-                //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
-                currentStageEnd = cycleStart + CYCLE_LENGTH;
-            } else if (stage == Stage.Execution) {
-                // if the execution stage timed out, the proposal was not enacted in time
-                // either nobody called it, or the proposal failed during execution.
-                // this assumes the latter case, the former has been addressed in the end time of the execution stage
-                stage = Stage.Done;
-                nextCycle();
-            } else if (stage == Stage.Done) {
-                nextCycle();
-            }
+        bool emitEvent;
 
+        if (stage == Stage.Proposal && time > currentStageEnd) {
+            // no proposal was selected
+            stage = Stage.Done;
+            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Voting && time > currentStageEnd) {
+            if (totalEnactVotes > totalRejectVotes) {
+                // vote passes
+                stage = Stage.Delay;
+                currentStageEnd = currentStageEnd + DELAY_LENGTH;
+            } else {
+                // vote fails
+                stage = Stage.Done;
+                currentStageEnd = cycleStart + CYCLE_LENGTH;
+            }
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Delay && time > currentStageEnd) {
+            // delay period ended, time to execute
+            stage = Stage.Execution;
+            //TODO: this comment needs corrected
+            //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
+            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Execution && time > currentStageEnd) {
+            // if the execution stage timed out, the proposal was not enacted in time
+            // either nobody called it, or the proposal failed during execution.
+            // this assumes the latter case, the former has been addressed in the end time of the execution stage
+            stage = Stage.Done;
+            nextCycle();
+            emitEvent = true;
+        }
+
+        if (stage == Stage.Done && time > currentStageEnd) {
+            nextCycle();
+            emitEvent = true;
+        }
+
+        // this saves the event spam
+        if (emitEvent) {
             emit StageUpdated(stage);
         }
     }
@@ -326,8 +342,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         ecoToken.snapshot();
+        ecoXToken.snapshot();
         snapshotBlock = block.number;
-        cycleTotalVotingPower = totalVotingPower();
 
         delete selectedProposal;
         delete totalEnactVotes;
@@ -384,6 +400,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      */
     function support(address _proposal) public {
         uint256 vp = votingPower(msg.sender);
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         _changeSupport(msg.sender, _proposal, vp);
     }
 
@@ -430,6 +449,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
     }
 
+    /**
+     * allows an address to change the support amount for a proposal
+     * @param supporter the adress of the supporter that is changing their support amount
+     * @param proposal the proposal for which the amount is being changed
+     * @param amount the new support amount
+     */
     function _changeSupport(
         address supporter,
         address proposal,
@@ -441,17 +466,20 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         }
 
         PropData storage prop = proposals[proposal];
-        uint256 theSupport = prop.support[supporter];
+        if (prop.cycle != cycleCount) {
+            revert OldProposalSupport();
+        }
+        uint256 support = prop.support[supporter];
 
-        emit SupportChanged(supporter, Proposal(proposal), theSupport, amount);
+        emit SupportChanged(supporter, Proposal(proposal), support, amount);
 
-        prop.totalSupport -= theSupport;
+        prop.totalSupport -= support;
         prop.support[supporter] = amount;
         prop.totalSupport += amount;
 
         if (
             prop.totalSupport >
-            (cycleTotalVotingPower * supportThresholdPercent) / 100
+            (totalVotingPower() * supportThresholdPercent) / 100
         ) {
             selectedProposal = proposal;
             pot -= (proposalFee - prop.refund);
@@ -482,12 +510,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
+        uint256 vp = votingPower(msg.sender);
+        if (vp == 0) {
+            revert BadVotingPower();
+        }
         if (choice == Vote.Enact) {
-            _vote(msg.sender, votingPower(msg.sender), 0, 0);
+            _vote(msg.sender, vp, 0, 0);
         } else if (choice == Vote.Reject) {
-            _vote(msg.sender, 0, votingPower(msg.sender), 0);
+            _vote(msg.sender, 0, vp, 0);
         } else if (choice == Vote.Abstain) {
-            _vote(msg.sender, 0, 0, votingPower(msg.sender));
+            _vote(msg.sender, 0, 0, vp);
         } else {
             revert BadVoteType();
         }
@@ -539,7 +571,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         if (
             (totalEnactVotes) >
-            (cycleTotalVotingPower * voteThresholdPercent) / 100
+            (totalVotingPower() * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
             currentStageEnd = cycleStart + CYCLE_LENGTH;
