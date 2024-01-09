@@ -2,7 +2,7 @@ import { ethers } from 'hardhat'
 import { expect, use } from 'chai'
 import { smock, FakeContract, MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 import { ERRORS } from '../../utils/errors'
 import { deploy } from '../../../deploy/utils'
 import { Policy } from '../../../typechain-types/contracts/policy'
@@ -11,7 +11,10 @@ import {
   CommunityGovernance,
   ECOxStaking,
 } from '../../../typechain-types/contracts/governance/community'
-import { SampleProposal } from '../../../typechain-types/contracts/test'
+import {
+  FlashBurner,
+  SampleProposal,
+} from '../../../typechain-types/contracts/test'
 import {
   ECO__factory,
   ECOx__factory,
@@ -20,7 +23,10 @@ import {
   CommunityGovernance__factory,
   ECOxStaking__factory,
 } from '../../../typechain-types/factories/contracts/governance/community'
-import { SampleProposal__factory } from '../../../typechain-types/factories/contracts/test'
+import {
+  FlashBurner__factory,
+  SampleProposal__factory,
+} from '../../../typechain-types/factories/contracts/test'
 
 use(smock.matchers)
 
@@ -225,7 +231,7 @@ describe('Community Governance', () => {
       expect(await cg.stage()).to.eq(PROPOSAL)
     })
     it('updates to done from proposal stage', async () => {
-      await cg.updateStage()
+      await cg.updateStage() // go to next cycle
       await time.increaseTo(await cg.currentStageEnd())
       // no proposal selected by end of proposal stage
       await expect(cg.updateStage()).to.emit(cg, 'StageUpdated').withArgs(DONE)
@@ -236,9 +242,6 @@ describe('Community Governance', () => {
       )
     })
     it('updates to delay from voting if there are more enact votes than reject', async () => {
-      // manually get to voting stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -260,9 +263,6 @@ describe('Community Governance', () => {
       expect(await cg.stage()).to.eq(DELAY)
     })
     it('updates to done from voting if there are fewer enact votes than reject', async () => {
-      // manually get to voting stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -283,9 +283,6 @@ describe('Community Governance', () => {
       )
     })
     it('updates stage to execution from delay', async () => {
-      // manually get to DELAY stage
-      await cg.updateStage()
-
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -307,8 +304,6 @@ describe('Community Governance', () => {
       )
     })
     it('starts a new cycle if updateStage is called at the end of execution', async () => {
-      // manually get to EXECUTION stage
-      await cg.updateStage()
       await eco.connect(alice).approve(cg.address, await cg.proposalFee())
       await cg.connect(alice).propose(A1)
       await cg.connect(bigboy).support(A1)
@@ -334,8 +329,6 @@ describe('Community Governance', () => {
     })
     context('newCycle', () => {
       it('resets everything', async () => {
-        // manually get to DONE stage
-        await cg.updateStage()
         await eco.connect(alice).approve(cg.address, await cg.proposalFee())
 
         const realProp = (await deploy(
@@ -369,6 +362,21 @@ describe('Community Governance', () => {
         expect(await cg.totalEnactVotes()).to.eq(0)
         expect(await cg.totalRejectVotes()).to.eq(0)
         expect(await cg.totalAbstainVotes()).to.eq(0)
+      })
+
+      it('no atomic burning misaligning voting power and supply', async () => {
+        const oldSupply = await eco.totalSupply()
+        const burner = (await deploy(alice, FlashBurner__factory, [
+          cg.address,
+          eco.address,
+          ecox.address,
+        ])) as FlashBurner
+        await eco.connect(alice).transfer(burner.address, INIT_BALANCE)
+        await burner.exploit()
+        await mine()
+        const newSupply = await eco.totalSupplySnapshot()
+        expect(oldSupply).to.be.gt(newSupply)
+        expect(await cg.totalVotingPower()).to.eq(newSupply) // no ecox in this test
       })
     })
   })

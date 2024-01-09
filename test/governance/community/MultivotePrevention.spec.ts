@@ -112,7 +112,6 @@ describe('Snapshot safety test', () => {
 
   it('fail to multivote', async () => {
     // this setup more realistically sets up a governance cycle
-    await cg.updateStage()
     await time.increase(await cg.PROPOSAL_LENGTH())
     await cg.updateStage()
     await time.increaseTo((await cg.currentStageEnd()).add(1))
