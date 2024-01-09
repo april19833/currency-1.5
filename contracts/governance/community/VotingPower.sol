@@ -13,6 +13,9 @@ contract VotingPower is Policed {
     // the ECO contract address
     ECO public immutable ecoToken;
 
+    // the ECOx contract address
+    ECOx public immutable ecoXToken;
+
     // the ECOxStaking contract address
     ECOxStaking public immutable ecoXStaking;
 
@@ -22,21 +25,26 @@ contract VotingPower is Policed {
     constructor(
         Policy _policy,
         ECO _ecoAddr,
+        ECOx _ecoXAddr,
         ECOxStaking _ecoXStakingAddr
     ) Policed(_policy) {
         if (address(_ecoAddr) == address(0)) {
             revert NonZeroContractAddr("ECO");
         }
+        if (address(_ecoXAddr) == address(0)) {
+            revert NonZeroContractAddr("ECOx");
+        }
         if (address(_ecoXStakingAddr) == address(0)) {
             revert NonZeroContractAddr("ECOxStaking");
         }
         ecoToken = _ecoAddr;
+        ecoXToken = _ecoXAddr;
         ecoXStaking = _ecoXStakingAddr;
     }
 
     function totalVotingPower() public view returns (uint256) {
         uint256 _supply = ecoToken.totalSupplySnapshot();
-        uint256 _supplyX = ecoXStaking.totalVotingECOx(snapshotBlock);
+        uint256 _supplyX = ecoXToken.totalSupplySnapshot();
         // ECOx has 10x the voting power of ECO per unit
         return _supply + 10 * _supplyX;
     }

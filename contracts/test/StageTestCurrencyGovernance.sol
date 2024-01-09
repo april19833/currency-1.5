@@ -13,6 +13,7 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
         CurrencyGovernance(
             Policy(address(0x11)),
             MonetaryPolicyAdapter(address(0x13)),
+            1,
             getTime()
         )
     {}

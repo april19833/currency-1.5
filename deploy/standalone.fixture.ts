@@ -174,6 +174,7 @@ export async function deployCommunity(
   const communityGovernanceParams = [
     base.policy.address,
     base.eco.address,
+    base.ecox.address,
     base.ecoXStaking.address,
     config.governanceStartTime || Math.floor(now / 1000),
     pauser,
@@ -286,7 +287,8 @@ export async function deployMonetary(
   const monetaryGovernanceParams = [
     base.policy.address,
     adapter.address,
-    await time.latest(),
+    config.quorum || 1,
+    config.termStart || (await time.latest()),
   ]
 
   const monetaryGovernance = (await deploy(
@@ -303,7 +305,7 @@ export async function deployMonetary(
     base.policy.address,
     monetaryGovernance.address,
     base.ecox.address,
-    await time.latest(),
+    config.termStart || (await time.latest()),
     config.trusteeTerm || DEFAULT_TRUSTEE_TERM,
     config.voteReward || DEFAULT_VOTE_REWARD,
     trustees,
