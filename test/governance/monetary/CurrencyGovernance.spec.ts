@@ -173,7 +173,7 @@ describe('CurrencyGovernance', () => {
     CurrencyGovernance = (await deploy(
       policyImpersonator,
       CurrencyGovernance__factory,
-      [Fake__Policy.address, Enacter.address]
+      [Fake__Policy.address, Enacter.address, termStart]
     )) as CurrencyGovernance
 
     TrustedNodes = await (
@@ -201,6 +201,7 @@ describe('CurrencyGovernance', () => {
 
   describe('trustee role', () => {
     it('trustees can call onlyTrusted functions', async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -210,6 +211,7 @@ describe('CurrencyGovernance', () => {
     })
 
     it('non-trustees cannot call onlyTrusted functions', async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await expect(
         CurrencyGovernance.connect(alice).propose(
           targets,
@@ -292,6 +294,19 @@ describe('CurrencyGovernance', () => {
       ).to.be.revertedWith(
         ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_TRUSTEDNODES
       )
+    })
+  })
+
+  describe('getCurrentCycle', async () => {
+    // this function gates all important governance functions
+    it('reverts if called before governanceStartTime', async () => {
+      await expect(CurrencyGovernance.getCurrentCycle()).to.be.reverted
+    })
+    it('doesnt if called not before governanceStartTime', async () => {
+      await time.increaseTo(
+        (await CurrencyGovernance.governanceStartTime()).add(1)
+      )
+      await expect(CurrencyGovernance.getCurrentCycle()).to.not.be.reverted
     })
   })
 
@@ -514,6 +529,9 @@ describe('CurrencyGovernance', () => {
     })
 
     describe('propose', () => {
+      beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
+      })
       it('can propose', async () => {
         await CurrencyGovernance.connect(bob).propose(
           targets,
@@ -840,6 +858,7 @@ describe('CurrencyGovernance', () => {
         calldatas
       )
       beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
         await CurrencyGovernance.connect(bob).propose(
           targets,
           functions,
@@ -959,6 +978,7 @@ describe('CurrencyGovernance', () => {
         calldatas
       )
       beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
         await CurrencyGovernance.connect(bob).propose(
           targets,
           functions,
@@ -1141,6 +1161,7 @@ describe('CurrencyGovernance', () => {
       calldatasAlt
     )
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -1297,6 +1318,7 @@ describe('CurrencyGovernance', () => {
     )
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -2048,6 +2070,7 @@ describe('CurrencyGovernance', () => {
     let votes2: Vote[]
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(charlie).propose(
         targets,
         functions,

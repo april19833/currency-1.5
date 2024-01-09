@@ -360,13 +360,15 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** constructor
      * @param _policy the owning policy address for the contract
+     * @param _termStart the time the current CurrencyGovernance term starts
      */
     constructor(
         Policy _policy,
-        MonetaryPolicyAdapter _enacter
+        MonetaryPolicyAdapter _enacter,
+        uint256 _termStart
     ) Policed(_policy) {
         _setEnacter(_enacter);
-        governanceStartTime = getTime();
+        governanceStartTime = _termStart;
     }
 
     //////////////////////////////////////////////
