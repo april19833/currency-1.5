@@ -170,13 +170,12 @@ export async function deployCommunity(
     console.log('deploying communityGovernance')
   }
 
-  const now = Date.now()
   const communityGovernanceParams = [
     base.policy.address,
     base.eco.address,
     base.ecox.address,
     base.ecoXStaking.address,
-    config.governanceStartTime || Math.floor(now / 1000),
+    config.governanceStartTime || time.latest(),
     pauser,
   ]
 
