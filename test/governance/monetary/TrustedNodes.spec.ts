@@ -210,14 +210,6 @@ describe('TrustedNodes', () => {
         .recordVote(alice.address)
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(1)
     })
-    it('errors if called after term', async () => {
-      await time.increaseTo((await trustedNodes.termEnd()).add(1))
-      await expect(
-        trustedNodes
-          .connect(currencyGovernanceImpersonator)
-          .recordVote(alice.address)
-      ).to.be.revertedWith(ERRORS.TrustedNodes.INACTIVE_TERM)
-    })
   })
 
   describe('currentlyWithdrawable', async () => {

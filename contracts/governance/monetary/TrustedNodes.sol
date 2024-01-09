@@ -193,7 +193,7 @@ contract TrustedNodes is Policed, TimeUtils {
      */
     function recordVote(address _who) external onlyCurrencyGovernance {
         uint256 time = getTime();
-        if (time < termEnd && time > termStart) {
+        if (time > termStart) {
             votingRecord[_who]++;
             emit VoteRecorded(_who, votingRecord[_who]);
         } else {
