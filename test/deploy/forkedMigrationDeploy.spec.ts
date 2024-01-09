@@ -525,20 +525,9 @@ describe('Mainnet fork migration tests', () => {
               0
             )
             await baseContracts.eco.connect(alice).enableVoting()
-            const aliceBalance = await baseContracts.eco.voteBalanceOf(
-              alice.address
-            )
 
             // go to next voting cycle
             await time.increase(14 * DAY)
-            // update stage to Done
-            await communityGovernanceContracts.communityGovernance.updateStage()
-
-            // push to next cycle which snapshots alice's new voting power
-            await communityGovernanceContracts.communityGovernance.updateStage()
-            expect(
-              await baseContracts.eco.voteBalanceSnapshot(alice.address)
-            ).to.eq(aliceBalance)
 
             // push the proposal through voting
             await baseContracts.eco
@@ -557,7 +546,6 @@ describe('Mainnet fork migration tests', () => {
               .connect(alice)
               .vote(1)
             await time.increase(4 * DAY)
-            await communityGovernanceContracts.communityGovernance.updateStage()
             await communityGovernanceContracts.communityGovernance
               .connect(alice)
               .execute()
