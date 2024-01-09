@@ -422,11 +422,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function unsupport(address _proposal) public {
-        // updateStage();
-        if (stage != Stage.Proposal) {
-            revert WrongStage();
-        }
-
         if (proposals[_proposal].support[msg.sender] > 0) {
             _changeSupport(msg.sender, _proposal, 0);
         } else {
