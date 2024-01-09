@@ -39,6 +39,7 @@ import {
 import { TestnetLinker__factory } from '../typechain-types/factories/contracts/test/deploy/TestnetLinker.propo.sol'
 import { TestnetLinker } from '../typechain-types/contracts/test/deploy/TestnetLinker.propo.sol'
 import { DummyLever__factory } from '../typechain-types/factories/contracts/test'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
@@ -169,13 +170,12 @@ export async function deployCommunity(
     console.log('deploying communityGovernance')
   }
 
-  const now = Date.now()
   const communityGovernanceParams = [
     base.policy.address,
     base.eco.address,
     base.ecox.address,
     base.ecoXStaking.address,
-    config.governanceStartTime || Math.floor(now / 1000),
+    config.governanceStartTime || time.latest(),
     pauser,
   ]
 
