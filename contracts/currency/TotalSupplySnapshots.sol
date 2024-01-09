@@ -52,7 +52,7 @@ abstract contract TotalSupplySnapshots is ERC20MintAndBurn {
      */
     function totalSupplySnapshot() public view virtual returns (uint256) {
         if (
-            // currentSnapshotBlock != block.number && // this line fucks up the current abliity to snapshot total power, but might need implemented
+            // currentSnapshotBlock != block.number && // this line breaks the current abliity to snapshot total power, but might need implemented
             _totalSupplySnapshot.snapshotBlock < currentSnapshotBlock
         ) {
             return _totalSupply;
