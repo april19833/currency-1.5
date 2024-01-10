@@ -41,19 +41,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     //////////////////////////////////////////////
 
     /** @notice the duration of the community governance cycle */
-    uint256 public constant CYCLE_LENGTH = 14 days;
+    uint256 public constant CYCLE_LENGTH = 28 minutes;
 
     /** @notice the duration of the proposal stage */
-    uint256 public constant PROPOSAL_LENGTH = 9 days;
+    uint256 public constant PROPOSAL_LENGTH = 18 minutes;
 
     /** @notice the duration of the voting stage */
-    uint256 public constant VOTING_LENGTH = 3 days;
+    uint256 public constant VOTING_LENGTH = 6 minutes;
 
     /** @notice the duration of the execution delay */
-    uint256 public constant DELAY_LENGTH = 1 days;
+    uint256 public constant DELAY_LENGTH = 2 minutes;
 
     /** @notice the duration of the execution window beyond the cycle end */
-    uint256 public constant EXECUTION_EXTRA_LENGTH = 1 days;
+    uint256 public constant EXECUTION_EXTRA_LENGTH = 2 minutes;
 
     /** @notice address allowed to pause community governance */
     address public pauser;
