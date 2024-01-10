@@ -50,12 +50,13 @@ constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovern
 Deploys a new TrustedNodes instance
 
 ```solidity
-function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (contract TrustedNodes)
+function newCohort(uint256 _termStart, uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (contract TrustedNodes)
 ```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| _termStart | uint256 |  |
 | _termLength | uint256 | the length of term for trustees in the new cohort |
 | _voteReward | uint256 | the reward earned by each trustee each time they participate in voting |
 | _newTrustees | address[] | the new cohort of trustees |

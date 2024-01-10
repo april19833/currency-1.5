@@ -632,7 +632,7 @@ modifier cycleComplete(uint256 cycle)
 constructor
 
 ```solidity
-constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter, uint256 _quorum) public
+constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter, uint256 _quorum, uint256 _termStart) public
 ```
 #### Parameters
 
@@ -641,6 +641,7 @@ constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter, ui
 | _policy | contract Policy | the owning policy address for the contract |
 | _enacter | contract MonetaryPolicyAdapter | the monetary policy adapter |
 | _quorum | uint256 | the required quorum for enactment of monetary policy |
+| _termStart | uint256 | the time the current CurrencyGovernance term starts |
 
 ### setTrustedNodes
 

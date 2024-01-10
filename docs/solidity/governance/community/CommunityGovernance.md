@@ -73,6 +73,14 @@ the duration of the execution delay
 uint256 DELAY_LENGTH
 ```
 
+### EXECUTION_EXTRA_LENGTH
+
+the duration of the execution window beyond the cycle end
+
+```solidity
+uint256 EXECUTION_EXTRA_LENGTH
+```
+
 ### pauser
 
 address allowed to pause community governance

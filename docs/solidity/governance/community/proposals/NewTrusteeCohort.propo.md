@@ -19,6 +19,12 @@ contract TrustedNodesFactory trustedNodesFactory
 address[] newTrustees
 ```
 
+### termStart
+
+```solidity
+uint256 termStart
+```
+
 ### termLength
 
 ```solidity
@@ -36,7 +42,7 @@ uint256 voteReward
 Instantiate a new proposal.
 
 ```solidity
-constructor(contract TrustedNodesFactory _trustedNodesFactory, address[] _newTrustees, uint256 _termLength, uint256 _voteReward) public
+constructor(contract TrustedNodesFactory _trustedNodesFactory, address[] _newTrustees, uint256 _termStart, uint256 _termLength, uint256 _voteReward) public
 ```
 #### Parameters
 
@@ -44,6 +50,7 @@ constructor(contract TrustedNodesFactory _trustedNodesFactory, address[] _newTru
 | ---- | ---- | ----------- |
 | _trustedNodesFactory | contract TrustedNodesFactory |  |
 | _newTrustees | address[] | The array of new addresses to become trusted |
+| _termStart | uint256 |  |
 | _termLength | uint256 |  |
 | _voteReward | uint256 |  |
 

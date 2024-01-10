@@ -16,16 +16,16 @@ governance.
 uint256 GENERATION_TIME
 ```
 
+### termStart
+
+```solidity
+uint256 termStart
+```
+
 ### termEnd
 
 ```solidity
 uint256 termEnd
-```
-
-### termLength
-
-```solidity
-uint256 termLength
 ```
 
 ### currencyGovernance
@@ -94,6 +94,12 @@ error NodeAlreadyTrusted(uint256 trusteeNumber)
 
 ```solidity
 error DistrustNotTrusted()
+```
+
+### InactiveTerm
+
+```solidity
+error InactiveTerm()
 ```
 
 ### WithdrawNoTokens
@@ -180,7 +186,7 @@ modifier onlyCurrencyGovernance()
 Creates a new trusted node registry, populated with some initial nodes
 
 ```solidity
-constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _EcoX, uint256 _termLength, uint256 _voteReward, address[] _initialTrustees) public
+constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX, uint256 _termStart, uint256 _termLength, uint256 _voteReward, address[] _initialTrustees) public
 ```
 #### Parameters
 
@@ -188,7 +194,8 @@ constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovern
 | ---- | ---- | ----------- |
 | _policy | contract Policy | the address of the root policy contract |
 | _currencyGovernance | contract CurrencyGovernance | the address of the currencyGovernance contract |
-| _EcoX | contract ECOx | the address of the EcoX contract |
+| _ecoX | contract ECOx | the address of the EcoX contract |
+| _termStart | uint256 | the start time of the trustee term |
 | _termLength | uint256 | the length of the trustee term |
 | _voteReward | uint256 | the reward awarded to a trustee for each successfully revealed vote |
 | _initialTrustees | address[] | the initial cohort of trustees |
