@@ -7,6 +7,7 @@ import { MigrationLinker__factory } from '../typechain-types/factories/contracts
 import { InflationMultiplierUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
 import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currency-dev'
 import { deploy } from './utils'
+import { DAY } from '../test/utils/constants'
 
 const initialECOxSupply = ethers.utils.parseEther('10000000000').toString() // CHECK ME
 
@@ -31,6 +32,8 @@ async function main() {
     noLockups: true,
     governanceStartTime: Date.now(),
     termStart: Date.now(),
+    trusteeTerm: 7*DAY,
+    lockupDepositWindow: 300, // 5 minutes
   }
 
   const baseContracts = await deployBaseUnproxied(
