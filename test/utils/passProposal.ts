@@ -2,7 +2,6 @@ import { Contract } from 'ethers'
 import { Fixture } from '../../deploy/standalone.fixture'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { DAY } from './constants'
 
 // assumes that the signer has a super majority
 async function passProposal(
@@ -14,13 +13,15 @@ async function passProposal(
     await contracts.base.eco.connect(signer).enableVoting()
   }
 
-  // go to next voting cycle
-  await time.increase(14 * DAY)
-  // update stage to Done
+  // update the governance contract's cycle timing data
   await contracts.community.communityGovernance.updateStage()
 
-  // push to next cycle which snapshots signer's new voting power
-  await contracts.community.communityGovernance.updateStage()
+  // go to next voting cycle
+  await time.increaseTo(
+    (
+      await contracts.community.communityGovernance.cycleStart()
+    ).add(await contracts.community.communityGovernance.CYCLE_LENGTH())
+  )
 
   // push the proposal through voting
   await contracts.base.eco

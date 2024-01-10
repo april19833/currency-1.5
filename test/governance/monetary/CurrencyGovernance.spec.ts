@@ -93,7 +93,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe('CurrencyGovernance', () => {
+describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -168,10 +168,12 @@ describe('CurrencyGovernance', () => {
       )
     ).deploy(Fake__Policy.address)
 
+    const termStart = (await time.latest()) + 100
+
     CurrencyGovernance = (await deploy(
       policyImpersonator,
       CurrencyGovernance__factory,
-      [Fake__Policy.address, Enacter.address, 1]
+      [Fake__Policy.address, Enacter.address, 1, termStart]
     )) as CurrencyGovernance
 
     TrustedNodes = await (
@@ -182,6 +184,7 @@ describe('CurrencyGovernance', () => {
       Fake__Policy.address,
       CurrencyGovernance.address,
       PLACEHOLDER_ADDRESS1, // ecox address not necessary for test
+      termStart,
       1000 * DAY,
       1,
       [bob.address, charlie.address, dave.address, niko.address, mila.address]
@@ -198,6 +201,7 @@ describe('CurrencyGovernance', () => {
 
   describe('trustee role', () => {
     it('trustees can call onlyTrusted functions', async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -207,6 +211,7 @@ describe('CurrencyGovernance', () => {
     })
 
     it('non-trustees cannot call onlyTrusted functions', async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await expect(
         CurrencyGovernance.connect(alice).propose(
           targets,
@@ -292,6 +297,18 @@ describe('CurrencyGovernance', () => {
     })
   })
 
+  describe('getCurrentCycle', async () => {
+    // this function gates all important governance functions
+    it('reverts if called before governanceStartTime', async () => {
+      await expect(CurrencyGovernance.getCurrentCycle()).to.be.reverted
+    })
+    it('doesnt if called not before governanceStartTime', async () => {
+      await time.increaseTo(
+        (await CurrencyGovernance.governanceStartTime()).add(1)
+      )
+      await expect(CurrencyGovernance.getCurrentCycle()).to.not.be.reverted
+    })
+  })
   describe('quorum', () => {
     it('can be changed by the policy', async () => {
       const initialQuorum = await CurrencyGovernance.quorum()
@@ -551,6 +568,9 @@ describe('CurrencyGovernance', () => {
     })
 
     describe('propose', () => {
+      beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
+      })
       it('can propose', async () => {
         await CurrencyGovernance.connect(bob).propose(
           targets,
@@ -877,6 +897,7 @@ describe('CurrencyGovernance', () => {
         calldatas
       )
       beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
         await CurrencyGovernance.connect(bob).propose(
           targets,
           functions,
@@ -996,6 +1017,7 @@ describe('CurrencyGovernance', () => {
         calldatas
       )
       beforeEach(async () => {
+        await time.increaseTo(await CurrencyGovernance.governanceStartTime())
         await CurrencyGovernance.connect(bob).propose(
           targets,
           functions,
@@ -1178,6 +1200,7 @@ describe('CurrencyGovernance', () => {
       calldatasAlt
     )
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -1334,6 +1357,7 @@ describe('CurrencyGovernance', () => {
     )
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(bob).propose(
         targets,
         functions,
@@ -2091,6 +2115,7 @@ describe('CurrencyGovernance', () => {
     let votes2: Vote[]
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
       await CurrencyGovernance.connect(charlie).propose(
         targets,
         functions,
@@ -2280,7 +2305,7 @@ describe('CurrencyGovernance', () => {
       })
     })
   })
-  describe('crossing between cycles', () => {
+  describe.only('crossing between cycles', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
@@ -2300,6 +2325,8 @@ describe('CurrencyGovernance', () => {
     let votes2: Vote[]
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
+
       await CurrencyGovernance.connect(charlie).propose(
         targets,
         functions,

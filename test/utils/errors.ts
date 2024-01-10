@@ -47,6 +47,7 @@ export const ERRORS = {
     DUPLICATE_TRUST: 'NodeAlreadyTrusted', // one arg: the existing trustee number of the address
     DUPLICATE_DISTRUST: 'DistrustNotTrusted',
     EMPTY_WITHDRAW: 'WithdrawNoTokens',
+    INACTIVE_TERM: 'InactiveTerm',
   },
   Lever: {
     AUTHORIZED_ONLY: 'AuthorizedOnly',

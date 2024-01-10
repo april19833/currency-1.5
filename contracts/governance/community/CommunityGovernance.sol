@@ -52,6 +52,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** @notice the duration of the execution delay */
     uint256 public constant DELAY_LENGTH = 1 days;
 
+    /** @notice the duration of the execution window beyond the cycle end */
+    uint256 public constant EXECUTION_EXTRA_LENGTH = 1 days;
+
     /** @notice address allowed to pause community governance */
     address public pauser;
 
@@ -289,9 +292,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         if (stage == Stage.Delay && time > currentStageEnd) {
             // delay period ended, time to execute
             stage = Stage.Execution;
-            //TODO: this comment needs corrected
-            //three additional days, ensuring a minimum of three days and eight hours to enact the proposal, after which it will need to be resubmitted.
-            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            //one additional day, ensuring a minimum of two days to enact the proposal, after which it will need to be resubmitted.
+            currentStageEnd =
+                cycleStart +
+                CYCLE_LENGTH +
+                EXECUTION_EXTRA_LENGTH;
             emitEvent = true;
         }
 
@@ -422,11 +427,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function unsupport(address _proposal) public {
-        // updateStage();
-        if (stage != Stage.Proposal) {
-            revert WrongStage();
-        }
-
         if (proposals[_proposal].support[msg.sender] > 0) {
             _changeSupport(msg.sender, _proposal, 0);
         } else {
@@ -551,7 +551,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
             (totalVotingPower() * voteThresholdPercent) / 100
         ) {
             stage = Stage.Execution;
-            currentStageEnd = cycleStart + CYCLE_LENGTH;
+            currentStageEnd =
+                cycleStart +
+                CYCLE_LENGTH +
+                EXECUTION_EXTRA_LENGTH;
 
             emit StageUpdated(Stage.Execution);
         }
@@ -592,6 +595,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         policy.enact(selectedProposal);
         stage = Stage.Done;
+        currentStageEnd = cycleStart + CYCLE_LENGTH; // ensure that an early execution allows for an on-time start to the next cycle
 
         emit ExecutionComplete(selectedProposal);
     }

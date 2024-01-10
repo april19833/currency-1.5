@@ -17,6 +17,9 @@ contract NewTrusteeCohort is Policy, Proposal {
     // the new trustees that will be trusted
     address[] public newTrustees;
 
+    // start of trustee term for this cohort
+    uint256 public immutable termStart;
+
     // length of trustee term for this cohort
     uint256 public immutable termLength;
 
@@ -30,11 +33,13 @@ contract NewTrusteeCohort is Policy, Proposal {
     constructor(
         TrustedNodesFactory _trustedNodesFactory,
         address[] memory _newTrustees,
+        uint256 _termStart,
         uint256 _termLength,
         uint256 _voteReward
     ) Policy(address(0x0)) {
         trustedNodesFactory = _trustedNodesFactory;
         newTrustees = _newTrustees;
+        termStart = _termStart;
         termLength = _termLength;
         voteReward = _voteReward;
     }
@@ -77,6 +82,7 @@ contract NewTrusteeCohort is Policy, Proposal {
      */
     function enacted(address self) public virtual override {
         TrustedNodes newTrustedNodes = trustedNodesFactory.newCohort(
+            termStart,
             termLength,
             voteReward,
             NewTrusteeCohort(self).returnNewTrustees()
