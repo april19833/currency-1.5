@@ -3,6 +3,10 @@ import { Fixture, deployBaseUnproxied, deployCommunity, deployMonetary } from '.
 import { ECO, ECOx } from '../typechain-types/contracts/currency'
 import { Policy } from '../typechain-types/contracts/policy'
 import { ECOxStaking } from '../typechain-types/contracts/governance/community'
+import { MigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
+import { InflationMultiplierUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
+import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currency-dev'
+import { deploy } from './utils'
 
 const initialECOxSupply = ethers.utils.parseEther('10000000000').toString() // CHECK ME
 
@@ -61,11 +65,47 @@ async function main() {
   )
 
   const contracts = new Fixture(baseContracts, monetaryGovernanceContracts, communityGovernanceContracts)
+  const fixtureAddresses = contracts.toAddresses()
+
+  console.log('deploying linker')
+
+  const implementationUpdatingTarget = await deploy(
+    wallet,
+    ImplementationUpdatingTarget__factory
+  )
+
+  const inflationMultiplierUpdatingTarget = await deploy(
+    wallet,
+    InflationMultiplierUpdatingTarget__factory
+  )
+
+  const proposalParams = [
+    fixtureAddresses.communityGovernance,
+    fixtureAddresses.ecoXExchange,
+    fixtureAddresses.rebaseNotifier,
+    fixtureAddresses.trustedNodes,
+    implAddresses.policy,
+    implAddresses.eco,
+    implAddresses.ecox,
+    implAddresses.ecoXStaking,
+    implementationUpdatingTarget.address,
+    inflationMultiplierUpdatingTarget.address,
+  ]
+
+  const proposal = (await deploy(
+    wallet,
+    MigrationLinker__factory,
+    proposalParams
+  ))
+
+  fixtureAddresses.lockupsLever = 'THERE IS NO LOCKUPS LEVER' // ensuring no confusion
   
   console.log('contracts')
-  console.log(JSON.stringify(contracts.toAddresses(), null, 2))
+  console.log(JSON.stringify(fixtureAddresses, null, 2))
   console.log('base contract implementations')
   console.log(JSON.stringify(implAddresses, null, 2))
+  console.log('proposal address')
+  console.log(proposal.address)
 }
 
 main().catch((error) => {
