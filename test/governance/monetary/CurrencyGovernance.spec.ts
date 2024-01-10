@@ -93,7 +93,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe.only('CurrencyGovernance', () => {
+describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -2305,7 +2305,7 @@ describe.only('CurrencyGovernance', () => {
       })
     })
   })
-  describe.only('crossing between cycles', () => {
+  describe('crossing between cycles', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
