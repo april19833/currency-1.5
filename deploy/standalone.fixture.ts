@@ -45,7 +45,7 @@ const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
 const DEFAULT_LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-const buildTime = Date.now()
+const buildTime = (new Date()).toString()
 const outputStem = path.join(__dirname, `deployments`)
 const outputFolder = `${outputStem}/${buildTime}`
 
@@ -186,6 +186,7 @@ export async function deployCommunity(
   )) as CommunityGovernance
 
   if (config.verify) {
+    guaranteeOutputFolder()
     const output = {
       communityGovernanceParams,
     }
@@ -317,6 +318,7 @@ export async function deployMonetary(
   )) as TrustedNodes
 
   if (config.verify) {
+    guaranteeOutputFolder()
     const output = {
       lockupsLeverParams,
       lockupsNotifierParams,
@@ -455,6 +457,7 @@ export async function deployBase(
   const ecoXStaking = ecoXStakingDeploy[0] as ECOxStaking
 
   if (config.verify) {
+    guaranteeOutputFolder()
     const output = {
       policyParams,
       ecoParams,
@@ -544,6 +547,7 @@ export async function deployBaseUnproxied(
   )) as ECOxStaking
 
   if (config.verify) {
+    guaranteeOutputFolder()
     const output = {
       policyParams,
       ecoParams,
@@ -579,16 +583,6 @@ export async function testnetFixture(
   config: any = {}
 ): Promise<Fixture> {
   config.verify = config.verify || false
-
-  if (config.verify) {
-    // create outputFolder if it doesn't exist
-    if (!fs.existsSync(outputFolder)) {
-      if (!fs.existsSync(outputStem)) {
-        fs.mkdirSync(outputStem)
-      }
-      fs.mkdirSync(outputFolder)
-    }
-  }
 
   const [wallet] = await ethers.getSigners()
 
@@ -659,6 +653,7 @@ export async function testnetFixture(
   const fixture = new Fixture(base, monetary, community)
 
   if (config.verify) {
+    guaranteeOutputFolder()
     fs.writeFileSync(
       `${outputFolder}/addresses.json`,
       JSON.stringify(fixture.toAddresses(), null, 2)
@@ -666,4 +661,14 @@ export async function testnetFixture(
   }
 
   return fixture
+}
+
+function guaranteeOutputFolder() {
+  // create outputFolder if it doesn't exist
+  if (!fs.existsSync(outputFolder)) {
+    if (!fs.existsSync(outputStem)) {
+      fs.mkdirSync(outputStem)
+    }
+    fs.mkdirSync(outputFolder)
+  }
 }
