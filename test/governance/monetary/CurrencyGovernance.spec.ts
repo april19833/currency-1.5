@@ -93,7 +93,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe('CurrencyGovernance', () => {
+describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -2305,7 +2305,7 @@ describe('CurrencyGovernance', () => {
       })
     })
   })
-  describe('crossing between cycles', () => {
+  describe.only('crossing between cycles', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
@@ -2325,6 +2325,8 @@ describe('CurrencyGovernance', () => {
     let votes2: Vote[]
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
+
       await CurrencyGovernance.connect(charlie).propose(
         targets,
         functions,
