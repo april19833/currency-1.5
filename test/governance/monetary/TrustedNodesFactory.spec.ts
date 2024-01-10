@@ -15,6 +15,7 @@ import {
   TrustedNodesFactory__factory,
   TrustedNodes__factory,
 } from '../../../typechain-types/factories/contracts/governance/monetary'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 describe('TrustedNodesFactory', () => {
   let policyImpersonator: SignerWithAddress
@@ -75,10 +76,12 @@ describe('TrustedNodesFactory', () => {
   describe('deploy', async () => {
     it('reverts if called by nonpolicy', async () => {
       await expect(
-        trustedNodesFactory.newCohort(initialTermLength, initialReward, [
-          alice.address,
-          bob.address,
-        ])
+        trustedNodesFactory.newCohort(
+          await time.latest(),
+          initialTermLength,
+          initialReward,
+          [alice.address, bob.address]
+        )
       ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     })
 
@@ -88,9 +91,10 @@ describe('TrustedNodesFactory', () => {
       )
       expect(newCohortEvents.length).to.eq(0)
       const initialTrustees = [alice.address, bob.address]
+      const termStart = await time.latest()
       await trustedNodesFactory
         .connect(policyImpersonator)
-        .newCohort(initialTermLength, initialReward, initialTrustees)
+        .newCohort(termStart, initialTermLength, initialReward, initialTrustees)
       newCohortEvents = await trustedNodesFactory.queryFilter(
         trustedNodesFactory.filters.NewCohort()
       )
@@ -105,7 +109,7 @@ describe('TrustedNodesFactory', () => {
         currencyGovernance.address
       )
       expect(await newTrustedNodes.ecoX()).to.eq(ecoX.address)
-      expect(await newTrustedNodes.termLength()).to.eq(initialTermLength)
+      expect(await newTrustedNodes.termStart()).to.eq(termStart)
       expect(await newTrustedNodes.voteReward()).to.eq(initialReward)
       expect(await newTrustedNodes.trustees(0)).to.eq(initialTrustees[0])
       expect(await newTrustedNodes.trustees(1)).to.eq(initialTrustees[1])

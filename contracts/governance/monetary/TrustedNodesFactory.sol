@@ -35,6 +35,7 @@ contract TrustedNodesFactory is Policed, TimeUtils {
      * @return TrustedNodes the address of the new TrustedNodes contract
      */
     function newCohort(
+        uint256 _termStart,
         uint256 _termLength,
         uint256 _voteReward,
         address[] calldata _newTrustees
@@ -43,6 +44,7 @@ contract TrustedNodesFactory is Policed, TimeUtils {
             policy,
             currencyGovernance,
             ecoX,
+            _termStart,
             _termLength,
             _voteReward,
             _newTrustees

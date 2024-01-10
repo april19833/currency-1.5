@@ -16,9 +16,9 @@ import "./CurrencyGovernance.sol";
 contract TrustedNodes is Policed, TimeUtils {
     uint256 public constant GENERATION_TIME = 14 days;
 
-    uint256 public immutable termEnd;
+    uint256 public immutable termStart;
 
-    uint256 public immutable termLength;
+    uint256 public immutable termEnd;
 
     /** address with the currencyGovernance role */
     CurrencyGovernance public currencyGovernance;
@@ -52,6 +52,9 @@ contract TrustedNodes is Policed, TimeUtils {
 
     // error for when distrust is called but the address is already not trusted
     error DistrustNotTrusted();
+
+    // error for when action is taken outside of the trustee term
+    error InactiveTerm();
 
     // error for when withdraw is called but no tokens have been earned to withdraw
     error WithdrawNoTokens();
@@ -93,7 +96,8 @@ contract TrustedNodes is Policed, TimeUtils {
     /** Creates a new trusted node registry, populated with some initial nodes
      * @param _policy the address of the root policy contract
      * @param _currencyGovernance the address of the currencyGovernance contract
-     * @param _EcoX the address of the EcoX contract
+     * @param _ecoX the address of the EcoX contract
+     * @param _termStart the start time of the trustee term
      * @param _termLength the length of the trustee term
      * @param _voteReward the reward awarded to a trustee for each successfully revealed vote
      * @param _initialTrustees the initial cohort of trustees
@@ -101,15 +105,16 @@ contract TrustedNodes is Policed, TimeUtils {
     constructor(
         Policy _policy,
         CurrencyGovernance _currencyGovernance,
-        ECOx _EcoX,
+        ECOx _ecoX,
+        uint256 _termStart,
         uint256 _termLength,
         uint256 _voteReward,
         address[] memory _initialTrustees
     ) Policed(_policy) {
         currencyGovernance = _currencyGovernance;
-        ecoX = _EcoX;
-        termLength = _termLength;
-        termEnd = getTime() + termLength;
+        ecoX = _ecoX;
+        termStart = _termStart;
+        termEnd = termStart + _termLength;
         voteReward = _voteReward;
         uint256 _numTrustees = _initialTrustees.length;
         for (uint256 i = 0; i < _numTrustees; i++) {
@@ -188,9 +193,12 @@ contract TrustedNodes is Policed, TimeUtils {
      * @param _who address whose vote is being recorded
      */
     function recordVote(address _who) external onlyCurrencyGovernance {
-        if (getTime() < termEnd) {
+        uint256 time = getTime();
+        if (time > termStart) {
             votingRecord[_who]++;
             emit VoteRecorded(_who, votingRecord[_who]);
+        } else {
+            revert InactiveTerm();
         }
     }
 

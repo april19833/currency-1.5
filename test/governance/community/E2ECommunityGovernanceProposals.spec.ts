@@ -4,6 +4,7 @@ import { expect } from 'chai'
 import { Fixture, testnetFixture } from '../../../deploy/standalone.fixture'
 import { DAY } from '../../utils/constants'
 import { Contract } from 'ethers'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 import { deploy } from '../../../deploy/utils'
 import { passProposal } from '../../utils/passProposal'
@@ -131,8 +132,9 @@ describe('E2E tests for common community governance actions', () => {
     let trustees = await contracts.monetary.trustedNodes.getTrustees()
     expect(trustees[0]).to.eq(bob.address)
     expect(trustees[1]).to.eq(charlie.address)
-    expect(await contracts.monetary.trustedNodes.termLength()).to.eq(2419200)
     expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(1000)
+
+    const oldTermStart = await contracts.monetary.trustedNodes.termStart()
 
     const initialTrustedNodesAddress =
       await contracts.monetary.monetaryGovernance.trustedNodes()
@@ -147,9 +149,13 @@ describe('E2E tests for common community governance actions', () => {
       ]
     )
 
+    const newTermStart = await time.latest()
+    expect(oldTermStart).to.not.eq(newTermStart)
+
     const prop = await deploy(alice, NewTrusteeCohort__factory, [
       trustedNodesFactory.address,
       [dave.address, edith.address, francine.address],
+      newTermStart,
       10101010,
       12341234,
     ])
@@ -165,7 +171,7 @@ describe('E2E tests for common community governance actions', () => {
       alice
     )
 
-    expect(await newTrustedNodes.termLength()).to.eq(10101010)
+    expect(await newTrustedNodes.termStart()).to.eq(newTermStart)
     expect(await newTrustedNodes.voteReward()).to.eq(12341234)
 
     expect(await newTrustedNodes.numTrustees()).to.eq(3)

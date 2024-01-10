@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -65,11 +65,11 @@ describe('TrustedNodes', () => {
       'contracts/currency/ECOx.sol:ECOx'
     )
     ecoX = await ecoXFactory.deploy(policy.address, policy.address)
-
     trustedNodes = (await deploy(policyImpersonator, TrustedNodes__factory, [
       policy.address,
       currencyGovernance.address,
       ecoX.address,
+      (await time.latest()) + 100,
       initialTermLength,
       initialReward,
       [alice.address, bob.address],
@@ -85,7 +85,14 @@ describe('TrustedNodes', () => {
         currencyGovernance.address
       )
       expect(await trustedNodes.ecoX()).to.eq(ecoX.address)
-      expect(await trustedNodes.termLength()).to.eq(3600 * 24)
+      expect(await trustedNodes.termStart()).to.be.closeTo(
+        BigNumber.from(await time.latest()).add(100),
+        10
+      )
+      expect(await trustedNodes.termEnd()).to.be.closeTo(
+        (await trustedNodes.termStart()).add(initialTermLength),
+        10
+      )
       expect(await trustedNodes.voteReward()).to.eq(initialReward)
 
       expect(await trustedNodes.numTrustees()).to.eq(2)
@@ -185,7 +192,18 @@ describe('TrustedNodes', () => {
   })
 
   describe('recordVote', async () => {
-    it('works', async () => {
+    it('errors if called before term', async () => {
+      expect(await time.latest()).to.be.lessThan(
+        Number(await trustedNodes.termStart())
+      )
+      await expect(
+        trustedNodes
+          .connect(currencyGovernanceImpersonator)
+          .recordVote(alice.address)
+      ).to.be.revertedWith(ERRORS.TrustedNodes.INACTIVE_TERM)
+    })
+    it('works during term', async () => {
+      await time.increaseTo((await trustedNodes.termStart()).add(1))
       expect(await trustedNodes.votingRecord(alice.address)).to.eq(0)
       await trustedNodes
         .connect(currencyGovernanceImpersonator)
@@ -195,6 +213,9 @@ describe('TrustedNodes', () => {
   })
 
   describe('currentlyWithdrawable', async () => {
+    beforeEach(async () => {
+      await time.increaseTo(await trustedNodes.termStart())
+    })
     it('displays the correct amount when voting record is limiting factor', async () => {
       trustedNodes.connect(alice)
       expect(await trustedNodes.currentlyWithdrawable()).to.eq(0)
@@ -237,6 +258,7 @@ describe('TrustedNodes', () => {
 
   describe('fullyVested', async () => {
     it('works', async () => {
+      await time.increaseTo(await trustedNodes.termStart())
       await trustedNodes
         .connect(currencyGovernanceImpersonator)
         .recordVote(alice.address)
@@ -254,6 +276,9 @@ describe('TrustedNodes', () => {
   })
 
   describe('withdraw', async () => {
+    beforeEach(async () => {
+      await time.increaseTo(await trustedNodes.termStart())
+    })
     it('reverts when withdrawing 0', async () => {
       await expect(trustedNodes.connect(alice).withdraw()).to.be.revertedWith(
         ERRORS.TrustedNodes.EMPTY_WITHDRAW

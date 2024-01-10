@@ -167,10 +167,10 @@ describe('Deployment tests', () => {
     expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(
       VOTE_REWARD
     )
-    expect(await contracts.monetary.trustedNodes.termLength()).to.eq(
-      TRUSTEE_TERM
-    )
     expect(await contracts.monetary.trustedNodes.termEnd()).to.not.eq(0)
+    expect(await contracts.monetary.trustedNodes.termStart()).to.eq(
+      (await contracts.monetary.trustedNodes.termEnd()).sub(TRUSTEE_TERM)
+    )
     expect(await contracts.monetary.trustedNodes.isTrusted(alice.address)).to.be
       .false
     expect(await contracts.monetary.trustedNodes.isTrusted(trustee1.address)).to

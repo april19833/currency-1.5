@@ -300,7 +300,9 @@ describe('Community Governance', () => {
 
       expect(await cg.stage()).to.eq(EXECUTION)
       expect(await cg.currentStageEnd()).to.eq(
-        (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
+        (await cg.cycleStart())
+          .add(await cg.CYCLE_LENGTH())
+          .add(await cg.EXECUTION_EXTRA_LENGTH())
       )
     })
     it('starts a new cycle if updateStage is called at the end of execution', async () => {
@@ -765,7 +767,9 @@ describe('Community Governance', () => {
         .withArgs(EXECUTION)
 
       expect(await cg.currentStageEnd()).to.be.closeTo(
-        (await cg.CYCLE_LENGTH()).add(await time.latest()),
+        (await cg.CYCLE_LENGTH())
+          .add(await cg.EXECUTION_EXTRA_LENGTH())
+          .add(await time.latest()),
         10
       )
       expect(await cg.stage()).to.eq(EXECUTION)
@@ -801,6 +805,9 @@ describe('Community Governance', () => {
       await cg.execute()
 
       expect(await cg.stage()).to.eq(DONE)
+      expect(await cg.currentStageEnd()).to.eq(
+        (await cg.cycleStart()).add(await cg.CYCLE_LENGTH())
+      ) // normal end time when executed
       expect(policy.enact).to.have.been.calledOnce
     })
     it('does not allow repeat execution', async () => {

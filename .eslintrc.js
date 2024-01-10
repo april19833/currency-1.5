@@ -51,7 +51,6 @@ module.exports = {
     camelcase: 0,
   },
   globals: {
-    BigInt: 'readonly',
     ethers: 'readonly',
   },
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../governance/monetary/CurrencyGovernance.sol";
 import "../governance/monetary/MonetaryPolicyAdapter.sol";
+import "../utils/TimeUtils.sol";
 
 /**
  * @title StageTestCurrencyGovernance
@@ -13,7 +14,8 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
         CurrencyGovernance(
             Policy(address(0x11)),
             MonetaryPolicyAdapter(address(0x13)),
-            1
+            1,
+            getTime()
         )
     {}
 
