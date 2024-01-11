@@ -59,7 +59,7 @@ interface IECO is IERC20 {
      */
     function reenableDelegating() external;
 
-    /** 
+    /**
      * Returns true if the address has no amount of their balance delegated, otherwise false
      * @param account the address whose delegation status is being checked
      */
@@ -70,7 +70,9 @@ interface IECO is IERC20 {
      * The primary delegate is the one that is delegated any new funds the address recieves
      * @param account the address whose primary delegate is being fetched
      */
-     function getPrimaryDelegate(address account) external view returns (address);
+    function getPrimaryDelegate(
+        address account
+    ) external view returns (address);
 
     /**
      * Delegates all votes from the sender to `delegatee`
@@ -91,7 +93,14 @@ interface IECO is IERC20 {
      * @param r signature value
      * @param s signature value
      */
-    function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;
+    function delegateBySig(
+        address delegator,
+        address delegatee,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
 
     /**
      * Delegate an `amount` of votes from the sender to `delegatee`
@@ -117,11 +126,14 @@ interface IECO is IERC20 {
      * @param delegatee the address being undelegated to
      * @param amount the amount of tokens being undelegated
      */
-    function undelegateAmountFromAddress(address delegatee, uint256 amount) external;
+    function undelegateAmountFromAddress(
+        address delegatee,
+        uint256 amount
+    ) external;
 
     /**
      * See {IERC20-balanceOf}.
      * @param account the address whose vote balance is being checked
      */
-    function voteBalanceOf(address account) external view returns (uint256)
+    function voteBalanceOf(address account) external view returns (uint256);
 }
