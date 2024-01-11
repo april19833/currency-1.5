@@ -2325,6 +2325,8 @@ describe('CurrencyGovernance', () => {
     let votes2: Vote[]
 
     beforeEach(async () => {
+      await time.increaseTo(await CurrencyGovernance.governanceStartTime())
+
       await CurrencyGovernance.connect(charlie).propose(
         targets,
         functions,
