@@ -35,4 +35,31 @@ interface IECO is IERC20 {
      * Returns the total supply for the current snapshot
      */
     function totalSupplySnapshot() external view returns (uint256);
+
+    /**
+     * Enables voting with your ECO balance, but will transaction cost
+     */
+    function enableVoting() external;
+
+    /**
+     * Allows others to delegate voting power to you
+     * Disallows you from delegating your voting power to others
+     */
+    function enableDelegationTo() external;
+
+    /**
+     * Disallows others from delegating to you
+     * Does not change your ability to delegate to others
+     */
+    function disableDelegationTo() external;
+
+    /**
+     * Allows others to delegate to you
+     * Disallows you from delegating to others
+     */
+    function reenableDelegating() external;
+
+    
+
+    
 }
