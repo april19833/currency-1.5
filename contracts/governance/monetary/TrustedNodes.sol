@@ -14,7 +14,7 @@ import "./CurrencyGovernance.sol";
  *
  */
 contract TrustedNodes is Policed, TimeUtils {
-    uint256 public constant GENERATION_TIME = 14 days;
+    uint256 public constant GENERATION_TIME = 28 minutes;
 
     uint256 public immutable termStart;
 
