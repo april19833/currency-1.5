@@ -45,7 +45,7 @@ const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
 const DEFAULT_VOTE_REWARD = 1000
 const DEFAULT_LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-const buildTime = new Date().toString()
+const buildTime = Date.now()
 const outputStem = path.join(__dirname, `deployments`)
 const outputFolder = `${outputStem}/${buildTime}`
 
