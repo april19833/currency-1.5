@@ -303,7 +303,7 @@ describe('ECO', () => {
       )
     })
     it('cant mint or burn or transfer if pause is successful', async () => {
-      // can do all that shit before
+      // can do all this stuff before
       await ECOproxy.connect(bob).mint(alice.address, 1)
       expect(await ECOproxy.balanceOf(alice.address)).to.eq(1)
       await ECOproxy.connect(alice).transfer(bob.address, 1)
@@ -360,7 +360,7 @@ describe('ECO', () => {
         'Unpaused'
       )
 
-      // can do all that shit again
+      // can do all this stuff again
       await ECOproxy.connect(bob).mint(alice.address, 1)
       expect(await ECOproxy.balanceOf(alice.address)).to.eq(1)
       await ECOproxy.connect(alice).transfer(bob.address, 1)
