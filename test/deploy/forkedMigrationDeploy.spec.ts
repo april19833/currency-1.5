@@ -495,6 +495,9 @@ describe('Mainnet fork migration tests', () => {
         )
         expect(tx.gasCost).to.eq(380000)
 
+        expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
+          contracts.monetary.monetaryGovernance.address
+        )
         expect(
           await contracts.monetary.monetaryGovernance.trustedNodes()
         ).to.eq(contracts.monetary.trustedNodes.address)
