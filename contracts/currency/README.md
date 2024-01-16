@@ -59,7 +59,7 @@ Other than the `permit` functionality that will be detailed in its associated co
 
 ### [ERC20Pausable](../../docs/solidity/currency/ERC20Pausable.md)
 
-- Inherits: `ERC20`, `Pausable`
+- Inherits: [ERC20](../../docs/solidity/currency/ERC20.md), `Pausable`
 
 Using the openzeppelin library for tracking the pause, this contract sets up a `pauser` and a `roleAdmin` to be in charge of the circuit breaker. The `pauser` is the address that is able to pause the system (stopping transfers) and the `roleAdmin` is the address which can change the `pauser`. In Eco's system, the root policy contract is the `roleAdmin` as this allows the `pauser` to be changed by [Community Governance](../governance/community/README.md).
 
@@ -71,25 +71,25 @@ Implements a standard usage of EIP721 (read more [here](https://eips.ethereum.or
 
 ### [VoteCheckpoints](../../docs/solidity/currency/VoteCheckpoints.md)
 
-- Inherits: `ERC20Pausable`, `DelegatePermit`
+- Inherits: [ERC20Pausable](../../docs/solidity/currency/ERC20Pausable.md), [DelegatePermit](../../docs/solidity/currency/DelegatePermit.md)
 
 The `VoteCheckpoints` contract adds the tracking for voting in the Eco governance system. Here, the system of delegating voting power and checkpointing balances for that voting power is implemented. This contract sits before the linear inflation layer ([InflationCheckpoints](./README.md#inflationcheckpoints)), so all the values it stores, emits, and takes as inputs are in the base (unchanging) values stored in the ERC20 layer. This will require contracts interfacing with this layer to use the inflation multiplyer.
 
 ### [ERC20MintAndBurn](../../docs/solidity/currency/ERC20MintAndBurn.md)
 
-- Inherits: `PolicedUpgradeable`, `ERC20Pausable`
+- Inherits: [PolicedUpgradeable](../../docs/solidity/policy/PolicedUpgradeable.md), [ERC20Pausable](../../docs/solidity/currency/ERC20Pausable.md)
 
 An ERC20 token interface for ECOx
 
 ### [TotalSupplySnapshots](../../docs/solidity/currency/TotalSupplySnapshots.md)
 
-- Inherits: `ERC20MintAndBurn`
+- Inherits: [ERC20MintAndBurn](../../docs/solidity/currency/ERC20MintAndBurn.md)
 
 This extension maintains a snapshot the total supply which updates on mint or burn after a new snapshot is taken.
 
 ### [ERC20Delegated](../../docs/solidity/currency/ERC20Delegated.md)
 
-- Inherits: `ERC20Pausable`, `DelegatePermit`, `TotalSupplySnapshots`
+- Inherits: [ERC20Pausable](../../docs/solidity/currency/ERC20Pausable.md), [DelegatePermit](../../docs/solidity/currency/DelegatePermit.md), [TotalSupplySnapshots](../../docs/solidity/currency/TotalSupplySnapshots.md)
 
 This contract tracks delegations of an ERC20 token by tokenizing the delegations. It assumes a companion token that is transferred to denote changes in votes brought on by both transfers (via \_afterTokenTransfer hooks) and delegations.
 
@@ -101,31 +101,31 @@ Delegates need to disable their own ability to delegate to enable others to dele
 
 ### [VoteSnapshots](../../docs/solidity/currency/VoteSnapshots.md)
 
-- Inherits: `ERC20Delegated`
+- Inherits: [ERC20Delegated](../../docs/solidity/currency/ERC20Delegated.md)
 
 The `VoteSnapshots` extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken. Only addresses that have opted into voting are snapshotted.
 
 ### [InflationSnapshots](../../docs/solidity/currency/InflationSnapshots.md)
 
-- Inherits: `VoteSnapshots`
+- Inherits: [VoteSnapshots](../../docs/solidity/currency/VoteSnapshots.md)
 
 This contract implements a scaling inflation multiplier on all balances and votes. Changing this value (via implementing \_rebase)
 
 ### [ECO](../../docs/solidity/currency/ECO.md)
 
-- Inherits: `InflationSnapshots`, `CurrencyGovernance`
+- Inherits: [InflationSnapshots](../../docs/solidity/currency/InflationSnapshots.md), [CurrencyGovernance](../../docs/solidity/governance/monetary/CurrencyGovernance.md)
 
 The `ECO` contract manages the function of the primary token, ECO. Its constructor sets the `name` and `symbol` values for `ERC20` both to "ECO". On creation it mints an initial supply to a distributor contract, both set in the constructor. See [TokenInit](./README.md#tokeninit) for more details on the distribution. The rest of the functionality is permissioning `mint` and `burn` as well as recieving the inflation multiplier each generation.
 
 ### [ECOx](../../docs/solidity/currency/ECOx.md)
 
-- Inherits: `IECO`, `TotalSupplySnapshots`
+- Inherits: [IECO](../../docs/solidity/currency/IECO.md), [TotalSupplySnapshots](../../docs/solidity/currency/TotalSupplySnapshots.md)
 
 The `ECOx` contract inherits `TotalSupplySnapshots` which has as a baseline `ERC20Pausable` without minting or burning (outside of proposals). Finally, much like ECO, the ECOx contract mints its initial supply to a distributor on construction, see [TokenInit](./README.md#tokeninit) for more details.
 
 ### [ECOxExchange](../../docs/solidity/currency/ECOxExchange.md)
 
-- Inherits: `ECO`, `Policied`, `ECOx`
+- Inherits: [ECO](../../docs/solidity/currency/ECO.md), [Policied](../../docs/solidity/policy/Policed.md), [ECOx](../../docs/solidity/currency/ECOx.md)
 
 Provides the ability to exchange ECOx for ECO tokens in a percentage way. The ECOx token exists for this function alone so as to provide a market for the future of the ECO token.
 
