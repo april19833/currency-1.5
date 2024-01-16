@@ -201,6 +201,20 @@ contract MigrationLinker is Policy, Proposal {
         Rebase(rebase).setAuthorized(address(monetaryPolicyAdapter), true);
         Rebase(rebase).setNotifier(rebaseNotifier);
 
+        // add uniswap pool sync() call to rebase notifier
+        Notifier(rebaseNotifier).addTransaction(
+            0x09bC52B9EB7387ede639Fc10Ce5Fa01CBCBf2b17, // uniswap eco/usdc pool
+            abi.encodeWithSignature("sync()"), // data for sync call
+            75000 // gas cost is ~73k
+        );
+
+        // add L1EcoBridge rebase(0) call to rebase notifier
+        Notifier(rebaseNotifier).addTransaction(
+            0xAa029BbdC947F5205fBa0F3C11b592420B58f824, // L1EcoBridge address
+            abi.encodeWithSignature("rebase(uint32)", 0), // data for rebase call
+            380000 // gas cost is ~374k
+        );
+
         // link adapter
         monetaryPolicyAdapter.setCurrencyGovernance(currencyGovernance);
 
