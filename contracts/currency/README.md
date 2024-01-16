@@ -53,7 +53,7 @@ For detailed API documentation see [currency](../../docs/solidity/currency/)
 
 ### [ERC20](../../docs/solidity/currency/ERC20.md)
 
-- Inherits: `ERC20Permit`
+- Inherits: [ERC20Permit](../../docs/solidity/currency/ERC20Permit.md)
 
 Other than the `permit` functionality that will be detailed in its associated contract, Eco's implementation of ERC20 differs from the baseline in a few ways. One is that transfers to the zero address are disallowed and the `burn` function must be used instead. The `approve` function disallows approvals to the zero address to make it clear that this is the case. Another difference is that `transferFrom` emits an `Approval` event to denote the fact that the approval amount is changed by its action. Towards clarity and for safety in other use, functions for `decreaseAllowance` and `increaseAllowance` are added. When it comes to return values, functions will revert instead of returning `false`, but will still return `true` on success to remain compatible for integrations that check for success. Finally, the `name` and `symbol` variables are stored as immutable bytes32 and converted to strings by the getter functions.
 
