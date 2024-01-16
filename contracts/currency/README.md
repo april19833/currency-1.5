@@ -63,37 +63,71 @@ Other than the `permit` functionality that will be detailed in its associated co
 
 Using the openzeppelin library for tracking the pause, this contract sets up a `pauser` and a `roleAdmin` to be in charge of the circuit breaker. The `pauser` is the address that is able to pause the system (stopping transfers) and the `roleAdmin` is the address which can change the `pauser`. In Eco's system, the root policy contract is the `roleAdmin` as this allows the `pauser` to be changed by [Community Governance](../governance/community/README.md).
 
-### [VoteCheckpoints](../../docs/solidity/currency/VoteCheckpoints.md)
-
-- Inherits: `ERC20Pausable`, `DelegatePermit`
-
-The `VoteCheckpoints` contract adds the tracking for voting in the Eco governance system. Here, the system of delegating voting power and checkpointing balances for that voting power is implemented. This contract sits before the linear inflation layer ([InflationCheckpoints](./README.md#inflationcheckpoints)), so all the values it stores, emits, and takes as inputs are in the base (unchanging) values stored in the ERC20 layer. This will require contracts interfacing with this layer to use the inflation multiplyer.
-
-### [VoteSnapshots](../../docs/solidity/currency/VoteSnapshots.md)
-
-- Inherits: `DelegatePermit`
-
-The `VoteSnapshots` extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken. Only addresses that have opted into voting are snapshotted.
-
 ### [DelegatePermit](../../docs/solidity/currency/DelegatePermit.md)
 
 - Inherits: `EIP712`
 
 Implements a standard usage of EIP721 (read more [here](https://eips.ethereum.org/EIPS/eip-712)) for the `delegate` function. The typehash `keccak256("Delegate(address delegator,address delegatee,uint256 nonce,uint256 deadline)")` is used and the openzeppelin utility for `Counters` is used for the nonces. Other than allow the checking of nonces for addresses, all functionality of this contract is internal.
 
+### [VoteCheckpoints](../../docs/solidity/currency/VoteCheckpoints.md)
+
+- Inherits: `ERC20Pausable`, `DelegatePermit`
+
+The `VoteCheckpoints` contract adds the tracking for voting in the Eco governance system. Here, the system of delegating voting power and checkpointing balances for that voting power is implemented. This contract sits before the linear inflation layer ([InflationCheckpoints](./README.md#inflationcheckpoints)), so all the values it stores, emits, and takes as inputs are in the base (unchanging) values stored in the ERC20 layer. This will require contracts interfacing with this layer to use the inflation multiplyer.
+
+### [ERC20MintAndBurn](../../docs/solidity/currency/ERC20MintAndBurn.md)
+
+- Inherits: `PolicedUpgradeable`, `ERC20Pausable`
+
+An ERC20 token interface for ECOx
+
+### [TotalSupplySnapshots](../../docs/solidity/currency/TotalSupplySnapshots.md)
+
+- Inherits: `ERC20MintAndBurn`
+
+This extension maintains a snapshot the total supply which updates on mint or burn after a new snapshot is taken.
+
+### [ERC20Delegated](../../docs/solidity/currency/ERC20Delegated.md)
+
+- Inherits: `ERC20Pausable`, `DelegatePermit`, `TotalSupplySnapshots`
+
+This contract tracks delegations of an ERC20 token by tokenizing the delegations. It assumes a companion token that is transferred to denote changes in votes brought on by both transfers (via \_afterTokenTransfer hooks) and delegations.
+
+The secondary token creates allowances whenever it delegates to allow for reclaiming the voting power later
+
+Voting power can be queried through the public accessor {voteBalanceOf}. Vote power can be delegated either by calling the {delegate} function directly, or by providing a signature to be used with {delegateBySig}.
+
+Delegates need to disable their own ability to delegate to enable others to delegate to them. Raw delegations can be done in partial amounts via {delegateAmount}. This is intended for contracts which can run their own internal ledger of delegations and will prevent you from transferring the delegated funds until you undelegate.
+
+### [VoteSnapshots](../../docs/solidity/currency/VoteSnapshots.md)
+
+- Inherits: `ERC20Delegated`
+
+The `VoteSnapshots` extension maintains a snapshot of each addresses's votes which updates on the transfer after a new snapshot is taken. Only addresses that have opted into voting are snapshotted.
+
 ### [InflationSnapshots](../../docs/solidity/currency/InflationSnapshots.md)
+
+- Inherits: `VoteSnapshots`
+
+This contract implements a scaling inflation multiplier on all balances and votes. Changing this value (via implementing \_rebase)
 
 ### [ECO](../../docs/solidity/currency/ECO.md)
 
-- Inherits: `InflationCheckpoints`
+- Inherits: `InflationSnapshots`, `CurrencyGovernance`
 
 The `ECO` contract manages the function of the primary token, ECO. Its constructor sets the `name` and `symbol` values for `ERC20` both to "ECO". On creation it mints an initial supply to a distributor contract, both set in the constructor. See [TokenInit](./README.md#tokeninit) for more details on the distribution. The rest of the functionality is permissioning `mint` and `burn` as well as recieving the inflation multiplier each generation.
 
 ### [ECOx](../../docs/solidity/currency/ECOx.md)
 
-- Inherits: `ERC20Pausable`, `PolicedUtils`
+- Inherits: `IECO`, `TotalSupplySnapshots`
 
-The `ECOx` contract is a baseline `ERC20Pausable` without minting or burning (outside of proposals) with the added ability to exchanged ECOx for ECO tokens in a percentage way. The ECOx token exists for this function alone so as to provide a market for the future of the ECO token. Finally, much like ECO, the ECOx contract mints its initial supply to a distributor on construction, see [TokenInit](./README.md#tokeninit) for more details.
+The `ECOx` contract inherits `TotalSupplySnapshots` which has as a baseline `ERC20Pausable` without minting or burning (outside of proposals). Finally, much like ECO, the ECOx contract mints its initial supply to a distributor on construction, see [TokenInit](./README.md#tokeninit) for more details.
+
+### [ECOxExchange](../../docs/solidity/currency/ECOxExchange.md)
+
+- Inherits: `ECO`, `Policied`, `ECOx`
+
+Provides the ability to exchange ECOx for ECO tokens in a percentage way. The ECOx token exists for this function alone so as to provide a market for the future of the ECO token.
 
 ## Contributing
 
