@@ -1,5 +1,10 @@
 import { ethers } from 'hardhat'
-import { Fixture, deployBaseUnproxied, deployCommunity, deployMonetary } from './standalone.fixture'
+import {
+  Fixture,
+  deployBaseUnproxied,
+  deployCommunity,
+  deployMonetary,
+} from './standalone.fixture'
 import { ECO, ECOx } from '../typechain-types/contracts/currency'
 import { Policy } from '../typechain-types/contracts/policy'
 import { ECOxStaking } from '../typechain-types/contracts/governance/community'
@@ -46,7 +51,9 @@ async function main() {
   baseContracts.policy = { address: policyProxyAddress } as unknown as Policy
   baseContracts.eco = { address: ecoProxyAddress } as unknown as ECO
   baseContracts.ecox = { address: ecoxProxyAddress } as unknown as ECOx
-  baseContracts.ecoXStaking = { address: ecoXStakingProxyAddress } as unknown as ECOxStaking
+  baseContracts.ecoXStaking = {
+    address: ecoXStakingProxyAddress,
+  } as unknown as ECOxStaking
 
   const monetaryGovernanceContracts = await deployMonetary(
     wallet,
@@ -64,7 +71,11 @@ async function main() {
     config
   )
 
-  const contracts = new Fixture(baseContracts, monetaryGovernanceContracts, communityGovernanceContracts)
+  const contracts = new Fixture(
+    baseContracts,
+    monetaryGovernanceContracts,
+    communityGovernanceContracts
+  )
   const fixtureAddresses = contracts.toAddresses()
 
   console.log('deploying linker')
@@ -92,14 +103,14 @@ async function main() {
     inflationMultiplierUpdatingTarget.address,
   ]
 
-  const proposal = (await deploy(
+  const proposal = await deploy(
     wallet,
     MigrationLinker__factory,
     proposalParams
-  ))
+  )
 
   fixtureAddresses.lockupsLever = 'THERE IS NO LOCKUPS LEVER' // ensuring no confusion
-  
+
   console.log('contracts')
   console.log(JSON.stringify(fixtureAddresses, null, 2))
   console.log('base contract implementations')

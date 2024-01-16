@@ -128,6 +128,11 @@ The primary delegate is the one that is delegated any new funds the address reci
 ```solidity
 function getPrimaryDelegate(address account) public view virtual returns (address)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address whose primary delegate is being fetched |
 
 ### _setPrimaryDelegate
 
@@ -146,6 +151,11 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
 ```solidity
 function delegate(address delegatee) public
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | the address being delegated to |
 
 ### delegateBySig
 
@@ -156,6 +166,16 @@ It will revert with "ERC20Delegated: must have an undelegated amount available t
 ```solidity
 function delegateBySig(address delegator, address delegatee, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegator | address | the address delegating votes |
+| delegatee | address | the address being delegated to |
+| deadline | uint256 | the time at which the signature expires |
+| v | uint8 | signature value |
+| r | bytes32 | signature value |
+| s | bytes32 | signature value |
 
 ### delegateAmount
 
@@ -199,6 +219,11 @@ Useful for allowing yourself to call reenableDelegating after calling disableDel
 ```solidity
 function revokeDelegation(address delegator) public
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegator | address | the address whose delegation is being revoked |
 
 ### _undelegateFromAddress
 
@@ -215,6 +240,12 @@ Undelegate a specific amount of votes from the `delegatee` back to the sender.
 ```solidity
 function undelegateAmountFromAddress(address delegatee, uint256 amount) public
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| delegatee | address | the address being undelegated to |
+| amount | uint256 | the amount of tokens being undelegated |
 
 ### _undelegate
 
@@ -239,6 +270,11 @@ See {IERC20-balanceOf}.
 ```solidity
 function voteBalanceOf(address account) public view virtual returns (uint256)
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| account | address | the address whose vote balance is being checked |
 
 ### voteTransfer
 

@@ -139,6 +139,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     /**
      * Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
      * The primary delegate is the one that is delegated any new funds the address recieves.
+     * @param account the address whose primary delegate is being fetched
      */
     function getPrimaryDelegate(
         address account
@@ -166,6 +167,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
      * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
+     * @param delegatee the address being delegated to
      */
     function delegate(address delegatee) public {
         require(
@@ -191,6 +193,12 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
      * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
+     * @param delegator the address delegating votes
+     * @param delegatee the address being delegated to
+     * @param deadline the time at which the signature expires
+     * @param v signature value
+     * @param r signature value
+     * @param s signature value
      */
     function delegateBySig(
         address delegator,
@@ -293,6 +301,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     /**
      * A primary delegated individual can revoke delegations of unwanted delegators
      * Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
+     * @param delegator the address whose delegation is being revoked
      */
     function revokeDelegation(address delegator) public {
         address _primaryDelegate = getPrimaryDelegate(delegator);
@@ -319,6 +328,8 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
 
     /**
      * Undelegate a specific amount of votes from the `delegatee` back to the sender.
+     * @param delegatee the address being undelegated to
+     * @param amount the amount of tokens being undelegated
      */
     function undelegateAmountFromAddress(
         address delegatee,
@@ -412,6 +423,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
 
     /**
      * See {IERC20-balanceOf}.
+     * @param account the address whose vote balance is being checked
      */
     function voteBalanceOf(
         address account
