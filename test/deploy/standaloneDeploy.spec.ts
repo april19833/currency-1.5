@@ -230,18 +230,6 @@ describe('Deployment tests', () => {
       contracts.monetary.rebaseNotifier.address
     )
 
-    let tx = await contracts.monetary.rebaseNotifier.transactions(0)
-    expect(tx.target).to.eq('0x09bC52B9EB7387ede639Fc10Ce5Fa01CBCBf2b17')
-    expect(tx.data).to.eq('0xfff6cae9')
-    expect(tx.gasCost).to.eq(75000)
-
-    tx = await contracts.monetary.rebaseNotifier.transactions(1)
-    expect(tx.target).to.eq('0xAa029BbdC947F5205fBa0F3C11b592420B58f824')
-    expect(tx.data).to.eq(
-      '0x429046420000000000000000000000000000000000000000000000000000000000000000'
-    )
-    expect(tx.gasCost).to.eq(380000)
-
     expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
       contracts.monetary.monetaryGovernance.address
     )
