@@ -31,7 +31,7 @@ abstract contract VoteSnapshots is ERC20Delegated {
      * Retrieve the balance for the snapshot
      *
      * @param account the address to check vote balances for
-     * @return balance the balance for the snapshot
+     * @return balance the balance for the acccount for the snapshot
      */
     function voteBalanceSnapshot(
         address account

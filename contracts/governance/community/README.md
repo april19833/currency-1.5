@@ -2,7 +2,7 @@
 
 > Community governance policies for the Eco currency.
 
-These contracts provide the community governance system for the Eco currency. They specifically address voting open to all token holders for code upgrades to the contract system. Upgrades are managed in terms of proposals, some templates of which are included as .propo.sol files, which are voted on and may be executed across the span of a generation.
+These contracts provide the community governance system for the Eco currency. They specifically address voting open to all token holders for code upgrades to the contract system. Upgrades are managed in terms of proposals which are voted on and may be executed across the span of a generation.
 
 ## Table of Contents
 
@@ -10,7 +10,7 @@ These contracts provide the community governance system for the Eco currency. Th
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
-- [API](#api)
+- [Contract Overivew](#contract-overview)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -20,7 +20,9 @@ The security of community governance is built off of the network effect of requi
 
 ## Background
 
-The process of the Community Governance vote is set to the global Generation Cycle of 14 days. During the first phase (up to 9 days and 16 hours), Proposals can be submitted and users may perform a signal vote for each one. If any proposal succeeds the signal vote threshold, the initial phase ends and a voting phase immediately starts (lasting 3 days). After the voting phase is finished, there is a delay period of 1 day before enaction (if the proposal passed). This all completes once within the course of a generation and is restarted when the generation increments.
+The process of the Community Governance vote is set to the global Generation Cycle of 14 days. During the first phase (up to 9 days), Proposals can be submitted and users may perform a signal vote for each one. If any proposal succeeds the signal vote threshold, the initial phase ends and a voting phase immediately starts (lasting 3 days). After the voting phase is finished, there is a delay period of 1 day before enaction (if the proposal passed). There is an execution period which lasts until the end of the cycle + 1 day. If at any time during this period, the proposal is executed then the cycle is marked as done and the end time is changed back to the cycle end time. This means if the proposal is executed after the end of when the cycle would normally end, the proposing can start immediately.
+
+_Note: the new cycle start time and end time is always calculated off of the start of the previous cycle._
 
 ## Install
 
@@ -28,385 +30,755 @@ See the [main README](../../../README.md) for installation instructions.
 
 ## Usage
 
-The `PolicyProposals` and `PolicyVotes` contracts handle the vote process. `PolicyProposals` is cloned each generation by the [TimedPolicies](../README.md#timedpolicies) contract and clones the `PolicyVotes` contract when the process moves to a vote. Voting ability calculation is implemented in the `VotingPower` contract. Ability to vote with ECOx is managed by the `ECOxStaking` contract. Sample proposals all follow the format of the `Proposal` contract and will not be discussed individually.
+The [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) contract handle the vote process.
 
-## API
+`PolicyProposals` is cloned each generation by the [TimedPolicies](../README.md#timedpolicies) contract and clones the `PolicyVotes` contract when the process moves to a vote.
+
+Voting ability calculation is implemented in the `VotingPower` contract. Ability to vote with ECOx is managed by the `ECOxStaking` contract. Sample proposals all follow the format of the `Proposal` contract and will not be discussed individually.
+
+## Contract Overview
 
 For detailed API documentation see [community](../../../docs/solidity/governance/community/)
 
 ### [VotingPower](../../../docs/solidity/governance/community/VotingPower.md)
 
-- Inherits: `PolicedUtils`
+- Inherits: [Policied](../../../docs/solidity/policy/Policed.md),[ECO](../../../docs/solidity/currency/ECO.md), [ECOx](../../../docs/solidity/currency/ECOx.md), [ECOxStaking](../../../docs/solidity/governance/community/ECOxStaking.md)
 
-This contract is for `PolicyProposals` and `PolicyVotes` to inherit the functionality for computing voting power for any address. The voting power calculation combines the amount of ECO in the last checkpoint before the voting process starts with the same checkpoint for qualified amounts of ECOx. Each wei of ECO has 1 voting power, and each wei ECOx has 10 voting power. These voting weights presume the initial supply of ECO is ten times bigger than the initial supply of ECOx -- meaning that at genesis, ECO and ECOx have equal contributions to total voting power. See the [currency](../../currency/README.md#votecheckpoints) documentation for more explanation about the checkpointing system and see [ECOxStaking](./README.md#ecoxstaking) in this readme to see what qualifies ECOx for voting.
-
-#### votingPower
-
-Arguments:
-
-- `_who` (address) - the address's voting power to compute
-- `_blockNumber` (uint256) - the block number at which to compute the voting power.
-
-Queries `ECO` for the addresses's voting total at `_blockNumber` and similarly for `ECOxStaking`. Combines them both and returns.
-
-##### Security Notes
-
-- Will revert on each lower level call if `_blockNumber` is in the future.
+This contract is for [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) to inherit the functionality for computing voting power for any address. The voting power calculation combines the amount of ECO in the last checkpoint before the voting process starts with the same checkpoint for qualified amounts of ECOx. Each wei of ECO has 1 voting power, and each wei ECOx has 10 voting power. These voting weights presume the initial supply of ECO is ten times bigger than the initial supply of ECOx -- meaning that at genesis, ECO and ECOx have equal contributions to total voting power. See the [currency](../../currency/README.md#votecheckpoints) documentation for more explanation about the checkpointing system and see [ECOxStaking](./README.md#ecoxstaking) in this readme to see what qualifies ECOx for voting.
 
 #### totalVotingPower
 
-Arguments:
+Calculates the total Voting Power by getting the total supply of ECO
+and adding total ECOX (multiplied by 10) and subtracting the excluded Voting Power
 
-- `_blockNumber` (uint256) - the block number at which to compute the voting power.
+```solidity
+function totalVotingPower() public view returns (uint256 total)
+```
 
-This combines the snapshotted token supply of ECOx that is provided to the child contracts on `configure` with the excluded tokens that are minted during generation update and the total supply of ECO at `_blockNumber`.
+##### Return Values
 
-### PolicyProposals
+| Name  | Type    | Description            |
+| ----- | ------- | ---------------------- |
+| total | uint256 | the total Voting Power |
 
-- Inherits: `VotingPower`, `TimeUtils`
+#### votingPower
 
-This contract controls the first half of the policy voting process where users submit and signal vote for proposed changes to the codebase. Proposals are submitted at anytime during a generation, for a fee, and are then open for public review. Proposals that are changing parts of the governance system will likely have to have updated versions of the contracts to be changed as secondary contracts. The `Proposal` abstract contract template gives accessor functions to `name`, `description`, and `url` properties to give the proposer venue to explain everything the proposal entails.
+Calculates the voting power for an address at the Snapshot Block
 
-Once a proposal is submitted, addresses can `support` (see function below) the proposal with their voting power (see `VotingPower`). If any proposal is supported by 30% or more of the total available voting power, a vote for that proposal is triggered. Supporting is halted and a `PolicyVotes` contract is cloned and given the information about the proposal that achieved support to be voted on. Any other proposal must be submitted again during the next generation, but its submitter is able to recoup some of the fee.
+```solidity
+function votingPower(address _who) public view returns (uint256 total)
+```
+
+##### Parameters
+
+| Name  | Type    | Description                                   |
+| ----- | ------- | --------------------------------------------- |
+| \_who | address | the address to calculate the voting power for |
+
+##### Return Values
+
+| Name  | Type    | Description                                                  |
+| ----- | ------- | ------------------------------------------------------------ |
+| total | uint256 | the total vorting power for an address at the Snapshot Block |
+
+### ECOxStaking
+
+- Inherits: `IERC20`, [VoteCheckpoints](../../../docs/solidity/currency/VoteCheckpoints.md), [ECOx](../../../docs/solidity/currency/ECOx.md), [PolicedUpgradeable](../../../docs/solidity/policy/PolicedUpgradeable.md)
+
+This contract is used to stake ECOx for the sake of voting with it in community governance. The quantity of EcoX locked up is the amount added to the individual's voting power. A [checkpointing system](../../currency/README.md#votecheckpoints) with delegation is used that is identical to the `ECO` contract. The stored ECOx (sECOx) cannot be transferred.
+
+#### Errors
+
+##### NoZeroECOx
+
+error for if the constructor tries to set the ECOx address to zero
+
+```solidity
+error NoZeroECOx()
+```
+
+##### NonTransferrable
+
+error for if any transfer function is attempted to be used
+
+```solidity
+error NonTransferrable()
+```
 
 #### Events
 
-##### Register
+##### Deposit
 
-Attributes:
+The Deposit event indicates that ECOx has been locked up, credited
+to a particular address in a particular amount.
 
-- `proposer` (address) - the address submitting the proposal
-- `proposalAddress` (address) - the address of the submitted proposal
+```solidity
+event Deposit(address source, uint256 amount)
+```
 
-Emitted on successful submission of a new proposal.
+###### Parameters
 
-##### Support
+| Name   | Type    | Description                                                |
+| ------ | ------- | ---------------------------------------------------------- |
+| source | address | The address that a deposit certificate has been issued to. |
+| amount | uint256 | The amount of ECOx tokens deposited.                       |
 
-Attributes:
+##### Withdrawal
 
-- `supporter` (address) - the address that supported the proposal
-- `proposalAddress` (address) - the address of the proposal being supported
+The Withdrawal event indicates that a withdrawal has been made to a particular
+address in a particular amount.
 
-Emitted when `support` is successfully called. Helps external systems keep tabs on the supporting process.
+```solidity
+event Withdrawal(address destination, uint256 amount)
+```
 
-##### Unsupport
+###### Parameters
 
-Attributes:
+| Name        | Type    | Description                                                          |
+| ----------- | ------- | -------------------------------------------------------------------- |
+| destination | address | The address that has made a withdrawal.                              |
+| amount      | uint256 | The amount in basic unit of 10^{-18} ECOx (weicoX) tokens withdrawn. |
 
-- `unsupporter` (address) - the address that supported the proposal
-- `proposalAddress` (address) - the address of the proposal being supported
+#### Functions
 
-Emitted when `unsupport` is successfully called. Helps external systems keep tabs on the supporting process.
+##### deposit
 
-#### SupportThresholdReached
+deposit transfers ECOx to the contract and mints sECOx to the source of the transfer determined by `msg.sender`.
 
-Attributes:
+```solidity
+function deposit(uint256 _amount) external
+```
 
-- `proposalAddress` (address) - the address of the proposal that reached the threshold
+###### Parameters
 
-Emitted when a proposal crosses the support threshold and is ready to be voted on. Indicates that `deployProposalVoting` can and should now be called.
+| Name     | Type    | Description                   |
+| -------- | ------- | ----------------------------- |
+| \_amount | uint256 | the amount of ECOx to deposit |
 
-##### VoteStart
+##### withdraw
 
-Attributes:
+withdraw burns the senders sECOx and transfers ECOx to the source of the transfer determined by `msg.sender`.
 
-- `contractAddress` (address) - the address of the `PolicyVotes` contract, overseeing the vote.
+```solidity
+function withdraw(uint256 _amount) external
+```
 
-Emitted once a proposal has reached sufficient support and voting has been started.
+###### Parameters
 
-##### ProposalRefund
+| Name     | Type    | Description                    |
+| -------- | ------- | ------------------------------ |
+| \_amount | uint256 | the amount of ECOx to withdraw |
 
-Attributes:
+##### votingECOx
 
-- `proposer` (address) - the address of the proposal's initial submitter
-- `proposalAddress` (address) - the address of the proposal that was refunded
+Gets the past votes for a voter at a specific block
 
-Emitted when an unsuccessful proposer recieves their fee refund.
+```solidity
+function votingECOx(address _voter, uint256 _blockNumber) external view returns (uint256 pastVotes)
+```
 
-#### registerProposal
+###### Parameters
 
-Arguments:
+| Name          | Type    | Description                                 |
+| ------------- | ------- | ------------------------------------------- |
+| \_voter       | address | the address of the voter                    |
+| \_blockNumber | uint256 | the block number to retrieve the votes from |
 
-- `_prop` (address) - the address of the proposal contract
+###### Return Values
 
-Register a new proposal for community review. Registration is necessary but does not guarantee a vote for its implementation. The proposal is stored in `proposals` which is an array of all submissions as well as `allProposals` which stores the proposal addresses. A `Register` event is emitted.
+| Name      | Type    | Description                        |
+| --------- | ------- | ---------------------------------- |
+| pastVotes | uint256 | the past votes at the block number |
 
-Registering a proposal requires a deposit of 1000 ECO (`COST_REGISTER`), which is transferred from the caller's balance to this contract. An allowance for this transfer must be made before calling. If the proposal does not get voted on then the caller will be entitled to claim a refund of 800 ECO (`REFUND_IF_LOST`). If the [Circuit Breaker](../../currency/README.md#erc20pausable) is enacted, this registration fee is waived as transfers cannot be made. This will confuse the `refund` function, but that is deprioritized in the case of a circuit breaker emergency.
+##### totalVotingECOx
 
-##### Security Notes
+Gets the total supply at a specific block number
+
+```solidity
+function totalVotingECOx(uint256 _blockNumber) external view returns (uint256 totalSupply)
+```
+
+###### Parameters
+
+| Name          | Type    | Description                    |
+| ------------- | ------- | ------------------------------ |
+| \_blockNumber | uint256 | the block to get the votes for |
+
+###### Return Values
+
+| Name        | Type    | Description                          |
+| ----------- | ------- | ------------------------------------ |
+| totalSupply | uint256 | the total supply at the block number |
+
+##### transfer
+
+transfers are disabled and revert with a NonTransferrable error
+
+```solidity
+function transfer(address, uint256) public pure returns (bool)
+```
+
+##### transferFrom
+
+transferFroms are disabled and revert with a NonTransferrable error
+
+```solidity
+function transferFrom(address, address, uint256) public pure returns (bool)
+```
+
+### [Proposal](../../../docs/solidity/governance/community/proposals/Proposal.md)
+
+Interface specification for proposals. Any proposal submitted in the policy decision process must implement this interface.
+
+#### Functions
+
+##### name
+
+The name of the proposal.
+
+This should be relatively unique and descriptive.
+
+```solidity
+function name() external view returns (string name)
+```
+
+###### Return Values
+
+| Name | Type   | Description              |
+| ---- | ------ | ------------------------ |
+| name | string | The name of the proposal |
+
+##### description
+
+A longer description of what this proposal achieves.
+
+```solidity
+function description() external view returns (string description)
+```
+
+###### Return Values
+
+| Name        | Type   | Description                                          |
+| ----------- | ------ | ---------------------------------------------------- |
+| description | string | A longer description of what this proposal achieves. |
+
+##### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
+
+```solidity
+function url() external view returns (string url)
+```
+
+###### Return Values
+
+| Name | Type   | Description                                                          |
+| ---- | ------ | -------------------------------------------------------------------- |
+| url  | string | A URL where voters can go to see the case in favour of this proposal |
+
+##### enacted
+
+Called to enact the proposal.
+
+This will be called from the root policy contract using delegatecall,
+with the direct proposal address passed in as \_self so that storage
+data can be accessed if needed.
+
+```solidity
+function enacted(address _self) external
+```
+
+###### Parameters
+
+| Name   | Type    | Description                           |
+| ------ | ------- | ------------------------------------- |
+| \_self | address | The address of the proposal contract. |
+
+### [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md)
+
+- Inherits: `Pausable`, [VotingPower](../../../docs/solidity/governance/community/VotingPower.md), [ECOxStaking](../../../docs/solidity/governance/community/ECOxStaking.md), [Proposal](../../../docs/solidity/governance/community/proposals/Proposal.md)
+
+CommunityGovernance manages the stages, proposals, and voting of the community governance contract.
+
+- This removes the need for cloning and rebinding that happen each generation and during the generation increment. Instead, all the state is managed in the CommunityGovernance contract, which contains an enum of the stages possible and rules for changing between stages.
+- CommunityGovernance timings are flexible.
+  - Removing the monotonic generation timer means that incrementing the generation doesn’t necessarily need to happen on a specific cadence. The voting cycle can automatically renew each time a proposal passes.
+- Addition of getter/setter functions where necessary
+  - Permission based authorization functionality will need to be implemented in each relevant contract.
+
+#### Errors
+
+##### OnlyPauser
+
+thrown when non-pauser tries to call pause without permission
+
+```solidity
+error OnlyPauser()
+```
+
+##### WrongStage
+
+thrown when a call is made during the wrong stage of Community Governance
+
+```solidity
+error WrongStage()
+```
+
+##### DuplicateProposal
+
+thrown when a proposal that already exists is proposed again
+
+```solidity
+error DuplicateProposal()
+```
+
+##### OldProposalSupport
+
+thrown when there is an attempt to support a proposal submitted in a non-current cycle
+
+```solidity
+error OldProposalSupport()
+```
+
+##### ArrayLengthMismatch
+
+thrown when related argument arrays have differing lengths
+
+```solidity
+error ArrayLengthMismatch()
+```
+
+##### BadVotingPower
+
+thrown when the voting power of a support or vote action is invalid
+
+```solidity
+error BadVotingPower()
+```
+
+##### NoSupportToRevoke
+
+thrown when unsupport is called without the caller having supported the proposal
+
+```solidity
+error NoSupportToRevoke()
+```
+
+##### BadVoteType
+
+thrown when vote is called with a vote type other than enact, reject, abstain
+
+```solidity
+error BadVoteType()
+```
+
+##### NoRefundAvailable
+
+thrown when refund is called on a proposal for which no refund is available
+
+```solidity
+error NoRefundAvailable(address proposal)
+```
+
+###### Parameters
+
+| Name     | Type    | Description                             |
+| -------- | ------- | --------------------------------------- |
+| proposal | address | the proposal whose refund was attempted |
+
+##### NoRefundDuringCycle
+
+thrown when refund is called on a proposal that was submitted in the current cycle
+
+```solidity
+error NoRefundDuringCycle(address proposal)
+```
+
+###### Parameters
+
+| Name     | Type    | Description                             |
+| -------- | ------- | --------------------------------------- |
+| proposal | address | the proposal whose refund was attempted |
+
+#### Events
+
+##### PauserAssignment
+
+event indicating the pauser was updated
+
+```solidity
+event PauserAssignment(address pauser)
+```
+
+###### Parameters
+
+| Name   | Type    | Description    |
+| ------ | ------- | -------------- |
+| pauser | address | The new pauser |
+
+##### StageUpdated
+
+event indicating a change in the community governance stage
+
+```solidity
+event StageUpdated(enum CommunityGovernance.Stage stage)
+```
+
+###### Parameters
+
+| Name  | Type                           | Description   |
+| ----- | ------------------------------ | ------------- |
+| stage | enum CommunityGovernance.Stage | the new stage |
+
+##### ProposalRegistration
+
+An event indicating a proposal has been registered
+
+```solidity
+event ProposalRegistration(address proposer, contract Proposal proposal)
+```
+
+###### Parameters
+
+| Name     | Type              | Description                                                  |
+| -------- | ----------------- | ------------------------------------------------------------ |
+| proposer | address           | The address that submitted the proposal                      |
+| proposal | contract Proposal | The address of the proposal contract instance that was added |
+
+##### SupportChanged
+
+An event indicating a change in support for a proposal
+
+```solidity
+event SupportChanged(address supporter, contract Proposal proposal, uint256 oldSupport, uint256 newSupport)
+```
+
+###### Parameters
+
+| Name       | Type              | Description                                                  |
+| ---------- | ----------------- | ------------------------------------------------------------ |
+| supporter  | address           | The address that submitted the proposal                      |
+| proposal   | contract Proposal | The address of the proposal contract instance that was added |
+| oldSupport | uint256           | The previous amount of support                               |
+| newSupport | uint256           | The new amount of support                                    |
+
+##### VotesChanged
+
+An event indicating a vote cast on a proposal
+
+```solidity
+event VotesChanged(address voter, uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes)
+```
+
+###### Parameters
+
+| Name         | Type    | Description               |
+| ------------ | ------- | ------------------------- |
+| voter        | address | The address casting votes |
+| enactVotes   | uint256 | The votes to enact        |
+| rejectVotes  | uint256 | The votes to reject       |
+| abstainVotes | uint256 | The votes to abstain      |
+
+##### ExecutionComplete
+
+An event indicating that the proposal selected for this governance cycle was successfully executed
+
+```solidity
+event ExecutionComplete(address proposal)
+```
+
+###### Parameters
+
+| Name     | Type    | Description                    |
+| -------- | ------- | ------------------------------ |
+| proposal | address | The proposal that was executed |
+
+##### NewCycle
+
+An event indicating that a new cycle has begun
+
+```solidity
+event NewCycle(uint256 cycleNumber)
+```
+
+###### Parameters
+
+| Name        | Type    | Description      |
+| ----------- | ------- | ---------------- |
+| cycleNumber | uint256 | the cycle number |
+
+##### FeeRefunded
+
+An event indicating that the fee for a proposal was refunded
+
+```solidity
+event FeeRefunded(address proposal, address proposer, uint256 refund)
+```
+
+###### Parameters
+
+| Name     | Type    | Description                                |
+| -------- | ------- | ------------------------------------------ |
+| proposal | address | The address of the proposal being refunded |
+| proposer | address | The address that registered the proposal   |
+| refund   | uint256 | The amount of tokens refunded to proposer  |
+
+##### Sweep
+
+An event indicating that the leftover funds from fees were swept to a recipient address
+
+```solidity
+event Sweep(address recipient)
+```
+
+###### Parameters
+
+| Name      | Type    | Description           |
+| --------- | ------- | --------------------- |
+| recipient | address | the recipient address |
+
+##### onlyPauser
+
+```solidity
+modifier onlyPauser()
+```
+
+### Functions
+
+##### setPauser
+
+sets the pauser of community governance
+
+```solidity
+function setPauser(address _pauser) public
+```
+
+###### Parameters
+
+| Name     | Type    | Description    |
+| -------- | ------- | -------------- |
+| \_pauser | address | the new pauser |
+
+##### pause
+
+Pauses community governance
+
+```solidity
+function pause() external
+```
+
+##### updateStage
+
+updates the current stage
+called by methods propose, vote, and execute.
+
+```solidity
+function updateStage() public
+```
+
+##### nextCycle
+
+moves community governance to the next cycle
+
+```solidity
+function nextCycle() internal
+```
+
+##### propose
+
+allows a user to submit a community governance proposal
+
+Register a new proposal for community review. Registration is necessary but does not guarantee a vote for its implementation. The proposal is stored in proposals which is an array of all submissions as well as allProposals which stores the proposal addresses. A Register event is emitted.
+
+Registering a proposal requires a deposit of 1000 ECO (COST_REGISTER), which is transferred from the caller's balance to this contract. An allowance for this transfer must be made before calling. If the proposal does not get voted on then the caller will be entitled to claim a refund of 800 ECO (REFUND_IF_LOST). If the Circuit Breaker is enacted, this registration fee is waived as transfers cannot be made. This will confuse the refund function, but that is deprioritized in the case of a circuit breaker emergency.
+
+**Security Notes**
 
 - Can only be called during the proposing period.
 - Requires creating an allowance for payment to call to prevent abuse.
 - You cannot propose the 0 address.
 - A proposal can only be registered once, regardless of proposer.
 
-#### getPaginatedProposalData
+```solidity
+function propose(contract Proposal _proposal) public
+```
 
-Arguments:
+###### Parameters
 
-- `_page` (uint256) - the page of results in the array to query
-- `_resultsPerPage` (uint256) - the amount of results per page
+| Name       | Type              | Description                                                                                                                                                        |
+| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| \_proposal | contract Proposal | the address of the deployed proposal fee is only levied if community governance is paused - we want to still be usable in the event that ECO transfers are paused. |
 
-Returns the slice of `proposals` corresponding to the pagination inputs. The `Prop` object stores the `proposer`, the `proposal` address, and `totalStake` in support of the proposal. Individual stakes are instead stored in a mapping called `staked` that is not directly tied to this structure.
+##### support
 
-##### Security Notes
+allows an address to register its full voting power in support of a proposal
 
-- `_page` must be greater than zero, indexes from one.
-- Will not revert, but will return an empty array if the inputs are beyond the end.
-- The last page will return an array whose number of elements may be less than or equal to `_resultsPerPage`
+```solidity
+function support(address _proposal) public
+```
 
-#### getPaginatedProposalAddresses
+###### Parameters
 
-Arguments:
+| Name       | Type    | Description                             |
+| ---------- | ------- | --------------------------------------- |
+| \_proposal | address | the address of proposal to be supported |
 
-- `_page` (uint256) - the page of results in the array to query
-- `_resultsPerPage` (uint256) - the amount of results per page
+##### supportPartial
 
-Returns the slice of `allProposals` corresponding to the pagination inputs.
+allows an address to register partial support for a set of proposals
 
-##### Security Notes
+```solidity
+function supportPartial(address[] _proposals, uint256[] _allocations) public
+```
 
-- `_page` must be greater than zero, indexes from one.
-- Will not revert, but will return an empty array if the inputs are beyond the end.
-- The last page will return an array whose number of elements may be less than or equal to `_resultsPerPage`
+###### Parameters
 
-#### support
+| Name          | Type      | Description                                                                                                                                                                                                                                |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| \_proposals   | address[] | the array of proposals to be supported                                                                                                                                                                                                     |
+| \_allocations | uint256[] | the respective voting power to put behind those proposals \_changeSupport overwrites the previous supporting voting power, so having the same proposal multiple times in the_proposals array will not result in double counting of support |
 
-Arguments:
+##### unsupport
 
-- `_prop` (address) - the proposal to support
+allows an address to revoke support for a proposal
 
-The `support` method allows currency holders to indicate their support for a proposal. The caller's voting power (see `VotingPower` but is approximately understood as their balance at the end of the last generation) is added to the total supporting stake for the proposal. The support is not withdrawn from the user's balance and is not locked up. Calling `support` for a proposal does not disallow an address from supporting other proposals who will all recieve the same support from the address as the first one did.
+```solidity
+function unsupport(address _proposal) public
+```
 
-If this causes the proposal to reach the 30% threshold of total voting power required for a vote, this function emits `SupportThresholdReached`, indicating that `deployProposalVoting` is ready to be called, and the proposing period immediately ends.
+###### Parameters
 
-##### Security Notes
+| Name       | Type    | Description                             |
+| ---------- | ------- | --------------------------------------- |
+| \_proposal | address | the address of proposal to be supported |
 
-- Can only be called during the proposing period.
-- Can only be called by an account that held tokens at the last checkpoint.
-- Must be provided the address of a registered proposal.
-- Supporting a proposal twice reverts.
+##### \_changeSupport
 
-#### unsupport
+allows an address to change the support amount for a proposal
 
-Arguments:
+```solidity
+function _changeSupport(address supporter, address proposal, uint256 amount) internal
+```
 
-- `_prop` (address) - the proposal to support
+###### Parameters
 
-This function withdraws a user's support from a proposal if they have previously supported it. This cannot be called to bring a proposal that has passed the 30% threshold down below that threshold as it cannot be called after the proposing period ends.
+| Name      | Type    | Description                                                       |
+| --------- | ------- | ----------------------------------------------------------------- |
+| supporter | address | the adress of the supporter that is changing their support amount |
+| proposal  | address | the proposal for which the amount is being changed                |
+| amount    | uint256 | the new support amount                                            |
 
-##### Security Notes
+##### getSupport
 
-- Can only be called during the proposing period.
-- Can only be called if support was previously given.
-- Must be provided the address of a registered proposal.
+fetches the voting power with which a given address supports a given proposal
 
-#### deployProposalVoting
+```solidity
+function getSupport(address supporter, address proposal) public view returns (uint256 theSupport)
+```
 
-Arguments: none
+###### Parameters
 
-Deploys the proposal voting contract if the proposing period is over, allowing the process to progress. Caller pays the gas cost for deployment. It creates a cloned copy of the `PolicyVotes` contract, configures the `PolicyVotes` contract for the specific proposal, emits a `VoteStart` event, and finally removes the proposal to be voted on from the list of proposals (the submitter does not get a refund). This starts the voting process.
+| Name      | Type    | Description                                                                                         |
+| --------- | ------- | --------------------------------------------------------------------------------------------------- |
+| supporter | address | the supporting address                                                                              |
+| proposal  | address | the proposal 8 @return theSupport voting power with which a given address supports a given proposal |
 
-##### Security Notes
+##### vote
 
-- Can only be called if a proposal has passed the support threshold but has not yet been moved to voting.
-- Does not take any inputs, can only deploy the voting contract for the already selected proposal.
-- Cannot be called more than once within the same cycle.
+allows an address to vote to enact, reject or abstain on a proposal with their full voting power
 
-#### refund
+```solidity
+function vote(enum CommunityGovernance.Vote choice) public
+```
 
-Arguments:
+###### Parameters
 
-- `_prop` (address) - the proposal to refund the fee for
+| Name   | Type                          | Description       |
+| ------ | ----------------------------- | ----------------- |
+| choice | enum CommunityGovernance.Vote | the address' vote |
 
-Partially refunds (80%) the fee for the registration of a proposal that did not make it to voting. Emits a `ProposalRefund` event.
+##### votePartial
 
-##### Security Notes
+allows an address to split their voting power allocation between enact, reject and abstain
 
-- Can only be called after the voting has been deployed or if the initial proposing time window ends, likely because no proposal was selected to vote.
-- Always issues the refund to the original proposer, regardless of who calls. Can be used to pay for gas recouping the fee from another address.
-- Deletes the proposal from the list of proposals, can only be called once per proposal.
-- Cannot be called for the zero address.
+```solidity
+function votePartial(uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes) public
+```
 
-#### configure
+###### Parameters
 
-Arguments:
+| Name         | Type    | Description      |
+| ------------ | ------- | ---------------- |
+| enactVotes   | uint256 | votes to enact   |
+| rejectVotes  | uint256 | votes to reject  |
+| abstainVotes | uint256 | votes to abstain |
 
-- `_totalECOxSnapshot` (uint256) - the snapshot of total ECOx supply
-- `_excludedVotingPower` (uint256) - the amount of voting power to exclude from the ECO supply
+##### \_vote
 
-Configures the voting aspect of the contract for `totalVotingPower` to measure the 30% threshold. `_totalECOxSnapshot` and `_excludedVotingPower` are saved and used in the inherited `VotingPower` functionality. `_excludedVotingPower` is the amount of ECO minted on the generation increase.
+```solidity
+function _vote(address voter, uint256 _enactVotes, uint256 _rejectVotes, uint256 _abstainVotes) internal
+```
 
-##### Security Notes
+##### getVotes
 
-- Is called atomically with instantiation by `CurrencyTimer`.
-- Can only be called once, checks that the `_totalECOxSnapshot` hasn't been set.
+fetches the votes an address has pledged toward enacting, rejecting, and abstaining on a given proposal
 
-#### destruct
+```solidity
+function getVotes(address voter) public view returns (uint256 enactVotes, uint256 rejectVotes, uint256 abstainVotes)
+```
 
-Arguments: none
+###### Parameters
 
-Removes the permissioning to the contract and any ECO held is transferred to the root policy contract.
+| Name  | Type    | Description            |
+| ----- | ------- | ---------------------- |
+| voter | address | the supporting address |
 
-##### Security Notes
+###### Return Values
 
-- Can only be called after all proposals have been refunded.
-- Can only be called after the proposal time, to disallow early exits.
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
+| enactVotes   | uint256 | Votes for enacting the policy      |
+| rejectVotes  | uint256 | Votes for rejecting the policy     |
+| abstainVotes | uint256 | Votes for abstaining on the policy |
 
-### PolicyVotes
+##### execute
 
-- Inherits: `VotingPower`, `TimeUtils`
+allows an address to enact a selected proposal that has passed the vote
+it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
+the community will have a minimum of 3 days 8 hours to enact the proposal.
 
-Runs the voting and execution on the proposal selected by `PolicyProposals`. Voting runs a period of 3 days with a 1 day delay for execution if the proposal passes. If there is 50%+ support for the proposal of all available voting power, then the voting ends early and execution can be immediate. Executing a proposal delegate calls the `enacted` function of the proposal within the context of the root hash proposal with its own address as an argument. See [here](../../policy/README.md#internalcommand) for more detail.
+```solidity
+function execute() public
+```
 
-#### Events
+##### refund
 
-##### VoteCompletion
+allows redemption of proposal registration fees
 
-Attributes:
+```solidity
+function refund(address proposal) public
+```
 
-- `result` (Result enum) - either `Accepted, Rejected, Failed`
+###### Parameters
 
-Emitted when an outcome is known.
+| Name     | Type    | Description                                                                                                                       |
+| -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| proposal | address | the proposal whose fee is being redeemed the fee will be refunded to the proposer of the proposal, regardless of who calls refund |
 
-##### PolicyVote
+##### sweep
 
-- `voter` (address) - the address of the voter
-- `votesYes` (uint256) - the voting power contributed to yes
-- `votesNo` (uint256) - the voting power contributed to no
+allows the leftover registration fees to be drained from the contract
 
-Emitted when an address votes. A simple vote has the total voting power in `votesYes` or `votesNo` and zero in the other attribute to show their vote and amount. A split vote instead shows the split between yes and no. Notably, the total voting power available can be more than `votesYes` + `votesNo`, see the function `voteSplit` for more details.
+```solidity
+function sweep(address recipient) public
+```
 
-#### configure
+###### Parameters
 
-Arguments:
-
-- `_proposal` (address) - the address of the proposal to vote on
-- `_proposer` (address) - the person who proposed the proposal being voted on
-- `_cutoffBlockNumber` (uint256) - the block number to measure user voting power at
-- `_totalECOxSnapshot` (uint256) - the snapshot of total ECOx supply
-- `_excludedVotingPower` (uint256) - the amount of voting power to exclude from the ECO supply
-
-Configures a policy vote, setting the policy to be voted on, the times that the voting ends, the block to use for voting power calculation, and the parameters to calculate `totalVotingPower` to use for the 50% threshold (see [here](./README.md#configure)). The `proposer` is stored as the data is deleted in the `PolicyProposals` contract as the process moves to this stage, so it is preserved for the UI.
-
-##### Security Notes
-
-- Is called atomically with instantiation.
-- Can only be called once, checks that the `voteEnds` time hasn't been set.
-
-#### vote
-
-Arguments:
-
-- `_vote` (bool) - the vote to submit, `true` to pass the proposal, `false` to fail
-
-Records the caller's vote, weighted by their voting power. Records the voting power of the caller in `totalStake` and in `yesStake` if the voter voted yes. Records yes votes in the mapping `yesVote` which maps addresses to votes. Emits a `PolicyVote` event.
-
-##### Security Notes
-
-- Cannot be called if the voting period is over
-- Fails if the user has no voting power to vote with
-- May be called again, with a different value of `_vote` to change the vote
-
-#### voteSplit
-
-Arguments:
-
-- `_voteYes` (uint256) - the amount of the users voting power to submit as a yes vote
-- `_voteNo` (uint256) - the amount of the users voting power to submit as a no vote
-
-This function allows an aggregator contract to correctly display a split of its users' voting decisions. Raw yes and no votes much be recorded so as to correctly capture the progress toward the 50% threshold for early enaction. Records the sum of the two inputs in `totalStake` and `voteYes` in `yesStake`. Emits a `PolicyVote` event.
-
-##### Security Notes
-
-- Cannot be called if the voting period is over
-- Fails if the caller has no voting power to vote with
-- Fails if the submitted amounts are greater than the caller's total voting power
-- The caller may submit less than its total voting power, effectively abstaining with the non-included power
-- May be called again, with a different values to update the vote
-- Can be called if `vote` was used previously or vice versa
-
-#### execute
-
-Arguments: none
-
-Runs the `enacted` function on the proposal, if it passed, and then removes the permissions from this contract, and transfers any tokens to the root policy. Emits a `VoteCompletion` event.
-
-##### Security Notes
-
-- Enacted proposals can do anything they like. They're run in the context of the root policy using `delegatecall`. See [internalCommand](../../policy/README.md#internalcommand) for context.
-- Can only be called before the voting period ends if the yes votes have already reached a majority of all possible voting power.
-
-### ECOxStaking
-
-- Inherits: `ERC20Votes`, `PolicedUtils`
-
-This contract is used to stake ECOx for the sake of voting with it in community governance. The quantity of EcoX locked up is the amount added to the individual's voting power. A [checkpointing system](../../currency/README.md#votecheckpoints) with delegation is used that is identical to the `ECO` contract. The stored ECOx (sECOx) cannot be transferred.
-
-#### Events
-
-##### Deposit
-
-Attributes:
-
-- `source` (address) - The address that a deposit certificate has been issued to
-- `amount` (uint256) - The amount of ECOx tokens deposited
-
-The Deposit event indicates that ECOx has been locked up, credited to a particular address in a particular amount.
-
-##### Withdrawal
-
-Attributes:
-
-- `destination` (address) The address that has made a withdrawal
-- `amount` (uint256) The amount in basic unit of 10^{-18} ECOx (weicoX) tokens withdrawn
-
-The Withdrawal event indicates that a withdrawal has been made to a particular address in a particular amount
-
-#### deposit
-
-Arguments:
-
-- `_amount` (uint256) - amount of EcoX sender is attempting to deposit
-
-Transfers EcoX in the amount `_amount` from msg.sender to the EcoXStaking contract. A checkpoint is written to increase totalSupply and the voting balance of msg.sender by `_amount` for the current block number. This also results in a `Deposit` event being emitted.
-
-##### Security Notes
-
-- only updates totalSupply and voting power balance if the transfer is successful i.e. if msg.sender has at least `_amount` of EcoX in their balance
-
-#### withdraw
-
-Arguments:
-
-- `_amount` (uint256) - amount of EcoX sender is attempting to withdraw
-
-Transfers EcoX in the amount `_amount` to msg.sender. Ensures that a checkpoint is written to decrease totalSupply and the voting balance of msg.sender by `_amount` for the current block number. This also results in a `Withdrawal` event being emitted.
-
-##### Security Notes
-
-- This function attempts to undelegate funds to attempt to withdraw but this may fail. See [undelegate](../../currency/README.md#undelegate) for more context.
-
-### votingECOx
-
-Arguments:
-
-- `_voter` (address) - address whose voting power is being assessed
-- `_blocknumber` (uint256) - block number at which voting power is being assessed
-
-Fetches the EcoX voting power of a given address at a given block. This is accomplished by binary searching to find the earliest checkpoint taken after the given block number, and then getting the balance of the address in that checkpoint.
-
-### totalVotingECOx
-
-Arguments:
-
-- `_blocknumber` (uint256) - block number at which voting power is being assessed
-
-Fetches the total voting power at a given block. This is accomplished by binary searching to find the earliest checkpoint taken after the given block number, and then getting the sum of all balances at that checkpoint. This only counts ECOx that are stored by users to be able to vote.
-
-##### Security Notes
-
-- can only be invoked by the policy proposals contract or the policy votes contract
+| Name      | Type    | Description                                                             |
+| --------- | ------- | ----------------------------------------------------------------------- |
+| recipient | address | the address receiving the tokens only the policy contract can call this |
 
 ## Contributing
 

@@ -63,7 +63,7 @@ contract VotingPower is Policed {
     }
 
     /**
-     * Calculates the voting power for an address at a specifc block
+     * Calculates the voting power for an address at the Snapshot Block
      * @param _who the address to calculate the voting power for
      * @return total the total vorting power for an address at the Snapshot Block
      */

@@ -80,6 +80,12 @@ This should be relatively unique and descriptive.
 function name() external pure returns (string)
 ```
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
+
 ### description
 
 A longer description of what this proposal achieves.
@@ -87,6 +93,12 @@ A longer description of what this proposal achieves.
 ```solidity
 function description() external pure returns (string)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
 
 ### url
 
@@ -96,6 +108,12 @@ and learn more about it.
 ```solidity
 function url() external pure returns (string)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
 
 ### enacted
 

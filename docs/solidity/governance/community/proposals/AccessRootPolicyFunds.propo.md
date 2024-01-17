@@ -48,6 +48,11 @@ This should be relatively unique and descriptive.
 string name
 ```
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
 ### description
 
 A longer description of what this proposal achieves.
@@ -55,6 +60,11 @@ A longer description of what this proposal achieves.
 ```solidity
 string description
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### url
 
@@ -64,6 +74,11 @@ and learn more about it.
 ```solidity
 string url
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### constructor
 

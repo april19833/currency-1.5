@@ -16,16 +16,28 @@ The name of the proposal.
 This should be relatively unique and descriptive.
 
 ```solidity
-function name() external view returns (string)
+function name() external view returns (string name)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| name | string | The name of the proposal |
 
 ### description
 
 A longer description of what this proposal achieves.
 
 ```solidity
-function description() external view returns (string)
+function description() external view returns (string description)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| description | string | A longer description of what this proposal achieves. |
 
 ### url
 
@@ -33,8 +45,14 @@ A URL where voters can go to see the case in favour of this proposal,
 and learn more about it.
 
 ```solidity
-function url() external view returns (string)
+function url() external view returns (string url)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| url | string | A URL where voters can go to see the case in favour of this proposal |
 
 ### enacted
 

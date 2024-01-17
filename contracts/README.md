@@ -181,12 +181,12 @@ A suggestion for levers like lockups and random inflation that currently clone w
 In this section we will consider the changes for the Community Governance process employed by the token holders to approve changes to the core protocol. Below is the proposed redesign. The redesign makes the following key changes:
 
 - Community Governance
-  - Policy Proposals and Policy Votes are replaced into a single contract (EcoGovernance) that manages the stages, proposals, and voting of the community governance contract.
-    - This removes the need for cloning and rebinding that happen each generation and during the generation increment. Instead, all the state is managed in the EcoGovernance contract, which contains an enum of the stages possible and rules for changing between stages.
+  - Policy Proposals and Policy Votes are replaced into a single contract (CommunityGovernance) that manages the stages, proposals, and voting of the community governance contract.
+    - This removes the need for cloning and rebinding that happen each generation and during the generation increment. Instead, all the state is managed in the CommunityGovernance contract, which contains an enum of the stages possible and rules for changing between stages.
   - Root Policy address executes proposals similar to Compound Bravo
     - Instead of uploading arbitrary bytecode per proposal, which increases the complexity and danger of executing proposals, ECO 1.5 proposes that Eco Upgrade Proposals are submitted like Compound Bravo proposals. Each proposal would contain a couple arrays that would define the specific downstream functions and contracts to call in sequence.
-    - The root policy also needs a getter/setter for EcoGovernance to know who the authorized caller is.
-  - EcoGovernance timings are flexible
+    - The root policy also needs a getter/setter for CommunityGovernance to know who the authorized caller is.
+  - CommunityGovernance timings are flexible
     - Removing the monotonic generation timer means that incrementing the generation doesn’t necessarily need to happen on a specific cadence. The voting cycle can automatically renew each time a proposal passes.
   - Addition of getter/setter functions where necessary
     - As mentioned above and multiple times in this document, permission based authorization functionality will need to be implemented in each relevant contract.
@@ -202,7 +202,7 @@ In this section we will consider the changes for the Community Governance proces
 
 #### Community Governance
 
-The responsibility of EcoGovernance in this system is to manage the proposals going through governance, to track their votes, and to allocate their rewards. Specifically, the EcoGovernance contract:
+The responsibility of CommunityGovernance in this system is to manage the proposals going through governance, to track their votes, and to allocate their rewards. Specifically, the CommunityGovernance contract:
 
 - Stores the number of total votes for each cycle
 - Allows users to register proposals
@@ -218,7 +218,7 @@ The responsibility of EcoGovernance in this system is to manage the proposals go
 
 The major changes from the current implementation of Eco are:
 
-- PolicyProposals and PolicyVotes are combined into EcoGovernance which operates on an enum similar to TrustedNodes
+- PolicyProposals and PolicyVotes are combined into CommunityGovernance which operates on an enum similar to TrustedNodes
 - The enum can have variable length timing. For example, it could run for a month until a proposal passes, and then as soon as one does, start a new voting cycle. This will reduce "dead" time at the cost of "predictable" governance timing
 - The internal enum removes the need for cloning of contracts each cycle.
   Proposals no longer perform arbitrary code execution, and instead pass vectors with relevant contracts and function calls. This will be explained further in the Root Policy section.
@@ -230,7 +230,7 @@ Another interesting consequence of this architecture is that there could be para
 
 #### Root Policy
 
-The responsibility of the RootPolicy contract in this system is to manage the community treasury, act as the authorized party to rebind all getter/setters, and to execute transactions fed to it from authorized EcoGovernance contracts. The Root Policy will remain proxied. Specifically the root policy:
+The responsibility of the RootPolicy contract in this system is to manage the community treasury, act as the authorized party to rebind all getter/setters, and to execute transactions fed to it from authorized CommunityGovernance contracts. The Root Policy will remain proxied. Specifically the root policy:
 
 - Executes commands from community governance contracts
 - Manages the community treasury
@@ -240,7 +240,7 @@ The responsibility of the RootPolicy contract in this system is to manage the co
 
 The main changes in this implementation are:
 
-- Add getter/setter functions for EcoGovernance
+- Add getter/setter functions for CommunityGovernance
   - Root policy only needs one getter/setter role to define who can call functions for it to execute.
   - For now this will contain a single address, but as governance gets more modular, multiple functions could be whitelisted. Which functions they could call would be enforced at the governance contract level.
 - Graceful handling of proposal reverts
@@ -254,7 +254,7 @@ This section aims to explain the ECO and ECOx implementations in this system, an
 - Adding an ECOxExchange function to facilitate the exchange of ECO and ECOx.
 - Contracts that remain proxied will still need roles for rebinders
 - Ensuring the ECO / ECOx contract returns false for the correct core supply functions when the currency is paused
-- Changing the way Eco stores voting balances for EcoGovernance
+- Changing the way Eco stores voting balances for CommunityGovernance
 
 ![Token Contracts](../docs/assets/community-governance-process.png "Token Contracts")
 
@@ -455,7 +455,7 @@ Making this system flash loan proof can be done in 2 ways.
 
    The efficient implementation of this system does have one issue at the moment, which is Random Inflaiton. 1 potential issue while we still have random inflation. If there is an ongoing Merkle challenge and the single snapshot changes, the proposer can get rugged. There are two simple mitigation strategies for this
 
-   1. Proposers can't propose random inflation if a snapshot is occurring soon (would require linkage between EcoGovernance and Inflation contract, which is unideal)
+   1. Proposers can't propose random inflation if a snapshot is occurring soon (would require linkage between CommunityGovernance and Inflation contract, which is unideal)
    2. Inform proposers they will get rugged, and adjust the supervisor to not challenge if snapshot is coming up (prefer this)
 
 Furthermore, tracking voting power is becoming opt-in for ECO 1.5. This further reduces the cost for mainnet transfers and swaps unless an individual chooses to do so.

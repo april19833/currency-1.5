@@ -10,7 +10,7 @@ This implements the ECO cryptocurrency, and its secondary token ECOx, in the for
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
-- [API](#api)
+- [Contract Overivew](#contract-overview)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -47,7 +47,7 @@ See the [main README](../../README.md) for installation instructions.
 
 The currency contracts are intended for deployment on the Ethereum blockchain, using Eco's [Governance System](../governance).
 
-## API
+## Contract Overview
 
 For detailed API documentation see [currency](../../docs/solidity/currency/)
 

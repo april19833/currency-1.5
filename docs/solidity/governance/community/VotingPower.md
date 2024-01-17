@@ -63,7 +63,7 @@ function totalVotingPower() public view returns (uint256 total)
 
 ### votingPower
 
-Calculates the voting power for an address at a specifc block
+Calculates the voting power for an address at the Snapshot Block
 
 ```solidity
 function votingPower(address _who) public view returns (uint256 total)

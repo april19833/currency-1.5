@@ -36,7 +36,7 @@ function voteBalanceSnapshot(address account) public view virtual returns (uint2
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| balance | uint256 | the balance for the snapshot |
+| balance | uint256 | the balance for the acccount for the snapshot |
 
 ### _beforeVoteTokenTransfer
 
