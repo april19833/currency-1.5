@@ -32,7 +32,11 @@ See the [main README](../../../README.md) for installation instructions.
 
 The [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) contract handle the vote process.
 
-`PolicyProposals` is cloned each generation by the [TimedPolicies](../README.md#timedpolicies) contract and clones the `PolicyVotes` contract when the process moves to a vote.
+All the state is managed in the CommunityGovernance contract, which contains an enum of the stages possible and rules for changing between stages.
+
+CommunityGovernance timings are flexible. Removing the monotonic generation timer means that incrementing the generation doesn’t necessarily need to happen on a specific cadence. The voting cycle can automatically renew each time a proposal passes.
+
+Addition of getter/setter functions where necessary Permission based authorization functionality will need to be implemented in each relevant contract.
 
 Voting ability calculation is implemented in the `VotingPower` contract. Ability to vote with ECOx is managed by the `ECOxStaking` contract. Sample proposals all follow the format of the `Proposal` contract and will not be discussed individually.
 
