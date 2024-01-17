@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## TrustedNodesFactory
 
+**Trusted Nodes Factory**
+
+This factory contract is used to deploy new TrustedNodes contracts.
+
 ### ecoX
 
 ```solidity

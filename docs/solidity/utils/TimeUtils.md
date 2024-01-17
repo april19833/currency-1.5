@@ -16,6 +16,12 @@ Used extensively in testing, but also useful in production for
 determining what processes can currently be run.
 
 ```solidity
-function getTime() internal view returns (uint256)
+function getTime() internal view returns (uint256 blockTimeStamp)
 ```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockTimeStamp | uint256 | The current block timestamp |
 

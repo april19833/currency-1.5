@@ -4,6 +4,10 @@ pragma solidity ^0.8.0;
 import "./CurrencyGovernance.sol";
 import "../../currency/ECOx.sol";
 
+/**
+ * @title Trusted Nodes Factory
+ * @notice This factory contract is used to deploy new TrustedNodes contracts.
+ */
 contract TrustedNodesFactory is Policed, TimeUtils {
     ECOx public immutable ecoX;
 

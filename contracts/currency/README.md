@@ -6,13 +6,29 @@ This implements the ECO cryptocurrency, and its secondary token ECOx, in the for
 
 ## Table of Contents
 
-- [Security](#security)
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [Contract Overivew](#contract-overview)
-- [Contributing](#contributing)
-- [License](#license)
+- [The Eco Currency](#the-eco-currency)
+  - [Table of Contents](#table-of-contents)
+  - [Security](#security)
+  - [Background](#background)
+    - [References](#references)
+  - [Install](#install)
+  - [Usage](#usage)
+  - [Contract Overview](#contract-overview)
+    - [ERC20](#erc20)
+    - [ERC20Pausable](#erc20pausable)
+    - [DelegatePermit](#delegatepermit)
+    - [ERC20MintAndBurn](#erc20mintandburn)
+    - [TotalSupplySnapshots](#totalsupplysnapshots)
+    - [ERC20Delegated](#erc20delegated)
+    - [VoteSnapshots](#votesnapshots)
+    - [InflationSnapshots](#inflationsnapshots)
+    - [ECO](#eco)
+    - [ECOx](#ecox)
+    - [ECOxExchange](#ecoxexchange)
+    - [TokenInit](#tokeninit)
+    - [VoteCheckpoints](#votecheckpoints)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Security
 
