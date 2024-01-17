@@ -30,7 +30,7 @@ See the [main README](../../../README.md) for installation instructions.
 
 ## Usage
 
-The [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) contract handle the vote process.
+The [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) contract handles the vote process.
 
 All the state is managed in the CommunityGovernance contract, which contains an enum of the stages possible and rules for changing between stages.
 
