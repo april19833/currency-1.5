@@ -1,6 +1,6 @@
-# Currency 1.5 Design
+# Currency 1.5 Implementation
 
-- [Currency 1.5 Design](#currency-15-design)
+- [Currency 1.5 Implementation](#currency-15-implementation)
   - [Introduction](#introduction)
   - [High Level Changes and Architecture](#high-level-changes-and-architecture)
     - [Core Patterns](#core-patterns)
@@ -13,9 +13,10 @@
       - [TrustedNodes](#trustednodes)
       - [TrusteeGovernance](#trusteegovernance)
       - [Monetary Policy Functions and their Orchestrators](#monetary-policy-functions-and-their-orchestrators)
-      - [Community Governance Process](#community-governance-process)
+    - [Community Governance Process](#community-governance-process)
       - [Community Governance](#community-governance)
-      - [Root Policy](#root-policy)
+    - [Policy](#policy)
+    - [Currency](#currency)
       - [Token Contracts (ECO and ECOx)](#token-contracts-eco-and-ecox)
       - [ECOx Exchange](#ecox-exchange)
       - [ECOx](#ecox)
@@ -176,7 +177,7 @@ Each monetary policy lever will need a corresponding role in the Eco Contract to
 
 A suggestion for levers like lockups and random inflation that currently clone would be to have all the behavior managed within an indexed array that tracks the various lockups and random inflation within the contracts. This is just an idea and it is left up to the technical implementation of the redesign.
 
-#### Community Governance Process
+### Community Governance Process
 
 In this section we will consider the changes for the Community Governance process employed by the token holders to approve changes to the core protocol. Below is the proposed redesign. The redesign makes the following key changes:
 
@@ -228,23 +229,25 @@ Another interesting consequence of this architecture is that there could be para
 
 ![Community Governance Setter Getter](../docs/assets/community-governance-setter-getter.png "Community Governance Setter Getter")
 
-#### Root Policy
+### Policy
 
-The responsibility of the RootPolicy contract in this system is to manage the community treasury, act as the authorized party to rebind all getter/setters, and to execute transactions fed to it from authorized CommunityGovernance contracts. The Root Policy will remain proxied. Specifically the root policy:
+The responsibility of the Policy contract in this system is to manage the community treasury, act as the authorized party to rebind all getter/setters, and to execute transactions fed to it from authorized CommunityGovernance contracts. The Policy will remain proxied. Specifically the policy:
 
 - Executes commands from community governance contracts
 - Manages the community treasury
 - Is the main designated getter / setter for most of the contracts in the system
 
-![Root Policy](../docs/assets/root-policy.png "Root Policy")
+![Policy](../docs/assets/root-policy.png "Policy")
 
 The main changes in this implementation are:
 
 - Add getter/setter functions for CommunityGovernance
-  - Root policy only needs one getter/setter role to define who can call functions for it to execute.
+  - Policy only needs one getter/setter role to define who can call functions for it to execute.
   - For now this will contain a single address, but as governance gets more modular, multiple functions could be whitelisted. Which functions they could call would be enforced at the governance contract level.
 - Graceful handling of proposal reverts
-  - The root policy contract will need to gracefully handle reverts in the instance that a downstream execution fails.
+  - The policy contract will need to gracefully handle reverts in the instance that a downstream execution fails.
+
+### Currency
 
 #### Token Contracts (ECO and ECOx)
 
