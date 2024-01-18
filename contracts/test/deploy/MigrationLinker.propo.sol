@@ -143,16 +143,12 @@ contract MigrationLinker is Policy, Proposal {
         // propogate total supply snapshots in eco and ecox
         PolicedOld(ecoProxyAddress).policyCommand(
             snapshotUpdatingTarget,
-            abi.encodeWithSignature(
-                "setTotalSupplySnapshot()"
-            )
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
         );
 
         PolicedOld(ecoxProxyAddress).policyCommand(
             snapshotUpdatingTarget,
-            abi.encodeWithSignature(
-                "setTotalSupplySnapshot()"
-            )
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
         );
 
         // update ecox
