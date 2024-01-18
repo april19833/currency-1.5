@@ -85,7 +85,7 @@ async function main() {
     ImplementationUpdatingTarget__factory
   )
 
-  const inflationMultiplierUpdatingTarget = await deploy(
+  const snapshotUpdatingTarget = await deploy(
     wallet,
     SnapshotUpdatingTarget__factory
   )
@@ -100,7 +100,7 @@ async function main() {
     implAddresses.ecox,
     implAddresses.ecoXStaking,
     implementationUpdatingTarget.address,
-    inflationMultiplierUpdatingTarget.address,
+    snapshotUpdatingTarget.address,
   ]
 
   const proposal = await deploy(

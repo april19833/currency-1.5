@@ -31,7 +31,7 @@ import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOxStaking } from '../../typechain-types/contracts/governance/community'
 import { MigrationLinker } from '../../typechain-types/contracts/test/deploy/MigrationLinker.propo.sol'
 import { MigrationLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
-import { InflationMultiplierUpdatingTarget__factory } from '../../typechain-types/factories/contracts/test/deploy'
+import { SnapshotUpdatingTarget__factory } from '../../typechain-types/factories/contracts/test/deploy'
 import { LockupLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/LockupLinker.propo.sol'
 import { deploy } from '../../deploy/utils'
 import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
@@ -269,9 +269,9 @@ describe('Migration tests', () => {
         ImplementationUpdatingTarget__factory
       )
 
-      const inflationMultiplierUpdatingTarget = await deploy(
+      const snapshotUpdatingTarget = await deploy(
         alice,
-        InflationMultiplierUpdatingTarget__factory
+        SnapshotUpdatingTarget__factory
       )
 
       const proposalParams = [
@@ -284,7 +284,7 @@ describe('Migration tests', () => {
         fixtureAddresses.ecox,
         fixtureAddresses.ecoXStaking,
         implementationUpdatingTarget.address,
-        inflationMultiplierUpdatingTarget.address,
+        snapshotUpdatingTarget.address,
       ]
 
       proposal = (await deploy(
