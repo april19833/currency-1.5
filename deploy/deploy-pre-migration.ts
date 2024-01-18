@@ -9,7 +9,7 @@ import { ECO, ECOx } from '../typechain-types/contracts/currency'
 import { Policy } from '../typechain-types/contracts/policy'
 import { ECOxStaking } from '../typechain-types/contracts/governance/community'
 import { MigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
-import { InflationMultiplierUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
+import { SnapshotUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
 import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currency-dev'
 import { deploy } from './utils'
 
@@ -87,7 +87,7 @@ async function main() {
 
   const inflationMultiplierUpdatingTarget = await deploy(
     wallet,
-    InflationMultiplierUpdatingTarget__factory
+    SnapshotUpdatingTarget__factory
   )
 
   const proposalParams = [
