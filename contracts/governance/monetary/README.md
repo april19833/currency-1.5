@@ -6,47 +6,45 @@ These contracts provide the monetary policy system for the Eco currency. They sp
 
 ## Table of Contents
 
-- [Monetary Governance System](#monetary-governance-system)
-  - [Table of Contents](#table-of-contents)
-  - [Security](#security)
-  - [Background](#background)
-    - [Monetary Policy Decisions](#monetary-policy-decisions)
-      - [Random Inflation](#random-inflation)
-      - [Lockups](#lockups)
-      - [Linear Inflation/Deflation](#linear-inflationdeflation)
-  - [Install](#install)
-  - [Usage](#usage)
-  - [Contract Overview](#contract-overview)
-    - [TimeUtils](#timeutils)
-      - [Functions](#functions)
-    - [Policy](#policy)
-    - [Policied](#policied)
-    - [Notifier](#notifier)
-    - [Lever](#lever)
-    - [Lockups](#lockups-1)
-    - [Rebase](#rebase)
-    - [TrustedNodesFactory](#trustednodesfactory)
-    - [TrustedNodes](#trustednodes)
-    - [CurrencyGovernance](#currencygovernance)
-    - [MonetaryPolicyAdapter](#monetarypolicyadapter)
-  - [Contributing](#contributing)
-  - [License](#license)
+- [Security](#security)
+- [Background](#background)
+- [Monetary Policy Decisions](#monetary-policy-decisions)
+  - [Random Inflation](#random-inflation)
+  - [Lockups](#lockups)
+  - [Linear Inflation/Deflation](#linear-inflationdeflation)
+- [Install](#install)
+- [Usage](#usage)
+- [Contract Overview](#contract-overview)
+- [TimeUtils](#timeutils)
+  - [Functions](#functions)
+- [Policy](#policy)
+- [Policied](#policied)
+- [Notifier](#notifier)
+- [Lever](#lever)
+- [Lockups](#lockups-1)
+- [Rebase](#rebase)
+- [TrustedNodesFactory](#trustednodesfactory)
+- [TrustedNodes](#trustednodes)
+- [CurrencyGovernance](#currencygovernance)
+- [MonetaryPolicyAdapter](#monetarypolicyadapter)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Security
 
-The security of the governance contracts is built on a list of trustees. See the `TrustedNodes` contract for how the list maintained. Changes to the list of trustees can be only be made using policy proposals, and require the support of a majority of participating voters, weighted by stake.
+Monetary governance levers can only be changed when new monetary policy is enacted. Only trustees can propose and vote on monetary policy. The security of monetary governance functions is, therefore, dependent on the list of trustees, which is maintained in `TrustedNodes`. Changes to the list of trustees can be only be made using policy proposals, and require the support of a majority of participating voters, weighted by stake.
 
 ## Background
 
-The trustee and monetary governance contracts provide an iterating economic system. It allows Eco's trustees (a list of which is managed by the `TrustedNodes` contract) to enact inflationary or deflationary measures.
+The trustee and monetary governance contracts provide an iterating economic system. It allows Eco's trustees (a list of which is managed by the `TrustedNodes` contract) to enact expansionary or deflationary monetary policy via several economic levers. 
 
-The `CurrencyGovernance` contract implements the governmental decisionmaking process, and records the results of the vote. Only the trustees may participate in the `CurrencyGovernance` contract's proposal and voting process.
+The `CurrencyGovernance` contract implements the governmental decision-making process, and records the results of the vote. Only the trustees may participate in the `CurrencyGovernance` contract's proposal and voting process.
 
 The `TrustedNodes` contract manages the list of trustees as well as their rewards for participation in the monetary policy votes. The list of trusted nodes can be updated in a couple of different ways and there are example proposals in the [community governance](../community/) folder to show some suggested paths.
 
-### Monetary Policy Decisions
+### Monetary Policy Levers
 
-The rest of the contracts are implementations of monetary Policy decisions. They're used to create and distribute new currency (to drive spending), to create and distribute lockup contracts (to discourage spending). Additionally, trustees may scale the currency across the board (to manage exchange value with other currencies), but this process is managed by the `ECO` contract. The different policy levers are designed to reward different behavior and provide incentives to achieve their desired results.
+The rest of the contracts are implementations of monetary policy levers. These levers are designed to reward different user behaviors and help the Eco economy achieve certain results. They can be used to create and distribute new currency (to drive spending), to create and distribute lockup contracts (to discourage spending). Additionally, trustees may scale the currency across the board (to manage exchange value with other currencies), but this process is managed by the `ECO` contract. Additionally, the surround infrastructure is designed around the poosibility for additional monetary policy levers to be be added at the community's behest, though that process is managed by the `CommunityGovernance` contract. 
 
 #### Random Inflation
 
