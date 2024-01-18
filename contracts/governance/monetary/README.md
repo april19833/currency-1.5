@@ -19,8 +19,6 @@ These contracts provide the monetary policy system for the Eco currency. They sp
   - [Contract Overview](#contract-overview)
     - [TimeUtils](#timeutils)
       - [Functions](#functions)
-        - [getTime](#gettime)
-          - [Return Values](#return-values)
     - [Policy](#policy)
     - [Policied](#policied)
     - [Notifier](#notifier)

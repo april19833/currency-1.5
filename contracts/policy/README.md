@@ -6,13 +6,41 @@ The contracts in this directory provide the basis for the Eco Policy Framework. 
 
 ## Table of Contents
 
-- [Security](#security)
-- [Background](#background)
-- [Install](#install)
-- [Usage](#usage)
-- [API](#api)
-- [Contributing](#contributing)
-- [License](#license)
+- [Eco Policy Contract Framework](#eco-policy-contract-framework)
+  - [Table of Contents](#table-of-contents)
+  - [Security](#security)
+  - [Background](#background)
+    - [Framework Components](#framework-components)
+      - [Policed Contracts](#policed-contracts)
+      - [Policy Contracts](#policy-contracts)
+      - [The Policy Initialization Process](#the-policy-initialization-process)
+    - [Example Upgrade Process](#example-upgrade-process)
+    - [Contracts](#contracts)
+      - [Policy.sol](#policysol)
+      - [Policed.sol](#policedsol)
+      - [PolicedUtils.Sol](#policedutilssol)
+      - [PolicyInit.sol](#policyinitsol)
+  - [Install](#install)
+  - [Usage](#usage)
+    - [Framework Initialization](#framework-initialization)
+  - [Contract Overview](#contract-overview)
+    - [Policy](#policy)
+      - [removeSelf](#removeself)
+      - [policyFor](#policyfor)
+      - [setPolicy](#setpolicy)
+      - [internalCommand](#internalcommand)
+    - [Policed](#policed)
+      - [canImplementInterfaceForAddress](#canimplementinterfaceforaddress)
+      - [policyCommand](#policycommand)
+    - [PolicedUtils](#policedutils)
+      - [canImplementInterfaceForAddress](#canimplementinterfaceforaddress-1)
+      - [setExpectedInterfaceSet](#setexpectedinterfaceset)
+      - [clone](#clone)
+      - [policyFor](#policyfor-1)
+    - [PolicyInit](#policyinit)
+      - [fusedInit](#fusedinit)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Security
 
@@ -81,7 +109,7 @@ It is possible to pass empty arrays to `fusedInit` when setting up a set of poli
 
 Begin by deploying the `PolicyInit` contract. Then, deploy your root policy contract and all other contracts you want set with ERC1820 labels. Then deploy a proxy (`ForwardProxy`) pointing at the `PolicyInit` contract. Finally, call `fusedInit` on the proxy, passing the address of your root policy contract as `_policycode`, and any privilege bindings appropriate.
 
-## API
+## Contract Overview
 
 For detailed API documentation see [policy](../../docs/solidity/policy/)
 
