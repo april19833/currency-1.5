@@ -77,6 +77,7 @@ describe('Lockups', () => {
       depositWindow,
     ])) as Lockups
 
+    await lockups.initializeVoting()
     await lockups.connect(policyImpersonator).setAuthorized(alice.address, true)
     await eco.connect(policyImpersonator).updateMinters(lockups.address, true)
 
@@ -104,6 +105,7 @@ describe('Lockups', () => {
   it('constructs', async () => {
     expect(await lockups.eco()).to.eq(eco.address)
     expect(await lockups.depositWindow()).to.eq(depositWindow)
+    expect(await eco.voter(lockups.address)).to.be.true // initializeVoting called in beforeEach
   })
 
   describe('permissions', async () => {

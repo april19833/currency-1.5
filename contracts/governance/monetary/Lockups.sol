@@ -125,6 +125,12 @@ contract Lockups is Lever, TimeUtils {
     ) Lever(_policy) {
         eco = _eco;
         depositWindow = _depositWindow;
+    }
+
+    /** Sets up ability to delegate
+     * separate from constructor so that contract can be deployed pre-migration
+     */
+    function initializeVoting() public {
         eco.enableVoting();
     }
 
