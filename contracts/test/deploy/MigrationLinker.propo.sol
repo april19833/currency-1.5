@@ -56,7 +56,7 @@ contract MigrationLinker is Policy, Proposal {
 
     /** The address of the updating contract for inflationMultiplier
      */
-    address public immutable inflationMultiplierUpdatingTarget;
+    address public immutable snapshotUpdatingTarget;
 
     constructor(
         CommunityGovernance _communityGovernance,
@@ -68,7 +68,7 @@ contract MigrationLinker is Policy, Proposal {
         address _newEcoxImpl,
         address _newEcoxStakingImpl,
         address _implementationUpdatingTarget,
-        address _inflationMultiplierUpdatingTarget
+        address _snapshotUpdatingTarget
     ) Policy(address(0x0)) {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
@@ -80,7 +80,7 @@ contract MigrationLinker is Policy, Proposal {
         newEcoxImpl = _newEcoxImpl;
         newEcoxStakingImpl = _newEcoxStakingImpl;
         implementationUpdatingTarget = _implementationUpdatingTarget;
-        inflationMultiplierUpdatingTarget = _inflationMultiplierUpdatingTarget;
+        snapshotUpdatingTarget = _snapshotUpdatingTarget;
 
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
@@ -127,6 +127,30 @@ contract MigrationLinker is Policy, Proposal {
         // add new governance permissions
         this.updateGovernor(address(communityGovernance));
 
+        // get old inflation multiplier
+        uint256 _inflationMultiplier = ECOOld(ecoProxyAddress)
+            .getPastLinearInflation(block.number);
+
+        // give eco the new multiplier
+        PolicedOld(ecoProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature(
+                "setInflationMultiplier(uint256)",
+                _inflationMultiplier
+            )
+        );
+
+        // propogate total supply snapshots in eco and ecox
+        PolicedOld(ecoProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
+        );
+
+        PolicedOld(ecoxProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
+        );
+
         // update ecox
         PolicedOld(ecoxProxyAddress).policyCommand(
             implementationUpdatingTarget,
@@ -139,19 +163,6 @@ contract MigrationLinker is Policy, Proposal {
         // link ecox
         ECOx(ecoxProxyAddress).updateECOxExchange(address(ecoXExchange));
         ECOx(ecoxProxyAddress).updateBurners(address(ecoXExchange), true);
-
-        // get old inflation multiplier
-        uint256 _inflationMultiplier = ECOOld(ecoProxyAddress)
-            .getPastLinearInflation(block.number);
-
-        // give eco the new multiplier
-        PolicedOld(ecoProxyAddress).policyCommand(
-            inflationMultiplierUpdatingTarget,
-            abi.encodeWithSignature(
-                "setInflationMultiplier(uint256)",
-                _inflationMultiplier
-            )
-        );
 
         // update eco
         PolicedOld(ecoProxyAddress).policyCommand(
