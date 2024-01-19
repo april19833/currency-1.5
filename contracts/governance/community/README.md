@@ -56,7 +56,7 @@ This contract is for [CommunityGovernance](../../../docs/solidity/governance/com
 
 ### ECOxStaking
 
-- Inherits: `IERC20`, [VoteCheckpoints](../../../docs/solidity/currency/VoteCheckpoints.md), [PolicedUpgradeable](../../../docs/solidity/policy/PolicedUpgradeable.md)
+- Inherits: [VoteCheckpoints](../../../docs/solidity/currency/VoteCheckpoints.md), [PolicedUpgradeable](../../../docs/solidity/policy/PolicedUpgradeable.md)
 
 This contract is used to stake ECOx for the sake of voting with it in community governance. The quantity of ECOx locked up is the amount used to calculate the individual's voting power. A [checkpointing system](../../currency/README.md#votecheckpoints) with delegation is unchanged from the initial implmenetation and marks the block of each stake and unstake event. The stored ECOx (sECOx) cannot be transferred.
 
