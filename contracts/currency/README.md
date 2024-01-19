@@ -135,7 +135,7 @@ The `ECOx` contract inherits `TotalSupplySnapshots` which has as a baseline `ERC
 
 ### [ECOxExchange](../../docs/solidity/currency/ECOxExchange.md)
 
-- Inherits: [ECO](../../docs/solidity/currency/ECO.md), [Policied](../../docs/solidity/policy/Policed.md), [ECOx](../../docs/solidity/currency/ECOx.md)
+- Inherits: [Policied](../../docs/solidity/policy/Policed.md)
 
 Controls the ability to exchange ECOx for ECO tokens in a percentage way. Usage of this function does not assume an allowance, instead this contract is authorized to burn users' ECOx and mint ECO.
 

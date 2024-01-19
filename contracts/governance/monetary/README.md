@@ -18,7 +18,6 @@ These contracts provide the monetary policy system for the Eco currency. They sp
   - [Usage](#usage)
   - [Contract Overview](#contract-overview)
     - [TimeUtils](#timeutils)
-      - [Functions](#functions)
     - [Policy](#policy)
     - [Policied](#policied)
     - [Notifier](#notifier)
@@ -78,25 +77,6 @@ For detailed API documentation see [monetary](../../../docs/solidity/governance/
 
 Utility class for time, allowing easy unit testing.
 
-#### Functions
-
-##### getTime
-
-Determine the current time as perceived by the policy timing contract.
-
-Used extensively in testing, but also useful in production for
-determining what processes can currently be run.
-
-```solidity
-function getTime() internal view returns (uint256 blockTimeStamp)
-```
-
-###### Return Values
-
-| Name           | Type    | Description                 |
-| -------------- | ------- | --------------------------- |
-| blockTimeStamp | uint256 | The current block timestamp |
-
 ### [Policy](../../../docs/solidity/policy/Policy.md)
 
 - Inherits [ForwardTarget](../../../docs/solidity/proxy/ForwardTarget.md)
@@ -104,8 +84,6 @@ function getTime() internal view returns (uint256 blockTimeStamp)
 The policy contract that oversees other contracts. Policy contracts provide a mechanism for building pluggable (after deploy) governance systems for other contracts.
 
 ### [Policied](../../../docs/solidity/policy/Policied)
-
-- Inherits [Policy](../../../docs/solidity/policy/Policy.md)
 
 A policed contract is any contract managed by a policy.
 
@@ -119,13 +97,13 @@ Calls made to these downstream contracts are non-atomic with the lever actions t
 
 ### [Lever](../../../docs/solidity/governance/monetary/Lever.md)
 
-- Inherits [Policy](../../../docs/solidity/policy/Policy.md), [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [Notifier](../../../docs/solidity/governance/monetary/Notifier.md)
+- Inherits [Policied](../../../docs/solidity/policy/Policied)
 
 This contract is a generic monetary policy lever and is inherited by all lever implementations.
 
 ### [Lockups](../../../docs/solidity/governance/monetary/Lockups.md)
 
-- Inherits [ECO](../../../docs/solidity/currency/ECO.md), [Notifier](../../../docs/solidity/governance/monetary/Notifier.md), [Lever](../../../docs/solidity/governance/monetary/Lever.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md)
+- Inherits [Lever](../../../docs/solidity/governance/monetary/Lever.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md)
 
 This provides deposit certificate functionality for the purpose of countering inflationary effects.
 
@@ -133,31 +111,31 @@ Deposits can be made and interest will be paid out to those who make deposits. D
 
 ### [Rebase](../../../docs/solidity/governance/monetary/Rebase.md)
 
-- Inherits [ECO](../../../docs/solidity/currency/ECO.md), [Notifier](../../../docs/solidity/governance/monetary/Notifier.md), [Lever](../../../docs/solidity/governance/monetary/Lever.md)
+- Inherits [Lever](../../../docs/solidity/governance/monetary/Lever.md)
 
 This contract is a monetary policy lever that rebases the eco currency in accordance with the decision made by the slate of trustees.
 
 ### [TrustedNodesFactory](../../../docs/solidity/governance/monetary/TrustedNodesFactory.md)
 
-- Inherits [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md), [ECOx](../../../docs/solidity/currency/ECOx.md)
+- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md)
 
 This factory contract is used to deploy new TrustedNodes contracts.
 
 ### [TrustedNodes](../../../docs/solidity/governance/monetary/TrustedNodes.md)
 
-- Inherits [Policied](../../../docs/solidity/policy/Policied), [ECOx](../../../docs/solidity/currency/ECOx.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
+- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md)
 
 A registry of trusted nodes. Trusted nodes (trustees) are able to vote on monetary policy and can only be added or removed using community governance.
 
 ### [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
 
-- Inherits [TrustedNodes](../../../docs/solidity/governance/monetary/TrustedNodes.md), [MonetaryPolicyAdapter](../../../docs/solidity/governance/monetary/MonetaryPolicyAdapter.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [Policied](../../../docs/solidity/policy/Policied)
+- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md)
 
 This contract oversees the voting on the currency monetary levers.Trustees vote on a policy that is implemented at the conclusion of the cycle
 
 ### [MonetaryPolicyAdapter](../../../docs/solidity/governance/monetary/MonetaryPolicyAdapter.md)
 
-- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
+- Inherits [Policied](../../../docs/solidity/policy/Policied)
 
 This contract enacts the results of the currency governance
 Its goal is to act as a long term address to pemission to allow execution of trustee governance and as a long term reference for event indexing of the results.
