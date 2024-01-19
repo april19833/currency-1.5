@@ -1,7 +1,6 @@
 # Eco Currency and Governance _(currency 1.5)_
 
-> The Eco cryptocurrency contracts, governance contracts, and associated
-> tooling.
+> The Eco cryptocurrency contracts, governance contracts, and associated tooling.
 
 The Eco cryptocurrency and governance system are implemented here, along with all the custom tools, frameworks, and tests used primarily for the currency system.
 
@@ -12,8 +11,8 @@ The project is organized into components:
 - [The governance system](contracts/governance)
   - [Community governance](contracts/governance/community)
   - [Monetary governance](contracts/governance/monetary)
-- [Testing Framework](test)
-- [The deployment tooling](contracts/deploy)
+- [Testing utilities](test)
+- [The deployment utilities](contracts/deploy)
 
 Each component is documented in a README file in the corresponding contracts directory. See the [Background](#background) section for an overview of how they fit together.
 
@@ -32,7 +31,7 @@ Each component is documented in a README file in the corresponding contracts dir
     - [Infrastructure](#infrastructure)
       - [The Policies Framework /policy](#the-policies-framework-policy)
       - [The Proxy Framework /proxy](#the-proxy-framework-proxy)
-      - [The Deployment Tooling /deploy](#the-deployment-tooling-deploy)
+      - [The Deployment and Test Utilities /deploy](#the-deployment-and-testing-utilities)
   - [Install](#install)
   - [Usage](#usage)
     - [Compiling the contracts](#compiling-the-contracts)
@@ -66,14 +65,14 @@ The Eco currency is intended to serve as a decentralized, free-floating alternat
 
 Currency 1.5 was inspired by the desire to simplify and modularize the Eco Protocol governance system. The initial implementation of the Eco Protocol is complicated, difficult to upgrade, contains many interdependent components, and an ERC1820 registry system. The goal of this redesign is to accomplish the following:
 
-- Simplify the architecture of the Eco Protocol to invite new contributors
-- Maintain full backward compatibility
+- Simplify the architecture of the Eco Protocol to enable new contributors
+- Maintain backward compatibility
 - Maintain flexibility for upgrades
 - Significantly decrease the cognitive overhead for upgrades
 - Decrease dynamism and moving parts
 - Minimize system interdependency
 - Reduce gas costs with only minor changes
-- Increase testability of the design so that contracts can be tested as modules
+- Increase testability of the design
 - Ensure that downstream contracts are core dependencies of all other contracts, and not dependent on any other contracts.
 
 ### The ECOsystem
@@ -92,11 +91,11 @@ The secondary token (ECOx) is a deflationary supply asset intended to incentiviz
 
 #### The Governance System [/governance](./contracts/governance/README.md)
 
-The Governance module contains the monetary and community governance submodules, as well as the general governance logic for pushing the ECOsystem into a new generation. Monetary and community governance operate on a timescale defined by this logic.
+The Governance module contains the monetary and community governance submodules, as well as the general governance logic for pushing the ECOsystem into a new generation. Monetary and community governance operate on timescales defined by this logic.
 
 ##### Monetary Governance [/governance/monetary](./contracts/governance/monetary)
 
-The monetary governance submodule allows community-elected trustees to make decisions about the monetary supply in the economy. It initially involves 3 possible actions: minting tokens and distributing them at random (Random Inflation), minting tokens and using them as rewards for lockup contracts (Lockups), and re-scaling each account balance equally (Linear Inflation).
+The monetary governance submodule allows community-elected trustees to make decisions about the monetary supply in the economy. It initially involves 2 possible actions: minting tokens and using them as rewards for lockup contracts (Lockups), and re-scaling each account balance equally (Linear Inflation).
 
 ##### Community Governance [/governance/community](./contracts/governance/community/README.md)
 
@@ -108,19 +107,19 @@ Outside of these core modules there are a few major infrastructure components th
 
 #### The Policies Framework [/policy](./contracts/policy)
 
-The policies framework provides the core contract logic that facilitates upgradability, and is used to enforce access control and permissions between contracts. This framework also uses the clone component (/clone) to efficiently deploy clones of core contracts on generation increase.
+The policies framework provides the core contract logic that facilitates upgradability, and is used to enforce access control and permissions between contracts.
 
 #### The Proxy Framework [/proxy](./contracts/proxy)
 
-The proxy framework, combined with the ERC1820 registry, allow contracts to be upgraded while keeping their state intact and maintaining accessibility without the need to publicize a new address.
+The proxy framework secures the main contracts with long-lived state (Policy, ECO, ECOx, and ECOxStaking) so that they can still be upgraded without losing their contract state.
 
-#### The Deployment Tooling [/deploy](./deploy)
+#### The Deployment and Testing Utilities [/deploy](./deploy)
 
-TODO - write this section when creating deployments including upgrade process.
+The contracts here provide the supporting functionality required to run tests and perform different kinds of deployments of the contracts.
 
 ## Install
 
-To use the code you'll need the proper tools. Make sure you have a recent version of [Node.JS](https://nodejs.org), a recent version of [NPM](https://npmjs.com), and [YARN](https://classic.yarnpkg.com/lang/en/).
+To use the code you'll need the proper tools. Make sure you have a compliant version of [Node.JS](https://nodejs.org) (>= 18.17.0), a corresponding version of [NPM](https://npmjs.com), and [YARN](https://classic.yarnpkg.com/lang/en/).
 
 Once Node, NPM and YARN are installed you can set your node version using
 
@@ -164,7 +163,7 @@ and
 yarn format
 ```
 
-`yarn lint` displays all the linting and formatting issues wheres `yarn format` resolves them by updating the files.
+`yarn lint` displays all the linting and formatting issues wheres `yarn format` resolves formatting issues by updating the files.
 
 #### Testing
 
@@ -174,7 +173,13 @@ You can run the test suite by invoking:
 yarn test
 ```
 
-The test suite is extensive and can take some time to run.
+The test suite is extensive and can take some time to run. If you have a machine that has sufficient parallel processing capabilities, this time can be reduced by using the parallelized version of the test suite:
+
+```bash
+yarn testParallel
+```
+
+This may be quite cpu intensive.
 
 #### Coverage Reporting
 
@@ -226,7 +231,13 @@ Following are some individual commands
 
 ### Running a deployment
 
-TODO - Need to write this section including migration.
+The `deploy` folder hold the relevant scripts for deploying contracts, they can be run via `hardhat` as so:
+
+```bash
+npx hardhat run deploy/deploy-simple.ts
+```
+
+using the most simple deployment as an example.
 
 ## Components
 
@@ -237,13 +248,13 @@ TODO - Need to write this section including migration.
 - [Policy Framework](./contracts/policy)
 - [Proxy Framework](./contracts/proxy)
 - [Deployment Tools](./contracts/deploy)
-- [The Verifiable Delay Function](./contracts/VDF)
+- [Test Tools](./contracts/test)
 
 ## Contributing
 
 Contributions are welcome. Please submit any issues as issues on GitHub, and open a pull request with any contributions.
 
-Please ensure that the test suite passes (run `yarn test`) and that the linters run at least as cleanly as they did when you started (run `yarn lint`). Pull requests that do not pass the test suite or that produce significant lint errors will likely not be accepted.
+Please ensure that the test suite passes (run `yarn test`) and that the linters run at least as cleanly as they did when you started (run `yarn format`). Pull requests that do not pass the test suite or that produce significant lint errors will likely not be reviewed.
 
 See the [contributing guide](./CONTRIBUTING.md) for more details.
 
