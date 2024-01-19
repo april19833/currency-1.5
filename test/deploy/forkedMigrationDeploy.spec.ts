@@ -263,22 +263,22 @@ describe('Mainnet fork migration tests', () => {
     expect(await contracts.monetary.trustedNodes.isTrusted(bob.address)).to.be
       .true
 
-    expect(
-      await contracts.monetary.lockupsLever.policy()
-    ).to.eq(contracts.base.policy.address)
+    expect(await contracts.monetary.lockupsLever.policy()).to.eq(
+      contracts.base.policy.address
+    )
     expect(await contracts.monetary.lockupsLever.eco()).to.eq(
       contracts.base.eco.address
     )
-    expect(
-      await contracts.monetary.lockupsLever.depositWindow()
-    ).to.eq(LOCKUP_DEPOSIT_WINDOW)
+    expect(await contracts.monetary.lockupsLever.depositWindow()).to.eq(
+      LOCKUP_DEPOSIT_WINDOW
+    )
 
-    expect(
-      await contracts.monetary.lockupsNotifier.policy()
-    ).to.eq(contracts.base.policy.address)
-    expect(
-      await contracts.monetary.lockupsNotifier.lever()
-    ).to.eq(contracts.monetary.lockupsLever.address)
+    expect(await contracts.monetary.lockupsNotifier.policy()).to.eq(
+      contracts.base.policy.address
+    )
+    expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(
+      contracts.monetary.lockupsLever.address
+    )
   })
 
   context('with the proposal contstructed', () => {
@@ -367,7 +367,7 @@ describe('Mainnet fork migration tests', () => {
       expect(await proposal.newPolicyImpl()).to.eq(fixtureAddresses.policy)
     })
 
-    context.only('with enacted proposal', () => {
+    context('with enacted proposal', () => {
       let oldPolicyImpl
       let oldEcoImpl
       let oldEcoxImpl
@@ -537,9 +537,9 @@ describe('Mainnet fork migration tests', () => {
             contracts.monetary.adapter.address
           )
         ).to.be.true
-        expect(
-          await contracts.monetary.lockupsLever.notifier()
-        ).to.eq(contracts.monetary.lockupsNotifier.address)
+        expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
+          contracts.monetary.lockupsNotifier.address
+        )
       })
 
       it('can withdraw from staking contract', async () => {
@@ -609,9 +609,7 @@ describe('Mainnet fork migration tests', () => {
           )
         )
         // vote proposal through
-        await contracts.monetary.monetaryGovernance
-          .connect(bob)
-          .commit(commit)
+        await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
         // next stage
         await time.increase(
           await contracts.monetary.monetaryGovernance.VOTING_TIME()
@@ -629,13 +627,9 @@ describe('Mainnet fork migration tests', () => {
         // execute proposal
         await contracts.monetary.monetaryGovernance.enact(cycle)
 
-        const lockupParams = await contracts.monetary.lockupsLever.lockups(
-          0
-        )
+        const lockupParams = await contracts.monetary.lockupsLever.lockups(0)
         const now = await time.latest()
-        expect(lockupParams.depositWindowEnd).to.eq(
-          now + LOCKUP_DEPOSIT_WINDOW
-        )
+        expect(lockupParams.depositWindowEnd).to.eq(now + LOCKUP_DEPOSIT_WINDOW)
         expect(lockupParams.end).to.eq(
           now + LOCKUP_DEPOSIT_WINDOW + lockupDuration.toNumber()
         )
@@ -649,8 +643,7 @@ describe('Mainnet fork migration tests', () => {
           communityGovernanceContracts
         )
 
-        const oldInflationMult =
-          await contracts.base.eco.inflationMultiplier()
+        const oldInflationMult = await contracts.base.eco.inflationMultiplier()
         const rebaseAmount = ethers.utils.parseUnits('2', 'ether') // 50% rebase
 
         // propose the monetary policy with the lockup
@@ -658,11 +651,7 @@ describe('Mainnet fork migration tests', () => {
           .connect(bob)
           .propose(
             [contracts.monetary.rebaseLever.address],
-            [
-              contracts.monetary.rebaseLever.interface.getSighash(
-                'execute'
-              ),
-            ],
+            [contracts.monetary.rebaseLever.interface.getSighash('execute')],
             [
               `0x${contracts.monetary.rebaseLever.interface
                 .encodeFunctionData('execute', [rebaseAmount])
@@ -695,9 +684,7 @@ describe('Mainnet fork migration tests', () => {
           )
         )
         // vote proposal through
-        await contracts.monetary.monetaryGovernance
-          .connect(bob)
-          .commit(commit)
+        await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
         // next stage
         await time.increase(
           await contracts.monetary.monetaryGovernance.VOTING_TIME()

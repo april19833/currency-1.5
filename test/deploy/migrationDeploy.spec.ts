@@ -355,12 +355,12 @@ describe('Migration tests', () => {
         await monetaryGovernanceContracts.lockupsLever.depositWindow()
       ).to.eq(LOCKUP_DEPOSIT_WINDOW)
 
-      expect(
-        await monetaryGovernanceContracts.lockupsNotifier.policy()
-      ).to.eq(baseContracts.policy.address)
-      expect(
-        await monetaryGovernanceContracts.lockupsNotifier.lever()
-      ).to.eq(monetaryGovernanceContracts.lockupsLever.address)
+      expect(await monetaryGovernanceContracts.lockupsNotifier.policy()).to.eq(
+        baseContracts.policy.address
+      )
+      expect(await monetaryGovernanceContracts.lockupsNotifier.lever()).to.eq(
+        monetaryGovernanceContracts.lockupsLever.address
+      )
     })
 
     context('with enacted proposal', () => {
@@ -532,9 +532,9 @@ describe('Migration tests', () => {
             contracts.monetary.adapter.address
           )
         ).to.be.true
-        expect(
-          await contracts.monetary.lockupsLever.notifier()
-        ).to.eq(contracts.monetary.lockupsNotifier.address)
+        expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
+          contracts.monetary.lockupsNotifier.address
+        )
       })
     })
   })

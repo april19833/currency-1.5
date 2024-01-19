@@ -38,7 +38,6 @@ import {
 } from '../typechain-types/factories/contracts/currency'
 import { TestnetLinker__factory } from '../typechain-types/factories/contracts/test/deploy/TestnetLinker.propo.sol'
 import { TestnetLinker } from '../typechain-types/contracts/test/deploy/TestnetLinker.propo.sol'
-import { DummyLever__factory } from '../typechain-types/factories/contracts/test'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
@@ -216,7 +215,11 @@ export async function deployMonetary(
     config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
   ]
 
-  const lockupsContract = ((await deploy(wallet, Lockups__factory, lockupsLeverParams)) as Lockups)
+  const lockupsContract = (await deploy(
+    wallet,
+    Lockups__factory,
+    lockupsLeverParams
+  )) as Lockups
 
   if (verbose) {
     console.log('deploying lockups notifier')
