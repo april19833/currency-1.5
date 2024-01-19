@@ -182,6 +182,15 @@ constructor(contract Policy _policy, contract ECO _eco, uint256 _depositWindow) 
 | _eco | contract ECO | the ECO contract |
 | _depositWindow | uint256 | length of the deposit window |
 
+### initializeVoting
+
+Sets up ability to delegate
+separate from constructor so that contract can be deployed pre-migration
+
+```solidity
+function initializeVoting() public
+```
+
 ### createLockup
 
 Creates a lockup

@@ -23,6 +23,12 @@ struct Snapshot {
 uint32 currentSnapshotBlock
 ```
 
+### _totalSupplySnapshot
+
+```solidity
+struct TotalSupplySnapshots.Snapshot _totalSupplySnapshot
+```
+
 ### NewSnapshotBlock
 
 _Emitted by {_snapshot} when a new snapshot is created._
