@@ -20,7 +20,7 @@ abstract contract TotalSupplySnapshots is ERC20MintAndBurn {
     uint32 public currentSnapshotBlock;
 
     // the snapshot to track the token total supply
-    Snapshot private _totalSupplySnapshot;
+    Snapshot internal _totalSupplySnapshot;
 
     /**
      * @dev Emitted by {_snapshot} when a new snapshot is created.

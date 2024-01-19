@@ -8,7 +8,7 @@ import "../../policy/Policy.sol";
  *
  * A proposal used to set the inflation multiplier for the ECO contract as part of the migration
  */
-contract InflationMultiplierUpdatingTarget is ECO {
+contract SnapshotUpdatingTarget is ECO {
     // constructor args have no effect on delegated code
     constructor() ECO(Policy(address(1)), address(2)) {}
 
@@ -18,5 +18,10 @@ contract InflationMultiplierUpdatingTarget is ECO {
         currentSnapshotBlock = _currentSnapshotBlock;
         _inflationMultiplierSnapshot.snapshotBlock = _currentSnapshotBlock;
         _inflationMultiplierSnapshot.value = uint224(newMultiplier);
+    }
+
+    function setTotalSupplySnapshot() public {
+        _totalSupplySnapshot.snapshotBlock = currentSnapshotBlock;
+        _totalSupplySnapshot.value = uint224(_totalSupply);
     }
 }

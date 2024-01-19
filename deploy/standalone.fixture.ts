@@ -38,7 +38,6 @@ import {
 } from '../typechain-types/factories/contracts/currency'
 import { TestnetLinker__factory } from '../typechain-types/factories/contracts/test/deploy/TestnetLinker.propo.sol'
 import { TestnetLinker } from '../typechain-types/contracts/test/deploy/TestnetLinker.propo.sol'
-import { DummyLever__factory } from '../typechain-types/factories/contracts/test'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 const DEFAULT_TRUSTEE_TERM = 26 * 14 * DAY
@@ -216,9 +215,11 @@ export async function deployMonetary(
     config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
   ]
 
-  const lockupsContract = config.noLockups
-    ? ((await deploy(wallet, DummyLever__factory)) as Lockups)
-    : ((await deploy(wallet, Lockups__factory, lockupsLeverParams)) as Lockups)
+  const lockupsContract = (await deploy(
+    wallet,
+    Lockups__factory,
+    lockupsLeverParams
+  )) as Lockups
 
   if (verbose) {
     console.log('deploying lockups notifier')
@@ -343,47 +344,6 @@ export async function deployMonetary(
     rebaseContract,
     rebaseNotifier
   )
-}
-
-export async function deployLockups(
-  wallet: Signer,
-  base: BaseContracts,
-  verbose = false,
-  config: any
-): Promise<LockupContracts> {
-  if (verbose) {
-    console.log('deploying lockups lever')
-  }
-
-  const lockupsLeverParams = [
-    base.policy.address,
-    base.eco.address,
-    config.lockupDepositWindow || DEFAULT_LOCKUP_DEPOSIT_WINDOW,
-  ]
-
-  const lockupsContract = config.noLockups
-    ? ((await deploy(wallet, DummyLever__factory)) as Lockups)
-    : ((await deploy(wallet, Lockups__factory, lockupsLeverParams)) as Lockups)
-
-  if (verbose) {
-    console.log('deploying lockups notifier')
-  }
-
-  const lockupsNotifierParams = [
-    base.policy.address,
-    lockupsContract.address,
-    [],
-    [],
-    [],
-  ]
-
-  const lockupsNotifier = (await deploy(
-    wallet,
-    Notifier__factory,
-    lockupsNotifierParams
-  )) as Notifier
-
-  return new LockupContracts(lockupsContract, lockupsNotifier)
 }
 
 export async function deployBase(
@@ -649,6 +609,12 @@ export async function testnetFixture(
   if (verbose) {
     console.log('success!')
   }
+
+  if (verbose) {
+    console.log('initializing lockup')
+  }
+
+  await monetary.lockupsLever.initializeVoting()
 
   const fixture = new Fixture(base, monetary, community)
 
