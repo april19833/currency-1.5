@@ -10,9 +10,8 @@ import {
   FixtureAddresses,
   MonetaryGovernanceContracts,
   CommunityGovernanceContracts,
-  deployLockups,
 } from '../../deploy/standalone.fixture'
-import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import {
   ECO as ECOold,
@@ -32,7 +31,6 @@ import { ECOxStaking } from '../../typechain-types/contracts/governance/communit
 import { MigrationLinker } from '../../typechain-types/contracts/test/deploy/MigrationLinker.propo.sol'
 import { MigrationLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
 import { SnapshotUpdatingTarget__factory } from '../../typechain-types/factories/contracts/test/deploy'
-import { LockupLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/LockupLinker.propo.sol'
 import { deploy } from '../../deploy/utils'
 import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
 import {
@@ -278,6 +276,7 @@ describe('Migration tests', () => {
         fixtureAddresses.communityGovernance,
         fixtureAddresses.ecoXExchange,
         fixtureAddresses.rebaseNotifier,
+        fixtureAddresses.lockupsNotifier,
         fixtureAddresses.trustedNodes,
         fixtureAddresses.policy,
         fixtureAddresses.eco,
@@ -345,6 +344,23 @@ describe('Migration tests', () => {
       expect(await proposal.trustedNodes()).to.eq(fixtureAddresses.trustedNodes)
 
       expect(await proposal.newPolicyImpl()).to.eq(fixtureAddresses.policy)
+
+      expect(await monetaryGovernanceContracts.lockupsLever.policy()).to.eq(
+        baseContracts.policy.address
+      )
+      expect(await monetaryGovernanceContracts.lockupsLever.eco()).to.eq(
+        baseContracts.eco.address
+      )
+      expect(
+        await monetaryGovernanceContracts.lockupsLever.depositWindow()
+      ).to.eq(LOCKUP_DEPOSIT_WINDOW)
+
+      expect(await monetaryGovernanceContracts.lockupsNotifier.policy()).to.eq(
+        baseContracts.policy.address
+      )
+      expect(await monetaryGovernanceContracts.lockupsNotifier.lever()).to.eq(
+        monetaryGovernanceContracts.lockupsLever.address
+      )
     })
 
     context('with enacted proposal', () => {
@@ -407,6 +423,9 @@ describe('Migration tests', () => {
         await time.increase(3600 * 24 * 4)
         // executes
         await policyVotes.execute()
+
+        // initialize the voting for the lockup
+        await monetaryGovernanceContracts.lockupsLever.initializeVoting()
 
         // edit the base contracts object so it has the right interface object
         baseContracts.policy = new Policy__factory(alice).attach(
@@ -496,100 +515,26 @@ describe('Migration tests', () => {
         expect(
           await contracts.monetary.monetaryGovernance.trustedNodes()
         ).to.eq(contracts.monetary.trustedNodes.address)
-      })
 
-      context('adding lockups after migration', () => {
-        beforeEach(async () => {
-          // deploy the lockups contract and its notifier
-          const lockups = await deployLockups(alice, baseContracts, false, {})
-
-          // fill in the new contracts into the object
-          monetaryGovernanceContracts.lockupsLever = lockups.lockupsLever
-          monetaryGovernanceContracts.lockupsNotifier = lockups.lockupsNotifier
-
-          // deploy proposal
-          const proposal = await deploy(alice, LockupLinker__factory, [
-            monetaryGovernanceContracts.lockupsNotifier.address,
-            monetaryGovernanceContracts.adapter.address,
-          ])
-
-          // alice must become a voter
-          expect(await baseContracts.eco.voteBalanceOf(alice.address)).to.eq(0)
-          await baseContracts.eco.connect(alice).enableVoting()
-          const aliceBalance = await baseContracts.eco.voteBalanceOf(
-            alice.address
+        expect(
+          await contracts.base.eco.voter(
+            contracts.monetary.lockupsLever.address
           )
+        ).to.be.true
 
-          // go to next voting cycle
-          await time.increase(14 * DAY)
-
-          // push to next cycle which snapshots alice's new voting power (this step is only necessary to test the expect)
-          await communityGovernanceContracts.communityGovernance.updateStage()
-          await mine() // need to manually increment to the next block to check view function
-          expect(
-            await baseContracts.eco.voteBalanceSnapshot(alice.address)
-          ).to.eq(aliceBalance)
-
-          // push the proposal through voting
-          await baseContracts.eco
-            .connect(alice)
-            .approve(
-              communityGovernanceContracts.communityGovernance.address,
-              await communityGovernanceContracts.communityGovernance.proposalFee()
-            )
-          await communityGovernanceContracts.communityGovernance
-            .connect(alice)
-            .propose(proposal.address)
-          await communityGovernanceContracts.communityGovernance
-            .connect(alice)
-            .support(proposal.address)
-          await communityGovernanceContracts.communityGovernance
-            .connect(alice)
-            .vote(1)
-          await communityGovernanceContracts.communityGovernance
-            .connect(alice)
-            .execute()
-        })
-
-        it('confirm contract params', async () => {
-          // constructed
-          expect(await monetaryGovernanceContracts.lockupsLever.policy()).to.eq(
-            baseContracts.policy.address
+        expect(
+          await contracts.base.eco.minters(
+            contracts.monetary.lockupsLever.address
           )
-          expect(await monetaryGovernanceContracts.lockupsLever.eco()).to.eq(
-            baseContracts.eco.address
+        ).to.be.true
+        expect(
+          await contracts.monetary.lockupsLever.authorized(
+            contracts.monetary.adapter.address
           )
-          expect(
-            await monetaryGovernanceContracts.lockupsLever.depositWindow()
-          ).to.eq(LOCKUP_DEPOSIT_WINDOW)
-          expect(
-            await baseContracts.eco.voter(
-              monetaryGovernanceContracts.lockupsLever.address
-            )
-          ).to.be.true
-
-          expect(
-            await monetaryGovernanceContracts.lockupsNotifier.policy()
-          ).to.eq(baseContracts.policy.address)
-          expect(
-            await monetaryGovernanceContracts.lockupsNotifier.lever()
-          ).to.eq(monetaryGovernanceContracts.lockupsLever.address)
-
-          // linked
-          expect(
-            await baseContracts.eco.minters(
-              monetaryGovernanceContracts.lockupsLever.address
-            )
-          ).to.be.true
-          expect(
-            await monetaryGovernanceContracts.lockupsLever.authorized(
-              monetaryGovernanceContracts.adapter.address
-            )
-          ).to.be.true
-          expect(
-            await monetaryGovernanceContracts.lockupsLever.notifier()
-          ).to.eq(monetaryGovernanceContracts.lockupsNotifier.address)
-        })
+        ).to.be.true
+        expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
+          contracts.monetary.lockupsNotifier.address
+        )
       })
     })
   })

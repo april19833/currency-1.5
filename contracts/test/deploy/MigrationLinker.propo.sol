@@ -42,6 +42,10 @@ contract MigrationLinker is Policy, Proposal {
 
     Notifier public immutable rebaseNotifier;
 
+    address public immutable lockups;
+
+    Notifier public immutable lockupsNotifier;
+
     MonetaryPolicyAdapter public immutable monetaryPolicyAdapter;
 
     CurrencyGovernance public immutable currencyGovernance;
@@ -62,6 +66,7 @@ contract MigrationLinker is Policy, Proposal {
         CommunityGovernance _communityGovernance,
         ECOxExchange _ecoXExchange,
         Notifier _rebaseNotifier,
+        Notifier _lockupsNotifier,
         TrustedNodes _trustedNodes,
         address _newPolicyImpl,
         address _newEcoImpl,
@@ -73,6 +78,7 @@ contract MigrationLinker is Policy, Proposal {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
         rebaseNotifier = _rebaseNotifier;
+        lockupsNotifier = _lockupsNotifier;
         trustedNodes = _trustedNodes;
 
         newPolicyImpl = _newPolicyImpl;
@@ -85,6 +91,7 @@ contract MigrationLinker is Policy, Proposal {
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
         rebase = _rebaseNotifier.lever();
+        lockups = _lockupsNotifier.lever();
         currencyGovernance = _trustedNodes.currencyGovernance();
         monetaryPolicyAdapter = currencyGovernance.enacter();
         ecoXStakingProxyAddress = address(communityGovernance.ecoXStaking());
@@ -173,6 +180,7 @@ contract MigrationLinker is Policy, Proposal {
         // link eco
         ECO(ecoProxyAddress).updateMinters(address(ecoXExchange), true);
         ECO(ecoProxyAddress).updateRebasers(rebase, true);
+        ECO(ecoProxyAddress).updateMinters(lockups, true);
         ECO(ecoProxyAddress).updateSnapshotters(
             address(communityGovernance),
             true
@@ -207,6 +215,10 @@ contract MigrationLinker is Policy, Proposal {
                 newEcoxStakingImpl
             )
         );
+
+        // link lockups lever
+        Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
+        Lockups(lockups).setNotifier(lockupsNotifier);
 
         // link rebase lever
         Rebase(rebase).setAuthorized(address(monetaryPolicyAdapter), true);
