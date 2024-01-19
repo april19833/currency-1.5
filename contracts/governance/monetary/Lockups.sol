@@ -254,7 +254,7 @@ contract Lockups is Lever, TimeUtils {
             if (msg.sender != _recipient) {
                 revert EarlyWithdrawFor(_lockupId, msg.sender, _recipient);
             } else {
-                if(interest > amount) {
+                if (interest > amount) {
                     penalties += amount * _currentInflationMultiplier;
                     amount = 0;
                 } else {
