@@ -10,7 +10,6 @@ import {
   FixtureAddresses,
   MonetaryGovernanceContracts,
   CommunityGovernanceContracts,
-  deployLockups,
 } from '../../deploy/standalone.fixture'
 import { time, reset } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
@@ -30,7 +29,6 @@ import { ECOxStaking } from '../../typechain-types/contracts/governance/communit
 import { MigrationLinker } from '../../typechain-types/contracts/test/deploy/MigrationLinker.propo.sol'
 import { MigrationLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
 import { InflationMultiplierUpdatingTarget__factory } from '../../typechain-types/factories/contracts/test/deploy'
-import { LockupLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/LockupLinker.propo.sol'
 import { deploy } from '../../deploy/utils'
 import { getExistingEco } from '../../deploy/parse-mainnet'
 import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
@@ -264,6 +262,23 @@ describe('Mainnet fork migration tests', () => {
       .true
     expect(await contracts.monetary.trustedNodes.isTrusted(bob.address)).to.be
       .true
+
+    expect(
+      await contracts.monetary.lockupsLever.policy()
+    ).to.eq(contracts.base.policy.address)
+    expect(await contracts.monetary.lockupsLever.eco()).to.eq(
+      contracts.base.eco.address
+    )
+    expect(
+      await contracts.monetary.lockupsLever.depositWindow()
+    ).to.eq(LOCKUP_DEPOSIT_WINDOW)
+
+    expect(
+      await contracts.monetary.lockupsNotifier.policy()
+    ).to.eq(contracts.base.policy.address)
+    expect(
+      await contracts.monetary.lockupsNotifier.lever()
+    ).to.eq(contracts.monetary.lockupsLever.address)
   })
 
   context('with the proposal contstructed', () => {
@@ -282,6 +297,7 @@ describe('Mainnet fork migration tests', () => {
         fixtureAddresses.communityGovernance,
         fixtureAddresses.ecoXExchange,
         fixtureAddresses.rebaseNotifier,
+        fixtureAddresses.lockupsNotifier,
         fixtureAddresses.trustedNodes,
         fixtureAddresses.policy,
         fixtureAddresses.eco,
@@ -351,7 +367,7 @@ describe('Mainnet fork migration tests', () => {
       expect(await proposal.newPolicyImpl()).to.eq(fixtureAddresses.policy)
     })
 
-    context('with enacted proposal', () => {
+    context.only('with enacted proposal', () => {
       let oldPolicyImpl
       let oldEcoImpl
       let oldEcoxImpl
@@ -411,6 +427,9 @@ describe('Mainnet fork migration tests', () => {
         await time.increase(4 * DAY)
         // executes
         await policyVotes.execute()
+
+        // initialize the voting for the lockup
+        await monetaryGovernanceContracts.lockupsLever.initializeVoting()
 
         // edit the base contracts object so it has the right interface object
         baseContracts.policy = new Policy__factory(alice).attach(
@@ -501,6 +520,26 @@ describe('Mainnet fork migration tests', () => {
         expect(
           await contracts.monetary.monetaryGovernance.trustedNodes()
         ).to.eq(contracts.monetary.trustedNodes.address)
+
+        expect(
+          await contracts.base.eco.voter(
+            contracts.monetary.lockupsLever.address
+          )
+        ).to.be.true
+
+        expect(
+          await contracts.base.eco.minters(
+            contracts.monetary.lockupsLever.address
+          )
+        ).to.be.true
+        expect(
+          await contracts.monetary.lockupsLever.authorized(
+            contracts.monetary.adapter.address
+          )
+        ).to.be.true
+        expect(
+          await contracts.monetary.lockupsLever.notifier()
+        ).to.eq(contracts.monetary.lockupsNotifier.address)
       })
 
       it('can withdraw from staking contract', async () => {
@@ -514,265 +553,174 @@ describe('Mainnet fork migration tests', () => {
         )
       })
 
-      context(
-        'adding lockups after migration (tests community governance cycle)',
-        () => {
-          beforeEach(async () => {
-            // deploy the lockups contract and its notifier
-            const lockups = await deployLockups(alice, baseContracts, false, {})
+      it('can create a lockup (tests monetary governance cycle)', async () => {
+        const contracts = new Fixture(
+          baseContracts,
+          monetaryGovernanceContracts,
+          communityGovernanceContracts
+        )
 
-            // fill in the new contracts into the object
-            monetaryGovernanceContracts.lockupsLever = lockups.lockupsLever
-            monetaryGovernanceContracts.lockupsNotifier =
-              lockups.lockupsNotifier
+        const lockupRate = await contracts.monetary.lockupsLever.MAX_RATE()
+        const lockupDuration =
+          await contracts.monetary.lockupsLever.MIN_DURATION()
 
-            // deploy proposal
-            const proposal = await deploy(alice, LockupLinker__factory, [
-              monetaryGovernanceContracts.lockupsNotifier.address,
-              monetaryGovernanceContracts.adapter.address,
-            ])
+        // propose the monetary policy with the lockup
+        const tx = await contracts.monetary.monetaryGovernance
+          .connect(bob)
+          .propose(
+            [contracts.monetary.lockupsLever.address],
+            [
+              contracts.monetary.lockupsLever.interface.getSighash(
+                'createLockup'
+              ),
+            ],
+            [
+              `0x${contracts.monetary.lockupsLever.interface
+                .encodeFunctionData('createLockup', [
+                  lockupDuration,
+                  lockupRate,
+                ])
+                .slice(10)}`,
+            ],
+            'aoeu'
+          )
+        // get proposalId from event cuz it's easier
+        const receipt = await tx.wait()
+        const proposalId = receipt.events?.find(
+          (e) => e.event === 'ProposalCreation'
+        )?.args?.id
+        // move to next stage
+        await time.increase(6 * DAY) // we are already 4 days into the cycle because of the previous community governance action
+        // need cycle number
+        const cycle =
+          await contracts.monetary.monetaryGovernance.getCurrentCycle()
+        // build commit hash
+        const salt = '0x' + '00'.repeat(32)
+        const vote = [{ proposalId, score: 1 }]
+        const commit = ethers.utils.keccak256(
+          ethers.utils.defaultAbiCoder.encode(
+            [
+              'bytes32',
+              'uint256',
+              'address',
+              '(bytes32 proposalId, uint256 score)[]',
+            ],
+            [salt, cycle, bob.address, vote]
+          )
+        )
+        // vote proposal through
+        await contracts.monetary.monetaryGovernance
+          .connect(bob)
+          .commit(commit)
+        // next stage
+        await time.increase(
+          await contracts.monetary.monetaryGovernance.VOTING_TIME()
+        )
+        // reveal proposal
+        await contracts.monetary.monetaryGovernance.reveal(
+          bob.address,
+          salt,
+          vote
+        )
+        // next stage
+        await time.increase(
+          await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+        )
+        // execute proposal
+        await contracts.monetary.monetaryGovernance.enact(cycle)
 
-            // alice must become a voter
-            expect(await baseContracts.eco.voteBalanceOf(alice.address)).to.eq(
-              0
-            )
-            await baseContracts.eco.connect(alice).enableVoting()
+        const lockupParams = await contracts.monetary.lockupsLever.lockups(
+          0
+        )
+        const now = await time.latest()
+        expect(lockupParams.depositWindowEnd).to.eq(
+          now + LOCKUP_DEPOSIT_WINDOW
+        )
+        expect(lockupParams.end).to.eq(
+          now + LOCKUP_DEPOSIT_WINDOW + lockupDuration.toNumber()
+        )
+        expect(lockupParams.rate).to.eq(lockupRate)
+      })
 
-            // go to next voting cycle
-            await time.increase(14 * DAY)
+      it('can rebase (tests monetary governance cycle)', async () => {
+        const contracts = new Fixture(
+          baseContracts,
+          monetaryGovernanceContracts,
+          communityGovernanceContracts
+        )
 
-            // push the proposal through voting
-            await baseContracts.eco
-              .connect(alice)
-              .approve(
-                communityGovernanceContracts.communityGovernance.address,
-                await communityGovernanceContracts.communityGovernance.proposalFee()
-              )
-            await communityGovernanceContracts.communityGovernance
-              .connect(alice)
-              .propose(proposal.address)
-            await communityGovernanceContracts.communityGovernance
-              .connect(alice)
-              .support(proposal.address)
-            await communityGovernanceContracts.communityGovernance
-              .connect(alice)
-              .vote(1)
-            await time.increase(4 * DAY)
-            await communityGovernanceContracts.communityGovernance
-              .connect(alice)
-              .execute()
-          })
+        const oldInflationMult =
+          await contracts.base.eco.inflationMultiplier()
+        const rebaseAmount = ethers.utils.parseUnits('2', 'ether') // 50% rebase
 
-          it('confirm contract params', async () => {
-            // constructed
-            expect(
-              await monetaryGovernanceContracts.lockupsLever.policy()
-            ).to.eq(baseContracts.policy.address)
-            expect(await monetaryGovernanceContracts.lockupsLever.eco()).to.eq(
-              baseContracts.eco.address
-            )
-            expect(
-              await monetaryGovernanceContracts.lockupsLever.depositWindow()
-            ).to.eq(LOCKUP_DEPOSIT_WINDOW)
-            expect(
-              await baseContracts.eco.voter(
-                monetaryGovernanceContracts.lockupsLever.address
-              )
-            ).to.be.true
+        // propose the monetary policy with the lockup
+        const tx = await contracts.monetary.monetaryGovernance
+          .connect(bob)
+          .propose(
+            [contracts.monetary.rebaseLever.address],
+            [
+              contracts.monetary.rebaseLever.interface.getSighash(
+                'execute'
+              ),
+            ],
+            [
+              `0x${contracts.monetary.rebaseLever.interface
+                .encodeFunctionData('execute', [rebaseAmount])
+                .slice(10)}`,
+            ],
+            'aoeu'
+          )
+        // get proposalId from event cuz it's easier
+        const receipt = await tx.wait()
+        const proposalId = receipt.events?.find(
+          (e) => e.event === 'ProposalCreation'
+        )?.args?.id
+        // move to next stage
+        await time.increase(6 * DAY) // we are already 4 days into the cycle because of the previous community governance action
+        // need cycle number
+        const cycle =
+          await contracts.monetary.monetaryGovernance.getCurrentCycle()
+        // build commit hash
+        const salt = '0x' + '00'.repeat(32)
+        const vote = [{ proposalId, score: 1 }]
+        const commit = ethers.utils.keccak256(
+          ethers.utils.defaultAbiCoder.encode(
+            [
+              'bytes32',
+              'uint256',
+              'address',
+              '(bytes32 proposalId, uint256 score)[]',
+            ],
+            [salt, cycle, bob.address, vote]
+          )
+        )
+        // vote proposal through
+        await contracts.monetary.monetaryGovernance
+          .connect(bob)
+          .commit(commit)
+        // next stage
+        await time.increase(
+          await contracts.monetary.monetaryGovernance.VOTING_TIME()
+        )
+        // reveal proposal
+        await contracts.monetary.monetaryGovernance.reveal(
+          bob.address,
+          salt,
+          vote
+        )
+        // next stage
+        await time.increase(
+          await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+        )
+        // execute proposal
+        await contracts.monetary.monetaryGovernance.enact(cycle)
 
-            expect(
-              await monetaryGovernanceContracts.lockupsNotifier.policy()
-            ).to.eq(baseContracts.policy.address)
-            expect(
-              await monetaryGovernanceContracts.lockupsNotifier.lever()
-            ).to.eq(monetaryGovernanceContracts.lockupsLever.address)
-
-            // linked
-            expect(
-              await baseContracts.eco.minters(
-                monetaryGovernanceContracts.lockupsLever.address
-              )
-            ).to.be.true
-            expect(
-              await monetaryGovernanceContracts.lockupsLever.authorized(
-                monetaryGovernanceContracts.adapter.address
-              )
-            ).to.be.true
-            expect(
-              await monetaryGovernanceContracts.lockupsLever.notifier()
-            ).to.eq(monetaryGovernanceContracts.lockupsNotifier.address)
-          })
-
-          it('can create a lockup (tests monetary governance cycle)', async () => {
-            const contracts = new Fixture(
-              baseContracts,
-              monetaryGovernanceContracts,
-              communityGovernanceContracts
-            )
-
-            const lockupRate = await contracts.monetary.lockupsLever.MAX_RATE()
-            const lockupDuration =
-              await contracts.monetary.lockupsLever.MIN_DURATION()
-
-            // propose the monetary policy with the lockup
-            const tx = await contracts.monetary.monetaryGovernance
-              .connect(bob)
-              .propose(
-                [contracts.monetary.lockupsLever.address],
-                [
-                  contracts.monetary.lockupsLever.interface.getSighash(
-                    'createLockup'
-                  ),
-                ],
-                [
-                  `0x${contracts.monetary.lockupsLever.interface
-                    .encodeFunctionData('createLockup', [
-                      lockupDuration,
-                      lockupRate,
-                    ])
-                    .slice(10)}`,
-                ],
-                'aoeu'
-              )
-            // get proposalId from event cuz it's easier
-            const receipt = await tx.wait()
-            const proposalId = receipt.events?.find(
-              (e) => e.event === 'ProposalCreation'
-            )?.args?.id
-            // move to next stage
-            await time.increase(2 * DAY) // we are already 8 days into the cycle because of the previous community governance action
-            // need cycle number
-            const cycle =
-              await contracts.monetary.monetaryGovernance.getCurrentCycle()
-            // build commit hash
-            const salt = '0x' + '00'.repeat(32)
-            const vote = [{ proposalId, score: 1 }]
-            const commit = ethers.utils.keccak256(
-              ethers.utils.defaultAbiCoder.encode(
-                [
-                  'bytes32',
-                  'uint256',
-                  'address',
-                  '(bytes32 proposalId, uint256 score)[]',
-                ],
-                [salt, cycle, bob.address, vote]
-              )
-            )
-            // vote proposal through
-            await contracts.monetary.monetaryGovernance
-              .connect(bob)
-              .commit(commit)
-            // next stage
-            await time.increase(
-              await contracts.monetary.monetaryGovernance.VOTING_TIME()
-            )
-            // reveal proposal
-            await contracts.monetary.monetaryGovernance.reveal(
-              bob.address,
-              salt,
-              vote
-            )
-            // next stage
-            await time.increase(
-              await contracts.monetary.monetaryGovernance.REVEAL_TIME()
-            )
-            // execute proposal
-            await contracts.monetary.monetaryGovernance.enact(cycle)
-
-            const lockupParams = await contracts.monetary.lockupsLever.lockups(
-              0
-            )
-            const now = await time.latest()
-            expect(lockupParams.depositWindowEnd).to.eq(
-              now + LOCKUP_DEPOSIT_WINDOW
-            )
-            expect(lockupParams.end).to.eq(
-              now + LOCKUP_DEPOSIT_WINDOW + lockupDuration.toNumber()
-            )
-            expect(lockupParams.rate).to.eq(lockupRate)
-          })
-
-          it('can rebase (tests monetary governance cycle)', async () => {
-            const contracts = new Fixture(
-              baseContracts,
-              monetaryGovernanceContracts,
-              communityGovernanceContracts
-            )
-
-            const oldInflationMult =
-              await contracts.base.eco.inflationMultiplier()
-            const rebaseAmount = ethers.utils.parseUnits('2', 'ether') // 50% rebase
-
-            // propose the monetary policy with the lockup
-            const tx = await contracts.monetary.monetaryGovernance
-              .connect(bob)
-              .propose(
-                [contracts.monetary.rebaseLever.address],
-                [
-                  contracts.monetary.rebaseLever.interface.getSighash(
-                    'execute'
-                  ),
-                ],
-                [
-                  `0x${contracts.monetary.rebaseLever.interface
-                    .encodeFunctionData('execute', [rebaseAmount])
-                    .slice(10)}`,
-                ],
-                'aoeu'
-              )
-            // get proposalId from event cuz it's easier
-            const receipt = await tx.wait()
-            const proposalId = receipt.events?.find(
-              (e) => e.event === 'ProposalCreation'
-            )?.args?.id
-            // move to next stage
-            await time.increase(2 * DAY) // we are already 8 days into the cycle because of the previous community governance action
-            // need cycle number
-            const cycle =
-              await contracts.monetary.monetaryGovernance.getCurrentCycle()
-            // build commit hash
-            const salt = '0x' + '00'.repeat(32)
-            const vote = [{ proposalId, score: 1 }]
-            const commit = ethers.utils.keccak256(
-              ethers.utils.defaultAbiCoder.encode(
-                [
-                  'bytes32',
-                  'uint256',
-                  'address',
-                  '(bytes32 proposalId, uint256 score)[]',
-                ],
-                [salt, cycle, bob.address, vote]
-              )
-            )
-            // vote proposal through
-            await contracts.monetary.monetaryGovernance
-              .connect(bob)
-              .commit(commit)
-            // next stage
-            await time.increase(
-              await contracts.monetary.monetaryGovernance.VOTING_TIME()
-            )
-            // reveal proposal
-            await contracts.monetary.monetaryGovernance.reveal(
-              bob.address,
-              salt,
-              vote
-            )
-            // next stage
-            await time.increase(
-              await contracts.monetary.monetaryGovernance.REVEAL_TIME()
-            )
-            // execute proposal
-            await contracts.monetary.monetaryGovernance.enact(cycle)
-
-            expect(await contracts.base.eco.inflationMultiplier()).to.eq(
-              oldInflationMult
-                .mul(rebaseAmount)
-                .div(await contracts.base.eco.INITIAL_INFLATION_MULTIPLIER())
-            )
-          })
-        }
-      )
+        expect(await contracts.base.eco.inflationMultiplier()).to.eq(
+          oldInflationMult
+            .mul(rebaseAmount)
+            .div(await contracts.base.eco.INITIAL_INFLATION_MULTIPLIER())
+        )
+      })
     })
   })
 })
