@@ -19,7 +19,7 @@ The contracts in this directory provide the central authority for Eco governance
   - [Usage](#usage)
   - [Contract Overview](#contract-overview)
     - [Policy](#policy)
-    - [Policied](#policied)
+    - [Policed](#policed)
     - [PolicedUpgradeable](#policedupgradeable)
   - [Contributing](#contributing)
   - [License](#license)
@@ -75,13 +75,13 @@ For detailed API documentation see [policy](../../docs/solidity/policy/)
 
 The policy contract that oversees other contracts. It has a role for another governing contract which holds the burden of security to its admin privileges, and a function, only callable by that contract, which enacts a delegated call function from an arbitrary address. It can upgrade itself through a self gated function, callable by a delegate call in a governance proposal.
 
-### [Policied](../../docs/solidity/policy/Policed.md)
+### [Policed](../../docs/solidity/policy/Policed.md)
 
 A policed contract is any contract managed by a policy. It has nothing other than the utility code for creating a permissioned role.
 
 ### [PolicedUpgradeable](../../docs/solidity/policy/PolicedUpgradeable.md)
 
-- Inherits [Policied](../../docs/solidity/policy/Policied), `ForwardTarget`
+- Inherits [Policed](../../docs/solidity/policy/Policed), `ForwardTarget`
 
 A PolicedUpgradeable contract is any proxied contract managed by a policy. It implements the `policy` role to allow it to change the implementation of the proxy.
 

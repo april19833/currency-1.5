@@ -50,7 +50,7 @@ For detailed API documentation see [community](../../../docs/solidity/governance
 
 ### [VotingPower](../../../docs/solidity/governance/community/VotingPower.md)
 
-- Inherits: [Policied](../../../docs/solidity/policy/Policed.md)
+- Inherits: [Policed](../../../docs/solidity/policy/Policed.md)
 
 This contract is for [CommunityGovernance](../../../docs/solidity/governance/community/CommunityGovernance.md) to inherit the functionality for computing voting power for any address. The voting power calculation combines the amount of ECO in the last checkpoint before the voting process starts with the same checkpoint for qualified amounts of ECOx. Each wei of ECO has 1 voting power, and each wei ECOx has 10 voting power. See the [currency](../../currency/README.md#votecheckpoints) documentation for more explanation about the checkpointing system and see [ECOxStaking](./README.md#ecoxstaking) in this readme to see how ECOx is staked for voting.
 
