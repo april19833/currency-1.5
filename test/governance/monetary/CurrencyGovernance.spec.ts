@@ -2373,5 +2373,18 @@ describe('CurrencyGovernance', () => {
       )
       expect(await CurrencyGovernance.participation()).to.eq(0)
     })
+    it('resets leader to 0 upon commit', async () => {
+      const initialParticipation = await CurrencyGovernance.participation()
+
+      await time.increase(REVEAL_STAGE_LENGTH)
+      await time.increase(PROPOSE_STAGE_LENGTH)
+      expect(Number(initialParticipation)).to.be.greaterThan(0)
+      await CurrencyGovernance.connect(dave).commit(
+        ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      )
+      expect(await CurrencyGovernance.leader()).to.eq(
+        ethers.utils.hexZeroPad('0x', 32)
+      )
+    })
   })
 })
