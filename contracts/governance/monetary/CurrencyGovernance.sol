@@ -674,9 +674,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
-        if (participation != 0) {
-            participation = 0;
-        }
+        // if a vote gets committed, the past cycle's leader is too stale and should be removed if present
+        delete leader;
+        // participation should similarly be reset
+        delete participation;
+
         commitments[msg.sender] = _commitment;
         emit VoteCommit(msg.sender, getCurrentCycle());
     }
