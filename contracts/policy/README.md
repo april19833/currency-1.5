@@ -14,7 +14,7 @@ The contracts in this directory provide the central authority for Eco governance
       - [Policed Contracts](#policed-contracts)
       - [Policy Contracts](#policy-contracts)
     - [Example Replacement Upgrade Process](#example-replacement-upgrade-process)
-    - [Example Proxy Upgrade Process](#example-proxy-upgrade-process)
+    - [Proxy Upgrade Process](#proxy-upgrade-process)
   - [Install](#install)
   - [Usage](#usage)
   - [Contract Overview](#contract-overview)
@@ -31,8 +31,6 @@ Please note that the Policy contract completely relies on the result of Communit
 ## Background
 
 The responsibility of the main Policy contract in this system is to manage the community treasury, act as the authorized party to rebind all getter/setters, and to execute transactions fed to it from authorized CommunityGovernance contracts. The main Policy will remain proxied so as to not require rebinding of this admin address if its functionality is to be upgraded.
-
-![Main Policy](../../docs/assets/main-policy.png "Main Policy")
 
 ### Framework Components
 
@@ -65,7 +63,7 @@ See the [main README](../../README.md) for installation instructions.
 
 ## Usage
 
-The main Policy contract only needs linked to the Community Governance contract when deployed. The rest of its usage is through the Community Governance process. Policed contract only need a Policy address on deployment and then their inherited permissioned functionality uses this address.
+The main Policy contract only needs to be linked to the Community Governance contract when deployed. The rest of its usage is through the Community Governance process. Policed contract only need a Policy address on deployment and then their inherited permissioned functionality uses this address.
 
 ## Contract Overview
 
