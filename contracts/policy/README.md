@@ -30,7 +30,7 @@ The contracts in this directory provide the basis for the Eco Policy Framework. 
       - [Modifiers](#modifiers)
       - [constructor](#constructor)
       - [Functions](#functions)
-    - [Policied](#policied)
+    - [Policed](#policed)
       - [Errors](#errors-1)
       - [Events](#events-1)
       - [Modifiers](#modifiers-1)
@@ -258,7 +258,7 @@ function enact(address proposal) external virtual
 function removeSelf(bytes32) external
 ```
 
-### [Policied](../../docs/solidity/policy/Policed.md)
+### [Policed](../../docs/solidity/policy/Policed.md)
 
 - Inherits [Policy](../../../docs/solidity/policy/Policy.md)
 
@@ -339,7 +339,7 @@ constructor(contract Policy _policy) internal
 
 ### [PolicedUpgradeable](../../docs/solidity/policy/PolicedUpgradeable.md)
 
-- Inherits [Policied](../../docs/solidity/policy/Policied)
+- Inherits [Policed](../../docs/solidity/policy/Policed)
 
 A PolicedUpgradeable contract is any proxied contract managed by a policy.
 

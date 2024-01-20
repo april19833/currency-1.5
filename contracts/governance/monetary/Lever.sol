@@ -30,7 +30,7 @@ contract Lever is Policed {
     constructor(Policy _policy) Policed(_policy) {}
 
     /**
-     * Changes the authorized status of an address.
+     * @notice Changes the authorized status of an address.
      * @param _agent The address whose status is changing
      * @param _status The new status of _agent
      */
@@ -40,7 +40,7 @@ contract Lever is Policed {
     }
 
     /**
-     * Changes the notifier for the lever.
+     * @notice Changes the notifier for the lever.
      * @param _notifier The new notifier address
      */
     function setNotifier(Notifier _notifier) public onlyPolicy {

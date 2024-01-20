@@ -8,17 +8,17 @@ These contracts provide the monetary policy system for the Eco currency. They sp
 
 - [Security](#security)
 - [Background](#background)
-- [Monetary Policy Decisions](#monetary-policy-decisions)
+- [Monetary Policy Decisions](#monetary-policy-levers)
   - [Random Inflation](#random-inflation)
   - [Lockups](#lockups)
-  - [Linear Inflation/Deflation](#linear-inflationdeflation)
+  - [Linear Inflation](#linear-inflation)
 - [Install](#install)
 - [Usage](#usage)
 - [Contract Overview](#contract-overview)
 - [TimeUtils](#timeutils)
   - [Functions](#functions)
 - [Policy](#policy)
-- [Policied](#policied)
+- [Policed](#policed)
 - [Notifier](#notifier)
 - [Lever](#lever)
 - [Lockups](#lockups-1)
@@ -36,7 +36,7 @@ Monetary governance levers can only be changed when new monetary policy is enact
 
 ## Background
 
-The trustee and monetary governance contracts provide an iterating economic system. It allows Eco's trustees (a list of which is managed by the `TrustedNodes` contract) to enact expansionary or deflationary monetary policy via several economic levers. 
+The trustee and monetary governance contracts provide an iterating economic system. It allows Eco's trustees (a list of which is managed by the `TrustedNodes` contract) to enact expansionary or deflationary monetary policy via several economic levers.
 
 The `CurrencyGovernance` contract implements the governmental decision-making process, and records the results of the vote. Only the trustees may participate in the `CurrencyGovernance` contract's proposal and voting process.
 
@@ -44,7 +44,7 @@ The `TrustedNodes` contract manages the list of trustees as well as their reward
 
 ### Monetary Policy Levers
 
-The rest of the contracts are implementations of monetary policy levers. These levers are designed to reward different user behaviors and help the Eco economy achieve certain results. They can be used to create and distribute new currency (to drive spending), to create and distribute lockup contracts (to discourage spending). Additionally, trustees may scale the currency across the board (to manage exchange value with other currencies), but this process is managed by the `ECO` contract. Additionally, the surround infrastructure is designed around the poosibility for additional monetary policy levers to be be added at the community's behest, though that process is managed by the `CommunityGovernance` contract. 
+The rest of the contracts are implementations of monetary policy levers. These levers are designed to reward different user behaviors and help the Eco economy achieve certain results. They can be used to create and distribute new currency (to drive spending), to create and distribute lockup contracts (to discourage spending). Additionally, trustees may scale the currency across the board (to manage exchange value with other currencies), but this process is managed by the `ECO` contract. Additionally, the surround infrastructure is designed around the poosibility for additional monetary policy levers to be be added at the community's behest, though that process is managed by the `CommunityGovernance` contract.
 
 #### Random Inflation
 
@@ -54,9 +54,9 @@ A random inflation policy decision creates new currency and distributes it rando
 
 Deflation (or a similar slowing of the economy) is achieved by issuing lockup contracts that produce more ECO. These lockups are made available for a 48 hour window after the generation starts, and the participants receive newly created currency as rewards for their deposits when they retrieve their funds at the end of the lockup duration.
 
-#### Linear Inflation/Deflation
+#### Linear Inflation
 
-This policy lever scales the balance for every single address by the same percentage amount. It increases or decreases the total supply while leaving the relative purchasing power of each user, relative to each other, the same. This can be used to change the unit value of ECO when compared to other currencies as an example. See the [InflationCheckpoints](../../currency/README.md#inflationcheckpoints) contract for documentation.
+This lever scales the balance for every single address by the same percentage amount. It increases or decreases the total supply while leaving the purchasing power of users unchanged. This can be used to change the unit value of ECO as compared to other currencies. See the [InflationCheckpoints](../../currency/README.md#inflationcheckpoints) contract for documentation.
 
 ## Install
 
@@ -66,7 +66,7 @@ See the [main README](../../../README.md) for installation instructions.
 
 The governance contracts deploy as a policy hierarchy implemented in Eco's [policy framework](../policy/README.md). The [CurrencyTimer](../README.md#currencytimer) contract clones all the relevant contracts each generation to manage and enact the different policies.
 
-The `CurrencyGovernance` contract is cloned to run the decisionmaking process. This process runs in 3 phases. First is a 10 day period over which trustees each can submit their proposals for new values for the 3 monetary policy levers. Then there is a 3 day phase in which the trustees create ballots ranking the proposals using a partial Borda Count method and submit them in the form of a hash commit. Finally there is a 1 day phase where votes are revealed and counted ending in a winner being chosen and applied as the next generation starts.
+The `CurrencyGovernance` contract runs the monetary policy decision-making process. This process runs in 3 phases. First is a 10 day proposal period over which trustees can propose new values for monetary policy levers, constituting a monetary policy proposal. Then there is a 3 day commit phase in which the trustees create ballots ranking the proposals using a partial Borda Count method and submit them in the form of a hash commit. Finally there is a 1 day reveal phase where votes are revealed and counted. The winning monetary policy is enacted as the next generation starts.
 
 ## Contract Overview
 
@@ -101,7 +101,7 @@ function getTime() internal view returns (uint256 blockTimeStamp)
 
 The policy contract that oversees other contracts. Policy contracts provide a mechanism for building pluggable (after deploy) governance systems for other contracts.
 
-### [Policied](../../../docs/solidity/policy/Policied)
+### [Policed](../../../docs/solidity/policy/policed)
 
 - Inherits [Policy](../../../docs/solidity/policy/Policy.md)
 
@@ -109,7 +109,7 @@ A policed contract is any contract managed by a policy.
 
 ### [Notifier](../../../docs/solidity/governance/monetary/Notifier.md)
 
-- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md)
+- Inherits [Policed](../../../docs/solidity/policy/policed), [Policy](../../../docs/solidity/policy/Policy.md)
 
 This contract notifies downstream contracts of actions taken by the attached monetary policyvlevers.
 
@@ -117,7 +117,7 @@ Calls made to these downstream contracts are non-atomic with the lever actions t
 
 ### [Lever](../../../docs/solidity/governance/monetary/Lever.md)
 
-- Inherits [Policy](../../../docs/solidity/policy/Policy.md), [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [Notifier](../../../docs/solidity/governance/monetary/Notifier.md)
+- Inherits [Policy](../../../docs/solidity/policy/Policy.md), [Policed](../../../docs/solidity/policy/policed), [Policy](../../../docs/solidity/policy/Policy.md), [Notifier](../../../docs/solidity/governance/monetary/Notifier.md)
 
 This contract is a generic monetary policy lever and is inherited by all lever implementations.
 
@@ -143,21 +143,21 @@ This factory contract is used to deploy new TrustedNodes contracts.
 
 ### [TrustedNodes](../../../docs/solidity/governance/monetary/TrustedNodes.md)
 
-- Inherits [Policied](../../../docs/solidity/policy/Policied), [ECOx](../../../docs/solidity/currency/ECOx.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
+- Inherits [Policed](../../../docs/solidity/policy/policed), [ECOx](../../../docs/solidity/currency/ECOx.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
 
-A registry of trusted nodes. Trusted nodes (trustees) are able to vote on monetary policy and can only be added or removed using community governance.
+This contract hosts the list of trusted nodes and enables them to claim rewards for participating in monetary governance. Trusted nodes (trustees) are able to vote on monetary policy and can only be added or removed using community governance.
 
 ### [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
 
-- Inherits [TrustedNodes](../../../docs/solidity/governance/monetary/TrustedNodes.md), [MonetaryPolicyAdapter](../../../docs/solidity/governance/monetary/MonetaryPolicyAdapter.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [Policied](../../../docs/solidity/policy/Policied)
+- Inherits [TrustedNodes](../../../docs/solidity/governance/monetary/TrustedNodes.md), [MonetaryPolicyAdapter](../../../docs/solidity/governance/monetary/MonetaryPolicyAdapter.md), [TimeUtils](../../../docs/solidity/utils/TimeUtils.md), [Policed](../../../docs/solidity/policy/policed)
 
-This contract oversees the voting on the currency monetary levers.Trustees vote on a policy that is implemented at the conclusion of the cycle
+This contract oversees the voting on the currency monetary levers. Trustees vote on a policy that is implemented at the conclusion of the cycle.
 
 ### [MonetaryPolicyAdapter](../../../docs/solidity/governance/monetary/MonetaryPolicyAdapter.md)
 
-- Inherits [Policied](../../../docs/solidity/policy/Policied), [Policy](../../../docs/solidity/policy/Policy.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
+- Inherits [Policed](../../../docs/solidity/policy/policed), [Policy](../../../docs/solidity/policy/Policy.md), [CurrencyGovernance](../../../docs/solidity/governance/monetary/CurrencyGovernance.md)
 
-This contract enacts the results of the currency governance
+This contract enacts the results of the currency governance.
 Its goal is to act as a long term address to pemission to allow execution of trustee governance and as a long term reference for event indexing of the results.
 
 This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract
