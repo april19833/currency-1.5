@@ -4,6 +4,11 @@ Copyright (c) 2023 Eco Association
 
 ## Rebase
 
+**Rebase lever**
+
+This contract is a monetary policy lever that rebases the eco currency in accordance with
+the decision made by the slate of trustees.
+
 ### eco
 
 ```solidity

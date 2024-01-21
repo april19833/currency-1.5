@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 
 /* solhint-disable no-inline-assembly */
 
-/** @title Target for ForwardProxy and EcoInitializable */
+/**
+ * @title Target for ForwardProxy and EcoInitializable
+ */
 abstract contract ForwardTarget {
     // Must match definition in ForwardProxy
     // keccak256("com.eco.ForwardProxy.target")
@@ -23,7 +25,7 @@ abstract contract ForwardTarget {
         _setImplementation(address(this));
     }
 
-    /** @notice Storage initialization of cloned contract
+    /** Storage initialization of cloned contract
      *
      * This is used to initialize the storage of the forwarded contract, and
      * should (typically) copy or repeat any work that would normally be
@@ -52,7 +54,7 @@ abstract contract ForwardTarget {
         }
     }
 
-    /** @notice Set new implementation */
+    /** Set new implementation */
     function _setImplementation(address _impl) internal {
         require(implementation() != _impl, "Implementation already matching");
         assembly {

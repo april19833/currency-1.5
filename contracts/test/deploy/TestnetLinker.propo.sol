@@ -13,9 +13,9 @@ import "../../governance/monetary/MonetaryPolicyAdapter.sol";
 import "../../governance/monetary/CurrencyGovernance.sol";
 import "../../governance/monetary/TrustedNodes.sol";
 
-/** @title Testnet Linking Proposal
- *
- * A proposal used to link upwards permissions for all necessary contracts and mint tokens
+/**
+ * @title Testnet Linking Proposal
+ * @notice A proposal used to link upwards permissions for all necessary contracts and mint tokens
  */
 contract TestnetLinker is Policy, Proposal {
     address public immutable distributor;

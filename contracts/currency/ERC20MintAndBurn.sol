@@ -4,7 +4,8 @@ pragma solidity ^0.8.0;
 import "../policy/PolicedUpgradeable.sol";
 import "./ERC20Pausable.sol";
 
-/** @title An ERC20 token interface for ECOx
+/**
+ * @title An ERC20 token interface for ECOx
  *
  */
 contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
@@ -16,12 +17,12 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     //////////////////// VARS ////////////////////
     //////////////////////////////////////////////
     /**
-     * @dev Mapping storing contracts able to mint tokens
+     * Mapping storing contracts able to mint tokens
      */
     mapping(address => bool) public minters;
 
     /**
-     * @dev Mapping storing contracts able to burn tokens
+     * Mapping storing contracts able to burn tokens
      */
     mapping(address => bool) public burners;
 
@@ -30,12 +31,12 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     //////////////////////////////////////////////
 
     /**
-     * @dev error for when an address tries to mint tokens without permission
+     * error for when an address tries to mint tokens without permission
      */
     error OnlyMinters();
 
     /**
-     * @dev error for when an address tries to burn tokens without permission
+     * error for when an address tries to burn tokens without permission
      */
     error OnlyBurners();
 
@@ -62,7 +63,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     //////////////////////////////////////////////
 
     /**
-     * @dev Modifier for checking if the sender is a minter
+     * Modifier for checking if the sender is a minter
      */
     modifier onlyMinterRole() {
         if (!minters[msg.sender]) {
@@ -72,7 +73,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     }
 
     /**
-     * @dev Modifier for checking if the sender is allowed to burn
+     * Modifier for checking if the sender is allowed to burn
      * both burners and the message sender can burn
      * @param _from the address burning tokens
      */
@@ -91,7 +92,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     ) Policed(policy) ERC20Pausable(name, ticker, address(policy), pauser) {}
 
     /**
-     * @dev change the minting permissions for an address
+     * change the minting permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can mint, false = cannot mint
@@ -102,7 +103,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     }
 
     /**
-     * @dev change the burning permissions for an address
+     * change the burning permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can burn, false = cannot burn
@@ -113,7 +114,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     }
 
     /**
-     * @dev mints tokens to a given address
+     * mints tokens to a given address
      * @param _to the address receiving tokens
      * @param _value the amount of tokens being minted
      */
@@ -122,7 +123,7 @@ contract ERC20MintAndBurn is ERC20Pausable, PolicedUpgradeable {
     }
 
     /**
-     * @dev burns tokens to a given address
+     * burns tokens to a given address
      * @param _from the address whose tokens are being burned
      * @param _value the amount of tokens being burned
      */

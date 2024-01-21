@@ -6,8 +6,9 @@ import "../../currency/ECO.sol";
 import "../../currency/ECOx.sol";
 import "./ECOxStaking.sol";
 
-/** @title VotingPower
- * Compute voting power for user
+/**
+ * @title VotingPower
+ * @notice Compute voting power for user
  */
 contract VotingPower is Policed {
     // the ECO contract address
@@ -45,7 +46,12 @@ contract VotingPower is Policed {
         ecoXStaking = _ecoXStakingAddr;
     }
 
-    function totalVotingPower() public view returns (uint256) {
+    /**
+     * Calculates the total Voting Power by getting the total supply of ECO
+     * and adding total ECOX (multiplied by 10) and subtracting the excluded Voting Power
+     * @return total the total Voting Power
+     */
+    function totalVotingPower() public view returns (uint256 total) {
         if (block.number == snapshotBlock) {
             revert NoAtomicActionsWithSnapshot();
         }
@@ -56,7 +62,13 @@ contract VotingPower is Policed {
         return _supply + 10 * _supplyX;
     }
 
-    function votingPower(address _who) public view returns (uint256) {
+    /**
+     * Calculates the voting power for an address at the Snapshot Block
+     * @param _who the address to calculate the voting power for
+     * @return total the total vorting power for an address at the Snapshot Block
+     */
+
+    function votingPower(address _who) public view returns (uint256 total) {
         uint256 _power = ecoToken.voteBalanceSnapshot(_who);
         uint256 _powerX = ecoXStaking.votingECOx(_who, snapshotBlock);
         // ECOx has 10x the voting power of ECO per unit

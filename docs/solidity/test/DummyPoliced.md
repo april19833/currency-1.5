@@ -4,13 +4,17 @@ Copyright (c) 2023 Eco Association
 
 ## DummyPoliced
 
+**DummyPoliced**
+
+For minimally testing the abstract contract's functionality
+
 ### value
+
+A value that will be changed by a policy action.
 
 ```solidity
 uint256 value
 ```
-
-A value that will be changed by a policy action.
 
 ### constructor
 

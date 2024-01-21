@@ -5,9 +5,9 @@ import "../../policy/Policy.sol";
 import "../../policy/Policed.sol";
 import "./Notifier.sol";
 
-/** @title Monetary policy lever
- *
- * This contract is a generic monetary policy lever and is inherited by all lever implementations.
+/**
+ * @title Monetary policy lever
+ * @notice This contract is a generic monetary policy lever and is inherited by all lever implementations.
  */
 contract Lever is Policed {
     mapping(address => bool) public authorized;
@@ -30,7 +30,7 @@ contract Lever is Policed {
     constructor(Policy _policy) Policed(_policy) {}
 
     /**
-     * @notice Changes the authorized status of an address.
+     * Changes the authorized status of an address.
      * @param _agent The address whose status is changing
      * @param _status The new status of _agent
      */
@@ -40,7 +40,7 @@ contract Lever is Policed {
     }
 
     /**
-     * @notice Changes the notifier for the lever.
+     * Changes the notifier for the lever.
      * @param _notifier The new notifier address
      */
     function setNotifier(Notifier _notifier) public onlyPolicy {

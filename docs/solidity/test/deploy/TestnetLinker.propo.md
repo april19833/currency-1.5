@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## TestnetLinker
 
+**Testnet Linking Proposal**
+
+A proposal used to link upwards permissions for all necessary contracts and mint tokens
+
 ### distributor
 
 ```solidity
@@ -96,33 +100,33 @@ constructor(address _communityGovernance, contract ECOxExchange _ecoXExchange, c
 
 ### name
 
+The name of the proposal.
+
 ```solidity
 function name() public pure returns (string)
 ```
 
-The name of the proposal.
-
 ### description
+
+A description of what the proposal does.
 
 ```solidity
 function description() public pure returns (string)
 ```
 
-A description of what the proposal does.
-
 ### url
+
+A URL for more information.
 
 ```solidity
 function url() public pure returns (string)
 ```
 
-A URL for more information.
-
 ### enacted
+
+Enact the proposal.
 
 ```solidity
 function enacted(address) public
 ```
-
-Enact the proposal.
 

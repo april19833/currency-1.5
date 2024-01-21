@@ -11,8 +11,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 /**
- * @dev Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
- * https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
+ * Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
+ * [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612).
  *
  * Adds the {permit} method, which can be used to change an account's ERC20 allowance (see {IERC20-allowance}) by
  * presenting a message signed by the account. By not relying on `{IERC20-approve}`, the token holder account doesn't
@@ -32,7 +32,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
         );
 
     /**
-     * @dev Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"2"`.
+     * Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
      *
      * It's a good idea to use the same `name` that is defined as the ERC20 token name.
      */
@@ -41,7 +41,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     }
 
     /**
-     * @dev See {IERC20Permit-permit}.
+     * See {IERC20Permit-permit}.
      */
     function permit(
         address owner,
@@ -74,7 +74,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     }
 
     /**
-     * @dev See {IERC20Permit-nonces}.
+     * See {IERC20Permit-nonces}.
      */
     function nonces(
         address owner
@@ -83,7 +83,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     }
 
     /**
-     * @dev See {IERC20Permit-DOMAIN_SEPARATOR}.
+     * See {IERC20Permit-DOMAIN_SEPARATOR}.
      */
     // solhint-disable-next-line func-name-mixedcase
     function DOMAIN_SEPARATOR() external view override returns (bytes32) {
@@ -91,7 +91,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     }
 
     /**
-     * @dev "Consume a nonce": return the current value and increment.
+     * "Consume a nonce": return the current value and increment.
      *
      * _Available since v4.1._
      */
@@ -104,7 +104,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     }
 
     /**
-     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+     * Sets `amount` as the allowance of `spender` over the `owner` s tokens.
      *
      * This internal function is equivalent to `approve`, and can be used to
      * e.g. set automatic allowances for certain subsystems, etc.

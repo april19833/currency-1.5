@@ -7,7 +7,7 @@ import {
   MockContractFactory,
 } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { mine, time } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import { ERRORS } from '../utils/errors'
 import { deployProxy } from '../../deploy/utils'
@@ -248,7 +248,7 @@ describe('ECOxStaking', () => {
         const blockNumber1 = await time.latestBlock()
         await ecoXStaking.connect(alice).delegate(bob.address)
         const blockNumber2 = await time.latestBlock()
-        time.advanceBlock()
+        await mine(1)
         expect(await ecoXStaking.getVotingGons(bob.address)).to.equal(
           INITIAL_BALANCE.add(stakeX)
         )

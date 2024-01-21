@@ -35,7 +35,8 @@
     "publishRepoTest": "cd lib/libTest && npm publish",
     "publishLocal": "cd lib && npm pack",
     "prepareLib": "yarn build && npx ts-node scripts/publish/prepare.ts && cd lib && npx tsup src/index.ts",
-    "prepareLibTest": "yarn build && npx ts-node scripts/publish/prepare-test.ts"
+    "prepareLibTest": "yarn build && npx ts-node scripts/publish/prepare-test.ts",
+    "updateDocs": "nvm use; yarn clean; rm -rf ./docs/solidity; rm ./docs/slither/*; yarn docgen; yarn callGraph; yarn inheritanceGraph; yarn variableOrder; yarn contractSummary"
   },
   "repository": {
     "type": "git",

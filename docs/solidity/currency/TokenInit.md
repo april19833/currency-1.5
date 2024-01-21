@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## TokenInit
 
+**initial token distribution contract**
+
+This contract is used to distribute the initial allocations of ECO and ECOx
+
 ### distribution
 
 ```solidity
@@ -15,12 +19,11 @@ struct distribution {
 
 ### distributeTokens
 
+Transfer held tokens for the initial distribution.
+
 ```solidity
 function distributeTokens(address _token, struct TokenInit.distribution[] _distributions) external
 ```
-
-Transfer held tokens for the initial distribution.
-
 #### Parameters
 
 | Name | Type | Description |

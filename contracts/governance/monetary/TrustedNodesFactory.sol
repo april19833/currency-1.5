@@ -4,6 +4,10 @@ pragma solidity ^0.8.0;
 import "./CurrencyGovernance.sol";
 import "../../currency/ECOx.sol";
 
+/**
+ * @title Trusted Nodes Factory
+ * @notice This factory contract is used to deploy new TrustedNodes contracts.
+ */
 contract TrustedNodesFactory is Policed, TimeUtils {
     ECOx public immutable ecoX;
 
@@ -32,6 +36,7 @@ contract TrustedNodesFactory is Policed, TimeUtils {
      * @param _termLength the length of term for trustees in the new cohort
      * @param _voteReward the reward earned by each trustee each time they participate in voting
      * @param _newTrustees the new cohort of trustees
+     * @return TrustedNodes the address of the new TrustedNodes contract
      */
     function newCohort(
         uint256 _termStart,

@@ -5,9 +5,9 @@ import "../../currency/ECO.sol";
 import "./Notifier.sol";
 import "./Lever.sol";
 
-/** @title Rebase lever
- *
- * This contract is a monetary policy lever that rebases the eco currency in accordance with
+/**
+ * @title Rebase lever
+ * @notice This contract is a monetary policy lever that rebases the eco currency in accordance with
  * the decision made by the slate of trustees.
  */
 contract Rebase is Lever {

@@ -6,7 +6,9 @@ import "./ForwardTarget.sol";
 
 /* solhint-disable avoid-low-level-calls, no-inline-assembly */
 
-/** @title Upgradable proxy */
+/**
+ * @title Upgradable proxy
+ */
 contract ForwardProxy {
     // this is the storage slot to hold the target of the proxy
     // keccak256("com.eco.ForwardProxy.target")
@@ -30,7 +32,7 @@ contract ForwardProxy {
         }
     }
 
-    /** @notice Default function that forwards call to proxy target
+    /** Default function that forwards call to proxy target
      */
     fallback() external payable {
         /* This default-function is optimized for minimum gas cost, to make the

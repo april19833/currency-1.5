@@ -4,7 +4,8 @@ pragma solidity ^0.8.0;
 import "./IECO.sol";
 import "./TotalSupplySnapshots.sol";
 
-/** @title An ERC20 token interface for ECOx
+/**
+ * @title An ERC20 token interface for ECOx
  *
  */
 contract ECOx is TotalSupplySnapshots {
@@ -13,7 +14,7 @@ contract ECOx is TotalSupplySnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev address of ECOxExchange contract
+     * address of ECOxExchange contract
      */
     address public ecoXExchange;
 
@@ -32,7 +33,7 @@ contract ECOx is TotalSupplySnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev error for when transfer returns false
+     * error for when transfer returns false
      * used by contracts that import this contract
      */
     error TransferFailed();
@@ -91,7 +92,7 @@ contract ECOx is TotalSupplySnapshots {
     }
 
     /**
-     * @dev change the ECOxExchange address
+     * change the ECOxExchange address
      * @param _newRoleHolder the new ECOxExchange address
      */
     function updateECOxExchange(address _newRoleHolder) public onlyPolicy {

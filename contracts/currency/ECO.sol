@@ -5,7 +5,8 @@ pragma solidity ^0.8.0;
 import "./InflationSnapshots.sol";
 import "../governance/monetary/CurrencyGovernance.sol";
 
-/** @title An ERC20 token interface to the Eco currency system.
+/**
+ * @title An ERC20 token interface to the Eco currency system.
  */
 contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
@@ -13,11 +14,11 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev Mapping storing contracts able to rebase the token
+     * Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public rebasers;
     /**
-     * @dev Mapping storing contracts able to rebase the token
+     * Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public snapshotters;
 
@@ -58,7 +59,7 @@ contract ECO is InflationSnapshots {
     //////////////////////////////////////////////
 
     /**
-     * @dev Modifier for checking if the sender is a rebaser
+     * Modifier for checking if the sender is a rebaser
      */
     modifier onlyRebaserRole() {
         if (!rebasers[msg.sender]) {
@@ -68,7 +69,7 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev Modifier for checking if the sender is a snapshotter
+     * Modifier for checking if the sender is a snapshotter
      */
     modifier onlySnapshotterRole() {
         if (!snapshotters[msg.sender]) {
@@ -101,16 +102,23 @@ contract ECO is InflationSnapshots {
     ////////////////// FUNCTIONS /////////////////
     //////////////////////////////////////////////
 
+    /**
+     * Rebase the currency using an inflation multiplier
+     * @param _inflationMultiplier the multipler used to rebase the currency
+     */
     function rebase(uint256 _inflationMultiplier) public onlyRebaserRole {
         _rebase(_inflationMultiplier);
     }
 
+    /**
+     * Creates a new snapshot
+     */
     function snapshot() public onlySnapshotterRole {
         _snapshot();
     }
 
     /**
-     * @dev change the rebasing permissions for an address
+     * change the rebasing permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can rebase, false = cannot rebase
@@ -121,7 +129,7 @@ contract ECO is InflationSnapshots {
     }
 
     /**
-     * @dev change the rebasing permissions for an address
+     * change the rebasing permissions for an address
      * only callable by tokenRoleAdmin
      * @param _key the address to change permissions for
      * @param _value the new permission. true = can snapshot, false = cannot snapshot
