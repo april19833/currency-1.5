@@ -133,7 +133,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
      * Returns true if the user has no amount of their balance delegated, otherwise false.
      */
     function isOwnDelegate(address account) public view returns (bool) {
-        return _totalVoteAllowances[account] == 0;
+        return _totalVoteAllowances[account] == 0 && _primaryDelegates[account] == address(0);
     }
 
     /**
