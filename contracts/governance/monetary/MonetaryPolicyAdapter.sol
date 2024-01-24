@@ -5,9 +5,9 @@ import "../../policy/Policed.sol";
 import "../../policy/Policy.sol";
 import "./CurrencyGovernance.sol";
 
-/** @title Contract for managing permissions between currency governance and monetary policy levers
- *
- * This contract enacts the results of the currency governance
+/**
+ * @title Contract for managing permissions between currency governance and monetary policy levers
+ * @notice This contract enacts the results of the currency governance
  * Its goal is to act as a long term address to pemission to allow execution of trustee governance and as a long term reference for event indexing of the results
  * This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract
  */

@@ -4,6 +4,12 @@ Copyright (c) 2023 Eco Association
 
 ## MonetaryPolicyAdapter
 
+**Contract for managing permissions between currency governance and monetary policy levers**
+
+This contract enacts the results of the currency governance
+Its goal is to act as a long term address to pemission to allow execution of trustee governance and as a long term reference for event indexing of the results
+This module can be replaced, but it eases the difficulty of the potentially more frequent changes to the CurrencyGovernance contract
+
 ### currencyGovernance
 
 ```solidity
@@ -22,14 +28,21 @@ error NonZeroCurrencyGovernanceAddr()
 error CurrencyGovernanceOnlyFunction()
 ```
 
+### FailedPolicy
+
+error for when a part of enacting a policy reverts
+
+```solidity
+error FailedPolicy()
+```
+
 ### NewCurrencyGovernance
+
+emits when the currencyGovernance contract is changed
 
 ```solidity
 event NewCurrencyGovernance(contract CurrencyGovernance newCurrencyGovernance, contract CurrencyGovernance oldCurrencyGovernance)
 ```
-
-emits when the currencyGovernance contract is changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -39,35 +52,25 @@ emits when the currencyGovernance contract is changed
 
 ### EnactedMonetaryPolicy
 
-```solidity
-event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance, bool[] successes)
-```
-
 emits when enaction happens to keep record of enaction
 
+```solidity
+event EnactedMonetaryPolicy(bytes32 proposalId, contract CurrencyGovernance currencyGovernance)
+```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | proposalId | bytes32 | the proposal lookup that got successfully enacted |
 | currencyGovernance | contract CurrencyGovernance | the CurrencyGovernance contract where you can look up the proposal calldata |
-| successes | bool[] | the return success values from each of the calls to the targets in order |
-
-### FailedPolicySubcall
-
-```solidity
-event FailedPolicySubcall(address target, string reason)
-```
-
-emits when a part of enacting a policy reverts
 
 ### onlyCurrencyGovernance
+
+Restrict method access to the root policy instance only.
 
 ```solidity
 modifier onlyCurrencyGovernance()
 ```
-
-Restrict method access to the root policy instance only.
 
 ### constructor
 
@@ -77,13 +80,12 @@ constructor(contract Policy _policy) public
 
 ### setCurrencyGovernance
 
-```solidity
-function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
-```
-
 setter function for currencyGovernance var
 only available to the owning policy contract
 
+```solidity
+function setCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
+```
 #### Parameters
 
 | Name | Type | Description |

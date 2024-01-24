@@ -4,14 +4,15 @@ Copyright (c) 2023 Eco Association
 
 ## ForwardProxy
 
+**Upgradable proxy**
+
 ### constructor
+
+Construct a new proxy.
 
 ```solidity
 constructor(contract ForwardTarget _impl) public
 ```
-
-Construct a new proxy.
-
 #### Parameters
 
 | Name | Type | Description |
@@ -20,9 +21,9 @@ Construct a new proxy.
 
 ### fallback
 
+Default function that forwards call to proxy target
+
 ```solidity
 fallback() external payable
 ```
-
-Default function that forwards call to proxy target
 

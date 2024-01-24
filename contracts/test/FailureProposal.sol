@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "../governance/community/proposals/Proposal.sol";
 import "../policy/Policy.sol";
 
-/** @title FailureProposal
- *
- * A proposal used for testing proposal failures.
+/**
+ * @title FailureProposal
+ * @notice A proposal used for testing proposal failures.
  */
 contract FailureProposal is Policy, Proposal {
     /** Apologize in case of failure
@@ -41,9 +41,9 @@ contract FailureProposal is Policy, Proposal {
     }
 }
 
-/** @title WorseFailureProposal
- *
- * A proposal used for testing proposal failures.
+/**
+ * @title WorseFailureProposal
+ * @notice A proposal used for testing proposal failures.
  */
 contract WorseFailureProposal is Policy, Proposal {
     // required for compilation
@@ -74,9 +74,9 @@ contract WorseFailureProposal is Policy, Proposal {
     }
 }
 
-/** @title ClumsyFailureProposal
- *
- * A proposal used for testing proposal failures.
+/**
+ * @title ClumsyFailureProposal
+ * @notice A proposal used for testing proposal failures.
  */
 contract ClumsyFailureProposal is Policy, Proposal {
     // required for compilation
@@ -109,9 +109,9 @@ contract ClumsyFailureProposal is Policy, Proposal {
     }
 }
 
-/** @title TotalFailureProposal
- *
- * A proposal used for testing proposal failures.
+/**
+ * @title TotalFailureProposal
+ * @notice A proposal used for testing proposal failures.
  */
 contract TotalFailureProposal is Policy, Proposal {
     // required for compilation

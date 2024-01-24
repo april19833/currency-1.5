@@ -3,26 +3,26 @@ pragma solidity ^0.8.0;
 
 import "../proxy/ForwardTarget.sol";
 
-/** @title The policy contract that oversees other contracts
- *
- * Policy contracts provide a mechanism for building pluggable (after deploy)
+/**
+ * @title The policy contract that oversees other contracts
+ * @notice Policy contracts provide a mechanism for building pluggable (after deploy)
  * governance systems for other contracts.
  */
 contract Policy is ForwardTarget {
     uint256 private __gapPolicy; // to cover setters mapping
 
     /**
-     * @dev the contract allowed enact proposals
+     * the contract allowed enact proposals
      */
     address public governor;
 
     /**
-     * @dev error for when an address tries submit proposal actions without permission
+     * error for when an address tries submit proposal actions without permission
      */
     error OnlyGovernor();
 
     /**
-     * @dev error for when an address tries to call a pseudo-internal function
+     * error for when an address tries to call a pseudo-internal function
      */
     error OnlySelf();
 
@@ -47,7 +47,7 @@ contract Policy is ForwardTarget {
     event EnactedGovernanceProposal(address proposal, address governor);
 
     /**
-     * @dev Modifier for checking if the sender is a governor
+     * Modifier for checking if the sender is a governor
      */
     modifier onlyGovernorRole() {
         if (msg.sender != governor) {
@@ -57,7 +57,7 @@ contract Policy is ForwardTarget {
     }
 
     /**
-     * @dev Modifier for faux internal calls
+     * Modifier for faux internal calls
      * needed for function to be called only during delegate call
      */
     modifier onlySelf() {
@@ -83,7 +83,7 @@ contract Policy is ForwardTarget {
     }
 
     /**
-     * @dev pass the governance permissions to another address
+     * pass the governance permissions to another address
      * @param _newGovernor the address to make the new governor
      */
     function updateGovernor(address _newGovernor) public onlySelf {

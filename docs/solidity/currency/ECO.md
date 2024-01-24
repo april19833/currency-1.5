@@ -4,46 +4,47 @@ Copyright (c) 2023 Eco Association
 
 ## ECO
 
+**An ERC20 token interface to the Eco currency system.**
+
 ### rebasers
+
+Mapping storing contracts able to rebase the token
 
 ```solidity
 mapping(address => bool) rebasers
 ```
 
-_Mapping storing contracts able to rebase the token_
-
 ### snapshotters
+
+Mapping storing contracts able to rebase the token
 
 ```solidity
 mapping(address => bool) snapshotters
 ```
 
-_Mapping storing contracts able to rebase the token_
-
 ### OnlyRebasers
+
+error for when an address tries to rebase without permission
 
 ```solidity
 error OnlyRebasers()
 ```
 
-error for when an address tries to rebase without permission
-
 ### OnlySnapshotters
+
+error for when an address tries to snapshot without permission
 
 ```solidity
 error OnlySnapshotters()
 ```
 
-error for when an address tries to snapshot without permission
-
 ### UpdatedRebasers
+
+emits when the rebasers permissions are changed
 
 ```solidity
 event UpdatedRebasers(address actor, bool newPermission)
 ```
-
-emits when the rebasers permissions are changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -53,12 +54,11 @@ emits when the rebasers permissions are changed
 
 ### UpdatedSnapshotters
 
+emits when the snapshotters permissions are changed
+
 ```solidity
 event UpdatedSnapshotters(address actor, bool newPermission)
 ```
-
-emits when the snapshotters permissions are changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -68,19 +68,19 @@ emits when the snapshotters permissions are changed
 
 ### onlyRebaserRole
 
+Modifier for checking if the sender is a rebaser
+
 ```solidity
 modifier onlyRebaserRole()
 ```
 
-_Modifier for checking if the sender is a rebaser_
-
 ### onlySnapshotterRole
+
+Modifier for checking if the sender is a snapshotter
 
 ```solidity
 modifier onlySnapshotterRole()
 ```
-
-_Modifier for checking if the sender is a rebaser_
 
 ### constructor
 
@@ -90,32 +90,33 @@ constructor(contract Policy _policy, address _initialPauser) public
 
 ### initialize
 
+Initialize
+
 ```solidity
 function initialize(address _self) public virtual
 ```
-
-Storage initialization of cloned contract
-
-This is used to initialize the storage of the forwarded contract, and
-should (typically) copy or repeat any work that would normally be
-done in the constructor of the proxied contract.
-
-Implementations of ForwardTarget should override this function,
-and chain to super.initialize(_self).
-
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _self | address | The address of the original contract instance (the one being              forwarded to). |
+| _self | address | the address to initialize |
 
 ### rebase
+
+Rebase the currency using an inflation multiplier
 
 ```solidity
 function rebase(uint256 _inflationMultiplier) public
 ```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _inflationMultiplier | uint256 | the multipler used to rebase the currency |
 
 ### snapshot
+
+Creates a new snapshot
 
 ```solidity
 function snapshot() public
@@ -123,13 +124,12 @@ function snapshot() public
 
 ### updateRebasers
 
+change the rebasing permissions for an address
+only callable by tokenRoleAdmin
+
 ```solidity
 function updateRebasers(address _key, bool _value) public
 ```
-
-_change the rebasing permissions for an address
-only callable by tokenRoleAdmin_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -139,13 +139,12 @@ only callable by tokenRoleAdmin_
 
 ### updateSnapshotters
 
+change the rebasing permissions for an address
+only callable by tokenRoleAdmin
+
 ```solidity
 function updateSnapshotters(address _key, bool _value) public
 ```
-
-_change the rebasing permissions for an address
-only callable by tokenRoleAdmin_
-
 #### Parameters
 
 | Name | Type | Description |

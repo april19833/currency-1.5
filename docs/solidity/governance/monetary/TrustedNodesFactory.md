@@ -4,6 +4,10 @@ Copyright (c) 2023 Eco Association
 
 ## TrustedNodesFactory
 
+**Trusted Nodes Factory**
+
+This factory contract is used to deploy new TrustedNodes contracts.
+
 ### ecoX
 
 ```solidity
@@ -18,12 +22,11 @@ contract CurrencyGovernance currencyGovernance
 
 ### NewCohort
 
+Event emitted when a new cohort is deployed
+
 ```solidity
 event NewCohort(contract TrustedNodes trustedNodes)
 ```
-
-Event emitted when a new cohort is deployed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -32,13 +35,12 @@ Event emitted when a new cohort is deployed
 
 ### constructor
 
-```solidity
-constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX) public
-```
-
 configures the factory to easily deploy
 new TrustedNodes contracts after election
 
+```solidity
+constructor(contract Policy _policy, contract CurrencyGovernance _currencyGovernance, contract ECOx _ecoX) public
+```
 #### Parameters
 
 | Name | Type | Description |
@@ -49,28 +51,33 @@ new TrustedNodes contracts after election
 
 ### newCohort
 
-```solidity
-function newCohort(uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (address)
-```
-
 Deploys a new TrustedNodes instance
 
+```solidity
+function newCohort(uint256 _termStart, uint256 _termLength, uint256 _voteReward, address[] _newTrustees) public returns (contract TrustedNodes)
+```
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| _termStart | uint256 |  |
 | _termLength | uint256 | the length of term for trustees in the new cohort |
 | _voteReward | uint256 | the reward earned by each trustee each time they participate in voting |
 | _newTrustees | address[] | the new cohort of trustees |
 
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | contract TrustedNodes | TrustedNodes the address of the new TrustedNodes contract |
+
 ### updateCurrencyGovernance
+
+Changes the holder currencyGovernance role
 
 ```solidity
 function updateCurrencyGovernance(contract CurrencyGovernance _currencyGovernance) public
 ```
-
-Changes the holder currencyGovernance role
-
 #### Parameters
 
 | Name | Type | Description |

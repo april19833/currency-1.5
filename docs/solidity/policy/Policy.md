@@ -4,38 +4,42 @@ Copyright (c) 2023 Eco Association
 
 ## Policy
 
+**The policy contract that oversees other contracts**
+
+Policy contracts provide a mechanism for building pluggable (after deploy)
+governance systems for other contracts.
+
 ### governor
+
+the contract allowed enact proposals
 
 ```solidity
 address governor
 ```
 
-_the contract allowed enact proposals_
-
 ### OnlyGovernor
+
+error for when an address tries submit proposal actions without permission
 
 ```solidity
 error OnlyGovernor()
 ```
 
-_error for when an address tries submit proposal actions without permission_
-
 ### OnlySelf
+
+error for when an address tries to call a pseudo-internal function
 
 ```solidity
 error OnlySelf()
 ```
 
-_error for when an address tries to call a pseudo-internal function_
-
 ### FailedProposal
+
+for when a part of enacting a proposal reverts without a readable error
 
 ```solidity
 error FailedProposal(address proposal)
 ```
-
-for when a part of enacting a proposal reverts without a readable error
-
 #### Parameters
 
 | Name | Type | Description |
@@ -44,12 +48,11 @@ for when a part of enacting a proposal reverts without a readable error
 
 ### UpdatedGovernor
 
+emits when the governor permissions are changed
+
 ```solidity
 event UpdatedGovernor(address oldGovernor, address newGovernor)
 ```
-
-emits when the governor permissions are changed
-
 #### Parameters
 
 | Name | Type | Description |
@@ -59,12 +62,11 @@ emits when the governor permissions are changed
 
 ### EnactedGovernanceProposal
 
+emits when enaction happens to keep record of enaction
+
 ```solidity
 event EnactedGovernanceProposal(address proposal, address governor)
 ```
-
-emits when enaction happens to keep record of enaction
-
 #### Parameters
 
 | Name | Type | Description |
@@ -74,20 +76,20 @@ emits when enaction happens to keep record of enaction
 
 ### onlyGovernorRole
 
+Modifier for checking if the sender is a governor
+
 ```solidity
 modifier onlyGovernorRole()
 ```
 
-_Modifier for checking if the sender is a governor_
-
 ### onlySelf
+
+Modifier for faux internal calls
+needed for function to be called only during delegate call
 
 ```solidity
 modifier onlySelf()
 ```
-
-_Modifier for faux internal calls
-needed for function to be called only during delegate call_
 
 ### constructor
 
@@ -97,20 +99,19 @@ constructor(address _governor) public
 
 ### initialize
 
+initializes the governor
+
 ```solidity
 function initialize(address _self) public virtual
 ```
 
-initializes the governor
-
 ### updateGovernor
+
+pass the governance permissions to another address
 
 ```solidity
 function updateGovernor(address _newGovernor) public
 ```
-
-_pass the governance permissions to another address_
-
 #### Parameters
 
 | Name | Type | Description |
@@ -121,5 +122,11 @@ _pass the governance permissions to another address_
 
 ```solidity
 function enact(address proposal) external virtual
+```
+
+### removeSelf
+
+```solidity
+function removeSelf(bytes32) external
 ```
 

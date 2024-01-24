@@ -4,14 +4,24 @@ Copyright (c) 2023 Eco Association
 
 ## TimeUtils
 
-### getTime
+**TimeUtils**
 
-```solidity
-function getTime() internal view returns (uint256)
-```
+Utility class for time, allowing easy unit testing.
+
+### getTime
 
 Determine the current time as perceived by the policy timing contract.
 
 Used extensively in testing, but also useful in production for
 determining what processes can currently be run.
+
+```solidity
+function getTime() internal view returns (uint256 blockTimeStamp)
+```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockTimeStamp | uint256 | The current block timestamp |
 

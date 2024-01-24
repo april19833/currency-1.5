@@ -47,7 +47,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     mapping(address => bool) public delegationFromAddressDisabled;
 
     /**
-     * @dev Emitted when a delegatee is delegated new votes.
+     * Emitted when a delegatee is delegated new votes.
      */
     event DelegatedVotes(
         address indexed delegator,
@@ -56,7 +56,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     );
 
     /**
-     * @dev Emitted when a token transfer or delegate change results a transfer of voting power.
+     * Emitted when a token transfer or delegate change results a transfer of voting power.
      */
     event VoteTransfer(
         address indexed sendingVoter,
@@ -65,7 +65,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     );
 
     /**
-     * @dev Emitted when an account denotes a primary delegate.
+     * Emitted when an account denotes a primary delegate.
      */
     event NewPrimaryDelegate(
         address indexed delegator,
@@ -89,7 +89,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Set yourself as willing to recieve delegates.
+     * Set yourself as willing to recieve delegates.
      */
     function enableDelegationTo() public {
         require(
@@ -107,14 +107,14 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Set yourself as no longer recieving delegates.
+     * Set yourself as no longer recieving delegates.
      */
     function disableDelegationTo() public {
         delegationToAddressEnabled[msg.sender] = false;
     }
 
     /**
-     * @dev Set yourself as being able to delegate again.
+     * Set yourself as being able to delegate again.
      * also disables delegating to you
      */
     function reenableDelegating() public {
@@ -130,15 +130,16 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Returns true if the user has no amount of their balance delegated, otherwise false.
+     * Returns true if the user has no amount of their balance delegated, otherwise false.
      */
     function isOwnDelegate(address account) public view returns (bool) {
         return _totalVoteAllowances[account] == 0;
     }
 
     /**
-     * @dev Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
+     * Get the primary address `account` is currently delegating to. Defaults to the account address itself if none specified.
      * The primary delegate is the one that is delegated any new funds the address recieves.
+     * @param account the address whose primary delegate is being fetched
      */
     function getPrimaryDelegate(
         address account
@@ -163,9 +164,10 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Delegate all votes from the sender to `delegatee`.
+     * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
+     * @param delegatee the address being delegated to
      */
     function delegate(address delegatee) public {
         require(
@@ -188,9 +190,15 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Delegate all votes from the sender to `delegatee`.
+     * Delegate all votes from the sender to `delegatee`.
      * NOTE: This function assumes that you do not have partial delegations
      * It will revert with "ERC20Delegated: must have an undelegated amount available to cover delegation" if you do
+     * @param delegator the address delegating votes
+     * @param delegatee the address being delegated to
+     * @param deadline the time at which the signature expires
+     * @param v signature value
+     * @param r signature value
+     * @param s signature value
      */
     function delegateBySig(
         address delegator,
@@ -221,7 +229,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Delegate an `amount` of votes from the sender to `delegatee`.
+     * Delegate an `amount` of votes from the sender to `delegatee`.
      */
     function delegateAmount(address delegatee, uint256 amount) public {
         require(
@@ -237,7 +245,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Change delegation for `delegator` to `delegatee`.
+     * Change delegation for `delegator` to `delegatee`.
      *
      * Emits events {NewDelegatedAmount} and {VoteTransfer}.
      */
@@ -272,7 +280,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate all votes from the sender's primary delegate.
+     * Undelegate all votes from the sender's primary delegate.
      */
     function undelegate() public {
         address _primaryDelegate = getPrimaryDelegate(msg.sender);
@@ -284,7 +292,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate votes from the `delegatee` back to the sender.
+     * Undelegate votes from the `delegatee` back to the sender.
      */
     function undelegateFromAddress(address delegatee) public {
         _undelegateFromAddress(msg.sender, delegatee);
@@ -293,6 +301,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     /**
      * A primary delegated individual can revoke delegations of unwanted delegators
      * Useful for allowing yourself to call reenableDelegating after calling disableDelegationTo
+     * @param delegator the address whose delegation is being revoked
      */
     function revokeDelegation(address delegator) public {
         address _primaryDelegate = getPrimaryDelegate(delegator);
@@ -304,7 +313,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate votes from the `delegatee` back to the delegator.
+     * Undelegate votes from the `delegatee` back to the delegator.
      */
     function _undelegateFromAddress(
         address delegator,
@@ -318,7 +327,9 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Undelegate a specific amount of votes from the `delegatee` back to the sender.
+     * Undelegate a specific amount of votes from the `delegatee` back to the sender.
+     * @param delegatee the address being undelegated to
+     * @param amount the amount of tokens being undelegated
      */
     function undelegateAmountFromAddress(
         address delegatee,
@@ -345,7 +356,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Move voting power when tokens are transferred.
+     * Move voting power when tokens are transferred.
      *
      * Emits a {VoteTransfer} event.
      */
@@ -411,7 +422,8 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev See {IERC20-balanceOf}.
+     * See {IERC20-balanceOf}.
+     * @param account the address whose vote balance is being checked
      */
     function voteBalanceOf(
         address account
@@ -420,7 +432,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev See {IERC20-transfer}.
+     * See {IERC20-transfer}.
      *
      * Requirements:
      *
@@ -436,7 +448,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev See {IERC20-allowance}.
+     * See {IERC20-allowance}.
      */
     function voteAllowance(
         address owner,
@@ -446,7 +458,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev See {IERC20-approve}.
+     * See {IERC20-approve}.
      *
      * Requirements:
      *
@@ -484,7 +496,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Moves `amount` of tokens from `sender` to `recipient`.
+     * Moves `amount` of tokens from `sender` to `recipient`.
      *
      * This internal function is equivalent to {transfer}, and can be used to
      * e.g. implement automatic token fees, slashing mechanisms, etc.
@@ -524,7 +536,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
         _afterVoteTokenTransfer(sender, recipient, amount);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+    /** Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
      * Emits a {Transfer} event with `from` set to the zero address.
@@ -553,7 +565,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Destroys `amount` tokens from `account`, reducing the
+     * Destroys `amount` tokens from `account`, reducing the
      * total supply.
      *
      * Emits a {Transfer} event with `to` set to the zero address.
@@ -586,7 +598,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+     * Sets `amount` as the allowance of `spender` over the `owner` s tokens.
      *
      * This internal function is equivalent to `approve`, and can be used to
      * e.g. set automatic allowances for certain subsystems, etc.
@@ -612,7 +624,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Atomically increases the allowance granted to `spender` by the caller.
+     * Atomically increases the allowance granted to `spender` by the caller.
      *
      * This is an alternative to {approve} that can be used as a mitigation for
      * problems described in {IERC20-approve}.
@@ -637,7 +649,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Atomically decreases the allowance granted to `spender` by the caller.
+     * Atomically decreases the allowance granted to `spender` by the caller.
      *
      * This is an alternative to {approve} that can be used as a mitigation for
      * problems described in {IERC20-approve}.
@@ -668,7 +680,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     }
 
     /**
-     * @dev Hook that is called before any transfer of tokens. This includes
+     * Hook that is called before any transfer of tokens. This includes
      * minting and burning.
      *
      * Calling conditions:
@@ -678,8 +690,6 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
      * - when `from` is zero, `amount` tokens will be minted for `to`.
      * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
      * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _beforeVoteTokenTransfer(
         address, // from
@@ -688,7 +698,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     ) internal virtual {}
 
     /**
-     * @dev Hook that is called after any transfer of tokens. This includes
+     * Hook that is called after any transfer of tokens. This includes
      * minting and burning.
      *
      * Calling conditions:
@@ -698,8 +708,6 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
      * - when `from` is zero, `amount` tokens have been minted for `to`.
      * - when `to` is zero, `amount` of ``from``'s tokens have been burned.
      * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _afterVoteTokenTransfer(
         address, // from

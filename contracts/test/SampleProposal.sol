@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "../governance/community/proposals/Proposal.sol";
 import "../policy/Policy.sol";
 
-/** @title SampleProposal
- *
- * A proposal used for testing proposal adoption.
+/**
+ * @title SampleProposal
+ * @notice A proposal used for testing proposal adoption.
  */
 contract SampleProposal is Policy, Proposal {
     /** State variable to test

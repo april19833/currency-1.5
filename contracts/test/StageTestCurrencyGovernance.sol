@@ -5,8 +5,9 @@ import "../governance/monetary/CurrencyGovernance.sol";
 import "../governance/monetary/MonetaryPolicyAdapter.sol";
 import "../utils/TimeUtils.sol";
 
-/** @title StageTestCurrencyGovernance
- * For minimally testing the stage modifiers in currency governance
+/**
+ * @title StageTestCurrencyGovernance
+ * @notice For minimally testing the stage modifiers in currency governance
  */
 contract StageTestCurrencyGovernance is CurrencyGovernance {
     constructor()

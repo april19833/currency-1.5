@@ -42,6 +42,10 @@ contract MigrationLinker is Policy, Proposal {
 
     Notifier public immutable rebaseNotifier;
 
+    address public immutable lockups;
+
+    Notifier public immutable lockupsNotifier;
+
     MonetaryPolicyAdapter public immutable monetaryPolicyAdapter;
 
     CurrencyGovernance public immutable currencyGovernance;
@@ -56,23 +60,25 @@ contract MigrationLinker is Policy, Proposal {
 
     /** The address of the updating contract for inflationMultiplier
      */
-    address public immutable inflationMultiplierUpdatingTarget;
+    address public immutable snapshotUpdatingTarget;
 
     constructor(
         CommunityGovernance _communityGovernance,
         ECOxExchange _ecoXExchange,
         Notifier _rebaseNotifier,
+        Notifier _lockupsNotifier,
         TrustedNodes _trustedNodes,
         address _newPolicyImpl,
         address _newEcoImpl,
         address _newEcoxImpl,
         address _newEcoxStakingImpl,
         address _implementationUpdatingTarget,
-        address _inflationMultiplierUpdatingTarget
+        address _snapshotUpdatingTarget
     ) Policy(address(0x0)) {
         communityGovernance = _communityGovernance;
         ecoXExchange = _ecoXExchange;
         rebaseNotifier = _rebaseNotifier;
+        lockupsNotifier = _lockupsNotifier;
         trustedNodes = _trustedNodes;
 
         newPolicyImpl = _newPolicyImpl;
@@ -80,11 +86,12 @@ contract MigrationLinker is Policy, Proposal {
         newEcoxImpl = _newEcoxImpl;
         newEcoxStakingImpl = _newEcoxStakingImpl;
         implementationUpdatingTarget = _implementationUpdatingTarget;
-        inflationMultiplierUpdatingTarget = _inflationMultiplierUpdatingTarget;
+        snapshotUpdatingTarget = _snapshotUpdatingTarget;
 
         ecoProxyAddress = address(_ecoXExchange.eco());
         ecoxProxyAddress = address(_ecoXExchange.ecox());
         rebase = _rebaseNotifier.lever();
+        lockups = _lockupsNotifier.lever();
         currencyGovernance = _trustedNodes.currencyGovernance();
         monetaryPolicyAdapter = currencyGovernance.enacter();
         ecoXStakingProxyAddress = address(communityGovernance.ecoXStaking());
@@ -127,6 +134,30 @@ contract MigrationLinker is Policy, Proposal {
         // add new governance permissions
         this.updateGovernor(address(communityGovernance));
 
+        // get old inflation multiplier
+        uint256 _inflationMultiplier = ECOOld(ecoProxyAddress)
+            .getPastLinearInflation(block.number);
+
+        // give eco the new multiplier
+        PolicedOld(ecoProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature(
+                "setInflationMultiplier(uint256)",
+                _inflationMultiplier
+            )
+        );
+
+        // propogate total supply snapshots in eco and ecox
+        PolicedOld(ecoProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
+        );
+
+        PolicedOld(ecoxProxyAddress).policyCommand(
+            snapshotUpdatingTarget,
+            abi.encodeWithSignature("setTotalSupplySnapshot()")
+        );
+
         // update ecox
         PolicedOld(ecoxProxyAddress).policyCommand(
             implementationUpdatingTarget,
@@ -140,19 +171,6 @@ contract MigrationLinker is Policy, Proposal {
         ECOx(ecoxProxyAddress).updateECOxExchange(address(ecoXExchange));
         ECOx(ecoxProxyAddress).updateBurners(address(ecoXExchange), true);
 
-        // get old inflation multiplier
-        uint256 _inflationMultiplier = ECOOld(ecoProxyAddress)
-            .getPastLinearInflation(block.number);
-
-        // give eco the new multiplier
-        PolicedOld(ecoProxyAddress).policyCommand(
-            inflationMultiplierUpdatingTarget,
-            abi.encodeWithSignature(
-                "setInflationMultiplier(uint256)",
-                _inflationMultiplier
-            )
-        );
-
         // update eco
         PolicedOld(ecoProxyAddress).policyCommand(
             implementationUpdatingTarget,
@@ -162,6 +180,7 @@ contract MigrationLinker is Policy, Proposal {
         // link eco
         ECO(ecoProxyAddress).updateMinters(address(ecoXExchange), true);
         ECO(ecoProxyAddress).updateRebasers(rebase, true);
+        ECO(ecoProxyAddress).updateMinters(lockups, true);
         ECO(ecoProxyAddress).updateSnapshotters(
             address(communityGovernance),
             true
@@ -197,9 +216,27 @@ contract MigrationLinker is Policy, Proposal {
             )
         );
 
+        // link lockups lever
+        Lockups(lockups).setAuthorized(address(monetaryPolicyAdapter), true);
+        Lockups(lockups).setNotifier(lockupsNotifier);
+
         // link rebase lever
         Rebase(rebase).setAuthorized(address(monetaryPolicyAdapter), true);
         Rebase(rebase).setNotifier(rebaseNotifier);
+
+        // add uniswap pool sync() call to rebase notifier
+        Notifier(rebaseNotifier).addTransaction(
+            0x09bC52B9EB7387ede639Fc10Ce5Fa01CBCBf2b17, // uniswap eco/usdc pool
+            abi.encodeWithSignature("sync()"), // data for sync call
+            75000 // gas cost is ~73k
+        );
+
+        // add L1EcoBridge rebase(0) call to rebase notifier
+        Notifier(rebaseNotifier).addTransaction(
+            0xAa029BbdC947F5205fBa0F3C11b592420B58f824, // L1EcoBridge address
+            abi.encodeWithSignature("rebase(uint32)", 0), // data for rebase call
+            380000 // gas cost is ~374k
+        );
 
         // link adapter
         monetaryPolicyAdapter.setCurrencyGovernance(currencyGovernance);

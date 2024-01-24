@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "./ERC20.sol";
 
 /**
- * @dev Implementation of the {IERC20} interface with pausability
+ * Implementation of the {IERC20} interface with pausability
  * When paused by the pauser admin, transfers revert.
  */
 contract ERC20Pausable is ERC20, Pausable {
@@ -48,7 +48,7 @@ contract ERC20Pausable is ERC20, Pausable {
     }
 
     /**
-     * @dev Hook that is called before any transfer of tokens. This includes
+     * Hook that is called before any transfer of tokens. This includes
      * minting and burning.
      *
      * If the token is not paused, it will pass through the amount
@@ -63,7 +63,11 @@ contract ERC20Pausable is ERC20, Pausable {
 
     /**
      * @notice pauses transfers of this token
-     * @dev only callable by the pauser
+     *
+     * Security Notes
+     *
+     * - only callable by the pause
+     * - reverts if already paused
      */
     function pause() external onlyPauser {
         _pause();
@@ -71,7 +75,12 @@ contract ERC20Pausable is ERC20, Pausable {
 
     /**
      * @notice unpauses transfers of this token
-     * @dev only callable by the pauser
+     * only callable by the pauser
+     *
+     * Security Notes
+     *
+     * - only callable by the pause
+     * - reverts if already unpaused
      */
     function unpause() external onlyPauser {
         _unpause();
@@ -80,7 +89,7 @@ contract ERC20Pausable is ERC20, Pausable {
     /**
      * @notice set the given address as the pauser
      * @param _pauser The address that can pause this token
-     * @dev only the roleAdmin can call this function
+     * only the roleAdmin can call this function
      */
     function setPauser(address _pauser) public onlyAdmin {
         require(_pauser != pauser, "ERC20Pausable: must change pauser");

@@ -5,7 +5,7 @@ import "./Policed.sol";
 
 /** @title Policed Proxy Contracts
  *
- * A PolicedUpgaredeable contract is any proxied contract managed by a policy.
+ * A PolicedUpgradeable contract is any proxied contract managed by a policy.
  */
 abstract contract PolicedUpgradeable is Policed, ForwardTarget {
     // storage gap covers PolicedUtils.expectedInterfaceSet
