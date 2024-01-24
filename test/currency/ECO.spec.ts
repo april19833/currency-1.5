@@ -815,7 +815,7 @@ describe('ECO', () => {
       })
 
       it('cannot enable if already delegated, even if delegated amount is zero', async () => {
-        // Step 0: Everyone has zero balance and has voting enabled
+        // Step 0: Alice has zero balance and charlie has voting enabled
         await ECOproxy.connect(alice).burn(alice.address, amount)
         expect(await ECOproxy.balanceOf(alice.address)).to.eq(0)
         expect(await ECOproxy.voter(alice.address)).to.be.true
