@@ -200,7 +200,9 @@ abstract contract VoteCheckpoints is ERC20Pausable, DelegatePermit {
     function isOwnDelegate(
         address account
     ) public view returns (bool noDelegation) {
-        noDelegation = _delegatedTotals[account] == 0 && _primaryDelegates[account] == address(0);
+        noDelegation =
+            _delegatedTotals[account] == 0 &&
+            _primaryDelegates[account] == address(0);
         return noDelegation;
     }
 

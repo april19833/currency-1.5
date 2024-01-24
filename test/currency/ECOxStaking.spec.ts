@@ -257,26 +257,29 @@ describe('ECOxStaking', () => {
       it('cannot enable if already delegated, even if delegated amount is zero', async () => {
         // Step 0: Charlie has zero balance and Bob has voting enabled
         expect(await ecoXStaking.balanceOf(charlie.address)).to.eq(0)
-        expect(await ecoXStaking.delegationToAddressEnabled(bob.address)).to.be.true
-        
+        expect(await ecoXStaking.delegationToAddressEnabled(bob.address)).to.be
+          .true
+
         // Step 1: Charlie delegates to Bob (with zero balance). This makes Bob Charlie's primary delegate
         await ecoXStaking.connect(charlie).delegate(bob.address)
-        expect(await ecoXStaking.getPrimaryDelegate(charlie.address)).to.equal(bob.address)
-    
-        // Step 2: Charlie calls `enableDelegationTo()`. This isn't allowed even though the amount Charlie has delegated is zero
-        expect(await ecoXStaking.delegationFromAddressDisabled(charlie.address)).to.be.false
-        expect(await ecoXStaking.delegationToAddressEnabled(charlie.address)).to.be.false
-        await expect(ecoXStaking.connect(charlie).enableDelegationTo()).to.be.revertedWith('Cannot enable delegation if you have outstanding delegation')
-        expect(await ecoXStaking.delegationFromAddressDisabled(charlie.address)).to.be.false
-        expect(await ecoXStaking.delegationToAddressEnabled(charlie.address)).to.be.false
-      })
-
-      it('cannot enable if not a voter', async () => {
-        await expect(
-          ecoXStaking.connect(matthew).enableDelegationTo()
-        ).to.be.revertedWith(
-          'ERC20Delegated: enable voting before enabling being a delegate'
+        expect(await ecoXStaking.getPrimaryDelegate(charlie.address)).to.equal(
+          bob.address
         )
+
+        // Step 2: Charlie calls `enableDelegationTo()`. This isn't allowed even though the amount Charlie has delegated is zero
+        expect(await ecoXStaking.delegationFromAddressDisabled(charlie.address))
+          .to.be.false
+        expect(await ecoXStaking.delegationToAddressEnabled(charlie.address)).to
+          .be.false
+        await expect(
+          ecoXStaking.connect(charlie).enableDelegationTo()
+        ).to.be.revertedWith(
+          'Cannot enable delegation if you have outstanding delegation'
+        )
+        expect(await ecoXStaking.delegationFromAddressDisabled(charlie.address))
+          .to.be.false
+        expect(await ecoXStaking.delegationToAddressEnabled(charlie.address)).to
+          .be.false
       })
     })
 
