@@ -94,6 +94,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: etherscanKey,
       goerli: etherscanKey,
+      sepolia: etherscanKey,
     },
   },
 }
