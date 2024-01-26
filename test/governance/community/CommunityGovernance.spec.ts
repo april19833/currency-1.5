@@ -544,6 +544,18 @@ describe('Community Governance', () => {
           expect(await cg.getSupport(alice.address, A2)).to.eq(vp2)
           expect((await cg.proposals(A2)).totalSupport).to.eq(vp2)
         })
+        it('handles situations where supportThreshold is reached in the middle of a supportPartial', async () => {
+          const vp = await cg.votingPower(bigboy.address)
+          const proposals = [A1, A2]
+          const vp1 = vp.div(2).sub(1)
+          const vp2 = 1
+          const allocations = [vp1, vp2]
+          await expect(
+            cg.connect(bigboy).supportPartial(proposals, allocations)
+          )
+            .to.emit(cg, 'StageUpdated')
+            .withArgs(VOTING)
+        })
       })
       context('unsupporting', () => {
         it('fails if no support to begin with', async () => {

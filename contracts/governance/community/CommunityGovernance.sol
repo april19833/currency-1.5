@@ -434,6 +434,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
                 revert BadVotingPower();
             }
             _changeSupport(msg.sender, _proposals[i], theSupport);
+            if (stage == Stage.Voting) {
+                break;
+            }
         }
     }
 
