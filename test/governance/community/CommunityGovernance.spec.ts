@@ -546,15 +546,23 @@ describe('Community Governance', () => {
         })
         it('handles situations where supportThreshold is reached in the middle of a supportPartial', async () => {
           const vp = await cg.votingPower(bigboy.address)
+          await cg.connect(alice).support(A1)
+          await cg.connect(bob).support(A2)
           const proposals = [A1, A2]
-          const vp1 = vp.div(2).sub(1)
-          const vp2 = 1
+          const vp1 = vp.div(2)
+          const vp2 = vp.div(2)
+          // in this case, bigboy's support would send both of these proposals past the threshold
+          // the tie is broken by the ordering of proposals in the array
           const allocations = [vp1, vp2]
           await expect(
             cg.connect(bigboy).supportPartial(proposals, allocations)
           )
             .to.emit(cg, 'StageUpdated')
             .withArgs(VOTING)
+
+          expect(await cg.selectedProposal()).to.eq(A1)
+          expect(await cg.getSupport(bigboy.address, A1)).to.eq(vp1)
+          expect(await cg.getSupport(bigboy.address, A2)).to.eq(0)
         })
       })
       context('unsupporting', () => {
