@@ -47,10 +47,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     uint256 public constant PROPOSAL_LENGTH = 18 minutes;
 
     /** @notice the duration of the voting stage */
-    uint256 public constant VOTING_LENGTH = 6 minutes;
+    uint256 public constant VOTING_LENGTH = 5 minutes;
 
     /** @notice the duration of the execution delay */
-    uint256 public constant DELAY_LENGTH = 2 minutes;
+    uint256 public constant DELAY_LENGTH = 3 minutes;
 
     /** @notice the duration of the execution window beyond the cycle end */
     uint256 public constant EXECUTION_EXTRA_LENGTH = 2 minutes;

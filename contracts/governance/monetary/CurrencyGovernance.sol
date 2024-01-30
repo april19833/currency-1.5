@@ -78,9 +78,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     uint256 public immutable governanceStartTime;
 
     // timescales
-    uint256 public constant PROPOSAL_TIME = 20 minutes;
+    uint256 public constant PROPOSAL_TIME = 18 minutes;
     uint256 public constant VOTING_TIME = 6 minutes;
-    uint256 public constant REVEAL_TIME = 2 minutes;
+    uint256 public constant REVEAL_TIME = 4 minutes;
     uint256 public constant CYCLE_LENGTH =
         PROPOSAL_TIME + VOTING_TIME + REVEAL_TIME;
 

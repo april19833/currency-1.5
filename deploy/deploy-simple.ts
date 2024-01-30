@@ -2,14 +2,15 @@ import { ethers } from 'hardhat'
 import { testnetFixture } from './standalone.fixture'
 import { DAY } from '../test/utils/constants'
 
-const initialECOSupply = ethers.constants.WeiPerEther.toString()
-const initialECOxSupply = ethers.constants.WeiPerEther.toString()
-
-const startTime = 1706058264914
+const initialECOSupply = ethers.utils.parseEther('10000000')
+const initialECOxSupply = ethers.utils.parseEther('1000000')
 
 async function main() {
   const [wallet] = await ethers.getSigners()
   console.log(wallet.address)
+
+  const startTime = Math.round(Date.now() / 1000)
+
   const contracts = await testnetFixture(
     [wallet.address],
     wallet.address,
