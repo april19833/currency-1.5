@@ -69,6 +69,16 @@ describe('FixedLockupL1', () => {
 
         });
 
+    it('constructs', async () => {
+        expect(await fixedLockupL1.eco()).to.equal(eco.address);
+        expect(await fixedLockupL1.ecoL2()).to.equal(ecoL2.address);
+        expect(await fixedLockupL1.messengerL1()).to.equal(Fake__L1CrossDomainMessenger.address);
+        expect(await fixedLockupL1.ecoBridge()).to.equal(bridge.address);
+        expect(await fixedLockupL1.leverContractL2()).to.equal(l2Lever.address);
+        expect(await fixedLockupL1.policy()).to.equal(policy.address);
+        expect(await fixedLockupL1.authorized(monetaryPolicyAdapter.address)).to.equal(true);
+    });
+
     it('should revert if not called by the monetary policy adapter', async () => {
         await expect(fixedLockupL1.connect(user).newLockup(testRate, testWindow, testLength, testMaxRewards, 500000, 500000)).to.be.revertedWith(ERRORS.Lever.AUTHORIZED_ONLY);
     });
