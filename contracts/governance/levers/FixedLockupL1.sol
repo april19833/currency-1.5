@@ -15,7 +15,7 @@ interface ILeverContractL2 {
     ) external;
 }
 
-contract FixedLockupL1 is Lever, TimeUtils {
+contract FixedLockupL1 is Lever {
 
 ICrossDomainMessenger public immutable messengerL1;
 
@@ -70,6 +70,8 @@ constructor(
 
         eco.mint(address(this), _totalRewards);
 
+        eco.approve(address(ecoBridge), _totalRewards);
+
         ecoBridge.depositERC20To(
             address(eco),
             ecoL2,
@@ -80,6 +82,11 @@ constructor(
             );
 
         emit NewLockup(_rate, _window, _length, _totalRewards);
+    }
+
+    function burnReserves() external virtual{
+        uint256 balance = eco.balanceOf(address(this));
+        eco.burn(address(this), balance);
     }
     
 }
