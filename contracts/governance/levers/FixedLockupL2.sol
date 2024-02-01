@@ -1,10 +1,11 @@
 pragma solidity ^0.8.0;
 
 import "@eth-optimism/contracts/L1/messaging/IL1ERC20Bridge.sol";
+import "@eth-optimism/contracts/L2/messaging/IL2ERC20Bridge.sol";
 import "../../utils/TimeUtils.sol";
-import "@openzeppelin/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol";
-
+import {console} from "node_modules/hardhat/console.sol";
 
 interface IECO is IERC20 {
     function linearInflationMultiplier() external view returns (uint256);
@@ -19,8 +20,8 @@ contract FixedLockupL2 is TimeUtils{
         uint256 rate;
         //cutoff in blocktime
         uint256 cutoff;
-        //length in seconds
-        uint256 length;
+        //duration in seconds
+        uint256 duration;
         //gons total rewards remaining
         uint256 rewardsRemaining;
         //mapping of address to deposits array per address
@@ -41,16 +42,16 @@ contract FixedLockupL2 is TimeUtils{
     uint256 public lockupCounter;
     
     //address of lever contract on L1
-    address public leverContractL1;
+    address public l1Contract;
 
     //address of L2 treasury
-    address public treasuryL2;
+    IL2ERC20Bridge immutable public l2Bridge;
 
     //ECO token ON L2
     IECO public immutable eco;
 
     //messenger contract on OP
-    ICrossDomainMessenger public immutable messengerL2;
+    ICrossDomainMessenger public immutable messenger;
 
     //mapping of lockup id to lockup
     mapping(uint256 => Lockup) public lockups;
@@ -58,22 +59,26 @@ contract FixedLockupL2 is TimeUtils{
     /////////// CONTRACT EVENTS ///////////
     event LockupDeposit(uint256 indexed lockupId, address indexed beneficiary, uint256 amount);
 
+    event LockupWithdraw(uint256 indexed lockupId, address indexed beneficiary, uint256 lockupIndex ,uint256 amount);
+
     event NewLockup(
         uint256 indexed lockupId,
         uint256 rate,
         uint256 window,
-        uint256 length,
+        uint256 duration,
         uint256 totalRewards
     );
 
+    event LockupSweep(uint256 indexed lockupId, uint256 amount);
+
     /////////// CONTRACT MODIFIERS ///////////
 
-    modifier onlyleverContractL1() {
-            require(msg.sender == address(messengerL2), "OVM_XCHAIN: messenger contract unauthenticated");
+    modifier onlyl1Contract() {
+            require(msg.sender == address(messenger), "OVM_XCHAIN: messenger contract unauthenticated");
 
             require(
-                messengerL2.xDomainMessageSender() == leverContractL1,
-                "OVM_XCHAIN: wrong price setter of cross-domain message"
+                messenger.xDomainMessageSender() == l1Contract,
+                "OVM_XCHAIN: wrong sender of cross-domain message"
             );
 
             _;
@@ -83,12 +88,14 @@ contract FixedLockupL2 is TimeUtils{
 
     constructor(
         address _eco,
-        address _messengerL2,
-        address _leverContractL1
+        address _messenger,
+        address _l1Contract,
+        address _l2Bridge
     ) {
         eco = IECO(_eco);
-        messengerL2 = ICrossDomainMessenger(_messengerL2);
-        leverContractL1 = _leverContractL1;
+        messenger = ICrossDomainMessenger(_messenger);
+        l1Contract = _l1Contract;
+        l2Bridge = IL2ERC20Bridge(_l2Bridge);
     }
 
     /////////// CONTRACT FUNCTIONS ///////////
@@ -96,17 +103,17 @@ contract FixedLockupL2 is TimeUtils{
     function newLockup(
         uint256 _rate,
         uint256 _window,
-        uint256 _length,
+        uint256 _duration,
         uint256 _totalRewards
-    ) external onlyleverContractL1() {
+    ) external onlyl1Contract() {
         Lockup storage lockup = lockups[lockupCounter];
         uint256 currentTime = getTime();
         lockup.rate = _rate;
         lockup.cutoff = currentTime + _window;
-        lockup.length = _length;
+        lockup.duration = _duration;
         lockup.rewardsRemaining = _totalRewards * eco.linearInflationMultiplier();
 
-        emit NewLockup(lockupCounter, _rate, _window, _length, _totalRewards);
+        emit NewLockup(lockupCounter, _rate, _window, _duration, _totalRewards);
 
         lockupCounter++;
     }
@@ -125,23 +132,22 @@ contract FixedLockupL2 is TimeUtils{
 
     function _deposit(uint256 _lockupId, address _beneficiary, uint256 _amount) internal {
         Lockup storage lockup = lockups[_lockupId];
+        uint256 _gonsAmount = _amount * eco.linearInflationMultiplier();
+        uint256 _gonsInterest = (_gonsAmount * lockup.rate) / BASE;
+
         require(lockup.cutoff > getTime(), "Lockup period has ended");
-        require(lockup.rewardsRemaining - _amount >= 0, "Not enough rewards remaining");
+        require(lockup.rewardsRemaining >= _gonsInterest, "Not enough rewards remaining");
 
         eco.transferFrom(_beneficiary, address(this), _amount);
 
-        uint256 _gonsAmount = _amount * eco.linearInflationMultiplier();
-
-        uint256 _gonsInterest = (_gonsAmount * lockup.rate) / BASE;
-
         lockup.rewardsRemaining -= _gonsInterest;
 
-        Deposit memory deposit = Deposit({
+        Deposit memory userDeposit = Deposit({
             gons: _gonsAmount,
-            end: getTime() + lockup.length
+            end: getTime() + lockup.duration
         });
 
-        lockup.deposits[_beneficiary].push(deposit);
+        lockup.deposits[_beneficiary].push(userDeposit);
 
         emit LockupDeposit(_lockupId, _beneficiary, _gonsAmount);
 
@@ -179,13 +185,17 @@ contract FixedLockupL2 is TimeUtils{
                 if (_gonsAmount>_gonsInterest){
                     _gonsAmount = _gonsAmount - _gonsInterest;
                     eco.transfer(_beneficiary, _gonsAmount / _multiplier);
-                    lockup.rewardsRemaining += _gonsInterest;
+                    lockup.rewardsRemaining += (_gonsInterest * 2);
+                }
+                else{
+                    lockup.rewardsRemaining += _gonsAmount+_gonsInterest;
                 }
             }
         } else {
              _gonsAmount = _gonsAmount + _gonsInterest;
              eco.transfer(_beneficiary, _gonsAmount / _multiplier);
         }
+        emit LockupWithdraw(_lockupId, _beneficiary, lockupIndex,_gonsAmount);
         //delete the lockupIndex from the deposits array
         uint256 lastIndex = lockup.deposits[_beneficiary].length - 1;
         if (lockupIndex != lastIndex) {
@@ -196,18 +206,22 @@ contract FixedLockupL2 is TimeUtils{
         lockup.deposits[_beneficiary].pop();
     }
 
-    function sweep(uint256 _lockupId) external {
+    function sweep(uint256 _lockupId, uint32 _l1Gas) external {
+
+        //ADD BURN CONTRACT
         Lockup storage lockup = lockups[_lockupId];
-        require(getTime() < lockup.cutoff, "Lockup period has not ended");
+        require(getTime() > lockup.cutoff, "Lockup period has not ended");
         uint256 _rewardsRemaining = lockup.rewardsRemaining;
+        eco.approve(address(l2Bridge), _rewardsRemaining / eco.linearInflationMultiplier());
+        l2Bridge.withdrawTo(address(eco), l1Contract, _rewardsRemaining / eco.linearInflationMultiplier(), _l1Gas, bytes(""));
+        emit LockupSweep(_lockupId, _rewardsRemaining);
         lockup.rewardsRemaining = 0;
-        eco.transfer(treasuryL2, _rewardsRemaining / eco.linearInflationMultiplier());
     }
 
     //get Lockup information minus deposits
     function getLockup(uint256 _lockupId) external view returns (uint256, uint256, uint256, uint256) {
         Lockup storage lockup = lockups[_lockupId];
-        return (lockup.rate, lockup.cutoff, lockup.length, lockup.rewardsRemaining);
+        return (lockup.rate, lockup.cutoff, lockup.duration, lockup.rewardsRemaining);
     }
 
     //get deposits array for beneficiary
@@ -217,10 +231,10 @@ contract FixedLockupL2 is TimeUtils{
     }
 
     //get deposit information for beneficiary
-    function getDeposit(uint256 _lockupId, address _beneficiary, uint256 lockupIndex) external view returns (uint256, uint256) {
+    function getDeposit(uint256 _lockupId, address _beneficiary, uint256 lockupIndex) external view returns (Deposit memory) {
         Lockup storage lockup = lockups[_lockupId];
         Deposit storage userDeposit = lockup.deposits[_beneficiary][lockupIndex];
-        return (userDeposit.gons, userDeposit.end);
+        return userDeposit;
     }
 
 }
