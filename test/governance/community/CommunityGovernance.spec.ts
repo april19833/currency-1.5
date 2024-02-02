@@ -169,6 +169,21 @@ describe('Community Governance', () => {
         )
       ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
     })
+    it('bricks when cycleStart is bad', async () => {
+      const cgmocker = await smock.mock<CommunityGovernance__factory>(
+        'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
+      )
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ecox.address,
+          ecoXStaking.address,
+          (await cg.CYCLE_LENGTH()).mul(3).add(await time.latest()),
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_CYCLE_START)
+    })
   })
   describe('permissions', () => {
     it('only lets Policy set pauser', async () => {
