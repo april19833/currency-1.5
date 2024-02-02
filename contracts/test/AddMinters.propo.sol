@@ -48,6 +48,6 @@ contract AddMinters is Policy, Proposal {
             address minter = AddMinters(self).newMinters(i);
             eco.updateMinters(minter, true);
             ecox.updateMinters(minter, true);
-        } 
+        }
     }
 }

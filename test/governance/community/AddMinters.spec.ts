@@ -3,8 +3,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { Fixture, testnetFixture } from '../../../deploy/standalone.fixture'
 import { DAY } from '../../utils/constants'
-import { Contract } from 'ethers'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 import { deploy } from '../../../deploy/utils'
 import { passProposal } from '../../utils/passProposal'
@@ -12,7 +10,7 @@ import { AddMinters__factory } from '../../../typechain-types'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe.only('test for add minters comm gov proposal', () => {
+describe('test for add minters comm gov proposal', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
