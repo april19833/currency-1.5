@@ -27,6 +27,7 @@ import {
 import { deploy } from '../../../deploy/utils'
 import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
 import { UpdatePolicedProxyImplProposal__factory } from '../../../typechain-types/factories/contracts/test/UpdatePolicedProxyImpl.propo.sol'
+import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
@@ -300,14 +301,29 @@ describe('Policy E2E Tests', () => {
     expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
       contracts.monetary.trustedNodes.address
     )
+    const newTrustedNodesParams = [
+      contracts.base.policy.address,
+      contracts.monetary.monetaryGovernance.address,
+      contracts.base.ecox.address,
+      (await time.latest()),
+      1000,
+      1000,
+      [bob.address, charlie.address],
+    ]
+    const newTrustedNodes = await deploy(
+      alice,
+      TrustedNodes__factory,
+      newTrustedNodesParams
+    )
+    console.log(newTrustedNodes.address)
     const proposal1 = await deploy(
       alice,
       UpdateGovernanceTrustedNodesProposal__factory,
-      [contracts.monetary.monetaryGovernance.address, bob.address]
+      [contracts.monetary.monetaryGovernance.address, newTrustedNodes.address]
     )
     await passProposal(contracts, alice, proposal1)
     expect(await contracts.monetary.monetaryGovernance.trustedNodes()).to.eq(
-      bob.address
+      newTrustedNodes.address
     )
   })
 
