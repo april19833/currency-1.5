@@ -814,6 +814,36 @@ describe('ECO', () => {
         )
       })
 
+      it('cannot enable if already delegated, even if delegated amount is zero', async () => {
+        // Step 0: Alice has zero balance and charlie has voting enabled
+        await ECOproxy.connect(alice).burn(alice.address, amount)
+        expect(await ECOproxy.balanceOf(alice.address)).to.eq(0)
+        expect(await ECOproxy.voter(alice.address)).to.be.true
+        expect(await ECOproxy.delegationToAddressEnabled(charlie.address)).to.be
+          .true
+
+        // Step 1: Alice delegates to charlie (with zero balance). This makes Charlie Alice's primary delegate
+        await ECOproxy.connect(alice).delegate(charlie.address)
+        expect(await ECOproxy.getPrimaryDelegate(alice.address)).to.equal(
+          charlie.address
+        )
+
+        // Step 2: Alice calls `enableDelegationTo()`. This isn't allowed even though the amount alice has delegated is zero
+        expect(await ECOproxy.delegationFromAddressDisabled(alice.address)).to
+          .be.false
+        expect(await ECOproxy.delegationToAddressEnabled(alice.address)).to.be
+          .false
+        await expect(
+          ECOproxy.connect(alice).enableDelegationTo()
+        ).to.be.revertedWith(
+          'ERC20Delegated: cannot enable delegation if you have outstanding delegation'
+        )
+        expect(await ECOproxy.delegationFromAddressDisabled(alice.address)).to
+          .be.false
+        expect(await ECOproxy.delegationToAddressEnabled(alice.address)).to.be
+          .false
+      })
+
       it('cannot enable if not a voter', async () => {
         await expect(
           ECOproxy.connect(matthew).enableDelegationTo()
