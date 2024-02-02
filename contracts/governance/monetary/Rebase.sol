@@ -32,7 +32,7 @@ contract Rebase is Lever {
         ) {
             revert BadInflationMultiplier(_newMultiplier);
         }
-        // unclear how this works on the eco contract as of now, but ill shoot anyway
+
         eco.rebase(_newMultiplier);
         notifier.notify();
 
