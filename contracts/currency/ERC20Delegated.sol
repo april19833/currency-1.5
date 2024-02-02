@@ -374,28 +374,20 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
 
         // if the address has delegated, they might be transfering tokens allotted to someone else
         if (fromVoter && !isOwnDelegate(from)) {
-            uint256 _undelegatedAmount = _balances[from] +
-                amount -
-                _totalVoteAllowances[from];
-
-            // check to see if tokens must be undelegated to transfer
-            if (_undelegatedAmount < amount) {
-                address _sourcePrimaryDelegate = getPrimaryDelegate(from);
-                uint256 _sourcePrimaryDelegatement = voteAllowance(
-                    _sourcePrimaryDelegate,
-                    from
-                );
-
+            address _sourcePrimaryDelegate = _primaryDelegates[from]; // cheaper than getPrimaryDelegate because we do the check to own delegate already
+            if (_sourcePrimaryDelegate == address(0)) {
+                // this combined with !isOwnDelegate(from) guarantees a partial delegate situation
+                uint256 _undelegatedAmount = _balances[from] + // need to check if the transfer can be covered
+                    amount -
+                    _totalVoteAllowances[from];
                 require(
-                    amount <= _undelegatedAmount + _sourcePrimaryDelegatement,
+                    _undelegatedAmount >= amount, // can't undelegate in a partial delegate situation
                     "ERC20Delegated: delegation too complicated to transfer. Undelegate and simplify before trying again"
                 );
-
-                _undelegate(
-                    from,
-                    _sourcePrimaryDelegate,
-                    amount - _undelegatedAmount
-                );
+            } else {
+                // the combination of !isOwnDelegate(from) and _sourcePrimaryDelegate != address(0) means that we're in a primary delegate situation where all funds are delegated
+                // this means that we already know that amount < _sourcePrimaryDelegatement since _sourcePrimaryDelegatement == senderBalance
+                _undelegate(from, _sourcePrimaryDelegate, amount);
             }
         }
 
