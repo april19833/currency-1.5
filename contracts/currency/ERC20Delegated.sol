@@ -84,7 +84,7 @@ abstract contract ERC20Delegated is TotalSupplySnapshots, DelegatePermit {
     function enableVoting() public {
         require(!voter[msg.sender], "ERC20Delegated: voting already enabled");
 
-        voter[msg.sender] = true;
+        voter[msg.sender] = true; // this must be set before the mint to make sure voting power is given
         _voteMint(msg.sender, _balances[msg.sender]);
     }
 
