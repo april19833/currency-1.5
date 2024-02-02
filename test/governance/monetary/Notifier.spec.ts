@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants } from 'ethers'
+import { constants, providers } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -75,7 +75,7 @@ describe('notifier', () => {
       rebase.address, // lever
       [downstream.address], // targets
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
-      [12341234], // gasCosts
+      [10000000], // gasCosts
     ])) as Notifier
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
@@ -190,6 +190,26 @@ describe('notifier', () => {
 
       expect(await target.notified()).to.be.false
       await rebase.connect(alice).execute(newInflationMult)
+      expect(await target.notified()).to.be.true
+    })
+
+    it.only('uses correct amt of gas', async () => {
+      // ran the tx two times with two different notifier gas costs
+      const target = DummyDownstream__factory.connect(
+        (await notifier.transactions(0)).target,
+        alice
+      )
+      await rebase
+        .connect(policyImpersonator)
+        .setAuthorized(alice.address, true)
+
+      expect(await target.notified()).to.be.false
+      const gasCost = (await notifier.transactions(0)).gasCost
+      console.log(alice.address, rebase.address, notifier.address,)
+      const tx = await rebase.connect(alice).execute(newInflationMult)
+      await tx.wait()
+      const receipt = await ethers.provider.getTransactionReceipt(tx.hash)
+      console.log(receipt.logs)
       expect(await target.notified()).to.be.true
     })
 
