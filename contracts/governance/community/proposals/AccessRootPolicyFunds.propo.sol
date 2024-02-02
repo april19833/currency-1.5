@@ -7,7 +7,7 @@ import "./Proposal.sol";
 import "../../../currency/ECO.sol";
 import "../../../currency/ECOx.sol";
 
-/** @title DeployRootPolicyFundw
+/** @title AccessRootPolicyFunds
  * A proposal to send some root policy funds to another
  * address (multisig, lockup, etc)
  */
