@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ethers } from 'hardhat'
-import { constants, providers } from 'ethers'
+import { BigNumberish, constants } from 'ethers'
 import { expect } from 'chai'
 import {
   smock,
@@ -69,13 +69,12 @@ describe('notifier', () => {
     rebase = await rebaseFactory
       .connect(policyImpersonator)
       .deploy(policy.address, eco.address)
-
     notifier = (await deploy(policyImpersonator, Notifier__factory, [
       policy.address,
       rebase.address, // lever
       [downstream.address], // targets
       [downstream.interface.encodeFunctionData('callThatSucceeds')],
-      [10000000], // gasCosts
+      [12341234], // gasCosts
     ])) as Notifier
     await eco.connect(policyImpersonator).updateRebasers(rebase.address, true)
     await rebase.connect(policyImpersonator).setNotifier(notifier.address)
@@ -193,26 +192,6 @@ describe('notifier', () => {
       expect(await target.notified()).to.be.true
     })
 
-    it.only('uses correct amt of gas', async () => {
-      // ran the tx two times with two different notifier gas costs
-      const target = DummyDownstream__factory.connect(
-        (await notifier.transactions(0)).target,
-        alice
-      )
-      await rebase
-        .connect(policyImpersonator)
-        .setAuthorized(alice.address, true)
-
-      expect(await target.notified()).to.be.false
-      const gasCost = (await notifier.transactions(0)).gasCost
-      console.log(alice.address, rebase.address, notifier.address,)
-      const tx = await rebase.connect(alice).execute(newInflationMult)
-      await tx.wait()
-      const receipt = await ethers.provider.getTransactionReceipt(tx.hash)
-      console.log(receipt.logs)
-      expect(await target.notified()).to.be.true
-    })
-
     it('doesnt impede lever call if notifier tx fails', async () => {
       await notifier
         .connect(policyImpersonator)
@@ -257,6 +236,63 @@ describe('notifier', () => {
       expect(await target.notified()).to.be.false
       await notifier.connect(alice).notify()
       expect(await target.notified()).to.be.true
+    })
+  })
+  describe('gas', async () => {
+    type transaction = {
+      target: string
+      data: string
+      gasCost: BigNumberish
+    }
+    let target: any
+    let tx: transaction
+    let baseExecCost: Number
+    beforeEach(async () => {
+      target = DummyDownstream__factory.connect(
+        (await notifier.transactions(0)).target,
+        alice
+      )
+      await rebase
+        .connect(policyImpersonator)
+        .setAuthorized(alice.address, true)
+      tx = await notifier.transactions(0)
+      // remove tx and run execute to see tx cost without notify
+      await notifier.connect(policyImpersonator).removeTransaction(0)
+      baseExecCost = (
+        await rebase.connect(alice).execute(newInflationMult)
+      ).gasLimit.toNumber()
+    })
+    it(' uses less than the gascost provided', async () => {
+      // now put it back
+      await notifier
+        .connect(policyImpersonator)
+        .addTransaction(tx.target, tx.data, Number(tx.gasCost))
+
+      expect(await target.notified()).to.be.false
+      const gasCost = (await notifier.transactions(0)).gasCost
+      const newtx = await rebase.connect(alice).execute(newInflationMult)
+      await newtx.wait()
+      expect(newtx.gasLimit.toNumber() - Number(baseExecCost)).to.be.lessThan(
+        Number(gasCost)
+      )
+
+      expect(await target.notified()).to.be.true
+    })
+    it('fails to notify if gas cost provided is too low', async () => {
+      // now put it back, but with gas = 1000 this time
+      await notifier
+        .connect(policyImpersonator)
+        .addTransaction(tx.target, tx.data, 1000)
+
+      expect(await target.notified()).to.be.false
+      const gasCost = (await notifier.transactions(0)).gasCost
+      const newtx = await rebase.connect(alice).execute(newInflationMult)
+      await newtx.wait()
+      expect(newtx.gasLimit.toNumber() - Number(baseExecCost)).to.be.lessThan(
+        Number(gasCost)
+      )
+
+      expect(await target.notified()).to.not.be.true
     })
   })
 })
