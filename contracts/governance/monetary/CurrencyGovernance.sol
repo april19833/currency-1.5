@@ -127,14 +127,12 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
-    /**  setting the trusted nodes address to the zero address stops governance */
-    error NonZeroTrustedNodesAddr();
-
     /** setting the enacter address to the zero address stops governance */
     error NonZeroEnacterAddr();
 
     /**
      * setting the quorum greater than the number of trustees stops governance
+     * inherently prevents the trustedNodes address from being set to the zero address
      * something to keep in mind for the case in which trustees are removed via community governance
      */
     error BadQuorum();
@@ -404,7 +402,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         uint256 _termStart
     ) Policed(_policy) {
         _setEnacter(_enacter);
-        quorum = _quorum;
+        quorum = _quorum; // can't use _setQuorum as it's not linked to trustedNodes until after initial deploy
         governanceStartTime = _termStart;
     }
 
@@ -414,7 +412,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
     /** setter function for trustedNodes var
      * only available to the owning policy contract
-     * @param _trustedNodes the value to set the new trustedNodes address to, cannot be zero
+     * @param _trustedNodes the value to set the new trustedNodes address to, must have enough trustees to be able to hit quorum
      */
     function setTrustedNodes(TrustedNodes _trustedNodes) external onlyPolicy {
         emit NewTrustedNodes(_trustedNodes, trustedNodes);
@@ -422,8 +420,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     function _setTrustedNodes(TrustedNodes _trustedNodes) internal {
-        if (address(_trustedNodes) == address(0)) {
-            revert NonZeroTrustedNodesAddr();
+        // don't allow a new trusted nodes contract without enough trustees to hit quorum
+        // also makes sure you cannot set the trusted nodes contract to an address which doesn't have a `numTrustees()` function
+        if (quorum > _trustedNodes.numTrustees()) {
+            revert BadQuorum();
         }
         trustedNodes = _trustedNodes;
     }
