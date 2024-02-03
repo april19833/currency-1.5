@@ -481,8 +481,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         prop.totalSupport += amount;
 
         if (
-            prop.totalSupport >
-            (totalVotingPower() * supportThresholdPercent) / 100
+            prop.totalSupport * 100 >
+            totalVotingPower() * supportThresholdPercent
         ) {
             selectedProposal = proposal;
             pot -= (proposalFee - prop.refund);
@@ -572,10 +572,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         emit VotesChanged(voter, _enactVotes, _rejectVotes, _abstainVotes);
 
-        if (
-            (totalEnactVotes) >
-            (totalVotingPower() * voteThresholdPercent) / 100
-        ) {
+        if (totalEnactVotes * 100 > totalVotingPower() * voteThresholdPercent) {
             stage = Stage.Execution;
             currentStageEnd =
                 cycleStart +
