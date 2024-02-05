@@ -2420,13 +2420,14 @@ describe('CurrencyGovernance', () => {
       it would reset his `trusteeSupports` mapping. He is not allowed to do this as it 
       would allow him to support multiple times in a cycle. 
       *************************************************************************/
-      const proposalBefore = await CurrencyGovernance.proposals(
-        charlieProposalId
-      )
-      expect(proposalBefore.support.toNumber()).to.eq(1)
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(1)
 
       await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
-      expect(proposalBefore.support.toNumber()).to.eq(2)
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(2)
       await expect(
         CurrencyGovernance.connect(dave).unsupportProposal(defaultProposalId)
       ).to.be.revertedWith(ERRORS.CurrencyGovernance.UNSUPPORT_ON_PAST_PROPOSAL)
@@ -2436,7 +2437,9 @@ describe('CurrencyGovernance', () => {
       // const proposalAfter = await CurrencyGovernance.proposals(charlieProposalId)
       // expect(proposalAfter.support.toNumber()).to.eq(3)
 
-      expect(proposalBefore.support.toNumber()).to.eq(2)
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(2)
     })
   })
 })
