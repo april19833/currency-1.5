@@ -14,11 +14,6 @@ contract ECOx is TotalSupplySnapshots {
     //////////////////////////////////////////////
 
     /**
-     * address of ECOxExchange contract
-     */
-    address public ecoXExchange;
-
-    /**
      * @dev Mapping storing contracts able to rebase the token
      */
     mapping(address => bool) public snapshotters;
@@ -46,13 +41,6 @@ contract ECOx is TotalSupplySnapshots {
     //////////////////////////////////////////////
     /////////////////// EVENTS ///////////////////
     //////////////////////////////////////////////
-
-    /**
-     * emits when the ECOxExchange address is changed
-     * @param _old old holder of role
-     * @param _new new holder of role
-     */
-    event UpdatedECOxExchange(address _old, address _new);
 
     /**
      * emits when the snapshotters permissions are changed
@@ -89,15 +77,6 @@ contract ECOx is TotalSupplySnapshots {
 
     function snapshot() public onlySnapshotterRole {
         _snapshot();
-    }
-
-    /**
-     * change the ECOxExchange address
-     * @param _newRoleHolder the new ECOxExchange address
-     */
-    function updateECOxExchange(address _newRoleHolder) public onlyPolicy {
-        emit UpdatedECOxExchange(ecoXExchange, _newRoleHolder);
-        ecoXExchange = _newRoleHolder;
     }
 
     /**
