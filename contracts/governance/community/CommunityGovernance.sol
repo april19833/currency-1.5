@@ -157,7 +157,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * event indicating supportThresholdPercent was updated
      * @param supportThresholdPercent The new supportThresholdPercent
      */
-    event supportThresholdPercentChanged(address supportThresholdPercent);
+    event SupportThresholdPercentChanged(uint256 supportThresholdPercent);
 
     /**
      * event indicating a change in the community governance stage
@@ -265,14 +265,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /**
      * sets supportThresholdPercent
-     * @param new supportThresholdPercent
+     * @param _supportThresholdPercent new supportThresholdPercent
      */
-    function setSupportThresholdPercent(address _supportThresholdPercent) public onlyPolicy {
-        if (supportThresholdPercent > 100) {
+    function setSupportThresholdPercent(
+        uint256 _supportThresholdPercent
+    ) public onlyPolicy {
+        if (_supportThresholdPercent > 100) {
             revert BadSupportThresholdPercent();
         }
         supportThresholdPercent = _supportThresholdPercent;
-        emit supportThresholdPercentChanged(supportThresholdPercent);
+        emit SupportThresholdPercentChanged(supportThresholdPercent);
     }
 
     /**
