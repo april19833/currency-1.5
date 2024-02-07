@@ -128,7 +128,7 @@ describe('Voting Power', () => {
     expect(await cg.totalVotingPower()).to.eq(totalEcoX.mul(10).add(totalEco))
   })
 
-  it('votingPower returns correct value for eco', async () => {
+  it('votingPower returns correct value', async () => {
     await ecoXStaking
       .connect(alice)
       .deposit(await ecox.balanceOf(alice.address))
