@@ -118,4 +118,7 @@ export const ERRORS = {
     NO_REFUND_AVAILABLE: 'NoRefundAvailable',
     NO_REFUND_DURING_CYCLE: 'NoRefundDuringCycle',
   },
+  VOTINGPOWER: {
+    NO_ATOMIC: 'NoAtomicActionsWithSnapshot',
+  },
 }
