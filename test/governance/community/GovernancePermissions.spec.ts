@@ -29,7 +29,7 @@ import { UpdatePolicedProxyImplProposal__factory } from '../../../typechain-type
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe.only('Policy E2E Tests', () => {
+describe('Policy E2E Tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
