@@ -829,7 +829,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /** send the results to the adapter for enaction
      * @param _cycle cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable
      */
-    function enact(uint256 _cycle) external cycleComplete(_cycle) {
+    function enact() external duringProposePhase {
+        uint256 _cycle = getCurrentCycle() - 1;
         if (participation < quorum) {
             revert QuorumNotMet();
         }
