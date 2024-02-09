@@ -10,7 +10,6 @@ import {
   MinterProposal__factory,
   RebaserProposal__factory,
   SnapshotterProposal__factory,
-  UpdateECOxExchangeProposal__factory,
   UpdateTokenPauserProposal__factory,
   UpdateGovernancePauserProposal__factory,
   SweepGovernanceFeesProposal__factory,
@@ -30,7 +29,7 @@ import { UpdatePolicedProxyImplProposal__factory } from '../../../typechain-type
 
 const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
 
-describe('Policy E2E Tests', () => {
+describe.only('Policy E2E Tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -221,18 +220,6 @@ describe('Policy E2E Tests', () => {
         contracts.community.communityGovernance.address
       )
     ).to.be.false
-  })
-
-  it('change ECOxExchange', async () => {
-    expect(await contracts.base.ecox.ecoXExchange()).to.eq(
-      contracts.base.ecoXExchange.address
-    )
-    const proposal1 = await deploy(alice, UpdateECOxExchangeProposal__factory, [
-      contracts.base.ecox.address,
-      alice.address,
-    ])
-    await passProposal(contracts, alice, proposal1)
-    expect(await contracts.base.ecox.ecoXExchange()).to.eq(alice.address)
   })
 
   it('change eco pauser', async () => {

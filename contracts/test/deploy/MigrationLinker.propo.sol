@@ -168,7 +168,6 @@ contract MigrationLinker is Policy, Proposal {
         );
 
         // link ecox
-        ECOx(ecoxProxyAddress).updateECOxExchange(address(ecoXExchange));
         ECOx(ecoxProxyAddress).updateBurners(address(ecoXExchange), true);
 
         // update eco

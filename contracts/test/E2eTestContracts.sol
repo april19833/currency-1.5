@@ -161,37 +161,6 @@ contract SnapshotterProposal is Policy, Proposal {
     }
 }
 
-/** @title updateECOxExchangeProposal
- *
- * A proposal used for changing the ECOxExchange var
- */
-contract UpdateECOxExchangeProposal is Policy, Proposal {
-    ECOx public immutable token;
-
-    address public immutable newECOxExchange;
-
-    constructor(ECOx _token, address _newECOxExchange) Policy(address(0x0)) {
-        token = _token;
-        newECOxExchange = _newECOxExchange;
-    }
-
-    function name() public pure override returns (string memory) {
-        return "updateECOxExchange proposal";
-    }
-
-    function description() public pure override returns (string memory) {
-        return "change the ECOxExchange var";
-    }
-
-    function url() public pure override returns (string memory) {
-        return "n/a";
-    }
-
-    function enacted(address) public override {
-        token.updateECOxExchange(newECOxExchange);
-    }
-}
-
 /** @title token new pauser proposal
  *
  * A proposal used for changing the pauser on the tokens
