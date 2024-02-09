@@ -625,7 +625,7 @@ describe('Mainnet fork migration tests', () => {
           await contracts.monetary.monetaryGovernance.REVEAL_TIME()
         )
         // execute proposal
-        await contracts.monetary.monetaryGovernance.enact(cycle)
+        await contracts.monetary.monetaryGovernance.enact()
 
         const lockupParams = await contracts.monetary.lockupsLever.lockups(0)
         const now = await time.latest()
@@ -700,7 +700,7 @@ describe('Mainnet fork migration tests', () => {
           await contracts.monetary.monetaryGovernance.REVEAL_TIME()
         )
         // execute proposal
-        await contracts.monetary.monetaryGovernance.enact(cycle)
+        await contracts.monetary.monetaryGovernance.enact()
 
         expect(await contracts.base.eco.inflationMultiplier()).to.eq(
           oldInflationMult

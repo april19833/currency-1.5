@@ -2163,14 +2163,14 @@ describe('CurrencyGovernance', () => {
         })
 
         it('succeeds', async () => {
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
         })
 
         it('changes state correctly', async () => {
           const preEnacted = await Enacter.enacted()
           expect(preEnacted).to.be.false
 
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
 
           // dummy contract confirms call went through
           const enacted = await Enacter.enacted()
@@ -2199,13 +2199,13 @@ describe('CurrencyGovernance', () => {
         })
 
         it('passes data correctly', async () => {
-          await expect(CurrencyGovernance.enact(initialCycle))
+          await expect(CurrencyGovernance.enact())
             .to.emit(Enacter, 'EnactionParameterCheck')
             .withArgs(charlieProposalId, targets, functions, calldatas)
         })
 
         it('emits result event', async () => {
-          await expect(CurrencyGovernance.enact(initialCycle))
+          await expect(CurrencyGovernance.enact())
             .to.emit(CurrencyGovernance, 'VoteResult')
             .withArgs(initialCycle, charlieProposalId)
         })
@@ -2214,7 +2214,7 @@ describe('CurrencyGovernance', () => {
       describe('reverts', () => {
         it('cannot enact early', async () => {
           await expect(
-            CurrencyGovernance.enact(initialCycle)
+            CurrencyGovernance.enact()
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         })
         it('cannot enact if participation is less than quorum', async () => {
@@ -2224,47 +2224,24 @@ describe('CurrencyGovernance', () => {
             participation.add(1)
           )
           await expect(
-            CurrencyGovernance.enact(initialCycle)
+            CurrencyGovernance.enact()
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
-        })
-
-        it('cannot enact the future', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH)
-
-          await expect(
-            CurrencyGovernance.enact(initialCycle + 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
         })
 
         it('cannot enact twice', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
 
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
 
           await expect(
-            CurrencyGovernance.enact(initialCycle)
+            CurrencyGovernance.enact()
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
         })
 
         it('can enact late if not overridden', async () => {
           await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH * 5)
 
-          await CurrencyGovernance.enact(initialCycle)
-        })
-
-        it('cannot enact for earlier cycle', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH)
-
-          await expect(
-            CurrencyGovernance.enact(initialCycle - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
-        })
-
-        it('cannot enact for overwritten', async () => {
-          // enacting at this time simulates being in the reveal phase and trying to enact the previous cycle's proposal but it has already been overridden by vote reveals
-          await expect(
-            CurrencyGovernance.enact(initialCycle - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+          await CurrencyGovernance.enact()
         })
       })
     })
@@ -2280,11 +2257,11 @@ describe('CurrencyGovernance', () => {
       })
 
       it('enact succeeds', async () => {
-        await CurrencyGovernance.enact(initialCycle)
+        await CurrencyGovernance.enact()
       })
 
       it('emits result event', async () => {
-        await expect(CurrencyGovernance.enact(initialCycle))
+        await expect(CurrencyGovernance.enact())
           .to.emit(CurrencyGovernance, 'VoteResult')
           .withArgs(initialCycle, defaultProposalId)
       })
@@ -2293,7 +2270,7 @@ describe('CurrencyGovernance', () => {
         const preEnacted = await Enacter.enacted()
         expect(preEnacted).to.be.false
 
-        await CurrencyGovernance.enact(initialCycle)
+        await CurrencyGovernance.enact()
 
         // the enacter is never called, its state should not be changed
         const enacted = await Enacter.enacted()
