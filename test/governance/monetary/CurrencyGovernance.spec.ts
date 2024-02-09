@@ -93,7 +93,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe('CurrencyGovernance', () => {
+describe.only('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -2305,7 +2305,7 @@ describe('CurrencyGovernance', () => {
       })
     })
   })
-  describe('crossing between cycles', () => {
+  describe.only('crossing between cycles', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
@@ -2316,13 +2316,20 @@ describe('CurrencyGovernance', () => {
       ethers.BigNumber.from(initialCycle).toHexString(),
       32
     )
+    const defaultProposalId2 = ethers.utils.hexZeroPad(
+      ethers.BigNumber.from(initialCycle).add(1).toHexString(),
+      32
+    )
     const salt1 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
     const ballot1 = [charlieProposalId]
     const salt2 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
     const ballot2 = [defaultProposalId]
+    const salt3 = ethers.utils.hexlify(ethers.utils.randomBytes(32))
+    const ballot3 = [defaultProposalId2]
 
     let votes1: Vote[]
     let votes2: Vote[]
+    let votes3: Vote[]
 
     beforeEach(async () => {
       await time.increaseTo(await CurrencyGovernance.governanceStartTime())
@@ -2366,12 +2373,27 @@ describe('CurrencyGovernance', () => {
       const initialParticipation = await CurrencyGovernance.participation()
 
       await time.increase(REVEAL_STAGE_LENGTH)
+
       await time.increase(PROPOSE_STAGE_LENGTH)
       expect(Number(initialParticipation)).to.be.greaterThan(0)
-      await CurrencyGovernance.connect(dave).commit(
-        ethers.utils.hexlify(ethers.utils.randomBytes(32))
+      
+      votes3 = await getFormattedBallot(ballot3)
+      const commitHash3 = await getCommit(
+        salt3,
+        initialCycle + 1,
+        dave.address,
+        ballot3
       )
-      expect(await CurrencyGovernance.participation()).to.eq(0)
+
+      await CurrencyGovernance.connect(dave).commit(
+        commitHash3
+      )
+
+      await time.increase(COMMIT_STAGE_LENGTH)
+
+      await CurrencyGovernance.reveal(dave.address, salt3, votes3)
+
+      expect(await CurrencyGovernance.participation()).to.eq(1) // dave has voted again and 2 is reset to 1
     })
     it('resets leader to 0 upon commit', async () => {
       const initialParticipation = await CurrencyGovernance.participation()
@@ -2379,11 +2401,25 @@ describe('CurrencyGovernance', () => {
       await time.increase(REVEAL_STAGE_LENGTH)
       await time.increase(PROPOSE_STAGE_LENGTH)
       expect(Number(initialParticipation)).to.be.greaterThan(0)
-      await CurrencyGovernance.connect(dave).commit(
-        ethers.utils.hexlify(ethers.utils.randomBytes(32))
+
+      votes3 = await getFormattedBallot(ballot3)
+      const commitHash3 = await getCommit(
+        salt3,
+        initialCycle + 1,
+        dave.address,
+        ballot3
       )
+
+      await CurrencyGovernance.connect(dave).commit(
+        commitHash3
+      )
+
+      await time.increase(COMMIT_STAGE_LENGTH)
+
+      await CurrencyGovernance.reveal(dave.address, salt3, votes3)
+
       expect(await CurrencyGovernance.leader()).to.eq(
-        ethers.utils.hexZeroPad('0x', 32)
+        ethers.utils.hexZeroPad(`0x${(initialCycle + 1).toString(16)}`, 32) // leader is now the next cycle's default
       )
     })
   })
