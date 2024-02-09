@@ -404,6 +404,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function support(address _proposal) public {
+        updateStage();
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -421,6 +422,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address[] memory _proposals,
         uint256[] memory _allocations
     ) public {
+        updateStage();
         uint256 length = _proposals.length;
         if (length != _allocations.length) {
             revert ArrayLengthMismatch();
@@ -445,6 +447,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param _proposal the address of proposal to be supported
      */
     function unsupport(address _proposal) public {
+        updateStage();
         if (proposals[_proposal].support[msg.sender] > 0) {
             _changeSupport(msg.sender, _proposal, 0);
         } else {
@@ -463,7 +466,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address proposal,
         uint256 amount
     ) internal {
-        updateStage();
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
@@ -513,6 +515,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param choice the address' vote
      */
     function vote(Vote choice) public {
+        updateStage();
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -539,6 +542,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 rejectVotes,
         uint256 abstainVotes
     ) public {
+        updateStage();
         if (enactVotes + rejectVotes + abstainVotes > votingPower(msg.sender)) {
             revert BadVotingPower();
         }
@@ -551,7 +555,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 _rejectVotes,
         uint256 _abstainVotes
     ) internal {
-        updateStage();
         if (stage != Stage.Voting) {
             revert WrongStage();
         }
