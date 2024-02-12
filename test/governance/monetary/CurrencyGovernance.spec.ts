@@ -2182,9 +2182,9 @@ describe('CurrencyGovernance', () => {
 
       describe('reverts', () => {
         it('cannot enact early', async () => {
-          await expect(
-            CurrencyGovernance.enact()
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.WRONG_STAGE
+          )
         })
         it('cannot enact if participation is less than quorum', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
@@ -2192,9 +2192,9 @@ describe('CurrencyGovernance', () => {
           await CurrencyGovernance.connect(policyImpersonator).setQuorum(
             participation.add(1)
           )
-          await expect(
-            CurrencyGovernance.enact()
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.QUORUM_NOT_MET
+          )
         })
 
         it('cannot enact twice', async () => {
@@ -2202,15 +2202,9 @@ describe('CurrencyGovernance', () => {
 
           await CurrencyGovernance.enact()
 
-          await expect(
-            CurrencyGovernance.enact()
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
-        })
-
-        it('can enact late if not overridden', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH * 5)
-
-          await CurrencyGovernance.enact()
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.OUTDATED_ENACT
+          )
         })
       })
     })
