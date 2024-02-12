@@ -514,37 +514,6 @@ describe('CurrencyGovernance', () => {
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
-
-      it('test forward incompleteness', async () => {
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 2)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 10)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1000)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-      })
-
-      it('test past completeness', async () => {
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 1)
-        ).to.be.true
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 2)
-        ).to.be.true
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 10)
-        ).to.be.true
-        expect(await StageTestCG.cycleCompleted(0)).to.be.true
-      })
     })
   })
 

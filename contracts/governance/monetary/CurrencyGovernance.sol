@@ -378,18 +378,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    /** for finalizing the outcome of a vote */
-    modifier cycleComplete(uint256 cycle) {
-        uint256 completedCycles = START_CYCLE +
-            (getTime() - governanceStartTime) /
-            CYCLE_LENGTH;
-
-        if (completedCycles <= cycle) {
-            revert CycleIncomplete(cycle, completedCycles);
-        }
-        _;
-    }
-
     //////////////////////////////////////////////
     ///////////////// CONSTRUCTOR ////////////////
     //////////////////////////////////////////////
