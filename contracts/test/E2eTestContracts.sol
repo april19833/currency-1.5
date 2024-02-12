@@ -226,6 +226,41 @@ contract UpdateGovernancePauserProposal is Policy, Proposal {
     }
 }
 
+/** @title governance new supportThresholdPercent proposal
+ *
+ * A proposal used for changing the support threshold percent on the community governance contract
+ */
+contract UpdateSupportThresholdPercent is Policy, Proposal {
+    CommunityGovernance public immutable governance;
+
+    uint256 public immutable newSupportThresholdPercent;
+
+    constructor(
+        CommunityGovernance _governance,
+        uint256 _newSupportThresholdPercent
+    ) Policy(address(0x0)) {
+        governance = _governance;
+        newSupportThresholdPercent = _newSupportThresholdPercent;
+    }
+
+    function name() public pure override returns (string memory) {
+        return "governance new supportThresholdPercent proposal";
+    }
+
+    function description() public pure override returns (string memory) {
+        return
+            "A proposal used for changing the support threshold percent on the community governance contract";
+    }
+
+    function url() public pure override returns (string memory) {
+        return "n/a";
+    }
+
+    function enacted(address) public override {
+        governance.setSupportThresholdPercent(newSupportThresholdPercent);
+    }
+}
+
 /** @title governance fee sweep proposal
  *
  * A proposal used for sweeping the fees collected by the community governance contract to an address
@@ -494,7 +529,7 @@ contract SweepLockupPenaltiesProposal is Policy, Proposal {
     }
 }
 
-/** @title truested nodes new governance proposal
+/** @title trusted nodes new governance proposal
  *
  * A proposal used to change the governance contract for the trusted nodes contract
  */
