@@ -244,7 +244,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address _pauser
     ) VotingPower(policy, _eco, _ecox, _ecoXStaking) {
         uint256 time = getTime();
-        if(_cycleStart > time + 2 * CYCLE_LENGTH) {
+        if (
+            _cycleStart < time - CYCLE_LENGTH ||
+            _cycleStart > time + 2 * CYCLE_LENGTH
+        ) {
             revert BadCycleStart();
         }
         pauser = _pauser;
