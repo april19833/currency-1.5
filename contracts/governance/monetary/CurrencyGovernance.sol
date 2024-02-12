@@ -730,7 +730,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
         bytes32 priorLeader = leader;
         if (priorLeader != 0) {
             // Check if this is a leader from a past cycle that was never enacted
-            if (priorLeader != bytes32(_cycle) && proposals[priorLeader].cycle != _cycle) {
+            if (
+                priorLeader != bytes32(_cycle) &&
+                proposals[priorLeader].cycle != _cycle
+            ) {
                 delete participation;
                 delete leader;
                 priorLeader = 0;

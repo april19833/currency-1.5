@@ -93,7 +93,7 @@ const hash = (data: CommitHashData) => {
   )
 }
 
-describe.only('CurrencyGovernance', () => {
+describe('CurrencyGovernance', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -2305,7 +2305,7 @@ describe.only('CurrencyGovernance', () => {
       })
     })
   })
-  describe.only('crossing between cycles', () => {
+  describe('crossing between cycles', () => {
     const charlieProposalId = getProposalId(
       initialCycle,
       targets,
@@ -2376,7 +2376,7 @@ describe.only('CurrencyGovernance', () => {
 
       await time.increase(PROPOSE_STAGE_LENGTH)
       expect(Number(initialParticipation)).to.be.greaterThan(0)
-      
+
       votes3 = await getFormattedBallot(ballot3)
       const commitHash3 = await getCommit(
         salt3,
@@ -2385,9 +2385,7 @@ describe.only('CurrencyGovernance', () => {
         ballot3
       )
 
-      await CurrencyGovernance.connect(dave).commit(
-        commitHash3
-      )
+      await CurrencyGovernance.connect(dave).commit(commitHash3)
 
       await time.increase(COMMIT_STAGE_LENGTH)
 
@@ -2410,9 +2408,7 @@ describe.only('CurrencyGovernance', () => {
         ballot3
       )
 
-      await CurrencyGovernance.connect(dave).commit(
-        commitHash3
-      )
+      await CurrencyGovernance.connect(dave).commit(commitHash3)
 
       await time.increase(COMMIT_STAGE_LENGTH)
 
