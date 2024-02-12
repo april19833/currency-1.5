@@ -2363,5 +2363,60 @@ describe('CurrencyGovernance', () => {
         ethers.utils.hexZeroPad('0x', 32)
       )
     })
+    it('cannot unsupport old cycle', async () => {
+      /************************************************************************
+                         Step 0: Setup
+   
+      Advance to the proposal stage of the second cycle. Charlie proposes 
+      something (same one as before, but in a new cycle). 
+      *************************************************************************/
+      await time.increase(REVEAL_STAGE_LENGTH)
+      const stageInfo = await CurrencyGovernance.getCurrentStage()
+      const currentCycle = initialCycle + 1
+      expect(stageInfo.currentCycle).to.eq(currentCycle)
+      expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
+
+      const charlieProposalId = getProposalId(
+        currentCycle,
+        targets,
+        functions,
+        calldatas
+      )
+
+      await CurrencyGovernance.connect(charlie).propose(
+        targets,
+        functions,
+        calldatas,
+        description
+      )
+
+      /************************************************************************
+                           Step 1: Show Exploit Is Not Possible
+    
+      Dave can try to unsupport an old proposal he supported (`defaultProposalId`) since 
+      it would reset his `trusteeSupports` mapping. He is not allowed to do this as it 
+      would allow him to support multiple times in a cycle. 
+      *************************************************************************/
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(1)
+
+      await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(2)
+      await expect(
+        CurrencyGovernance.connect(dave).unsupportProposal(defaultProposalId)
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.UNSUPPORT_ON_PAST_PROPOSAL)
+
+      // this exploitative code cannot be reached
+      // await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)
+      // const proposalAfter = await CurrencyGovernance.proposals(charlieProposalId)
+      // expect(proposalAfter.support.toNumber()).to.eq(3)
+
+      expect(
+        (await CurrencyGovernance.proposals(charlieProposalId)).support
+      ).to.eq(2)
+    })
   })
 })
