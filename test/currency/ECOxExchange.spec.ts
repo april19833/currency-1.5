@@ -89,9 +89,6 @@ describe('ECOxExchange', () => {
       INITIAL_SUPPLY,
     ])) as ECOxExchange
 
-    await ECOx.connect(policyImpersonator).updateECOxExchange(
-      ecoXExchange.address
-    )
     await ECOx.connect(policyImpersonator).updateMinters(
       policyImpersonator.address,
       true
