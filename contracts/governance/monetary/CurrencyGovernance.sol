@@ -757,7 +757,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
                 revert InvalidVoteBadScore(firstV);
             }
             // the only bad score for the duplicate check is out of bounds
-            if (firstScore > 256) {
+            if (firstScore > 255) {
                 revert InvalidVoteBadScore(firstV);
             }
             scoreDuplicateCheck += 1 << (firstScore - 1);
@@ -789,7 +789,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if (_support > _score) {
                 revert InvalidVoteBadScore(v);
             }
-            if (_score > 256) {
+            if (_score > 255) {
                 revert InvalidVoteBadScore(v);
             }
             uint256 duplicateCompare = 1 << (_score - 1);
