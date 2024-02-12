@@ -79,7 +79,7 @@ contract Notifier is Policed {
 
         for (uint256 i = 0; i < txCount; i++) {
             Transaction memory t = transactions[i];
-            (bool success, ) = (t.target).call(t.data);
+            (bool success, ) = (t.target).call{gas: t.gasCost}(t.data);
 
             if (!success) {
                 emit TransactionFailed(i, t.target, t.data);

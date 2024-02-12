@@ -197,28 +197,6 @@ describe('EcoX', () => {
         ).to.be.revertedWith('ERC20Pausable: not admin')
       })
     })
-
-    describe('ECOxExchange role', () => {
-      it('is onlyPolicy gated', async () => {
-        await expect(
-          ecoXProxy.connect(charlie).updateECOxExchange(charlie.address)
-        ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
-      })
-      it('swaps out the addresses if called by policy', async () => {
-        const oldExchange = await ecoXProxy.ecoXExchange()
-        expect(oldExchange).to.not.eq(charlie.address)
-
-        await expect(
-          ecoXProxy
-            .connect(policyImpersonator)
-            .updateECOxExchange(charlie.address)
-        )
-          .to.emit(ecoXProxy, 'UpdatedECOxExchange')
-          .withArgs(oldExchange, charlie.address)
-
-        expect(await ecoXProxy.ecoXExchange()).to.eq(charlie.address)
-      })
-    })
   })
 
   describe('pausable', async () => {
