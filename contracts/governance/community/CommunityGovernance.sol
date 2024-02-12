@@ -85,6 +85,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
     uint256 public voteThresholdPercent = 50;
 
+    /** the divisor for the percent numbers above */
+    uint256 constant thresholdPercentDivisor = 100;
+
     /** the proposal being voted on this cycle */
     address public selectedProposal;
 
@@ -481,7 +484,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         prop.totalSupport += amount;
 
         if (
-            prop.totalSupport * 100 >
+            prop.totalSupport * thresholdPercentDivisor >
             totalVotingPower() * supportThresholdPercent
         ) {
             selectedProposal = proposal;
@@ -572,7 +575,10 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         emit VotesChanged(voter, _enactVotes, _rejectVotes, _abstainVotes);
 
-        if (totalEnactVotes * 100 > totalVotingPower() * voteThresholdPercent) {
+        if (
+            totalEnactVotes * thresholdPercentDivisor >
+            totalVotingPower() * voteThresholdPercent
+        ) {
             stage = Stage.Execution;
             currentStageEnd =
                 cycleStart +
