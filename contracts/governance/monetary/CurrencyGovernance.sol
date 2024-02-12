@@ -173,6 +173,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /** error for when a trustee is not supporting a policy and tries unsupport */
     error SupportNotGiven();
 
+    /** error for when a trustee tries unsupporting a proposal from a past cycle */
+    error ProposalNotCurrent();
+
     /** error for when a proposal is submitted that's a total duplicate of an existing one */
     error DuplicateProposal();
 
@@ -650,6 +653,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
         }
         if (!p.supporters[msg.sender]) {
             revert SupportNotGiven();
+        }
+        if (p.cycle != cycle && proposalId != bytes32(cycle)) {
+            revert ProposalNotCurrent();
         }
 
         p.supporters[msg.sender] = false;

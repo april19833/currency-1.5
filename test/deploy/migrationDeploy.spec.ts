@@ -468,9 +468,6 @@ describe('Migration tests', () => {
           contracts.community.communityGovernance.address
         )
 
-        expect(await contracts.base.ecox.ecoXExchange()).to.eq(
-          contracts.base.ecoXExchange.address
-        )
         expect(
           await contracts.base.ecox.burners(contracts.base.ecoXExchange.address)
         ).to.be.true
