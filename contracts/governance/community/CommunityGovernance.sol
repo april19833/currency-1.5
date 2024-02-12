@@ -224,6 +224,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         _;
     }
 
+    modifier updatesStage() {
+        updateStage();
+        _;
+    }
+
     /**
      * contract constructor
      * @param policy the root policy address
@@ -377,8 +382,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * fee is only levied if community governance is paused - we want to still be usable
      * in the event that ECO transfers are paused.
      */
-    function propose(Proposal _proposal) public {
-        updateStage();
+    function propose(Proposal _proposal) public updatesStage {
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
@@ -403,7 +407,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to register its full voting power in support of a proposal
      * @param _proposal the address of proposal to be supported
      */
-    function support(address _proposal) public {
+    function support(address _proposal) public updatesStage {
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -420,7 +424,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     function supportPartial(
         address[] memory _proposals,
         uint256[] memory _allocations
-    ) public {
+    ) public updatesStage {
         uint256 length = _proposals.length;
         if (length != _allocations.length) {
             revert ArrayLengthMismatch();
@@ -444,7 +448,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to revoke support for a proposal
      * @param _proposal the address of proposal to be supported
      */
-    function unsupport(address _proposal) public {
+    function unsupport(address _proposal) public updatesStage {
         if (proposals[_proposal].support[msg.sender] > 0) {
             _changeSupport(msg.sender, _proposal, 0);
         } else {
@@ -463,7 +467,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address proposal,
         uint256 amount
     ) internal {
-        updateStage();
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
@@ -512,7 +515,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to vote to enact, reject or abstain on a proposal with their full voting power
      * @param choice the address' vote
      */
-    function vote(Vote choice) public {
+    function vote(Vote choice) public updatesStage {
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -538,7 +541,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 enactVotes,
         uint256 rejectVotes,
         uint256 abstainVotes
-    ) public {
+    ) public updatesStage {
         if (enactVotes + rejectVotes + abstainVotes > votingPower(msg.sender)) {
             revert BadVotingPower();
         }
@@ -551,7 +554,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 _rejectVotes,
         uint256 _abstainVotes
     ) internal {
-        updateStage();
         if (stage != Stage.Voting) {
             revert WrongStage();
         }
@@ -620,8 +622,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
      * the community will have a minimum of 3 days 8 hours to enact the proposal.
      */
-    function execute() public {
-        updateStage();
+    function execute() public updatesStage {
         if (stage != Stage.Execution) {
             revert WrongStage();
         }
