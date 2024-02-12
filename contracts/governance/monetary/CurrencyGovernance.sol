@@ -831,7 +831,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
      */
     function enact(uint256 _cycle) external cycleComplete(_cycle) {
         uint256 _participation = participation;
-        if (_participation < quorum && _participation < trustedNodes.numTrustees()) {
+        if (
+            _participation < quorum &&
+            _participation < trustedNodes.numTrustees()
+        ) {
             revert QuorumNotMet();
         }
         bytes32 _leader = leader;
