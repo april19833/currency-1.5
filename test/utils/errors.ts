@@ -15,6 +15,7 @@ export const ERRORS = {
     ARRAYS_BAD_LENGTH: 'ProposalActionsArrayMismatch',
     ALREADY_SUPPORTED: 'SupportAlreadyGiven',
     UNSUPPORT_WITH_NO_SUPPORT: 'SupportNotGiven',
+    UNSUPPORT_ON_PAST_PROPOSAL: 'ProposalNotCurrent',
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
     PROPOSALID_INVALID: 'NoSuchProposal',
     SUPPORT_WHEN_ALREADY_SUPPORTING: 'DuplicateSupport',
@@ -116,5 +117,8 @@ export const ERRORS = {
     BAD_VOTE_TYPE: 'BadVoteType',
     NO_REFUND_AVAILABLE: 'NoRefundAvailable',
     NO_REFUND_DURING_CYCLE: 'NoRefundDuringCycle',
+  },
+  VOTINGPOWER: {
+    NO_ATOMIC: 'NoAtomicActionsWithSnapshot',
   },
 }
