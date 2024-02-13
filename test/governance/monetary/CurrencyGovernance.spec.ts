@@ -2259,6 +2259,28 @@ describe('CurrencyGovernance', () => {
             CurrencyGovernance.enact(initialCycle)
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
         })
+        it('does still enact if participation is less than quorum but equal to numTrustees', async () => {
+          // this is solving the case where quorum is made more than the number of trustees
+          await time.increase(REVEAL_STAGE_LENGTH)
+          // participation is 1
+          const participation = await CurrencyGovernance.participation()
+          await CurrencyGovernance.connect(policyImpersonator).setQuorum(
+            participation.add(1)
+          )
+
+          // remove all trustees except bob
+          await TrustedNodes.connect(policyImpersonator).distrust(
+            charlie.address
+          )
+          await TrustedNodes.connect(policyImpersonator).distrust(dave.address)
+          await TrustedNodes.connect(policyImpersonator).distrust(niko.address)
+          await TrustedNodes.connect(policyImpersonator).distrust(mila.address)
+
+          await expect(CurrencyGovernance.enact(initialCycle)).to.emit(
+            CurrencyGovernance,
+            'VoteResult'
+          )
+        })
 
         it('cannot enact the future', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
