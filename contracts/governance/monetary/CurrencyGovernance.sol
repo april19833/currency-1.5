@@ -850,6 +850,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
+        // clear this variable to reset for next cycle
+        delete participation;
 
         // the default proposal doesn't do anything
         if (_leader == bytes32(_cycle)) {
