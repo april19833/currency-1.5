@@ -519,7 +519,7 @@ describe('Policy E2E Tests', () => {
       await contracts.monetary.monetaryGovernance.REVEAL_TIME()
     )
     // execute proposal
-    await contracts.monetary.monetaryGovernance.enact(cycle)
+    await contracts.monetary.monetaryGovernance.enact()
 
     // lockup now available
 

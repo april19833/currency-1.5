@@ -514,37 +514,6 @@ describe('CurrencyGovernance', () => {
         expect(stageInfo.currentStage).to.equal(PROPOSE_STAGE)
         await checkStageModifiers(PROPOSE_STAGE)
       })
-
-      it('test forward incompleteness', async () => {
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 2)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 10)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        await expect(
-          StageTestCG.cycleCompleted(initialCycle + completedCycles + 1000)
-        ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-      })
-
-      it('test past completeness', async () => {
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 1)
-        ).to.be.true
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 2)
-        ).to.be.true
-        expect(
-          await StageTestCG.cycleCompleted(initialCycle + completedCycles - 10)
-        ).to.be.true
-        expect(await StageTestCG.cycleCompleted(0)).to.be.true
-      })
     })
   })
 
@@ -2195,14 +2164,14 @@ describe('CurrencyGovernance', () => {
         })
 
         it('succeeds', async () => {
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
         })
 
         it('changes state correctly', async () => {
           const preEnacted = await Enacter.enacted()
           expect(preEnacted).to.be.false
 
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
 
           // dummy contract confirms call went through
           const enacted = await Enacter.enacted()
@@ -2231,13 +2200,13 @@ describe('CurrencyGovernance', () => {
         })
 
         it('passes data correctly', async () => {
-          await expect(CurrencyGovernance.enact(initialCycle))
+          await expect(CurrencyGovernance.enact())
             .to.emit(Enacter, 'EnactionParameterCheck')
             .withArgs(charlieProposalId, targets, functions, calldatas)
         })
 
         it('emits result event', async () => {
-          await expect(CurrencyGovernance.enact(initialCycle))
+          await expect(CurrencyGovernance.enact())
             .to.emit(CurrencyGovernance, 'VoteResult')
             .withArgs(initialCycle, charlieProposalId)
         })
@@ -2245,9 +2214,9 @@ describe('CurrencyGovernance', () => {
 
       describe('reverts', () => {
         it('cannot enact early', async () => {
-          await expect(
-            CurrencyGovernance.enact(initialCycle)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.WRONG_STAGE
+          )
         })
         it('cannot enact if participation is less than quorum', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
@@ -2255,9 +2224,9 @@ describe('CurrencyGovernance', () => {
           await CurrencyGovernance.connect(policyImpersonator).setQuorum(
             participation.add(1)
           )
-          await expect(
-            CurrencyGovernance.enact(initialCycle)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.QUORUM_NOT_MET
+          )
         })
         it('does still enact if participation is less than quorum but equal to numTrustees', async () => {
           // this is solving the case where quorum is made more than the number of trustees
@@ -2276,49 +2245,36 @@ describe('CurrencyGovernance', () => {
           await TrustedNodes.connect(policyImpersonator).distrust(niko.address)
           await TrustedNodes.connect(policyImpersonator).distrust(mila.address)
 
-          await expect(CurrencyGovernance.enact(initialCycle)).to.emit(
+          await expect(CurrencyGovernance.enact()).to.emit(
             CurrencyGovernance,
             'VoteResult'
           )
         })
 
-        it('cannot enact the future', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH)
-
-          await expect(
-            CurrencyGovernance.enact(initialCycle + 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.CYCLE_INCOMPLETE)
-        })
-
         it('cannot enact twice', async () => {
           await time.increase(REVEAL_STAGE_LENGTH)
 
-          await CurrencyGovernance.enact(initialCycle)
+          await CurrencyGovernance.enact()
 
-          await expect(
-            CurrencyGovernance.enact(initialCycle)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.OUTDATED_ENACT
+          )
         })
 
-        it('can enact late if not overridden', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH * 5)
+        it('cannot enact late', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH + PROPOSE_STAGE_LENGTH)
 
-          await CurrencyGovernance.enact(initialCycle)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.WRONG_STAGE
+          )
         })
 
-        it('cannot enact for earlier cycle', async () => {
-          await time.increase(REVEAL_STAGE_LENGTH)
+        it('cannot enact the next cycle either', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH)
 
-          await expect(
-            CurrencyGovernance.enact(initialCycle - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
-        })
-
-        it('cannot enact for overwritten', async () => {
-          // enacting at this time simulates being in the reveal phase and trying to enact the previous cycle's proposal but it has already been overridden by vote reveals
-          await expect(
-            CurrencyGovernance.enact(initialCycle - 1)
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.OUTDATED_ENACT)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.OUTDATED_ENACT
+          )
         })
       })
     })
@@ -2334,11 +2290,11 @@ describe('CurrencyGovernance', () => {
       })
 
       it('enact succeeds', async () => {
-        await CurrencyGovernance.enact(initialCycle)
+        await CurrencyGovernance.enact()
       })
 
       it('emits result event', async () => {
-        await expect(CurrencyGovernance.enact(initialCycle))
+        await expect(CurrencyGovernance.enact())
           .to.emit(CurrencyGovernance, 'VoteResult')
           .withArgs(initialCycle, defaultProposalId)
       })
@@ -2347,7 +2303,7 @@ describe('CurrencyGovernance', () => {
         const preEnacted = await Enacter.enacted()
         expect(preEnacted).to.be.false
 
-        await CurrencyGovernance.enact(initialCycle)
+        await CurrencyGovernance.enact()
 
         // the enacter is never called, its state should not be changed
         const enacted = await Enacter.enacted()

@@ -9,7 +9,6 @@ export const ERRORS = {
     TRUSTEE_ONLY: 'TrusteeOnlyFunction',
     REQUIRE_NON_ZERO_ENACTER: 'NonZeroEnacterAddr',
     WRONG_STAGE: 'WrongStage',
-    CYCLE_INCOMPLETE: 'CycleIncomplete', // two args: requested cycle and actual cycle
     DESCRIPTION_TOO_LONG: 'ExceedsMaxDescriptionSize', // one arg: the submitted length
     TARGETS_TOO_LONG_OR_ZERO: 'BadNumTargets', // one arg: the length of the submitted array
     ARRAYS_BAD_LENGTH: 'ProposalActionsArrayMismatch',

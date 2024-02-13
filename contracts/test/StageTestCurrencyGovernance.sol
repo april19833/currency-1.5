@@ -30,10 +30,4 @@ contract StageTestCurrencyGovernance is CurrencyGovernance {
     function inRevealPhase() public view duringRevealPhase returns (bool) {
         return true;
     }
-
-    function cycleCompleted(
-        uint256 _cycle
-    ) public view cycleComplete(_cycle) returns (bool) {
-        return true;
-    }
 }
