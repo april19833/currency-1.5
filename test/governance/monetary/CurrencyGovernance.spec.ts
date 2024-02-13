@@ -2257,7 +2257,7 @@ describe('CurrencyGovernance', () => {
           await CurrencyGovernance.enact()
 
           await expect(CurrencyGovernance.enact()).to.be.revertedWith(
-            ERRORS.CurrencyGovernance.OUTDATED_ENACT
+            ERRORS.CurrencyGovernance.QUORUM_NOT_MET // participation is deleted so quorum check is what fails
           )
         })
 
