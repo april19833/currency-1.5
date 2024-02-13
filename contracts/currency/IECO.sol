@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// TODO: make an interface for delegation
-
 interface IECO is IERC20 {
     /**
      * Only available to minters

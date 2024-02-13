@@ -32,9 +32,9 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
         );
 
     /**
-     * Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
+     * Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"2"`.
      *
-     * It's a good idea to use the same `name` that is defined as the ERC20 token name.
+     * version number 1 was used already in a previous implementation
      */
     constructor(string memory name) EIP712(name, "2") {
         //empty block in order to pass parameters to the parent EIP712 constructor

@@ -48,7 +48,7 @@ contract VotingPower is Policed {
 
     /**
      * Calculates the total Voting Power by getting the total supply of ECO
-     * and adding total ECOX (multiplied by 10) and subtracting the excluded Voting Power
+     * and adding total ECOX (multiplied by 10)
      * @return total the total Voting Power
      */
     function totalVotingPower() public view returns (uint256 total) {
@@ -65,7 +65,7 @@ contract VotingPower is Policed {
     /**
      * Calculates the voting power for an address at the Snapshot Block
      * @param _who the address to calculate the voting power for
-     * @return total the total vorting power for an address at the Snapshot Block
+     * @return total the total voting power for an address at the Snapshot Block
      */
 
     function votingPower(address _who) public view returns (uint256 total) {

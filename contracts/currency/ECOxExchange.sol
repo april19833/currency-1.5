@@ -127,9 +127,6 @@ contract ECOxExchange is Policed {
      *
      * it returns `e ^ (x / 2 ^ precision) * 2 ^ precision`, that is, the result is upshifted for accuracy.
      *
-     * the global `maxExpArray` maps each `precision` to `((maximumExponent + 1) << (MAX_PRECISION - precision)) - 1`.
-     *
-     * the maximum permitted value for `x` is therefore given by `maxExpArray[precision] >> (MAX_PRECISION - precision)`.
      * @param _x input value
      * @param _precision precision
      * @return result `e ^ (x / 2 ^ precision) * 2 ^ precision`, that is, the result is upshifted for accuracy.
@@ -206,7 +203,7 @@ contract ECOxExchange is Policed {
         xi = (xi * _x) >> _precision;
         res += xi * 0x0000000000000000000000000000001; // add x^33 * (33! / 33!)
 
-        result = res / 0x688589cc0e9505e2f2fee5580000000 + _x; // divide by 33! and then add x^1 / 1! + x^0 / 0!
+        result = res / 0x688589cc0e9505e2f2fee5580000000 + _x; // divide by 33! and then add x^1 / 1! (the x^0 term omitted because we subtract 1 right after)
         return result;
     }
 }
