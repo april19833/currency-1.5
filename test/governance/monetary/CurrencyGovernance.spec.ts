@@ -260,29 +260,49 @@ describe('CurrencyGovernance', () => {
   })
 
   describe('trusted nodes role', () => {
+    let newTrustedNodes: MockContract<TrustedNodes>
+
+    beforeEach(async () => {
+      newTrustedNodes = await (
+        await smock.mock<TrustedNodes__factory>(
+          'contracts/governance/monetary/TrustedNodes.sol:TrustedNodes'
+        )
+      ).deploy(
+        Fake__Policy.address,
+        CurrencyGovernance.address,
+        PLACEHOLDER_ADDRESS1, // ecox address not necessary for test
+        await time.latest(),
+        1000 * DAY,
+        1,
+        [bob.address, charlie.address]
+      )
+    })
+
     it('can be changed by the policy', async () => {
       const initialTNAddress = await CurrencyGovernance.trustedNodes()
       await CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
-        alice.address
+        newTrustedNodes.address
       )
       const changedTNAddress = await CurrencyGovernance.trustedNodes()
       expect(changedTNAddress !== initialTNAddress).to.be.true
-      expect(changedTNAddress === alice.address).to.be.true
+      expect(changedTNAddress === newTrustedNodes.address).to.be.true
     })
 
     it('emits an event', async () => {
       expect(
         await CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
-          alice.address
+          newTrustedNodes.address
         )
       )
         .to.emit(CurrencyGovernance, 'NewTrustedNodes')
-        .withArgs(TrustedNodes.address, alice.address)
+        .withArgs(TrustedNodes.address, newTrustedNodes.address)
     })
 
     it('is onlyPolicy gated', async () => {
       await expect(
-        CurrencyGovernance.connect(alice).setTrustedNodes(alice.address)
+        CurrencyGovernance.connect(alice).setTrustedNodes(
+          newTrustedNodes.address
+        )
       ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
     })
 
@@ -292,8 +312,17 @@ describe('CurrencyGovernance', () => {
           constants.AddressZero
         )
       ).to.be.revertedWith(
-        ERRORS.CurrencyGovernance.REQUIRE_NON_ZERO_TRUSTEDNODES
+        'Transaction reverted: function returned an unexpected amount of data'
       )
+    })
+
+    it("cannot be set if there's not enough trustees to hit quorum", async () => {
+      await CurrencyGovernance.connect(policyImpersonator).setQuorum(3) // more than the trustees in newTrustedNodes
+      await expect(
+        CurrencyGovernance.connect(policyImpersonator).setTrustedNodes(
+          newTrustedNodes.address
+        )
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_QUORUM)
     })
   })
 
