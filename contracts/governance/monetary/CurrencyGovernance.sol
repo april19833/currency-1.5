@@ -378,18 +378,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         _;
     }
 
-    /** for finalizing the outcome of a vote */
-    modifier cycleComplete(uint256 cycle) {
-        uint256 completedCycles = START_CYCLE +
-            (getTime() - governanceStartTime) /
-            CYCLE_LENGTH;
-
-        if (completedCycles <= cycle) {
-            revert CycleIncomplete(cycle, completedCycles);
-        }
-        _;
-    }
-
     //////////////////////////////////////////////
     ///////////////// CONSTRUCTOR ////////////////
     //////////////////////////////////////////////
@@ -763,8 +751,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if (_support > firstScore) {
                 revert InvalidVoteBadScore(firstV);
             }
-            // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
-            // so we don't need to check duplicates, just record the amount
+            // the only bad score for the duplicate check is out of bounds
+            if (firstScore > 255) {
+                revert InvalidVoteBadScore(firstV);
+            }
             scoreDuplicateCheck +=
                 (2 ** _support - 1) <<
                 (firstScore - _support);
@@ -794,6 +784,9 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
             uint256 _support = p.support;
             if (_support > _score) {
+                revert InvalidVoteBadScore(v);
+            }
+            if (_score > 255) {
                 revert InvalidVoteBadScore(v);
             }
             uint256 duplicateCompare = (2 ** _support - 1) <<
@@ -840,10 +833,14 @@ contract CurrencyGovernance is Policed, TimeUtils {
     }
 
     /** send the results to the adapter for enaction
-     * @param _cycle cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable
      */
-    function enact(uint256 _cycle) external cycleComplete(_cycle) {
-        if (participation < quorum) {
+    function enact() external duringProposePhase {
+        uint256 _cycle = getCurrentCycle() - 1;
+        uint256 _participation = participation;
+        if (
+            _participation < quorum &&
+            _participation < trustedNodes.numTrustees()
+        ) {
             revert QuorumNotMet();
         }
         bytes32 _leader = leader;

@@ -74,16 +74,19 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     uint256 public currentStageEnd;
 
     /** cost in ECO to submit a proposal */
-    uint256 public proposalFee = 10000;
+    uint256 public constant proposalFee = 10000;
 
     /** proposal fee to be refunded if proposal is not enacted */
-    uint256 public feeRefund = 5000;
+    uint256 public constant feeRefund = 5000;
 
     /** the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
 
     /** the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
-    uint256 public voteThresholdPercent = 50;
+    uint256 public constant voteThresholdPercent = 50;
+
+    /** the divisor for the percent numbers above */
+    uint256 constant thresholdPercentDivisor = 100;
 
     /** the proposal being voted on this cycle */
     address public selectedProposal;
@@ -104,6 +107,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
+    /** thrown when constructor param CycleStart is out of bounds */
+    error BadCycleStart();
+
     /** thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
@@ -121,6 +127,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
     /** thrown when the voting power of a support or vote action is invalid */
     error BadVotingPower();
+
+    /** thrown when setSupportThresholdPercent is called with a bad value */
+    error BadSupportThresholdPercent();
 
     /** thrown when unsupport is called without the caller having supported the proposal */
     error NoSupportToRevoke();
@@ -149,6 +158,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param pauser The new pauser
      */
     event PauserAssignment(address indexed pauser);
+
+    /**
+     * event indicating supportThresholdPercent was updated
+     * @param supportThresholdPercent The new supportThresholdPercent
+     */
+    event SupportThresholdPercentChanged(uint256 supportThresholdPercent);
 
     /**
      * event indicating a change in the community governance stage
@@ -224,6 +239,11 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         _;
     }
 
+    modifier updatesStage() {
+        updateStage();
+        _;
+    }
+
     /**
      * contract constructor
      * @param policy the root policy address
@@ -240,6 +260,13 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 _cycleStart,
         address _pauser
     ) VotingPower(policy, _eco, _ecox, _ecoXStaking) {
+        uint256 time = getTime();
+        if (
+            _cycleStart < time - CYCLE_LENGTH ||
+            _cycleStart > time + 2 * CYCLE_LENGTH
+        ) {
+            revert BadCycleStart();
+        }
         pauser = _pauser;
         cycleCount = 1000;
         currentStageEnd = _cycleStart;
@@ -252,6 +279,20 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     function setPauser(address _pauser) public onlyPolicy {
         pauser = _pauser;
         emit PauserAssignment(_pauser);
+    }
+
+    /**
+     * sets supportThresholdPercent
+     * @param _supportThresholdPercent new supportThresholdPercent
+     */
+    function setSupportThresholdPercent(
+        uint256 _supportThresholdPercent
+    ) public onlyPolicy {
+        if (_supportThresholdPercent > 100) {
+            revert BadSupportThresholdPercent();
+        }
+        supportThresholdPercent = _supportThresholdPercent;
+        emit SupportThresholdPercentChanged(supportThresholdPercent);
     }
 
     /**
@@ -377,8 +418,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * fee is only levied if community governance is paused - we want to still be usable
      * in the event that ECO transfers are paused.
      */
-    function propose(Proposal _proposal) public {
-        updateStage();
+    function propose(Proposal _proposal) public updatesStage {
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
@@ -403,7 +443,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to register its full voting power in support of a proposal
      * @param _proposal the address of proposal to be supported
      */
-    function support(address _proposal) public {
+    function support(address _proposal) public updatesStage {
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -420,7 +460,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     function supportPartial(
         address[] memory _proposals,
         uint256[] memory _allocations
-    ) public {
+    ) public updatesStage {
         uint256 length = _proposals.length;
         if (length != _allocations.length) {
             revert ArrayLengthMismatch();
@@ -444,7 +484,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to revoke support for a proposal
      * @param _proposal the address of proposal to be supported
      */
-    function unsupport(address _proposal) public {
+    function unsupport(address _proposal) public updatesStage {
         if (proposals[_proposal].support[msg.sender] > 0) {
             _changeSupport(msg.sender, _proposal, 0);
         } else {
@@ -463,7 +503,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         address proposal,
         uint256 amount
     ) internal {
-        updateStage();
         if (stage != Stage.Proposal) {
             revert WrongStage();
         }
@@ -481,8 +520,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         prop.totalSupport += amount;
 
         if (
-            prop.totalSupport >
-            (totalVotingPower() * supportThresholdPercent) / 100
+            prop.totalSupport * thresholdPercentDivisor >
+            totalVotingPower() * supportThresholdPercent
         ) {
             selectedProposal = proposal;
             pot -= (proposalFee - prop.refund);
@@ -512,7 +551,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * allows an address to vote to enact, reject or abstain on a proposal with their full voting power
      * @param choice the address' vote
      */
-    function vote(Vote choice) public {
+    function vote(Vote choice) public updatesStage {
         uint256 vp = votingPower(msg.sender);
         if (vp == 0) {
             revert BadVotingPower();
@@ -538,7 +577,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 enactVotes,
         uint256 rejectVotes,
         uint256 abstainVotes
-    ) public {
+    ) public updatesStage {
         if (enactVotes + rejectVotes + abstainVotes > votingPower(msg.sender)) {
             revert BadVotingPower();
         }
@@ -551,7 +590,6 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 _rejectVotes,
         uint256 _abstainVotes
     ) internal {
-        updateStage();
         if (stage != Stage.Voting) {
             revert WrongStage();
         }
@@ -573,8 +611,8 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         emit VotesChanged(voter, _enactVotes, _rejectVotes, _abstainVotes);
 
         if (
-            (totalEnactVotes) >
-            (totalVotingPower() * voteThresholdPercent) / 100
+            totalEnactVotes * thresholdPercentDivisor >
+            totalVotingPower() * voteThresholdPercent
         ) {
             stage = Stage.Execution;
             currentStageEnd =
@@ -620,8 +658,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * it is important to do this in a timely manner, once the cycle passes it will no longer be possible to execute the proposal.
      * the community will have a minimum of 3 days 8 hours to enact the proposal.
      */
-    function execute() public {
-        updateStage();
+    function execute() public updatesStage {
         if (stage != Stage.Execution) {
             revert WrongStage();
         }

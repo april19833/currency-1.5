@@ -9,7 +9,6 @@ export const ERRORS = {
     TRUSTEE_ONLY: 'TrusteeOnlyFunction',
     REQUIRE_NON_ZERO_ENACTER: 'NonZeroEnacterAddr',
     WRONG_STAGE: 'WrongStage',
-    CYCLE_INCOMPLETE: 'CycleIncomplete', // two args: requested cycle and actual cycle
     DESCRIPTION_TOO_LONG: 'ExceedsMaxDescriptionSize', // one arg: the submitted length
     TARGETS_TOO_LONG_OR_ZERO: 'BadNumTargets', // one arg: the length of the submitted array
     ARRAYS_BAD_LENGTH: 'ProposalActionsArrayMismatch',
@@ -66,6 +65,7 @@ export const ERRORS = {
     LATE_DEPOSIT: 'LateDeposit',
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
+    ZERO_WITHDRAW: 'ZeroWithdraw',
   },
   ERC20ROLES: {
     ONLY_MINTERS: 'OnlyMinters',
@@ -113,6 +113,7 @@ export const ERRORS = {
     OLD_PROPOSAL_SUPPORT: 'OldProposalSupport',
     ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
     BAD_VOTING_POWER: 'BadVotingPower',
+    BAD_SUPPORT_THRESHOLD_PERCENT: 'BadSupportThresholdPercent',
     NO_SUPPORT_TO_REVOKE: 'NoSupportToRevoke',
     BAD_VOTE_TYPE: 'BadVoteType',
     NO_REFUND_AVAILABLE: 'NoRefundAvailable',

@@ -22,6 +22,7 @@ import {
   SweepLockupPenaltiesProposal__factory,
   UpdateTrustedNodesGovernanceProposal__factory,
   SweepTrustedNodesProposal__factory,
+  UpdateSupportThresholdPercent__factory,
 } from '../../../typechain-types/factories/contracts/test/E2eTestContracts.sol'
 import { deploy } from '../../../deploy/utils'
 import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
@@ -255,6 +256,25 @@ describe('Policy E2E Tests', () => {
     expect(await contracts.community.communityGovernance.pauser()).to.eq(
       bob.address
     )
+  })
+
+  it('change supportThresholdPercent', async () => {
+    const newSupportThresholdPercent = 20
+    expect(
+      await contracts.community.communityGovernance.supportThresholdPercent()
+    ).to.eq(15)
+    const proposal1 = await deploy(
+      alice,
+      UpdateSupportThresholdPercent__factory,
+      [
+        contracts.community.communityGovernance.address,
+        newSupportThresholdPercent,
+      ]
+    )
+    await passProposal(contracts, alice, proposal1)
+    expect(
+      await contracts.community.communityGovernance.supportThresholdPercent()
+    ).to.eq(newSupportThresholdPercent)
   })
 
   it('sweep governance fees', async () => {
@@ -499,7 +519,7 @@ describe('Policy E2E Tests', () => {
       await contracts.monetary.monetaryGovernance.REVEAL_TIME()
     )
     // execute proposal
-    await contracts.monetary.monetaryGovernance.enact(cycle)
+    await contracts.monetary.monetaryGovernance.enact()
 
     // lockup now available
 
