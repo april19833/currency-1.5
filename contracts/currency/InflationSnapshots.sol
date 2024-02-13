@@ -132,7 +132,7 @@ abstract contract InflationSnapshots is VoteSnapshots {
     function getPastLinearInflation(
         uint256
     ) public view returns (uint256 pastLinearInflationMultiplier) {
-        return inflationMultiplierSnapshot();
+        return inflationMultiplier;
     }
 
     /**
