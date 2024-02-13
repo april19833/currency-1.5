@@ -31,7 +31,7 @@ contract InfiniteVote {
         // used to show that voting power was actually obtainable
         ecoaddress.enableVoting();
 
-        for (uint256 i = 0; i < (NUM_SUBVOTERS * 11) / 3; i++) {
+        for (uint256 i = 0; i < (NUM_SUBVOTERS * 11) / 3; ++i) {
             subvoters.push(new Subvoter(ecoaddress, communityGovernance));
         }
     }
@@ -40,7 +40,7 @@ contract InfiniteVote {
         communityGovernance.updateStage();
         ecoaddress.approve(address(communityGovernance), COST_REGISTER);
         communityGovernance.propose(Proposal(PROPOSAL));
-        for (uint256 i = 0; i < NUM_SUBVOTERS; i++) {
+        for (uint256 i = 0; i < NUM_SUBVOTERS; ++i) {
             if (
                 communityGovernance.stage() ==
                 CommunityGovernance.Stage.Proposal
@@ -56,7 +56,7 @@ contract InfiniteVote {
         }
 
         // never gets to this point due to a number of previous failures including failure to add voting power
-        for (uint256 i = 0; i < (NUM_SUBVOTERS * 11) / 3; i++) {
+        for (uint256 i = 0; i < (NUM_SUBVOTERS * 11) / 3; ++i) {
             if (
                 communityGovernance.stage() == CommunityGovernance.Stage.Voting
             ) {

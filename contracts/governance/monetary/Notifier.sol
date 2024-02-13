@@ -61,7 +61,7 @@ contract Notifier is Policed {
             );
         }
 
-        for (uint256 i = 0; i < targetsLength; i++) {
+        for (uint256 i = 0; i < targetsLength; ++i) {
             transactions.push(
                 Transaction({
                     target: targets[i],
@@ -77,7 +77,7 @@ contract Notifier is Policed {
     function notify() public onlyLever {
         uint256 txCount = transactions.length;
 
-        for (uint256 i = 0; i < txCount; i++) {
+        for (uint256 i = 0; i < txCount; ++i) {
             Transaction memory t = transactions[i];
             (bool success, ) = (t.target).call{gas: t.gasCost}(t.data);
 

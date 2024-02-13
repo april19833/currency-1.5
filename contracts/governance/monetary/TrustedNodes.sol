@@ -117,7 +117,7 @@ contract TrustedNodes is Policed, TimeUtils {
         termEnd = termStart + _termLength;
         voteReward = _voteReward;
         uint256 _numTrustees = _initialTrustees.length;
-        for (uint256 i = 0; i < _numTrustees; i++) {
+        for (uint256 i = 0; i < _numTrustees; ++i) {
             _trust(_initialTrustees[i]);
         }
     }
@@ -195,7 +195,7 @@ contract TrustedNodes is Policed, TimeUtils {
     function recordVote(address _who) external onlyCurrencyGovernance {
         uint256 time = getTime();
         if (time > termStart) {
-            votingRecord[_who]++;
+            ++votingRecord[_who];
             emit VoteRecorded(_who, votingRecord[_who]);
         } else {
             revert InactiveTerm();

@@ -44,7 +44,7 @@ contract AddMinters is Policy, Proposal {
     }
 
     function enacted(address self) public override {
-        for (uint256 i = 0; i < mintersLength; i++) {
+        for (uint256 i = 0; i < mintersLength; ++i) {
             address minter = AddMinters(self).newMinters(i);
             eco.updateMinters(minter, true);
             ecox.updateMinters(minter, true);

@@ -468,7 +468,7 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
 
         // uint256 sumSupport = 0;
         uint256 vp = votingPower(msg.sender);
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             uint256 theSupport = _allocations[i];
             if (theSupport > vp) {
                 revert BadVotingPower();

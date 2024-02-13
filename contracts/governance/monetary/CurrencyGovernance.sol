@@ -759,7 +759,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             }
 
             // make sure to skip the first element in the following loop as it has already been handled
-            i++;
+            ++i;
         }
 
         for (; i < numVotes; ++i) {
