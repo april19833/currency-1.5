@@ -76,6 +76,8 @@ contract ECOxExchange is Policed {
     /**
      * Exchange ECOx for ECO by burning ECOx and minting ECO
      * @param _ecoXValue the value of ECOx tokens to burn
+     * the output amount will always be at or greater than the expected amount by the caller, relative to the total ECO supply, as ECOx is never minted
+     * unless the user miscalculates the output value, there is no need to check that output value is at least what's expected
      */
     function exchange(uint256 _ecoXValue) external {
         uint256 ecoAmount = ecoValueOf(_ecoXValue);
