@@ -74,16 +74,16 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     uint256 public currentStageEnd;
 
     /** cost in ECO to submit a proposal */
-    uint256 public proposalFee = 10000;
+    uint256 public constant proposalFee = 10000;
 
     /** proposal fee to be refunded if proposal is not enacted */
-    uint256 public feeRefund = 5000;
+    uint256 public constant feeRefund = 5000;
 
     /** the percent of total VP that must be supporting a proposal in order to advance it to the voting stage */
     uint256 public supportThresholdPercent = 15;
 
     /** the percent of total VP that must have voted to enact a proposal in order to bypass the delay period */
-    uint256 public voteThresholdPercent = 50;
+    uint256 public constant voteThresholdPercent = 50;
 
     /** the divisor for the percent numbers above */
     uint256 constant thresholdPercentDivisor = 100;
@@ -128,6 +128,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /** thrown when the voting power of a support or vote action is invalid */
     error BadVotingPower();
 
+    /** thrown when setSupportThresholdPercent is called with a bad value */
+    error BadSupportThresholdPercent();
+
     /** thrown when unsupport is called without the caller having supported the proposal */
     error NoSupportToRevoke();
 
@@ -155,6 +158,12 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
      * @param pauser The new pauser
      */
     event PauserAssignment(address indexed pauser);
+
+    /**
+     * event indicating supportThresholdPercent was updated
+     * @param supportThresholdPercent The new supportThresholdPercent
+     */
+    event SupportThresholdPercentChanged(uint256 supportThresholdPercent);
 
     /**
      * event indicating a change in the community governance stage
@@ -270,6 +279,20 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     function setPauser(address _pauser) public onlyPolicy {
         pauser = _pauser;
         emit PauserAssignment(_pauser);
+    }
+
+    /**
+     * sets supportThresholdPercent
+     * @param _supportThresholdPercent new supportThresholdPercent
+     */
+    function setSupportThresholdPercent(
+        uint256 _supportThresholdPercent
+    ) public onlyPolicy {
+        if (_supportThresholdPercent > 100) {
+            revert BadSupportThresholdPercent();
+        }
+        supportThresholdPercent = _supportThresholdPercent;
+        emit SupportThresholdPercentChanged(supportThresholdPercent);
     }
 
     /**
