@@ -2224,9 +2224,9 @@ describe('CurrencyGovernance', () => {
           await CurrencyGovernance.connect(policyImpersonator).setQuorum(
             participation.add(1)
           )
-          await expect(
-            CurrencyGovernance.enact()
-          ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.QUORUM_NOT_MET
+          )
         })
         it('does still enact if participation is less than quorum but equal to numTrustees', async () => {
           // this is solving the case where quorum is made more than the number of trustees
