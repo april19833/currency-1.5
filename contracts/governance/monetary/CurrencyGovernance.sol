@@ -756,11 +756,11 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if (_support > firstScore) {
                 revert InvalidVoteBadScore(firstV);
             }
-            // the only bad score for the duplicate check would be score of zero which is disallowed by the previous conditional
-            // so we don't need to check duplicates, just record the amount
-            scoreDuplicateCheck +=
-                (2 ** _support - 1) <<
-                (firstScore - _support);
+            // the only bad score for the duplicate check is out of bounds
+            if (firstScore > 255) {
+                revert InvalidVoteBadScore(firstV);
+            }
+            scoreDuplicateCheck += (2 ** _support - 1) << (firstScore - _support);
             scores[firstProposalId] += firstScore;
             // can simplify the leader rank tracker check because we know it's the first element
             if (scores[firstProposalId] >= scores[leaderTracker]) {
@@ -789,8 +789,10 @@ contract CurrencyGovernance is Policed, TimeUtils {
             if (_support > _score) {
                 revert InvalidVoteBadScore(v);
             }
-            uint256 duplicateCompare = (2 ** _support - 1) <<
-                (_score - _support);
+            if (_score > 255) {
+                revert InvalidVoteBadScore(v);
+            }
+            uint256 duplicateCompare = (2 ** _support - 1) << (_score - _support);
 
             if (scoreDuplicateCheck & duplicateCompare > 0) {
                 revert InvalidVoteBadScore(v);
