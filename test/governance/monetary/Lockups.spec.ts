@@ -18,7 +18,7 @@ import { Lockups } from '../../../typechain-types/contracts/governance/monetary'
 import { ECO__factory } from '../../../typechain-types/factories/contracts/currency'
 import { Lockups__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
-describe.only('Lockups', () => {
+describe('Lockups', () => {
   let policyImpersonator: SignerWithAddress
 
   let eco: MockContract<ECO>

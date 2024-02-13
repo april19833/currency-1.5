@@ -254,7 +254,7 @@ contract Lockups is Lever, TimeUtils {
 
         if (gonsAmount == 0) {
             revert ZeroWithdraw(_lockupId);
-        } 
+        }
 
         if (delegate != address(0)) {
             eco.undelegateAmountFromAddress(delegate, gonsAmount);
