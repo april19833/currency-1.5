@@ -27,6 +27,7 @@ import {
   FlashBurner__factory,
   SampleProposal__factory,
 } from '../../../typechain-types/factories/contracts/test'
+import { BigNumber } from 'ethers'
 
 use(smock.matchers)
 
@@ -168,6 +169,36 @@ describe('Community Governance', () => {
           alice.address
         )
       ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
+    })
+    it('bricks when cycleStart is too high or too low', async () => {
+      const cgmocker = await smock.mock<CommunityGovernance__factory>(
+        'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
+      )
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ecox.address,
+          ecoXStaking.address,
+          BigNumber.from(await time.latest()).add(
+            (await cg.CYCLE_LENGTH()).mul(3)
+          ),
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_CYCLE_START)
+
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ecox.address,
+          ecoXStaking.address,
+          BigNumber.from(await time.latest()).sub(
+            (await cg.CYCLE_LENGTH()).mul(2)
+          ),
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_CYCLE_START)
     })
   })
   describe('permissions', () => {

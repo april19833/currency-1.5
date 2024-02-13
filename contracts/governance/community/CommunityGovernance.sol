@@ -107,6 +107,9 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////
 
+    /** thrown when constructor param CycleStart is out of bounds */
+    error BadCycleStart();
+
     /** thrown when non-pauser tries to call pause without permission */
     error OnlyPauser();
 
@@ -248,6 +251,13 @@ contract CommunityGovernance is VotingPower, Pausable, TimeUtils {
         uint256 _cycleStart,
         address _pauser
     ) VotingPower(policy, _eco, _ecox, _ecoXStaking) {
+        uint256 time = getTime();
+        if (
+            _cycleStart < time - CYCLE_LENGTH ||
+            _cycleStart > time + 2 * CYCLE_LENGTH
+        ) {
+            revert BadCycleStart();
+        }
         pauser = _pauser;
         cycleCount = 1000;
         currentStageEnd = _cycleStart;
