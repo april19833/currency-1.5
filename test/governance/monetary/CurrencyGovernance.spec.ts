@@ -2061,6 +2061,38 @@ describe('CurrencyGovernance', () => {
           CurrencyGovernance.reveal(dave.address, salt, sneakyVotes)
         ).to.be.revertedWith(ERRORS.CurrencyGovernance.FINAL_SCORES_INVALID)
       })
+
+      it('cheating with out of bound scores that would overflow the duplicateCompare var', async () => {
+        // here we cheat by setting the scores to be out of bounds
+        // without a check, this might work because it's overflowing
+        const ballot = [charlieProposalId, defaultProposalId, bobProposalId]
+        const votes = await getFormattedBallot(ballot)
+        votes[2].score = 261
+        // same deal but for the default proposal
+        const defaultVotes = votes.slice()
+        defaultVotes[0].score = 259
+        const commitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: bob.address,
+          votes,
+        })
+        const defaultCommitHash = hash({
+          salt,
+          cycle: initialCycle,
+          submitterAddress: charlie.address,
+          votes: defaultVotes,
+        })
+        await CurrencyGovernance.connect(bob).commit(commitHash)
+        await CurrencyGovernance.connect(charlie).commit(defaultCommitHash)
+        await time.increase(COMMIT_STAGE_LENGTH)
+        await expect(
+          CurrencyGovernance.reveal(bob.address, salt, votes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+        await expect(
+          CurrencyGovernance.reveal(charlie.address, salt, defaultVotes)
+        ).to.be.revertedWith(ERRORS.CurrencyGovernance.BAD_SCORE)
+      })
     })
   })
 
@@ -2192,8 +2224,30 @@ describe('CurrencyGovernance', () => {
           await CurrencyGovernance.connect(policyImpersonator).setQuorum(
             participation.add(1)
           )
-          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
-            ERRORS.CurrencyGovernance.QUORUM_NOT_MET
+          await expect(
+            CurrencyGovernance.enact()
+          ).to.be.revertedWith(ERRORS.CurrencyGovernance.QUORUM_NOT_MET)
+        })
+        it('does still enact if participation is less than quorum but equal to numTrustees', async () => {
+          // this is solving the case where quorum is made more than the number of trustees
+          await time.increase(REVEAL_STAGE_LENGTH)
+          // participation is 1
+          const participation = await CurrencyGovernance.participation()
+          await CurrencyGovernance.connect(policyImpersonator).setQuorum(
+            participation.add(1)
+          )
+
+          // remove all trustees except bob
+          await TrustedNodes.connect(policyImpersonator).distrust(
+            charlie.address
+          )
+          await TrustedNodes.connect(policyImpersonator).distrust(dave.address)
+          await TrustedNodes.connect(policyImpersonator).distrust(niko.address)
+          await TrustedNodes.connect(policyImpersonator).distrust(mila.address)
+
+          await expect(CurrencyGovernance.enact()).to.emit(
+            CurrencyGovernance,
+            'VoteResult'
           )
         })
 

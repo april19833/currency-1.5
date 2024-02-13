@@ -65,6 +65,7 @@ export const ERRORS = {
     LATE_DEPOSIT: 'LateDeposit',
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
+    ZERO_WITHDRAW: 'ZeroWithdraw',
   },
   ERC20ROLES: {
     ONLY_MINTERS: 'OnlyMinters',
@@ -112,6 +113,7 @@ export const ERRORS = {
     OLD_PROPOSAL_SUPPORT: 'OldProposalSupport',
     ARRAY_LENGTH_MISMATCH: 'ArrayLengthMismatch',
     BAD_VOTING_POWER: 'BadVotingPower',
+    BAD_SUPPORT_THRESHOLD_PERCENT: 'BadSupportThresholdPercent',
     NO_SUPPORT_TO_REVOKE: 'NoSupportToRevoke',
     BAD_VOTE_TYPE: 'BadVoteType',
     NO_REFUND_AVAILABLE: 'NoRefundAvailable',

@@ -27,6 +27,7 @@ import {
   FlashBurner__factory,
   SampleProposal__factory,
 } from '../../../typechain-types/factories/contracts/test'
+import { BigNumber } from 'ethers'
 
 use(smock.matchers)
 
@@ -169,6 +170,36 @@ describe('Community Governance', () => {
         )
       ).to.be.revertedWith(ERRORS.Policed.NON_ZERO_CONTRACT_ADDRESS)
     })
+    it('bricks when cycleStart is too high or too low', async () => {
+      const cgmocker = await smock.mock<CommunityGovernance__factory>(
+        'contracts/governance/community/CommunityGovernance.sol:CommunityGovernance'
+      )
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ecox.address,
+          ecoXStaking.address,
+          BigNumber.from(await time.latest()).add(
+            (await cg.CYCLE_LENGTH()).mul(3)
+          ),
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_CYCLE_START)
+
+      await expect(
+        cgmocker.deploy(
+          policy.address,
+          eco.address,
+          ecox.address,
+          ecoXStaking.address,
+          BigNumber.from(await time.latest()).sub(
+            (await cg.CYCLE_LENGTH()).mul(2)
+          ),
+          alice.address
+        )
+      ).to.be.revertedWith(ERRORS.COMMUNITYGOVERNANCE.BAD_CYCLE_START)
+    })
   })
   describe('permissions', () => {
     it('only lets Policy set pauser', async () => {
@@ -195,6 +226,15 @@ describe('Community Governance', () => {
       await cg.connect(alice).pause()
       expect(await cg.paused()).to.be.true
     })
+    it('only lets policy set supportThresholdPercent', async () => {
+      await expect(
+        cg.connect(alice).setSupportThresholdPercent(16)
+      ).to.be.revertedWith(ERRORS.Policed.POLICY_ONLY)
+
+      await expect(
+        cg.connect(policyImpersonator).setSupportThresholdPercent(16)
+      ).to.not.be.reverted
+    })
     it('only lets policy sweep', async () => {
       await eco.connect(alice).transfer(cg.address, 20000)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
@@ -213,6 +253,26 @@ describe('Community Governance', () => {
       expect(await eco.balanceOf(alice.address)).to.eq(1234)
       expect(await eco.balanceOf(cg.address)).to.eq(20000 - 1234)
       expect(await cg.pot()).to.eq(0)
+    })
+  })
+  describe('setSupportThresholdPercent', async () => {
+    it('reverts if percent is new value is greater than 100', async () => {
+      await expect(
+        cg.connect(policyImpersonator).setSupportThresholdPercent(101)
+      ).to.be.revertedWith(
+        ERRORS.COMMUNITYGOVERNANCE.BAD_SUPPORT_THRESHOLD_PERCENT
+      )
+    })
+    it('succeeds for values less than 100', async () => {
+      expect(await cg.supportThresholdPercent()).to.eq(15)
+
+      await expect(
+        cg.connect(policyImpersonator).setSupportThresholdPercent(20)
+      )
+        .to.emit(cg, 'SupportThresholdPercentChanged')
+        .withArgs(20)
+
+      expect(await cg.supportThresholdPercent()).to.eq(20)
     })
   })
 
