@@ -66,6 +66,7 @@ export const ERRORS = {
     LATE_DEPOSIT: 'LateDeposit',
     BAD_RATE: 'BadRate',
     BAD_DURATION: 'BadDuration',
+    ZERO_WITHDRAW: 'ZeroWithdraw',
   },
   ERC20ROLES: {
     ONLY_MINTERS: 'OnlyMinters',

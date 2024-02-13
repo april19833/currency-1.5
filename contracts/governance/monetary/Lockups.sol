@@ -85,6 +85,11 @@ contract Lockups is Lever, TimeUtils {
      */
     error LateDeposit(uint256 lockupId, address depositor);
 
+    /** attempted withdrawal from a lockup where withdrawer balance is 0
+     * @param lockupId ID of lockup from which withdrawal was attempted
+     */
+    error ZeroWithdraw(uint256 lockupId);
+
     /** lockup created
      * @param lockupId ID of lockup
      * @param duration duration of lockup
@@ -246,6 +251,10 @@ contract Lockups is Lever, TimeUtils {
         uint256 amount = gonsAmount / _currentInflationMultiplier;
         uint256 interest = lockup.interest[_recipient];
         address delegate = lockup.delegates[_recipient];
+
+        if (gonsAmount == 0) {
+            revert ZeroWithdraw(_lockupId);
+        }
 
         if (delegate != address(0)) {
             eco.undelegateAmountFromAddress(delegate, gonsAmount);

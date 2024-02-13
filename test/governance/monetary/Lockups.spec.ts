@@ -524,33 +524,6 @@ describe('Lockups', () => {
         ethers.constants.AddressZero
       )
     })
-    it('doesnt behave unexpectedly if they call withdraw twice', async () => {
-      expect(await eco.balanceOf(alice.address)).to.eq(0)
-      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount.mul(3))
-      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
-      expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
-      expect(await lockups.getYield(0, alice.address)).to.eq(interest)
-
-      await expect(lockups.connect(alice).withdraw(0))
-        .to.emit(lockups, 'LockupWithdrawal')
-        .withArgs(
-          0,
-          alice.address,
-          depositAmount.add(interest).mul(inflationMultiplier)
-        )
-
-      await expect(lockups.connect(alice).withdraw(0))
-        .to.emit(lockups, 'LockupWithdrawal')
-        .withArgs(0, alice.address, 0)
-
-      expect(await eco.balanceOf(alice.address)).to.eq(
-        depositAmount.add(interest)
-      )
-      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount.mul(2))
-      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(0)
-      expect(await lockups.getBalance(0, alice.address)).to.eq(0)
-      expect(await lockups.getYield(0, alice.address)).to.eq(0)
-    })
     it('withdrawsFor properly', async () => {
       expect(await eco.balanceOf(alice.address)).to.eq(0)
       expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount.mul(3))
@@ -704,7 +677,6 @@ describe('Lockups', () => {
         depositAmount.add(interest)
       )
     })
-
     it('lets two people withdraw their own stuff as expected', async () => {
       expect(await eco.balanceOf(alice.address)).to.eq(0)
       expect(await eco.balanceOf(bob.address)).to.eq(0)
@@ -749,6 +721,43 @@ describe('Lockups', () => {
       expect(await lockups.getGonsBalance(0, bob.address)).to.eq(0)
       expect(await lockups.getBalance(0, bob.address)).to.eq(0)
       expect(await lockups.getYield(0, bob.address)).to.eq(0)
+    })
+    it('doesnt allow withdraw of 0 from existing lockup', async () => {
+      await expect(lockups.connect(dave).withdraw(0)).to.be.revertedWith(
+        ERRORS.Lockups.ZERO_WITHDRAW
+      )
+    })
+    it('doesnt allow withdrawal from a nonexistent lockup', async () => {
+      await expect(lockups.connect(alice).withdraw(1)).to.be.revertedWith(
+        ERRORS.Lockups.ZERO_WITHDRAW
+      )
+    })
+    it('doesnt behave unexpectedly if they call withdraw twice', async () => {
+      expect(await eco.balanceOf(alice.address)).to.eq(0)
+      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount.mul(3))
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(gons)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(depositAmount)
+      expect(await lockups.getYield(0, alice.address)).to.eq(interest)
+
+      await expect(lockups.connect(alice).withdraw(0))
+        .to.emit(lockups, 'LockupWithdrawal')
+        .withArgs(
+          0,
+          alice.address,
+          depositAmount.add(interest).mul(inflationMultiplier)
+        )
+
+      await expect(lockups.connect(alice).withdraw(1)).to.be.revertedWith(
+        ERRORS.Lockups.ZERO_WITHDRAW
+      )
+
+      expect(await eco.balanceOf(alice.address)).to.eq(
+        depositAmount.add(interest)
+      )
+      expect(await eco.balanceOf(lockups.address)).to.eq(depositAmount.mul(2))
+      expect(await lockups.getGonsBalance(0, alice.address)).to.eq(0)
+      expect(await lockups.getBalance(0, alice.address)).to.eq(0)
+      expect(await lockups.getYield(0, alice.address)).to.eq(0)
     })
   })
 
