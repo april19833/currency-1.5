@@ -2206,6 +2206,22 @@ describe('CurrencyGovernance', () => {
             ERRORS.CurrencyGovernance.OUTDATED_ENACT
           )
         })
+
+        it('cannot enact late', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH + PROPOSE_STAGE_LENGTH)
+
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.WRONG_STAGE
+          )
+        })
+
+        it('cannot enact the next cycle either', async () => {
+          await time.increase(REVEAL_STAGE_LENGTH + CYCLE_LENGTH)
+
+          await expect(CurrencyGovernance.enact()).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.OUTDATED_ENACT
+          )
+        })
       })
     })
 
