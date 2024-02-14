@@ -84,7 +84,7 @@ contract MonetaryPolicyAdapter is Policed {
     ) external virtual onlyCurrencyGovernance {
         // the array lengths have all been vetted already by the proposal-making process
         // upstream is just trusted
-        for (uint256 i = 0; i < targets.length; i++) {
+        for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returnData) = targets[i].call(
                 abi.encodePacked(signatures[i], calldatas[i])
             );

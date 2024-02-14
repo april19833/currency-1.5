@@ -46,8 +46,8 @@ contract DummyLever {
     }
 
     function veryExpensiveFunction() external {
-        for (uint256 i; i < 750; i++) {
-            executeMarker++;
+        for (uint256 i; i < 750; ++i) {
+            ++executeMarker;
         }
     }
 

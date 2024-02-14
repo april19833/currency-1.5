@@ -18,11 +18,6 @@ contract ECOx is TotalSupplySnapshots {
      */
     mapping(address => bool) public snapshotters;
 
-    /**
-     * @dev bits of precision used in the exponentiation approximation
-     */
-    // uint8 public constant PRECISION_BITS = 100;
-
     //////////////////////////////////////////////
     /////////////////// ERRORS ///////////////////
     //////////////////////////////////////////////

@@ -180,9 +180,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
     /** error for when a proposal is supported that hasn't actually been proposed */
     error NoSuchProposal();
 
-    /** error for when a proposal is supported that has already been supported by the msg.sender */
-    error DuplicateSupport();
-
     /** error for when a reveal is submitted with no votes */
     error CannotVoteEmpty();
 
@@ -590,7 +587,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * this function allows you to increase the support weight to an already submitted proposal
      * the submitter of a proposal default supports it
      * support for a proposal is close to equivalent of submitting a duplicate proposal to pad the ranking
-     * need to link to borda count analysis by christian here
      * @param proposalId the lookup ID for the proposal that's being supported
      */
     function supportProposal(
@@ -612,10 +608,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
         if (p.support == 0 && proposalId != bytes32(cycle)) {
             revert NoSuchProposal();
         }
-        // // actually should never trigger since SupportAlreadyGiven would throw first
-        // if (p.supporters[msg.sender]) {
-        //     revert DuplicateSupport();
-        // }
 
         ++p.support;
         p.supporters[msg.sender] = true;
@@ -759,7 +751,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
             }
 
             // make sure to skip the first element in the following loop as it has already been handled
-            i++;
+            ++i;
         }
 
         for (; i < numVotes; ++i) {
