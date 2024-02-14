@@ -32,9 +32,3 @@ function inVotePhase() public view returns (bool)
 function inRevealPhase() public view returns (bool)
 ```
 
-### cycleCompleted
-
-```solidity
-function cycleCompleted(uint256 _cycle) public view returns (bool)
-```
-

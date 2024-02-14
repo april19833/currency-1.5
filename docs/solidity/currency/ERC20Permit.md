@@ -15,9 +15,9 @@ _Available since v3.4._
 
 ### constructor
 
-Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
+Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"2"`.
 
-It's a good idea to use the same `name` that is defined as the ERC20 token name.
+version number 1 was used already in a previous implementation
 
 ```solidity
 constructor(string name) internal

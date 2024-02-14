@@ -122,6 +122,19 @@ error LateDeposit(uint256 lockupId, address depositor)
 | lockupId | uint256 | ID of lockup to which deposit was attempted |
 | depositor | address | address that tried to deposit |
 
+### ZeroWithdraw
+
+attempted withdrawal from a lockup where withdrawer balance is 0
+
+```solidity
+error ZeroWithdraw(uint256 lockupId)
+```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| lockupId | uint256 | ID of lockup from which withdrawal was attempted |
+
 ### LockupCreation
 
 lockup created

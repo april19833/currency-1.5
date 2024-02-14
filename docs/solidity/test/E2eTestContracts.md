@@ -326,81 +326,6 @@ function url() public pure returns (string)
 function enacted(address) public
 ```
 
-## UpdateECOxExchangeProposal
-
-**updateECOxExchangeProposal
-
-A proposal used for changing the ECOxExchange var**
-
-### token
-
-```solidity
-contract ECOx token
-```
-
-### newECOxExchange
-
-```solidity
-address newECOxExchange
-```
-
-### constructor
-
-```solidity
-constructor(contract ECOx _token, address _newECOxExchange) public
-```
-
-### name
-
-The name of the proposal.
-
-This should be relatively unique and descriptive.
-
-```solidity
-function name() public pure returns (string)
-```
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | string |  |
-
-### description
-
-A longer description of what this proposal achieves.
-
-```solidity
-function description() public pure returns (string)
-```
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | string |  |
-
-### url
-
-A URL where voters can go to see the case in favour of this proposal,
-and learn more about it.
-
-```solidity
-function url() public pure returns (string)
-```
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | string |  |
-
-### enacted
-
-```solidity
-function enacted(address) public
-```
-
 ## UpdateTokenPauserProposal
 
 **token new pauser proposal
@@ -498,6 +423,81 @@ address newPauser
 
 ```solidity
 constructor(contract CommunityGovernance _governance, address _newPauser) public
+```
+
+### name
+
+The name of the proposal.
+
+This should be relatively unique and descriptive.
+
+```solidity
+function name() public pure returns (string)
+```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
+
+### description
+
+A longer description of what this proposal achieves.
+
+```solidity
+function description() public pure returns (string)
+```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
+
+### url
+
+A URL where voters can go to see the case in favour of this proposal,
+and learn more about it.
+
+```solidity
+function url() public pure returns (string)
+```
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | string |  |
+
+### enacted
+
+```solidity
+function enacted(address) public
+```
+
+## UpdateSupportThresholdPercent
+
+**governance new supportThresholdPercent proposal
+
+A proposal used for changing the support threshold percent on the community governance contract**
+
+### governance
+
+```solidity
+contract CommunityGovernance governance
+```
+
+### newSupportThresholdPercent
+
+```solidity
+uint256 newSupportThresholdPercent
+```
+
+### constructor
+
+```solidity
+constructor(contract CommunityGovernance _governance, uint256 _newSupportThresholdPercent) public
 ```
 
 ### name
@@ -1159,7 +1159,7 @@ function enacted(address) public
 
 ## UpdateTrustedNodesGovernanceProposal
 
-**truested nodes new governance proposal
+**trusted nodes new governance proposal
 
 A proposal used to change the governance contract for the trusted nodes contract**
 

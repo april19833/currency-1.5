@@ -6,14 +6,6 @@ Copyright (c) 2023 Eco Association
 
 **An ERC20 token interface for ECOx**
 
-### ecoXExchange
-
-address of ECOxExchange contract
-
-```solidity
-address ecoXExchange
-```
-
 ### snapshotters
 
 _Mapping storing contracts able to rebase the token_
@@ -38,20 +30,6 @@ error for when an address tries to snapshot without permission
 ```solidity
 error OnlySnapshotters()
 ```
-
-### UpdatedECOxExchange
-
-emits when the ECOxExchange address is changed
-
-```solidity
-event UpdatedECOxExchange(address _old, address _new)
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _old | address | old holder of role |
-| _new | address | new holder of role |
 
 ### UpdatedSnapshotters
 
@@ -106,19 +84,6 @@ function initialize(address _self) public virtual
 ```solidity
 function snapshot() public
 ```
-
-### updateECOxExchange
-
-change the ECOxExchange address
-
-```solidity
-function updateECOxExchange(address _newRoleHolder) public
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _newRoleHolder | address | the new ECOxExchange address |
 
 ### updateSnapshotters
 
