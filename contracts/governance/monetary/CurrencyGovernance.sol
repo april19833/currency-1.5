@@ -660,11 +660,6 @@ contract CurrencyGovernance is Policed, TimeUtils {
      * the structure of the commit is keccak256(abi.encode(salt, cycleIndex, msg.sender, votes)) where votes is an array of Vote structs
      */
     function commit(bytes32 _commitment) external onlyTrusted duringVotePhase {
-        // if a vote gets committed, the past cycle's leader is too stale and should be removed if present
-        delete leader;
-        // participation should similarly be reset
-        delete participation;
-
         commitments[msg.sender] = _commitment;
         emit VoteCommit(msg.sender, getCurrentCycle());
     }
@@ -711,15 +706,27 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // an easy way to prevent double counting votes
         delete commitments[_trustee];
 
+        // use memory vars to store and track the changes of the leader
+        bytes32 priorLeader = leader;
+        if (priorLeader != 0) {
+            // Check if this is a leader from a past cycle that was never enacted
+            if (
+                priorLeader != bytes32(_cycle) &&
+                proposals[priorLeader].cycle != _cycle
+            ) {
+                delete participation;
+                delete leader;
+                priorLeader = 0;
+            }
+        }
+
+        bytes32 leaderTracker = priorLeader;
+        uint256 leaderRankTracker = 0;
+
         participation += 1;
         if (participation == quorum) {
             emit QuorumReached();
         }
-
-        // use memory vars to store and track the changes of the leader
-        bytes32 priorLeader = leader;
-        bytes32 leaderTracker = priorLeader;
-        uint256 leaderRankTracker = 0;
 
         /**
          * this variable is a bitmap to check that the scores in the ballot are correct
@@ -832,6 +839,8 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         // this ensures that this function can only be called maximum once per winning MP
         delete leader;
+        // clear this variable to reset for next cycle
+        delete participation;
 
         // the default proposal doesn't do anything
         if (_leader == bytes32(_cycle)) {
