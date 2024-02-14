@@ -189,14 +189,6 @@ is deleted on enact to ensure it can only be enacted once
 bytes32 leader
 ```
 
-### NonZeroTrustedNodesAddr
-
-setting the trusted nodes address to the zero address stops governance
-
-```solidity
-error NonZeroTrustedNodesAddr()
-```
-
 ### NonZeroEnacterAddr
 
 setting the enacter address to the zero address stops governance
@@ -208,6 +200,7 @@ error NonZeroEnacterAddr()
 ### BadQuorum
 
 setting the quorum greater than the number of trustees stops governance
+inherently prevents the trustedNodes address from being set to the zero address
 something to keep in mind for the case in which trustees are removed via community governance
 
 ```solidity
@@ -297,6 +290,14 @@ error for when a trustee is not supporting a policy and tries unsupport
 error SupportNotGiven()
 ```
 
+### ProposalNotCurrent
+
+error for when a trustee tries unsupporting a proposal from a past cycle
+
+```solidity
+error ProposalNotCurrent()
+```
+
 ### DuplicateProposal
 
 error for when a proposal is submitted that's a total duplicate of an existing one
@@ -311,14 +312,6 @@ error for when a proposal is supported that hasn't actually been proposed
 
 ```solidity
 error NoSuchProposal()
-```
-
-### DuplicateSupport
-
-error for when a proposal is supported that has already been supported by the msg.sender
-
-```solidity
-error DuplicateSupport()
 ```
 
 ### CannotVoteEmpty
@@ -619,14 +612,6 @@ for functions related to revealing votes
 modifier duringRevealPhase()
 ```
 
-### cycleComplete
-
-for finalizing the outcome of a vote
-
-```solidity
-modifier cycleComplete(uint256 cycle)
-```
-
 ### constructor
 
 constructor
@@ -655,7 +640,7 @@ function setTrustedNodes(contract TrustedNodes _trustedNodes) external
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| _trustedNodes | contract TrustedNodes | the value to set the new trustedNodes address to, cannot be zero |
+| _trustedNodes | contract TrustedNodes | the value to set the new trustedNodes address to, must have enough trustees to be able to hit quorum |
 
 ### _setTrustedNodes
 
@@ -794,7 +779,6 @@ add your support to a monetary policy
 this function allows you to increase the support weight to an already submitted proposal
 the submitter of a proposal default supports it
 support for a proposal is close to equivalent of submitting a duplicate proposal to pad the ranking
-need to link to borda count analysis by christian here
 
 ```solidity
 function supportProposal(bytes32 proposalId) external
@@ -870,11 +854,6 @@ function reveal(address _trustee, bytes32 _salt, struct CurrencyGovernance.Vote[
 send the results to the adapter for enaction
 
 ```solidity
-function enact(uint256 _cycle) external
+function enact() external
 ```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _cycle | uint256 | cycle index must match the cycle just completed as denoted on the proposal marked by the leader variable |
 

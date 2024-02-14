@@ -49,7 +49,7 @@ constructor(contract Policy _policy, contract ECO _ecoAddr, contract ECOx _ecoXA
 ### totalVotingPower
 
 Calculates the total Voting Power by getting the total supply of ECO
-and adding total ECOX (multiplied by 10) and subtracting the excluded Voting Power
+and adding total ECOX (multiplied by 10)
 
 ```solidity
 function totalVotingPower() public view returns (uint256 total)
@@ -78,5 +78,5 @@ function votingPower(address _who) public view returns (uint256 total)
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| total | uint256 | the total vorting power for an address at the Snapshot Block |
+| total | uint256 | the total voting power for an address at the Snapshot Block |
 

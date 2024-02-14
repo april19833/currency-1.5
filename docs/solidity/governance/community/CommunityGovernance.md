@@ -161,6 +161,14 @@ the percent of total VP that must have voted to enact a proposal in order to byp
 uint256 voteThresholdPercent
 ```
 
+### thresholdPercentDivisor
+
+the divisor for the percent numbers above
+
+```solidity
+uint256 thresholdPercentDivisor
+```
+
 ### selectedProposal
 
 the proposal being voted on this cycle
@@ -199,6 +207,14 @@ redeemable tokens from fees
 
 ```solidity
 uint256 pot
+```
+
+### BadCycleStart
+
+thrown when constructor param CycleStart is out of bounds
+
+```solidity
+error BadCycleStart()
 ```
 
 ### OnlyPauser
@@ -247,6 +263,14 @@ thrown when the voting power of a support or vote action is invalid
 
 ```solidity
 error BadVotingPower()
+```
+
+### BadSupportThresholdPercent
+
+thrown when setSupportThresholdPercent is called with a bad value
+
+```solidity
+error BadSupportThresholdPercent()
 ```
 
 ### NoSupportToRevoke
@@ -303,6 +327,19 @@ event PauserAssignment(address pauser)
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | pauser | address | The new pauser |
+
+### SupportThresholdPercentChanged
+
+event indicating supportThresholdPercent was updated
+
+```solidity
+event SupportThresholdPercentChanged(uint256 supportThresholdPercent)
+```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| supportThresholdPercent | uint256 | The new supportThresholdPercent |
 
 ### StageUpdated
 
@@ -423,6 +460,12 @@ event Sweep(address recipient)
 modifier onlyPauser()
 ```
 
+### updatesStage
+
+```solidity
+modifier updatesStage()
+```
+
 ### constructor
 
 contract constructor
@@ -453,6 +496,19 @@ function setPauser(address _pauser) public
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _pauser | address | the new pauser |
+
+### setSupportThresholdPercent
+
+sets supportThresholdPercent
+
+```solidity
+function setSupportThresholdPercent(uint256 _supportThresholdPercent) public
+```
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _supportThresholdPercent | uint256 | new supportThresholdPercent |
 
 ### pause
 

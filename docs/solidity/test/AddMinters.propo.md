@@ -2,16 +2,22 @@
 
 Copyright (c) 2023 Eco Association
 
-## AccessRootPolicyFunds
+## AddMinters
 
-**AccessRootPolicyFunds
-A proposal to send some root policy funds to another
-address (multisig, lockup, etc)**
+**AddMinters
+A proposal to add some minters
+strictly a test, please dont actually do this**
 
-### recipient
+### newMinters
 
 ```solidity
-address recipient
+address[] newMinters
+```
+
+### mintersLength
+
+```solidity
+uint256 mintersLength
 ```
 
 ### eco
@@ -24,18 +30,6 @@ contract ECO eco
 
 ```solidity
 contract ECOx ecox
-```
-
-### ecoAmount
-
-```solidity
-uint256 ecoAmount
-```
-
-### ecoXAmount
-
-```solidity
-uint256 ecoXAmount
 ```
 
 ### name
@@ -83,12 +77,12 @@ string url
 ### constructor
 
 ```solidity
-constructor(address _recipient, contract ECO _eco, contract ECOx _ecox, uint256 _ecoAmount, uint256 _ecoXAmount, string _name, string _description, string _url) public
+constructor(address[] _newMinters, contract ECO _eco, contract ECOx _ecox, string _name, string _description, string _url) public
 ```
 
 ### enacted
 
 ```solidity
-function enacted(address) public
+function enacted(address self) public
 ```
 
