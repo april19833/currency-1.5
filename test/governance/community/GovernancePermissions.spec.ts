@@ -312,7 +312,7 @@ describe('Policy E2E Tests', () => {
       contracts.base.policy.address,
       contracts.monetary.monetaryGovernance.address,
       contracts.base.ecox.address,
-      (await time.latest()),
+      await time.latest(),
       1000,
       1000,
       [bob.address, charlie.address],
