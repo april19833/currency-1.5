@@ -603,7 +603,7 @@ contract CurrencyGovernance is Policed, TimeUtils {
         // can support the default proposal even though is doesn't get initialized
         // the support parameter is bumped by 1 for the default proposal when its vote is counted
         // cannot support future cycle default proposals
-        if(proposalId != bytes32(cycle)) {
+        if (proposalId != bytes32(cycle)) {
             if (p.support == 0) {
                 revert NoSuchProposal();
             }
