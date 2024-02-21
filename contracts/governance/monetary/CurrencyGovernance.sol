@@ -598,16 +598,21 @@ contract CurrencyGovernance is Policed, TimeUtils {
 
         uint256 cycle = getCurrentCycle();
 
-        trusteeSupports[msg.sender] = cycle;
-
         MonetaryPolicy storage p = proposals[proposalId];
 
         // can support the default proposal even though is doesn't get initialized
         // the support parameter is bumped by 1 for the default proposal when its vote is counted
         // cannot support future cycle default proposals
-        if (p.support == 0 && proposalId != bytes32(cycle)) {
-            revert NoSuchProposal();
+        if(proposalId != bytes32(cycle)) {
+            if (p.support == 0) {
+                revert NoSuchProposal();
+            }
+            if (p.cycle != cycle) {
+                revert ProposalNotCurrent();
+            }
         }
+
+        trusteeSupports[msg.sender] = cycle;
 
         ++p.support;
         p.supporters[msg.sender] = true;
