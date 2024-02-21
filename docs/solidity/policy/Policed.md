@@ -45,20 +45,6 @@ For if a non-policy address tries to access policy role gated functionality
 error PolicyOnlyFunction()
 ```
 
-### NewPolicy
-
-emits when the policy contract is changed
-
-```solidity
-event NewPolicy(contract Policy newPolicy, contract Policy oldPolicy)
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| newPolicy | contract Policy | denotes the new policy contract address |
-| oldPolicy | contract Policy | denotes the old policy contract address |
-
 ### onlyPolicy
 
 Restrict method access to the root policy instance only.
