@@ -67,17 +67,6 @@ contract Lockups is Lever, TimeUtils {
     // duration is out of bounds
     error BadDuration();
 
-    /** withdrawFor called before lockup end
-     * @param lockupId ID of lockup from which withdrawal was attempted
-     * @param withdrawer address that called withdrawFor
-     * @param recipient address on whose behalf withdrawFor was called
-     */
-    error EarlyWithdrawFor(
-        uint256 lockupId,
-        address withdrawer,
-        address recipient
-    );
-
     /** attempted deposit after deposit window has closed
      * @param lockupId ID of lockup to which deposit was attempted
      * @param depositor address that tried to deposit
@@ -168,42 +157,23 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId ID of the lockup being deposited to
      * @param _amount the amount being deposited
      */
-    function deposit(uint256 _lockupId, uint256 _amount) external {
-        _deposit(_lockupId, msg.sender, _amount);
-    }
-
-    /** User deposits on someone else's behalf. Requires that the beneficiary has approved this contract
-     * to transfer _amount of their eco.
-     * @param _lockupId ID of the lockup being deposited to
-     * @param _beneficiary the person whose eco is being deposited
-     * @param _amount the amount being deposited
-     */
-    function depositFor(
+    function deposit(
         uint256 _lockupId,
-        address _beneficiary,
         uint256 _amount
     ) external {
-        _deposit(_lockupId, _beneficiary, _amount);
-    }
-
-    function _deposit(
-        uint256 _lockupId,
-        address _beneficiary,
-        uint256 _amount
-    ) internal {
         Lockup storage lockup = lockups[_lockupId];
         if (getTime() >= lockup.depositWindowEnd) {
-            revert LateDeposit(_lockupId, _beneficiary);
+            revert LateDeposit(_lockupId, msg.sender);
         }
 
-        eco.transferFrom(_beneficiary, address(this), _amount);
+        eco.transferFrom(msg.sender, address(this), _amount);
 
         uint256 _gonsAmount = _amount * eco.inflationMultiplier();
 
-        if (eco.voter(_beneficiary)) {
-            address _primaryDelegate = eco.getPrimaryDelegate(_beneficiary);
-            address depositDelegate = lockup.delegates[_beneficiary];
-            uint256 depositGons = lockup.gonsBalances[_beneficiary];
+        if (eco.voter(msg.sender)) {
+            address _primaryDelegate = eco.getPrimaryDelegate(msg.sender);
+            address depositDelegate = lockup.delegates[msg.sender];
+            uint256 depositGons = lockup.gonsBalances[msg.sender];
 
             if (depositGons > 0 && _primaryDelegate != depositDelegate) {
                 if (depositDelegate != address(0)) {
@@ -218,13 +188,13 @@ contract Lockups is Lever, TimeUtils {
                 eco.delegateAmount(_primaryDelegate, _gonsAmount);
             }
 
-            lockup.delegates[_beneficiary] = _primaryDelegate;
+            lockup.delegates[msg.sender] = _primaryDelegate;
         }
 
-        lockup.interest[_beneficiary] += (_amount * lockup.rate) / BASE;
-        lockup.gonsBalances[_beneficiary] += _gonsAmount;
+        lockup.interest[msg.sender] += (_amount * lockup.rate) / BASE;
+        lockup.gonsBalances[msg.sender] += _gonsAmount;
 
-        emit LockupDeposit(_lockupId, _beneficiary, _gonsAmount);
+        emit LockupDeposit(_lockupId, msg.sender, _gonsAmount);
     }
 
     /** User withdraws their own funds. Withdrawing before the lockup has ended will result in a
@@ -232,24 +202,12 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId the ID of the lockup being withdrawn from
      */
     function withdraw(uint256 _lockupId) external {
-        _withdraw(_lockupId, msg.sender);
-    }
-
-    /** User withdraws recipient's funds to recipient. Reverts if withdrawn prior to lockup ending
-     * @param _lockupId the ID of the lockup being withdrawn from
-     * @param _recipient address to receive eco
-     */
-    function withdrawFor(uint256 _lockupId, address _recipient) external {
-        _withdraw(_lockupId, _recipient);
-    }
-
-    function _withdraw(uint256 _lockupId, address _recipient) internal {
         Lockup storage lockup = lockups[_lockupId];
-        uint256 gonsAmount = lockup.gonsBalances[_recipient];
+        uint256 gonsAmount = lockup.gonsBalances[msg.sender];
         uint256 _currentInflationMultiplier = eco.inflationMultiplier();
         uint256 amount = gonsAmount / _currentInflationMultiplier;
-        uint256 interest = lockup.interest[_recipient];
-        address delegate = lockup.delegates[_recipient];
+        uint256 interest = lockup.interest[msg.sender];
+        address delegate = lockup.delegates[msg.sender];
 
         if (gonsAmount == 0) {
             revert ZeroWithdraw(_lockupId);
@@ -260,32 +218,28 @@ contract Lockups is Lever, TimeUtils {
         }
 
         if (getTime() < lockup.end) {
-            if (msg.sender != _recipient) {
-                revert EarlyWithdrawFor(_lockupId, msg.sender, _recipient);
+            if (interest > amount) {
+                penalties += amount * _currentInflationMultiplier;
+                amount = 0;
             } else {
-                if (interest > amount) {
-                    penalties += amount * _currentInflationMultiplier;
-                    amount = 0;
-                } else {
-                    unchecked {
-                        amount -= interest;
-                    }
-                    penalties += interest * _currentInflationMultiplier;
+                unchecked {
+                    amount -= interest;
                 }
+                penalties += interest * _currentInflationMultiplier;
             }
         } else {
             eco.mint(address(this), interest);
             amount += interest;
         }
 
-        lockup.gonsBalances[_recipient] = 0;
-        lockup.interest[_recipient] = 0;
-        lockup.delegates[_recipient] = address(0);
-        eco.transfer(_recipient, amount);
+        lockup.gonsBalances[msg.sender] = 0;
+        lockup.interest[msg.sender] = 0;
+        lockup.delegates[msg.sender] = address(0);
+        eco.transfer(msg.sender, amount);
 
         emit LockupWithdrawal(
             _lockupId,
-            _recipient,
+            msg.sender,
             amount * _currentInflationMultiplier
         );
     }

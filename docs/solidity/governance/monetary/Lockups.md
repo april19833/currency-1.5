@@ -93,21 +93,6 @@ error BadRate()
 error BadDuration()
 ```
 
-### EarlyWithdrawFor
-
-withdrawFor called before lockup end
-
-```solidity
-error EarlyWithdrawFor(uint256 lockupId, address withdrawer, address recipient)
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lockupId | uint256 | ID of lockup from which withdrawal was attempted |
-| withdrawer | address | address that called withdrawFor |
-| recipient | address | address on whose behalf withdrawFor was called |
-
 ### LateDeposit
 
 attempted deposit after deposit window has closed
@@ -233,28 +218,6 @@ function deposit(uint256 _lockupId, uint256 _amount) external
 | _lockupId | uint256 | ID of the lockup being deposited to |
 | _amount | uint256 | the amount being deposited |
 
-### depositFor
-
-User deposits on someone else's behalf. Requires that the beneficiary has approved this contract
-to transfer _amount of their eco.
-
-```solidity
-function depositFor(uint256 _lockupId, address _beneficiary, uint256 _amount) external
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _lockupId | uint256 | ID of the lockup being deposited to |
-| _beneficiary | address | the person whose eco is being deposited |
-| _amount | uint256 | the amount being deposited |
-
-### _deposit
-
-```solidity
-function _deposit(uint256 _lockupId, address _beneficiary, uint256 _amount) internal
-```
-
 ### withdraw
 
 User withdraws their own funds. Withdrawing before the lockup has ended will result in a
@@ -268,26 +231,6 @@ function withdraw(uint256 _lockupId) external
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | _lockupId | uint256 | the ID of the lockup being withdrawn from |
-
-### withdrawFor
-
-User withdraws recipient's funds to recipient. Reverts if withdrawn prior to lockup ending
-
-```solidity
-function withdrawFor(uint256 _lockupId, address _recipient) external
-```
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _lockupId | uint256 | the ID of the lockup being withdrawn from |
-| _recipient | address | address to receive eco |
-
-### _withdraw
-
-```solidity
-function _withdraw(uint256 _lockupId, address _recipient) internal
-```
 
 ### getGonsBalance
 
