@@ -201,8 +201,8 @@ abstract contract InflationSnapshots is VoteSnapshots {
     }
 
     function _updateInflationSnapshot() private {
-        // rebase function is guaranteed to have a new snapshot before manipulating the value so we don't need as strict checks as balances
         uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        // take no action during the snapshot block, only after it
         if (_currentSnapshotBlock == block.number) {
             return;
         }
