@@ -138,6 +138,4 @@ describe('Snapshot safety test', () => {
     // expect(await cg.stage()).to.eq(4) // execution
     // await cg.execute() // this could be done atomically in the multivoter, but it's better done here
   })
-
-  it('TODO: test to prove this also fixes flash loaning', async () => {})
 })

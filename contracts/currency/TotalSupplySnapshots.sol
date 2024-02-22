@@ -94,8 +94,8 @@ abstract contract TotalSupplySnapshots is ERC20MintAndBurn {
     }
 
     function _updateTotalSupplySnapshot() private {
-        // take no action during the snapshot block, only after it
         uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        // take no action during the snapshot block, only after it
         if (_currentSnapshotBlock == block.number) {
             return;
         }

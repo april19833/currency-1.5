@@ -72,8 +72,8 @@ abstract contract VoteSnapshots is ERC20Delegated {
     }
 
     function _updateAccountSnapshot(address account) private {
-        // take no action during the snapshot block, only after it
         uint32 _currentSnapshotBlock = currentSnapshotBlock;
+        // take no action during the snapshot block, only after it
         if (_currentSnapshotBlock == block.number) {
             return;
         }

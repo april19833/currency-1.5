@@ -26,13 +26,6 @@ abstract contract Policed {
      */
     error PolicyOnlyFunction();
 
-    /**
-     * emits when the policy contract is changed
-     * @param newPolicy denotes the new policy contract address
-     * @param oldPolicy denotes the old policy contract address
-     */
-    event NewPolicy(Policy newPolicy, Policy oldPolicy);
-
     /** Restrict method access to the root policy instance only.
      */
     modifier onlyPolicy() {
