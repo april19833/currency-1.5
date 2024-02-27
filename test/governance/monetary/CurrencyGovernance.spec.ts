@@ -982,6 +982,15 @@ describe('CurrencyGovernance', () => {
           ).to.be.revertedWith(ERRORS.CurrencyGovernance.ALREADY_SUPPORTED)
         })
 
+        it('support of a past cycle proposal', async () => {
+          await time.increase(CYCLE_LENGTH)
+          await expect(
+            CurrencyGovernance.connect(charlie).supportProposal(proposalId)
+          ).to.be.revertedWith(
+            ERRORS.CurrencyGovernance.PAST_PROPOSAL_NOT_ALLOWED
+          )
+        })
+
         it('supporting a non-proposal', async () => {
           const badProposalId = getProposalId(0, [], [], [])
           await expect(
@@ -2501,7 +2510,7 @@ describe('CurrencyGovernance', () => {
       ).to.eq(2)
       await expect(
         CurrencyGovernance.connect(dave).unsupportProposal(defaultProposalId)
-      ).to.be.revertedWith(ERRORS.CurrencyGovernance.UNSUPPORT_ON_PAST_PROPOSAL)
+      ).to.be.revertedWith(ERRORS.CurrencyGovernance.PAST_PROPOSAL_NOT_ALLOWED)
 
       // this exploitative code cannot be reached
       // await CurrencyGovernance.connect(dave).supportProposal(charlieProposalId)

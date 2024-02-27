@@ -14,7 +14,7 @@ export const ERRORS = {
     ARRAYS_BAD_LENGTH: 'ProposalActionsArrayMismatch',
     ALREADY_SUPPORTED: 'SupportAlreadyGiven',
     UNSUPPORT_WITH_NO_SUPPORT: 'SupportNotGiven',
-    UNSUPPORT_ON_PAST_PROPOSAL: 'ProposalNotCurrent',
+    PAST_PROPOSAL_NOT_ALLOWED: 'ProposalNotCurrent',
     PROPOSALID_ALREADY_EXISTS: 'DuplicateProposal',
     PROPOSALID_INVALID: 'NoSuchProposal',
     SUPPORT_WHEN_ALREADY_SUPPORTING: 'DuplicateSupport',
