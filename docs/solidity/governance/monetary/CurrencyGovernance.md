@@ -631,6 +631,9 @@ constructor(contract Policy _policy, contract MonetaryPolicyAdapter _enacter, ui
 ### setTrustedNodes
 
 setter function for trustedNodes var
+This function is very disruptive to the currency governance process and the timing of calling it should be VERY INTENTIONAL
+The proposal that does so should have a timing restriction on its enaction, don't just let it be enacted as soon as it passes!
+
 only available to the owning policy contract
 
 ```solidity

@@ -169,6 +169,9 @@ contract TrustedNodes is Policed, TimeUtils {
     }
 
     /** Removes a trustee from the set
+     * THIS FUNCTION CAN AND WILL DISRUPT THE CURRENCY GOVERNANCE CYCLE IF CALLED DURING THE WRONG TIME
+     * Try not to call this function during the commit or reveal part of the cycle in a way that interrupts the distrusted trustee
+     *
      * Node to distrust swaped to be a last element in the trustedNodes, then deleted
      * @param _node The trustee to be removed
      */
