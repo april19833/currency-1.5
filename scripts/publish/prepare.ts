@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import fsExtra from 'fs-extra'
 // import glob from 'glob'
-import { glob, globSync, globStream, globStreamSync, Glob } from 'glob'
+import { globSync } from 'glob'
 
 // This file is used by build system to build a clean npm package with the solidity files and their abi.
 function main() {
@@ -127,7 +127,3 @@ function main() {
 }
 
 main()
-function globIterate(arg0: string, arg1: {}, arg2: (err: any, files: any) => void) {
-  throw new Error('Function not implemented.')
-}
-
