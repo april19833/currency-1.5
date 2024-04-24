@@ -15,7 +15,7 @@ import {ImplementationUpdatingTarget} from "@helix-foundation/currency-dev/contr
  *
  * A proposal used to update the 1.0 proxies and link upwards permissions for all necessary contracts
  */
-contract MigrationLinker is Policy, Proposal {
+contract NoMonetaryMigrationLinker is Policy, Proposal {
     address public immutable newEcoImpl;
 
     address public immutable ecoProxyAddress;
