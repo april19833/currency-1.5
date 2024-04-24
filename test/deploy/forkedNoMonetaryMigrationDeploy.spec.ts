@@ -1,4 +1,4 @@
-import { ethers } from 'hardhat'
+import { ethers, config as hardhatConfig } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import {
@@ -7,21 +7,17 @@ import {
   deployBaseUnproxied,
   deployCommunity,
   deployMonetary,
-  MonetaryGovernanceContracts,
-  CommunityGovernanceContracts,
-  BaseAddresses,
-  CommunityGovernanceAddresses,
+  FixtureAddresses,
   MonetaryGovernanceAddresses,
+  CommunityGovernanceContracts,
 } from '../../deploy/standalone.fixture'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import { time, reset } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
 import {
   ECO as ECOold,
   ECOx as ECOxold,
   ECOxStaking as ECOxStakingold,
-  EcoFaucet,
   Policy as Policyold,
-  TimedPolicies,
   PolicyProposals__factory,
   fixtures,
   ImplementationUpdatingTarget__factory,
@@ -31,9 +27,9 @@ import { ECO, ECOx } from '../../typechain-types/contracts/currency'
 import { Policy } from '../../typechain-types/contracts/policy'
 import { ECOxStaking } from '../../typechain-types/contracts/governance/community'
 import { MigrationLinker } from '../../typechain-types/contracts/test/deploy/MigrationLinker.propo.sol'
-import { MigrationLinker__factory } from '../../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
 import { SnapshotUpdatingTarget__factory } from '../../typechain-types/factories/contracts/test/deploy'
 import { deploy } from '../../deploy/utils'
+import { getExistingEco } from '../../deploy/parse-mainnet'
 import { Policy__factory } from '../../typechain-types/factories/contracts/policy'
 import {
   ECO__factory,
@@ -41,23 +37,22 @@ import {
 } from '../../typechain-types/factories/contracts/currency'
 import { ECOxStaking__factory } from '../../typechain-types/factories/contracts/governance/community'
 import { BigNumber } from 'ethers'
+import { NoMonetaryMigrationLinker__factory } from '../../typechain-types'
 
-const { ecoFixture, policyFor } = fixtures
+const { policyFor } = fixtures
 
-const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(100).toString() // taylored to match the 1.0 fixture deploy
+const INITIAL_ECOx = ethers.constants.WeiPerEther.mul(1000000000).toString() // taylored to match the mainnet deploy
 
-const PAUSER = '0xDEADBEeFbAdf00dC0fFee1Ceb00dAFACEB00cEc0'
+const aliceAddr = '0x99f98ea4A883DB4692Fa317070F4ad2dC94b05CE'
+const bobAddr = '0xA201d3C815AC9D4d8830fb3dE2b490B5b0069ACa'
+const charlieAddr = '0xED83D2f20cF2d218Adbe0a239C0F8AbDca8Fc499'
+const etherWhaleAddr = '0x00000000219ab540356cBB839Cbe05303d7705Fa'
 
-const TRUSTEE_TERM = 26 * 14 * DAY
-const VOTE_REWARD = 1000
-const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
-
-const stake = ethers.utils.parseEther('5000000')
-
-describe.only('Migration tests', () => {
+describe.only('Mainnet fork migration tests without monetary policy', () => {
   let alice: SignerWithAddress
-  let trustee1: SignerWithAddress
-  let trustee2: SignerWithAddress
+  let bob: SignerWithAddress
+  let charlie: SignerWithAddress
+  let etherWhale: SignerWithAddress
 
   let proposal: MigrationLinker
 
@@ -65,37 +60,42 @@ describe.only('Migration tests', () => {
   let ecoProxy: ECOold
   let ecoxProxy: ECOxold
   let ecoXStakingProxy: ECOxStakingold
-  let faucet: EcoFaucet
-  let timedPolicies: TimedPolicies
 
-  let fixtureAddresses: (BaseAddresses &
-    CommunityGovernanceAddresses &
-    MonetaryGovernanceAddresses) // clarifies which fixture addresses
+  let fixtureAddresses: FixtureAddresses
   let baseContracts: BaseContracts
-  let monetaryGovernanceContracts: MonetaryGovernanceContracts
+  let dummyMonetaryContracts: MonetaryGovernanceAddresses
   let communityGovernanceContracts: CommunityGovernanceContracts
 
-  before(async () => {
-    ;[alice, trustee1, trustee2] = await ethers.getSigners()
-  })
-
   beforeEach(async () => {
+    // reset the fork
+    await reset(
+      hardhatConfig.networks.hardhat.forking?.url,
+      hardhatConfig.networks.hardhat.forking?.blockNumber
+    )
+
+    // setup faked addresses
+    alice = await ethers.getImpersonatedSigner(aliceAddr)
+    bob = await ethers.getImpersonatedSigner(bobAddr)
+    charlie = await ethers.getImpersonatedSigner(charlieAddr)
+    etherWhale = await ethers.getImpersonatedSigner(etherWhaleAddr)
+    etherWhale.sendTransaction({
+      to: alice.address,
+      value: ethers.utils.parseEther('100'),
+    })
+    etherWhale.sendTransaction({
+      to: bob.address,
+      value: ethers.utils.parseEther('100'),
+    })
+    etherWhale.sendTransaction({
+      to: charlie.address,
+      value: ethers.utils.parseEther('100'),
+    })
     ;({
       policy: policyProxy,
       eco: ecoProxy,
       ecox: ecoxProxy,
       ecoXStaking: ecoXStakingProxy,
-      faucet,
-      timedPolicies,
-    } = await ecoFixture(
-      [trustee1.address, trustee2.address],
-      VOTE_REWARD.toString()
-    ))
-    // set up stake for voting
-    await faucet.mint(alice.address, stake)
-    // wait one generation for the funds to be within the snapshot
-    await time.increase(3600 * 24 * 14)
-    await timedPolicies.incrementGeneration()
+    } = await getExistingEco(alice))
 
     // deploy the new contracts with proxy implementations only
     const config = {
@@ -124,13 +124,16 @@ describe.only('Migration tests', () => {
     baseContracts.ecox = ecoxProxy as unknown as ECOx
     baseContracts.ecoXStaking = ecoXStakingProxy as unknown as ECOxStaking
 
-    monetaryGovernanceContracts = await deployMonetary(
-      alice,
-      baseContracts,
-      [trustee1.address, trustee2.address],
-      false,
-      config
-    )
+    dummyMonetaryContracts = {
+      trustedNodes: '',
+      monetaryGovernance: '',
+      adapter: '',
+      rebaseLever: '',
+      rebaseNotifier: '',
+      lockupsLever: '',
+      lockupsNotifier: '',
+    } // these contracts are unused for this deploy but still required by the datatype
+
     communityGovernanceContracts = await deployCommunity(
       alice,
       baseContracts,
@@ -141,7 +144,7 @@ describe.only('Migration tests', () => {
 
     fixtureAddresses = {
       ...implAddresses, // has the implementation addresses for later because the proxies are already set to global values
-      ...monetaryGovernanceContracts.toAddresses(),
+      ...dummyMonetaryContracts,
       ...communityGovernanceContracts.toAddresses(),
     }
   })
@@ -149,15 +152,14 @@ describe.only('Migration tests', () => {
   it('check deployment constructors', async () => {
     const contracts: Fixture = new Fixture(
       baseContracts,
-      communityGovernanceContracts,
-      monetaryGovernanceContracts,
+      communityGovernanceContracts
     )
 
     // these are pre migrated contracts
     expect(await contracts.base.eco.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.base.eco.pauser()).to.eq(PAUSER)
+    expect(await contracts.base.eco.pauser()).to.eq(alice.address)
     expect(await contracts.base.eco.decimals()).to.eq(18)
     expect(await contracts.base.eco.name()).to.eq('ECO')
     expect(await contracts.base.eco.symbol()).to.eq('ECO')
@@ -165,9 +167,7 @@ describe.only('Migration tests', () => {
     expect(await contracts.base.ecox.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.base.ecox.pauser()).to.eq(
-      ethers.constants.AddressZero
-    )
+    expect(await contracts.base.ecox.pauser()).to.eq(alice.address)
     expect(await contracts.base.ecox.decimals()).to.eq(18)
     expect(await contracts.base.ecox.name()).to.eq('ECOx')
     expect(await contracts.base.ecox.symbol()).to.eq('ECOx')
@@ -211,60 +211,9 @@ describe.only('Migration tests', () => {
     expect(await contracts.community.communityGovernance.ecoXStaking()).to.eq(
       contracts.base.ecoXStaking.address
     )
-
-    expect(await contracts.monetary?.rebaseLever.policy()).to.eq(
-      contracts.base.policy.address
-    )
-    expect(await contracts.monetary?.rebaseLever.eco()).to.eq(
-      contracts.base.eco.address
-    )
-
-    expect(await contracts.monetary?.rebaseNotifier.policy()).to.eq(
-      contracts.base.policy.address
-    )
-    expect(await contracts.monetary?.rebaseNotifier.lever()).to.eq(
-      contracts.monetary?.rebaseLever.address
-    )
-
-    expect(await contracts.monetary?.adapter.policy()).to.eq(
-      contracts.base.policy.address
-    )
-
-    expect(await contracts.monetary?.monetaryGovernance.policy()).to.eq(
-      contracts.base.policy.address
-    )
-    expect(await contracts.monetary?.monetaryGovernance.enacter()).to.eq(
-      contracts.monetary?.adapter.address
-    )
-    expect(
-      await contracts.monetary?.monetaryGovernance.governanceStartTime()
-    ).to.not.eq(0)
-
-    expect(await contracts.monetary?.trustedNodes.policy()).to.eq(
-      contracts.base.policy.address
-    )
-    expect(await contracts.monetary?.trustedNodes.ecoX()).to.eq(
-      contracts.base.ecox.address
-    )
-    expect(await contracts.monetary?.trustedNodes.currencyGovernance()).to.eq(
-      contracts.monetary?.monetaryGovernance.address
-    )
-    expect(await contracts.monetary?.trustedNodes.voteReward()).to.eq(
-      VOTE_REWARD
-    )
-    expect(await contracts.monetary?.trustedNodes.termEnd()).to.not.eq(0)
-    expect(await contracts.monetary?.trustedNodes.termStart()).to.eq(
-      (await contracts.monetary?.trustedNodes.termEnd())?.sub(TRUSTEE_TERM)
-    )
-    expect(await contracts.monetary?.trustedNodes.isTrusted(alice.address)).to.be
-      .false
-    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee1.address)).to
-      .be.true
-    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee2.address)).to
-      .be.true
   })
 
-  context('with the proposal constructed', () => {
+  context('with the proposal contstructed', () => {
     beforeEach(async () => {
       const implementationUpdatingTarget = await deploy(
         alice,
@@ -279,9 +228,6 @@ describe.only('Migration tests', () => {
       const proposalParams = [
         fixtureAddresses.communityGovernance,
         fixtureAddresses.ecoXExchange,
-        fixtureAddresses.rebaseNotifier,
-        fixtureAddresses.lockupsNotifier,
-        fixtureAddresses.trustedNodes,
         fixtureAddresses.policy,
         fixtureAddresses.eco,
         fixtureAddresses.ecox,
@@ -292,7 +238,7 @@ describe.only('Migration tests', () => {
 
       proposal = (await deploy(
         alice,
-        MigrationLinker__factory,
+        NoMonetaryMigrationLinker__factory,
         proposalParams
       )) as MigrationLinker
       await proposal.deployed()
@@ -331,40 +277,7 @@ describe.only('Migration tests', () => {
 
       expect(await proposal.ecoXExchange()).to.eq(fixtureAddresses.ecoXExchange)
 
-      expect(await proposal.rebase()).to.eq(fixtureAddresses.rebaseLever)
-
-      expect(await proposal.rebaseNotifier()).to.eq(
-        fixtureAddresses.rebaseNotifier
-      )
-
-      expect(await proposal.monetaryPolicyAdapter()).to.eq(
-        fixtureAddresses.adapter
-      )
-
-      expect(await proposal.currencyGovernance()).to.eq(
-        fixtureAddresses.monetaryGovernance
-      )
-
-      expect(await proposal.trustedNodes()).to.eq(fixtureAddresses.trustedNodes)
-
       expect(await proposal.newPolicyImpl()).to.eq(fixtureAddresses.policy)
-
-      expect(await monetaryGovernanceContracts.lockupsLever.policy()).to.eq(
-        baseContracts.policy.address
-      )
-      expect(await monetaryGovernanceContracts.lockupsLever.eco()).to.eq(
-        baseContracts.eco.address
-      )
-      expect(
-        await monetaryGovernanceContracts.lockupsLever.depositWindow()
-      ).to.eq(LOCKUP_DEPOSIT_WINDOW)
-
-      expect(await monetaryGovernanceContracts.lockupsNotifier.policy()).to.eq(
-        baseContracts.policy.address
-      )
-      expect(await monetaryGovernanceContracts.lockupsNotifier.lever()).to.eq(
-        monetaryGovernanceContracts.lockupsLever.address
-      )
     })
 
     context('with enacted proposal', () => {
@@ -424,12 +337,9 @@ describe.only('Migration tests', () => {
         // confirm vote
         await policyVotes.connect(alice).vote(true)
         // wait until end of voting phase
-        await time.increase(3600 * 24 * 4)
+        await time.increase(4 * DAY)
         // executes
         await policyVotes.execute()
-
-        // initialize the voting for the lockup
-        await monetaryGovernanceContracts.lockupsLever.initializeVoting()
 
         // edit the base contracts object so it has the right interface object
         baseContracts.policy = new Policy__factory(alice).attach(
@@ -464,8 +374,7 @@ describe.only('Migration tests', () => {
       it('check deployment linking', async () => {
         const contracts = new Fixture(
           baseContracts,
-          communityGovernanceContracts,
-          monetaryGovernanceContracts,
+          communityGovernanceContracts
         )
 
         expect(await contracts.base.policy.governor()).to.eq(
@@ -480,61 +389,25 @@ describe.only('Migration tests', () => {
           await contracts.base.eco.minters(contracts.base.ecoXExchange.address)
         ).to.be.true
         expect(
-          await contracts.base.eco.rebasers(
-            contracts.monetary?.rebaseLever.address!
-          )
-        ).to.be.true
-        expect(
           await contracts.base.eco.snapshotters(
             contracts.community.communityGovernance.address
           )
         ).to.be.true
-
         expect(
-          await contracts.monetary?.rebaseLever.authorized(
-            contracts.monetary?.adapter.address
+          await contracts.base.ecox.snapshotters(
+            contracts.community.communityGovernance.address
           )
         ).to.be.true
-        expect(await contracts.monetary?.rebaseLever.notifier()).to.eq(
-          contracts.monetary?.rebaseNotifier.address
+      })
+
+      it('can withdraw from staking contract', async () => {
+        const aliceEcoxBalance = await baseContracts.ecox.balanceOf(
+          alice.address
         )
-        let tx = await contracts.monetary?.rebaseNotifier.transactions(0)!
-        expect(tx.target).to.eq('0x09bC52B9EB7387ede639Fc10Ce5Fa01CBCBf2b17')
-        expect(tx.data).to.eq('0xfff6cae9')
-        expect(tx.gasCost).to.eq(75000)
-
-        tx = await contracts.monetary?.rebaseNotifier.transactions(1)!
-        expect(tx.target).to.eq('0xAa029BbdC947F5205fBa0F3C11b592420B58f824')
-        expect(tx.data).to.eq(
-          '0x429046420000000000000000000000000000000000000000000000000000000000000000'
-        )
-        expect(tx.gasCost).to.eq(380000)
-
-        expect(await contracts.monetary?.adapter.currencyGovernance()).to.eq(
-          contracts.monetary?.monetaryGovernance.address
-        )
-        expect(
-          await contracts.monetary?.monetaryGovernance.trustedNodes()
-        ).to.eq(contracts.monetary?.trustedNodes.address)
-
-        expect(
-          await contracts.base.eco.voter(
-            contracts.monetary?.lockupsLever.address!
-          )
-        ).to.be.true
-
-        expect(
-          await contracts.base.eco.minters(
-            contracts.monetary?.lockupsLever.address!
-          )
-        ).to.be.true
-        expect(
-          await contracts.monetary?.lockupsLever.authorized(
-            contracts.monetary?.adapter.address
-          )
-        ).to.be.true
-        expect(await contracts.monetary?.lockupsLever.notifier()).to.eq(
-          contracts.monetary?.lockupsNotifier.address
+        const withdrawAmount = ethers.utils.parseUnits('1', 'ether')
+        await baseContracts.ecoXStaking.connect(alice).withdraw(withdrawAmount)
+        expect(await baseContracts.ecox.balanceOf(alice.address)).to.eq(
+          aliceEcoxBalance.add(withdrawAmount)
         )
       })
     })

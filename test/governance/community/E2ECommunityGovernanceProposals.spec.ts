@@ -81,7 +81,7 @@ describe('E2E tests for common community governance actions', () => {
   })
 
   it('addTxToNotifier', async () => {
-    const notifier = contracts.monetary.rebaseNotifier
+    const notifier = contracts.monetary!.rebaseNotifier
     await expect(notifier.transactions(0)).to.be.reverted
     expect(await notifier.totalGasCost()).to.eq(0)
 
@@ -107,44 +107,44 @@ describe('E2E tests for common community governance actions', () => {
   })
 
   it('singleTrusteeReplacement', async () => {
-    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
-    const trusteeToReplace = await contracts.monetary.trustedNodes.trustees(1)
-    expect(await contracts.monetary.trustedNodes.trustees(1)).to.not.eq(
+    expect(await contracts.monetary!.trustedNodes.numTrustees()).to.eq(2)
+    const trusteeToReplace = await contracts.monetary!.trustedNodes.trustees(1)
+    expect(await contracts.monetary!.trustedNodes.trustees(1)).to.not.eq(
       alice.address
     )
 
     const prop = await deploy(alice, SingleTrusteeReplacement__factory, [
-      contracts.monetary.trustedNodes.address,
+      contracts.monetary!.trustedNodes.address,
       trusteeToReplace,
       alice.address,
     ])
 
     await passProposal(contracts, alice, prop)
 
-    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
-    expect(await contracts.monetary.trustedNodes.trustees(1)).to.eq(
+    expect(await contracts.monetary!.trustedNodes.numTrustees()).to.eq(2)
+    expect(await contracts.monetary!.trustedNodes.trustees(1)).to.eq(
       alice.address
     )
   })
 
   it('NewTrusteeCohort', async () => {
-    expect(await contracts.monetary.trustedNodes.numTrustees()).to.eq(2)
-    let trustees = await contracts.monetary.trustedNodes.getTrustees()
+    expect(await contracts.monetary!.trustedNodes.numTrustees()).to.eq(2)
+    let trustees = await contracts.monetary!.trustedNodes.getTrustees()
     expect(trustees[0]).to.eq(bob.address)
     expect(trustees[1]).to.eq(charlie.address)
-    expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(1000)
+    expect(await contracts.monetary!.trustedNodes.voteReward()).to.eq(1000)
 
-    const oldTermStart = await contracts.monetary.trustedNodes.termStart()
+    const oldTermStart = await contracts.monetary!.trustedNodes.termStart()
 
     const initialTrustedNodesAddress =
-      await contracts.monetary.monetaryGovernance.trustedNodes()
+      await contracts.monetary!.monetaryGovernance.trustedNodes()
 
     const trustedNodesFactory = await deploy(
       alice,
       TrustedNodesFactory__factory,
       [
         contracts.base.policy.address,
-        contracts.monetary.monetaryGovernance.address,
+        contracts.monetary!.monetaryGovernance.address,
         contracts.base.ecox.address,
       ]
     )
@@ -163,7 +163,7 @@ describe('E2E tests for common community governance actions', () => {
     await passProposal(contracts, alice, prop)
 
     const newTrustedNodesAddress =
-      await contracts.monetary.monetaryGovernance.trustedNodes()
+      await contracts.monetary!.monetaryGovernance.trustedNodes()
     expect(newTrustedNodesAddress).to.not.eq(initialTrustedNodesAddress)
     const newTrustedNodes = new Contract(
       newTrustedNodesAddress,

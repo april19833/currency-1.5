@@ -7,9 +7,11 @@ import {
   deployBaseUnproxied,
   deployCommunity,
   deployMonetary,
-  FixtureAddresses,
   MonetaryGovernanceContracts,
   CommunityGovernanceContracts,
+  BaseAddresses,
+  CommunityGovernanceAddresses,
+  MonetaryGovernanceAddresses,
 } from '../../deploy/standalone.fixture'
 import { time, reset } from '@nomicfoundation/hardhat-network-helpers'
 import { DAY } from '../utils/constants'
@@ -52,7 +54,7 @@ const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-describe('Mainnet fork migration tests', () => {
+describe.only('Mainnet fork migration tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -65,7 +67,9 @@ describe('Mainnet fork migration tests', () => {
   let ecoxProxy: ECOxold
   let ecoXStakingProxy: ECOxStakingold
 
-  let fixtureAddresses: FixtureAddresses
+  let fixtureAddresses: (BaseAddresses &
+    CommunityGovernanceAddresses &
+    MonetaryGovernanceAddresses) // clarifies which fixture addresses
   let baseContracts: BaseContracts
   let monetaryGovernanceContracts: MonetaryGovernanceContracts
   let communityGovernanceContracts: CommunityGovernanceContracts
@@ -153,8 +157,8 @@ describe('Mainnet fork migration tests', () => {
   it('check deployment constructors', async () => {
     const contracts: Fixture = new Fixture(
       baseContracts,
+      communityGovernanceContracts,
       monetaryGovernanceContracts,
-      communityGovernanceContracts
     )
 
     // these are pre migrated contracts
@@ -214,70 +218,70 @@ describe('Mainnet fork migration tests', () => {
       contracts.base.ecoXStaking.address
     )
 
-    expect(await contracts.monetary.rebaseLever.policy()).to.eq(
+    expect(await contracts.monetary!.rebaseLever.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.rebaseLever.eco()).to.eq(
+    expect(await contracts.monetary!.rebaseLever.eco()).to.eq(
       contracts.base.eco.address
     )
 
-    expect(await contracts.monetary.rebaseNotifier.policy()).to.eq(
+    expect(await contracts.monetary!.rebaseNotifier.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.rebaseNotifier.lever()).to.eq(
-      contracts.monetary.rebaseLever.address
+    expect(await contracts.monetary!.rebaseNotifier.lever()).to.eq(
+      contracts.monetary!.rebaseLever.address
     )
 
-    expect(await contracts.monetary.adapter.policy()).to.eq(
+    expect(await contracts.monetary!.adapter.policy()).to.eq(
       contracts.base.policy.address
     )
 
-    expect(await contracts.monetary.monetaryGovernance.policy()).to.eq(
+    expect(await contracts.monetary!.monetaryGovernance.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.monetaryGovernance.enacter()).to.eq(
-      contracts.monetary.adapter.address
+    expect(await contracts.monetary!.monetaryGovernance.enacter()).to.eq(
+      contracts.monetary!.adapter.address
     )
     expect(
-      await contracts.monetary.monetaryGovernance.governanceStartTime()
+      await contracts.monetary!.monetaryGovernance.governanceStartTime()
     ).to.not.eq(0)
 
-    expect(await contracts.monetary.trustedNodes.policy()).to.eq(
+    expect(await contracts.monetary!.trustedNodes.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.trustedNodes.ecoX()).to.eq(
+    expect(await contracts.monetary!.trustedNodes.ecoX()).to.eq(
       contracts.base.ecox.address
     )
-    expect(await contracts.monetary.trustedNodes.currencyGovernance()).to.eq(
-      contracts.monetary.monetaryGovernance.address
+    expect(await contracts.monetary!.trustedNodes.currencyGovernance()).to.eq(
+      contracts.monetary!.monetaryGovernance.address
     )
-    expect(await contracts.monetary.trustedNodes.voteReward()).to.eq(
+    expect(await contracts.monetary!.trustedNodes.voteReward()).to.eq(
       VOTE_REWARD
     )
-    expect(await contracts.monetary.trustedNodes.termEnd()).to.not.eq(0)
-    expect(await contracts.monetary.trustedNodes.termStart()).to.eq(
-      (await contracts.monetary.trustedNodes.termEnd()).sub(TRUSTEE_TERM)
+    expect(await contracts.monetary!.trustedNodes.termEnd()).to.not.eq(0)
+    expect(await contracts.monetary!.trustedNodes.termStart()).to.eq(
+      (await contracts.monetary!.trustedNodes.termEnd()).sub(TRUSTEE_TERM)
     )
-    expect(await contracts.monetary.trustedNodes.isTrusted(alice.address)).to.be
+    expect(await contracts.monetary!.trustedNodes.isTrusted(alice.address)).to.be
       .true
-    expect(await contracts.monetary.trustedNodes.isTrusted(bob.address)).to.be
+    expect(await contracts.monetary!.trustedNodes.isTrusted(bob.address)).to.be
       .true
 
-    expect(await contracts.monetary.lockupsLever.policy()).to.eq(
+    expect(await contracts.monetary!.lockupsLever.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.lockupsLever.eco()).to.eq(
+    expect(await contracts.monetary!.lockupsLever.eco()).to.eq(
       contracts.base.eco.address
     )
-    expect(await contracts.monetary.lockupsLever.depositWindow()).to.eq(
+    expect(await contracts.monetary!.lockupsLever.depositWindow()).to.eq(
       LOCKUP_DEPOSIT_WINDOW
     )
 
-    expect(await contracts.monetary.lockupsNotifier.policy()).to.eq(
+    expect(await contracts.monetary!.lockupsNotifier.policy()).to.eq(
       contracts.base.policy.address
     )
-    expect(await contracts.monetary.lockupsNotifier.lever()).to.eq(
-      contracts.monetary.lockupsLever.address
+    expect(await contracts.monetary!.lockupsNotifier.lever()).to.eq(
+      contracts.monetary!.lockupsLever.address
     )
   })
 
@@ -464,8 +468,8 @@ describe('Mainnet fork migration tests', () => {
       it('check deployment linking', async () => {
         const contracts = new Fixture(
           baseContracts,
+          communityGovernanceContracts,
           monetaryGovernanceContracts,
-          communityGovernanceContracts
         )
 
         expect(await contracts.base.policy.governor()).to.eq(
@@ -481,7 +485,7 @@ describe('Mainnet fork migration tests', () => {
         ).to.be.true
         expect(
           await contracts.base.eco.rebasers(
-            contracts.monetary.rebaseLever.address
+            contracts.monetary!.rebaseLever.address!
           )
         ).to.be.true
         expect(
@@ -491,51 +495,51 @@ describe('Mainnet fork migration tests', () => {
         ).to.be.true
 
         expect(
-          await contracts.monetary.rebaseLever.authorized(
-            contracts.monetary.adapter.address
+          await contracts.monetary!.rebaseLever.authorized(
+            contracts.monetary!.adapter.address
           )
         ).to.be.true
-        expect(await contracts.monetary.rebaseLever.notifier()).to.eq(
-          contracts.monetary.rebaseNotifier.address
+        expect(await contracts.monetary!.rebaseLever.notifier()).to.eq(
+          contracts.monetary!.rebaseNotifier.address
         )
 
-        let tx = await contracts.monetary.rebaseNotifier.transactions(0)
+        let tx = await contracts.monetary!.rebaseNotifier.transactions(0)!
         expect(tx.target).to.eq('0x09bC52B9EB7387ede639Fc10Ce5Fa01CBCBf2b17')
         expect(tx.data).to.eq('0xfff6cae9')
         expect(tx.gasCost).to.eq(75000)
 
-        tx = await contracts.monetary.rebaseNotifier.transactions(1)
+        tx = await contracts.monetary!.rebaseNotifier.transactions(1)!
         expect(tx.target).to.eq('0xAa029BbdC947F5205fBa0F3C11b592420B58f824')
         expect(tx.data).to.eq(
           '0x429046420000000000000000000000000000000000000000000000000000000000000000'
         )
         expect(tx.gasCost).to.eq(380000)
 
-        expect(await contracts.monetary.adapter.currencyGovernance()).to.eq(
-          contracts.monetary.monetaryGovernance.address
+        expect(await contracts.monetary!.adapter.currencyGovernance()).to.eq(
+          contracts.monetary!.monetaryGovernance.address
         )
         expect(
-          await contracts.monetary.monetaryGovernance.trustedNodes()
-        ).to.eq(contracts.monetary.trustedNodes.address)
+          await contracts.monetary!.monetaryGovernance.trustedNodes()
+        ).to.eq(contracts.monetary!.trustedNodes.address)
 
         expect(
           await contracts.base.eco.voter(
-            contracts.monetary.lockupsLever.address
+            contracts.monetary!.lockupsLever.address!
           )
         ).to.be.true
 
         expect(
           await contracts.base.eco.minters(
-            contracts.monetary.lockupsLever.address
+            contracts.monetary!.lockupsLever.address!
           )
         ).to.be.true
         expect(
-          await contracts.monetary.lockupsLever.authorized(
-            contracts.monetary.adapter.address
+          await contracts.monetary!.lockupsLever.authorized(
+            contracts.monetary!.adapter.address
           )
         ).to.be.true
-        expect(await contracts.monetary.lockupsLever.notifier()).to.eq(
-          contracts.monetary.lockupsNotifier.address
+        expect(await contracts.monetary!.lockupsLever.notifier()).to.eq(
+          contracts.monetary!.lockupsNotifier.address
         )
       })
 
@@ -553,26 +557,26 @@ describe('Mainnet fork migration tests', () => {
       it('can create a lockup (tests monetary governance cycle)', async () => {
         const contracts = new Fixture(
           baseContracts,
+          communityGovernanceContracts,
           monetaryGovernanceContracts,
-          communityGovernanceContracts
         )
 
-        const lockupRate = await contracts.monetary.lockupsLever.MAX_RATE()
+        const lockupRate = await contracts.monetary!.lockupsLever.MAX_RATE()
         const lockupDuration =
-          await contracts.monetary.lockupsLever.MIN_DURATION()
+          await contracts.monetary!.lockupsLever.MIN_DURATION()
 
         // propose the monetary policy with the lockup
-        const tx = await contracts.monetary.monetaryGovernance
+        const tx = await contracts.monetary!.monetaryGovernance
           .connect(bob)
           .propose(
-            [contracts.monetary.lockupsLever.address],
+            [contracts.monetary!.lockupsLever.address],
             [
-              contracts.monetary.lockupsLever.interface.getSighash(
+              contracts.monetary!.lockupsLever.interface.getSighash(
                 'createLockup'
               ),
             ],
             [
-              `0x${contracts.monetary.lockupsLever.interface
+              `0x${contracts.monetary!.lockupsLever.interface
                 .encodeFunctionData('createLockup', [
                   lockupDuration,
                   lockupRate,
@@ -580,7 +584,7 @@ describe('Mainnet fork migration tests', () => {
                 .slice(10)}`,
             ],
             'aoeu'
-          )
+          )!
         // get proposalId from event cuz it's easier
         const receipt = await tx.wait()
         const proposalId = receipt.events?.find(
@@ -590,7 +594,7 @@ describe('Mainnet fork migration tests', () => {
         await time.increase(6 * DAY) // we are already 4 days into the cycle because of the previous community governance action
         // need cycle number
         const cycle =
-          await contracts.monetary.monetaryGovernance.getCurrentCycle()
+          await contracts.monetary!.monetaryGovernance.getCurrentCycle()
         // build commit hash
         const salt = '0x' + '00'.repeat(32)
         const vote = [{ proposalId, score: 1 }]
@@ -606,29 +610,29 @@ describe('Mainnet fork migration tests', () => {
           )
         )
         // vote proposal through
-        await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
+        await contracts.monetary!.monetaryGovernance.connect(bob).commit(commit)
         // next stage
         await time.increase(
-          await contracts.monetary.monetaryGovernance.VOTING_TIME()
+          await contracts.monetary!.monetaryGovernance.VOTING_TIME()!
         )
         // reveal proposal
-        await contracts.monetary.monetaryGovernance.reveal(
+        await contracts.monetary!.monetaryGovernance.reveal(
           bob.address,
           salt,
           vote
         )
         // next stage
         await time.increase(
-          await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+          await contracts.monetary!.monetaryGovernance.REVEAL_TIME()!
         )
         // execute proposal
-        await contracts.monetary.monetaryGovernance.enact()
+        await contracts.monetary!.monetaryGovernance.enact()
 
-        const lockupParams = await contracts.monetary.lockupsLever.lockups(0)
+        const lockupParams = await contracts.monetary!.lockupsLever.lockups(0)!
         const now = await time.latest()
         expect(lockupParams.depositWindowEnd).to.eq(now + LOCKUP_DEPOSIT_WINDOW)
         expect(lockupParams.end).to.eq(
-          now + LOCKUP_DEPOSIT_WINDOW + lockupDuration.toNumber()
+          now + LOCKUP_DEPOSIT_WINDOW + lockupDuration!.toNumber()
         )
         expect(lockupParams.rate).to.eq(lockupRate)
       })
@@ -636,26 +640,26 @@ describe('Mainnet fork migration tests', () => {
       it('can rebase (tests monetary governance cycle)', async () => {
         const contracts = new Fixture(
           baseContracts,
+          communityGovernanceContracts,
           monetaryGovernanceContracts,
-          communityGovernanceContracts
         )
 
         const oldInflationMult = await contracts.base.eco.inflationMultiplier()
         const rebaseAmount = ethers.utils.parseUnits('2', 'ether') // 50% rebase
 
         // propose the monetary policy with the lockup
-        const tx = await contracts.monetary.monetaryGovernance
+        const tx = await contracts.monetary!.monetaryGovernance
           .connect(bob)
           .propose(
-            [contracts.monetary.rebaseLever.address],
-            [contracts.monetary.rebaseLever.interface.getSighash('execute')],
+            [contracts.monetary!.rebaseLever.address],
+            [contracts.monetary!.rebaseLever.interface.getSighash('execute')],
             [
-              `0x${contracts.monetary.rebaseLever.interface
+              `0x${contracts.monetary!.rebaseLever.interface
                 .encodeFunctionData('execute', [rebaseAmount])
                 .slice(10)}`,
             ],
             'aoeu'
-          )
+          )!
         // get proposalId from event cuz it's easier
         const receipt = await tx.wait()
         const proposalId = receipt.events?.find(
@@ -665,7 +669,7 @@ describe('Mainnet fork migration tests', () => {
         await time.increase(6 * DAY) // we are already 4 days into the cycle because of the previous community governance action
         // need cycle number
         const cycle =
-          await contracts.monetary.monetaryGovernance.getCurrentCycle()
+          await contracts.monetary!.monetaryGovernance.getCurrentCycle()
         // build commit hash
         const salt = '0x' + '00'.repeat(32)
         const vote = [{ proposalId, score: 1 }]
@@ -681,23 +685,23 @@ describe('Mainnet fork migration tests', () => {
           )
         )
         // vote proposal through
-        await contracts.monetary.monetaryGovernance.connect(bob).commit(commit)
+        await contracts.monetary!.monetaryGovernance.connect(bob).commit(commit)
         // next stage
         await time.increase(
-          await contracts.monetary.monetaryGovernance.VOTING_TIME()
+          await contracts.monetary!.monetaryGovernance.VOTING_TIME()!
         )
         // reveal proposal
-        await contracts.monetary.monetaryGovernance.reveal(
+        await contracts.monetary!.monetaryGovernance.reveal(
           bob.address,
           salt,
           vote
         )
         // next stage
         await time.increase(
-          await contracts.monetary.monetaryGovernance.REVEAL_TIME()
+          await contracts.monetary!.monetaryGovernance.REVEAL_TIME()!
         )
         // execute proposal
-        await contracts.monetary.monetaryGovernance.enact()
+        await contracts.monetary!.monetaryGovernance.enact()
 
         expect(await contracts.base.eco.inflationMultiplier()).to.eq(
           oldInflationMult
