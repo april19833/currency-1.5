@@ -400,16 +400,16 @@ describe('Policy E2E Tests', () => {
     expect(await contracts.monetary!.lockupsLever.authorized(alice.address)).to
       .be.true
 
-    expect(await contracts.monetary!.rebaseLever.authorized(alice.address)).to.be
-      .false
+    expect(await contracts.monetary!.rebaseLever.authorized(alice.address)).to
+      .be.false
     const proposal2 = await deploy(
       alice,
       UpdateLeverAuthorizedProposal__factory,
       [contracts.monetary!.rebaseLever.address, alice.address, true]
     )
     await passProposal(contracts, alice, proposal2)
-    expect(await contracts.monetary!.rebaseLever.authorized(alice.address)).to.be
-      .true
+    expect(await contracts.monetary!.rebaseLever.authorized(alice.address)).to
+      .be.true
   })
 
   it('remove lever authorized', async () => {
@@ -482,17 +482,20 @@ describe('Policy E2E Tests', () => {
 
   it('sweep lockup test', async () => {
     // propose the monetary policy with the lockup
-    const tx = await contracts.monetary!.monetaryGovernance
-      .connect(bob)
+    const tx = await contracts
+      .monetary!.monetaryGovernance.connect(bob)
       .propose(
         [contracts.monetary!.lockupsLever.address],
         [contracts.monetary!.lockupsLever.interface.getSighash('createLockup')],
         [
-          `0x${contracts.monetary!.lockupsLever.interface
-            .encodeFunctionData('createLockup', [
-              await contracts.monetary!.lockupsLever.MIN_DURATION(),
-              await contracts.monetary!.lockupsLever.MAX_RATE(),
-            ])
+          `0x${contracts
+            .monetary!.lockupsLever.interface.encodeFunctionData(
+              'createLockup',
+              [
+                await contracts.monetary!.lockupsLever.MIN_DURATION(),
+                await contracts.monetary!.lockupsLever.MAX_RATE(),
+              ]
+            )
             .slice(10)}`,
         ],
         'aoeu'
@@ -544,8 +547,8 @@ describe('Policy E2E Tests', () => {
     await contracts.base.eco
       .connect(alice)
       .approve(contracts.monetary!.lockupsLever.address, lockupAmount)
-    await contracts.monetary!.lockupsLever
-      .connect(alice)
+    await contracts
+      .monetary!.lockupsLever.connect(alice)
       .deposit(0, lockupAmount)
     // withdraw early
     await contracts.monetary!.lockupsLever.connect(alice).withdraw(0)

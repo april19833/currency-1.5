@@ -11,7 +11,7 @@ const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-describe.only('Deployment tests', () => {
+describe('Deployment tests', () => {
   let alice: SignerWithAddress
   let trustee1: SignerWithAddress
   let trustee2: SignerWithAddress
@@ -171,12 +171,12 @@ describe.only('Deployment tests', () => {
     expect(await contracts.monetary!.trustedNodes.termStart()).to.eq(
       (await contracts.monetary!.trustedNodes.termEnd()).sub(TRUSTEE_TERM)
     )
-    expect(await contracts.monetary!.trustedNodes.isTrusted(alice.address)).to.be
-      .false
-    expect(await contracts.monetary!.trustedNodes.isTrusted(trustee1.address)).to
-      .be.true
-    expect(await contracts.monetary!.trustedNodes.isTrusted(trustee2.address)).to
-      .be.true
+    expect(await contracts.monetary!.trustedNodes.isTrusted(alice.address)).to
+      .be.false
+    expect(await contracts.monetary!.trustedNodes.isTrusted(trustee1.address))
+      .to.be.true
+    expect(await contracts.monetary!.trustedNodes.isTrusted(trustee2.address))
+      .to.be.true
   })
 
   it('check deployment linking', async () => {

@@ -138,18 +138,15 @@ export class CommunityGovernanceContracts {
   }
 }
 
-export type FixtureAddresses = 
-  (BaseAddresses &
-  CommunityGovernanceAddresses &
-  MonetaryGovernanceAddresses) |
-  (BaseAddresses &
-  CommunityGovernanceAddresses)
+export type FixtureAddresses =
+  | (BaseAddresses & CommunityGovernanceAddresses & MonetaryGovernanceAddresses)
+  | (BaseAddresses & CommunityGovernanceAddresses)
 
 export class Fixture {
   constructor(
     public base: BaseContracts,
     public community: CommunityGovernanceContracts,
-    public monetary?: MonetaryGovernanceContracts,
+    public monetary?: MonetaryGovernanceContracts
   ) {}
 
   toAddresses(): FixtureAddresses {

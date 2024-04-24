@@ -6,7 +6,6 @@ import {
   BaseContracts,
   deployBaseUnproxied,
   deployCommunity,
-  deployMonetary,
   FixtureAddresses,
   MonetaryGovernanceAddresses,
   CommunityGovernanceContracts,
@@ -48,7 +47,7 @@ const bobAddr = '0xA201d3C815AC9D4d8830fb3dE2b490B5b0069ACa'
 const charlieAddr = '0xED83D2f20cF2d218Adbe0a239C0F8AbDca8Fc499'
 const etherWhaleAddr = '0x00000000219ab540356cBB839Cbe05303d7705Fa'
 
-describe.only('Mainnet fork migration tests without monetary policy', () => {
+describe('Mainnet fork migration tests without monetary policy', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress

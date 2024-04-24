@@ -54,7 +54,7 @@ const TRUSTEE_TERM = 26 * 14 * DAY
 const VOTE_REWARD = 1000
 const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
-describe.only('Mainnet fork migration tests', () => {
+describe('Mainnet fork migration tests', () => {
   let alice: SignerWithAddress
   let bob: SignerWithAddress
   let charlie: SignerWithAddress
@@ -67,9 +67,9 @@ describe.only('Mainnet fork migration tests', () => {
   let ecoxProxy: ECOxold
   let ecoXStakingProxy: ECOxStakingold
 
-  let fixtureAddresses: (BaseAddresses &
+  let fixtureAddresses: BaseAddresses &
     CommunityGovernanceAddresses &
-    MonetaryGovernanceAddresses) // clarifies which fixture addresses
+    MonetaryGovernanceAddresses // clarifies which fixture addresses
   let baseContracts: BaseContracts
   let monetaryGovernanceContracts: MonetaryGovernanceContracts
   let communityGovernanceContracts: CommunityGovernanceContracts
@@ -158,7 +158,7 @@ describe.only('Mainnet fork migration tests', () => {
     const contracts: Fixture = new Fixture(
       baseContracts,
       communityGovernanceContracts,
-      monetaryGovernanceContracts,
+      monetaryGovernanceContracts
     )
 
     // these are pre migrated contracts
@@ -262,8 +262,8 @@ describe.only('Mainnet fork migration tests', () => {
     expect(await contracts.monetary!.trustedNodes.termStart()).to.eq(
       (await contracts.monetary!.trustedNodes.termEnd()).sub(TRUSTEE_TERM)
     )
-    expect(await contracts.monetary!.trustedNodes.isTrusted(alice.address)).to.be
-      .true
+    expect(await contracts.monetary!.trustedNodes.isTrusted(alice.address)).to
+      .be.true
     expect(await contracts.monetary!.trustedNodes.isTrusted(bob.address)).to.be
       .true
 
@@ -469,7 +469,7 @@ describe.only('Mainnet fork migration tests', () => {
         const contracts = new Fixture(
           baseContracts,
           communityGovernanceContracts,
-          monetaryGovernanceContracts,
+          monetaryGovernanceContracts
         )
 
         expect(await contracts.base.policy.governor()).to.eq(
@@ -558,7 +558,7 @@ describe.only('Mainnet fork migration tests', () => {
         const contracts = new Fixture(
           baseContracts,
           communityGovernanceContracts,
-          monetaryGovernanceContracts,
+          monetaryGovernanceContracts
         )
 
         const lockupRate = await contracts.monetary!.lockupsLever.MAX_RATE()
@@ -566,8 +566,8 @@ describe.only('Mainnet fork migration tests', () => {
           await contracts.monetary!.lockupsLever.MIN_DURATION()
 
         // propose the monetary policy with the lockup
-        const tx = await contracts.monetary!.monetaryGovernance
-          .connect(bob)
+        const tx = await contracts
+          .monetary!.monetaryGovernance.connect(bob)
           .propose(
             [contracts.monetary!.lockupsLever.address],
             [
@@ -576,11 +576,11 @@ describe.only('Mainnet fork migration tests', () => {
               ),
             ],
             [
-              `0x${contracts.monetary!.lockupsLever.interface
-                .encodeFunctionData('createLockup', [
-                  lockupDuration,
-                  lockupRate,
-                ])
+              `0x${contracts
+                .monetary!.lockupsLever.interface.encodeFunctionData(
+                  'createLockup',
+                  [lockupDuration, lockupRate]
+                )
                 .slice(10)}`,
             ],
             'aoeu'
@@ -641,21 +641,23 @@ describe.only('Mainnet fork migration tests', () => {
         const contracts = new Fixture(
           baseContracts,
           communityGovernanceContracts,
-          monetaryGovernanceContracts,
+          monetaryGovernanceContracts
         )
 
         const oldInflationMult = await contracts.base.eco.inflationMultiplier()
         const rebaseAmount = ethers.utils.parseUnits('2', 'ether') // 50% rebase
 
         // propose the monetary policy with the lockup
-        const tx = await contracts.monetary!.monetaryGovernance
-          .connect(bob)
+        const tx = await contracts
+          .monetary!.monetaryGovernance.connect(bob)
           .propose(
             [contracts.monetary!.rebaseLever.address],
             [contracts.monetary!.rebaseLever.interface.getSighash('execute')],
             [
-              `0x${contracts.monetary!.rebaseLever.interface
-                .encodeFunctionData('execute', [rebaseAmount])
+              `0x${contracts
+                .monetary!.rebaseLever.interface.encodeFunctionData('execute', [
+                  rebaseAmount,
+                ])
                 .slice(10)}`,
             ],
             'aoeu'

@@ -54,7 +54,7 @@ const LOCKUP_DEPOSIT_WINDOW = 2 * DAY
 
 const stake = ethers.utils.parseEther('5000000')
 
-describe.only('Migration tests', () => {
+describe('Migration tests', () => {
   let alice: SignerWithAddress
   let trustee1: SignerWithAddress
   let trustee2: SignerWithAddress
@@ -68,9 +68,9 @@ describe.only('Migration tests', () => {
   let faucet: EcoFaucet
   let timedPolicies: TimedPolicies
 
-  let fixtureAddresses: (BaseAddresses &
+  let fixtureAddresses: BaseAddresses &
     CommunityGovernanceAddresses &
-    MonetaryGovernanceAddresses) // clarifies which fixture addresses
+    MonetaryGovernanceAddresses // clarifies which fixture addresses
   let baseContracts: BaseContracts
   let monetaryGovernanceContracts: MonetaryGovernanceContracts
   let communityGovernanceContracts: CommunityGovernanceContracts
@@ -150,7 +150,7 @@ describe.only('Migration tests', () => {
     const contracts: Fixture = new Fixture(
       baseContracts,
       communityGovernanceContracts,
-      monetaryGovernanceContracts,
+      monetaryGovernanceContracts
     )
 
     // these are pre migrated contracts
@@ -256,12 +256,12 @@ describe.only('Migration tests', () => {
     expect(await contracts.monetary?.trustedNodes.termStart()).to.eq(
       (await contracts.monetary?.trustedNodes.termEnd())?.sub(TRUSTEE_TERM)
     )
-    expect(await contracts.monetary?.trustedNodes.isTrusted(alice.address)).to.be
-      .false
-    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee1.address)).to
-      .be.true
-    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee2.address)).to
-      .be.true
+    expect(await contracts.monetary?.trustedNodes.isTrusted(alice.address)).to
+      .be.false
+    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee1.address))
+      .to.be.true
+    expect(await contracts.monetary?.trustedNodes.isTrusted(trustee2.address))
+      .to.be.true
   })
 
   context('with the proposal constructed', () => {
@@ -465,7 +465,7 @@ describe.only('Migration tests', () => {
         const contracts = new Fixture(
           baseContracts,
           communityGovernanceContracts,
-          monetaryGovernanceContracts,
+          monetaryGovernanceContracts
         )
 
         expect(await contracts.base.policy.governor()).to.eq(
