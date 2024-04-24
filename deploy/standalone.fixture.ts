@@ -138,21 +138,24 @@ export class CommunityGovernanceContracts {
   }
 }
 
-export type FixtureAddresses = BaseAddresses &
-  MonetaryGovernanceAddresses &
-  CommunityGovernanceAddresses
+export type FixtureAddresses = 
+  (BaseAddresses &
+  CommunityGovernanceAddresses &
+  MonetaryGovernanceAddresses) |
+  (BaseAddresses &
+  CommunityGovernanceAddresses)
 
 export class Fixture {
   constructor(
     public base: BaseContracts,
-    public monetary: MonetaryGovernanceContracts,
-    public community: CommunityGovernanceContracts
+    public community: CommunityGovernanceContracts,
+    public monetary?: MonetaryGovernanceContracts,
   ) {}
 
   toAddresses(): FixtureAddresses {
     return {
       ...this.base.toAddresses(),
-      ...this.monetary.toAddresses(),
+      ...(this.monetary ? this.monetary?.toAddresses() : {}),
       ...this.community.toAddresses(),
     }
   }
@@ -616,7 +619,7 @@ export async function testnetFixture(
 
   await monetary.lockupsLever.initializeVoting()
 
-  const fixture = new Fixture(base, monetary, community)
+  const fixture = new Fixture(base, community, monetary)
 
   if (config.verify) {
     guaranteeOutputFolder()
