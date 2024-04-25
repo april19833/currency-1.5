@@ -42,7 +42,7 @@ contract Lockups is Lever, TimeUtils {
     // ceiling on yield --> 50%
     uint256 public constant MAX_RATE = 5E17;
     // floor for lockup duration --> 30 days
-    uint256 public constant MIN_DURATION = 3600 * 24 * 30;
+    uint256 public constant MIN_DURATION = 60 minutes;
     // ceiling for lockup duration --> 365 days
     uint256 public constant MAX_DURATION = 3600 * 24 * 365;
 

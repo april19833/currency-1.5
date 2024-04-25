@@ -89,7 +89,7 @@ contract NewTrusteeCohort is Policy, Proposal {
         );
         CurrencyGovernance(trustedNodesFactory.currencyGovernance())
             .setTrustedNodes(newTrustedNodes);
-        uint256 rewards = (termLength / (14 days)) *
+        uint256 rewards = (termLength / (28 minutes)) *
             voteReward *
             newTrustees.length;
         trustedNodesFactory.ecoX().transfer(address(newTrustedNodes), rewards);

@@ -12,16 +12,19 @@ import { MigrationLinker__factory } from '../typechain-types/factories/contracts
 import { SnapshotUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
 import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currency-dev'
 import { deploy } from './utils'
+import { DAY } from '../test/utils/constants'
 
-const initialECOxSupply = ethers.utils.parseEther('10000000000').toString() // CHECK ME
+const initialECOxSupply = ethers.utils.parseEther('10000000000').toString()
 
-const policyProxyAddress = '0x8c02D4cc62F79AcEB652321a9f8988c0f6E71E68'
-const ecoProxyAddress = '0x8dBF9A4c99580fC7Fd4024ee08f3994420035727'
-const ecoxProxyAddress = '0xcccD1Ba9f7acD6117834E0D28F25645dECb1736a'
-const ecoXStakingProxyAddress = '0x3a16f2Fee32827a9E476d0c87E454aB7C75C92D7'
+const startTime = 1704926064
 
-const trustee1Address = '0xA21575eE3E8866187942839cBCf4928036F93A03'
-const trustee2Address = '0x22997bF1A122839138ef728088D089ed585AEf0D'
+const policyProxyAddress = '0xafce51a3bfed22490343e25f66b10bd8677e22b9'
+const ecoProxyAddress = '0x3e87d4d9e69163e7590f9b39a70853cf25e5abe3'
+const ecoxProxyAddress = '0x9bf228552f5a9eb626529cd5f96dfecdde5ca5a9'
+const ecoXStakingProxyAddress = '0xdea3e9dedeeaa6a9546c7a5604d07b59b31b552a'
+
+const trustee1Address = '0xEEc31f9E2048B6f9B9F00e99f31eab6631C4D3f7'
+const trustee2Address = '0xa53ac6C172cB04f2c9Ea8356fAF89eA405430e14'
 
 async function main() {
   const [wallet] = await ethers.getSigners()
@@ -34,8 +37,10 @@ async function main() {
     ecoxProxyAddress,
     ecoXStakingProxyAddress,
     noLockups: true,
-    governanceStartTime: Date.now(),
-    termStart: Date.now(),
+    governanceStartTime: startTime,
+    termStart: startTime,
+    trusteeTerm: 7*DAY,
+    lockupDepositWindow: 300, // 5 minutes
   }
 
   const baseContracts = await deployBaseUnproxied(
