@@ -73,8 +73,8 @@ async function main() {
 
   const contracts = new Fixture(
     baseContracts,
-    monetaryGovernanceContracts,
-    communityGovernanceContracts
+    communityGovernanceContracts,
+    monetaryGovernanceContracts
   )
   const fixtureAddresses = contracts.toAddresses()
 

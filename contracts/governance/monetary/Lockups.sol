@@ -157,10 +157,7 @@ contract Lockups is Lever, TimeUtils {
      * @param _lockupId ID of the lockup being deposited to
      * @param _amount the amount being deposited
      */
-    function deposit(
-        uint256 _lockupId,
-        uint256 _amount
-    ) external {
+    function deposit(uint256 _lockupId, uint256 _amount) external {
         Lockup storage lockup = lockups[_lockupId];
         if (getTime() >= lockup.depositWindowEnd) {
             revert LateDeposit(_lockupId, msg.sender);
