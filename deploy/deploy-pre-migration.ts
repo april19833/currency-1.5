@@ -3,25 +3,21 @@ import {
   Fixture,
   deployBaseUnproxied,
   deployCommunity,
-  deployMonetary,
 } from './standalone.fixture'
 import { ECO, ECOx } from '../typechain-types/contracts/currency'
 import { Policy } from '../typechain-types/contracts/policy'
 import { ECOxStaking } from '../typechain-types/contracts/governance/community'
-import { MigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/MigrationLinker.propo.sol'
 import { SnapshotUpdatingTarget__factory } from '../typechain-types/factories/contracts/test/deploy'
 import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currency-dev'
 import { deploy } from './utils'
+import { NoMonetaryMigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/NoMonetaryMigrationLinker.propo.sol'
 
-const initialECOxSupply = ethers.utils.parseEther('10000000000').toString() // CHECK ME
+const initialECOxSupply = ethers.utils.parseEther('999998146').toString()
 
-const policyProxyAddress = '0x8c02D4cc62F79AcEB652321a9f8988c0f6E71E68'
-const ecoProxyAddress = '0x8dBF9A4c99580fC7Fd4024ee08f3994420035727'
-const ecoxProxyAddress = '0xcccD1Ba9f7acD6117834E0D28F25645dECb1736a'
-const ecoXStakingProxyAddress = '0x3a16f2Fee32827a9E476d0c87E454aB7C75C92D7'
-
-const trustee1Address = '0xA21575eE3E8866187942839cBCf4928036F93A03'
-const trustee2Address = '0x22997bF1A122839138ef728088D089ed585AEf0D'
+const policyProxyAddress = '0xfdf220650F49F2b6FC215C8B7319d9c3cCc9ca0e'
+const ecoProxyAddress = '0xb45b635b7621aaFB7122aB2f861F7358892Db323'
+const ecoxProxyAddress = '0xad1c2075b7F1703404232f2DcB2d1e72f7855cCb'
+const ecoXStakingProxyAddress = '0xE2eA415fA9d2c99B20c5CCf99F9C46F111f5dED1'
 
 async function main() {
   const [wallet] = await ethers.getSigners()
@@ -55,14 +51,6 @@ async function main() {
     address: ecoXStakingProxyAddress,
   } as unknown as ECOxStaking
 
-  const monetaryGovernanceContracts = await deployMonetary(
-    wallet,
-    baseContracts,
-    [trustee1Address, trustee2Address],
-    true,
-    config
-  )
-
   const communityGovernanceContracts = await deployCommunity(
     wallet,
     baseContracts,
@@ -74,7 +62,6 @@ async function main() {
   const contracts = new Fixture(
     baseContracts,
     communityGovernanceContracts,
-    monetaryGovernanceContracts
   )
   const fixtureAddresses = contracts.toAddresses()
 
@@ -93,8 +80,6 @@ async function main() {
   const proposalParams = [
     fixtureAddresses.communityGovernance,
     fixtureAddresses.ecoXExchange,
-    fixtureAddresses.rebaseNotifier,
-    fixtureAddresses.trustedNodes,
     implAddresses.policy,
     implAddresses.eco,
     implAddresses.ecox,
@@ -105,11 +90,9 @@ async function main() {
 
   const proposal = await deploy(
     wallet,
-    MigrationLinker__factory,
+    NoMonetaryMigrationLinker__factory,
     proposalParams
   )
-
-  fixtureAddresses.lockupsLever = 'THERE IS NO LOCKUPS LEVER' // ensuring no confusion
 
   console.log('contracts')
   console.log(JSON.stringify(fixtureAddresses, null, 2))

@@ -1,16 +1,14 @@
 import { run } from 'hardhat'
 
-const buildNumber = '1700691171508'
+const buildNumber = '1714158856658'
 
 const addresses = require(`./deployments/${buildNumber}/addresses.json`)
 const baseImplementationAddresses = require(`./deployments/${buildNumber}/baseImplementationAddresses.json`)
 const baseDeployParams = require(`./deployments/${buildNumber}/baseDeployParams.json`)
-const monetaryDeployParams = require(`./deployments/${buildNumber}/monetaryDeployParams.json`)
 const communityDeployParams = require(`./deployments/${buildNumber}/communityDeployParams.json`)
 
 const deployParams = {
   ...baseDeployParams,
-  ...monetaryDeployParams,
   ...communityDeployParams,
 }
 

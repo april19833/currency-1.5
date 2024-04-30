@@ -59,6 +59,11 @@ const config: HardhatUserConfig = {
       url: `https://goerli.infura.io/v3/${apiKey}`,
       accounts: [privateKey],
     },
+    sepolia: {
+      chainId: 11155111,
+      url: `https://sepolia.infura.io/v3/${apiKey}`,
+      accounts: [privateKey],
+    },
     mainnet: {
       chainId: 1,
       url: `https://mainnet.infura.io/v3/${apiKey}`,
@@ -89,6 +94,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: etherscanKey,
       goerli: etherscanKey,
+      sepolia: etherscanKey,
     },
   },
 }
