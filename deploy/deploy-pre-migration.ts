@@ -12,7 +12,7 @@ import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currenc
 import { deploy } from './utils'
 import { NoMonetaryMigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/NoMonetaryMigrationLinker.propo.sol'
 
-const initialECOxSupply = ethers.utils.parseEther('999998146').toString()
+const initialECOxSupply = ethers.utils.parseEther('1000000000').toString()
 
 const policyProxyAddress = '0xfdf220650F49F2b6FC215C8B7319d9c3cCc9ca0e'
 const ecoProxyAddress = '0xb45b635b7621aaFB7122aB2f861F7358892Db323'
