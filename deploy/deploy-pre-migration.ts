@@ -59,10 +59,7 @@ async function main() {
     config
   )
 
-  const contracts = new Fixture(
-    baseContracts,
-    communityGovernanceContracts,
-  )
+  const contracts = new Fixture(baseContracts, communityGovernanceContracts)
   const fixtureAddresses = contracts.toAddresses()
 
   console.log('deploying linker')
