@@ -12,12 +12,15 @@ import { ImplementationUpdatingTarget__factory } from '@helix-foundation/currenc
 import { deploy } from './utils'
 import { NoMonetaryMigrationLinker__factory } from '../typechain-types/factories/contracts/test/deploy/NoMonetaryMigrationLinker.propo.sol'
 
-const initialECOxSupply = ethers.utils.parseEther('999998146').toString()
+const initialECOxSupply = ethers.utils.parseEther('1000000000').toString()
 
-const policyProxyAddress = '0xfdf220650F49F2b6FC215C8B7319d9c3cCc9ca0e'
-const ecoProxyAddress = '0xb45b635b7621aaFB7122aB2f861F7358892Db323'
-const ecoxProxyAddress = '0xad1c2075b7F1703404232f2DcB2d1e72f7855cCb'
-const ecoXStakingProxyAddress = '0xE2eA415fA9d2c99B20c5CCf99F9C46F111f5dED1'
+const policyProxyAddress = '0x8c02D4cc62F79AcEB652321a9f8988c0f6E71E68'
+const ecoProxyAddress = '0x8dBF9A4c99580fC7Fd4024ee08f3994420035727'
+const ecoxProxyAddress = '0xcccD1Ba9f7acD6117834E0D28F25645dECb1736a'
+const ecoXStakingProxyAddress = '0x3a16f2Fee32827a9E476d0c87E454aB7C75C92D7'
+const pauser = '0x99f98ea4A883DB4692Fa317070F4ad2dC94b05CE'
+
+const startTime = 170000000
 
 async function main() {
   const [wallet] = await ethers.getSigners()
@@ -30,8 +33,8 @@ async function main() {
     ecoxProxyAddress,
     ecoXStakingProxyAddress,
     noLockups: true,
-    governanceStartTime: Date.now(),
-    termStart: Date.now(),
+    governanceStartTime: startTime,
+    pauser
   }
 
   const baseContracts = await deployBaseUnproxied(
@@ -54,15 +57,12 @@ async function main() {
   const communityGovernanceContracts = await deployCommunity(
     wallet,
     baseContracts,
-    wallet.address,
+    config.pauser,
     true,
     config
   )
 
-  const contracts = new Fixture(
-    baseContracts,
-    communityGovernanceContracts,
-  )
+  const contracts = new Fixture(baseContracts, communityGovernanceContracts)
   const fixtureAddresses = contracts.toAddresses()
 
   console.log('deploying linker')
