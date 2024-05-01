@@ -19,6 +19,8 @@ const ecoProxyAddress = '0xb45b635b7621aaFB7122aB2f861F7358892Db323'
 const ecoxProxyAddress = '0xad1c2075b7F1703404232f2DcB2d1e72f7855cCb'
 const ecoXStakingProxyAddress = '0xE2eA415fA9d2c99B20c5CCf99F9C46F111f5dED1'
 
+const startTime = 170000000
+
 async function main() {
   const [wallet] = await ethers.getSigners()
   console.log(wallet.address)
@@ -30,8 +32,7 @@ async function main() {
     ecoxProxyAddress,
     ecoXStakingProxyAddress,
     noLockups: true,
-    governanceStartTime: Date.now(),
-    termStart: Date.now(),
+    governanceStartTime: startTime,
   }
 
   const baseContracts = await deployBaseUnproxied(
