@@ -8,7 +8,7 @@ import { deploy } from '../../../deploy/utils'
 import { passProposal } from '../../utils/passProposal'
 import { AddMinters__factory } from '../../../typechain-types'
 
-const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
+const INITIAL_SUPPLY = ethers.utils.parseUnits('30000000', 'ether')
 
 describe('test for add minters comm gov proposal', () => {
   let alice: SignerWithAddress

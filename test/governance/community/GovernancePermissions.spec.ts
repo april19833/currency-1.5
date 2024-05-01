@@ -29,7 +29,7 @@ import { ECO__factory } from '../../../typechain-types/factories/contracts/curre
 import { UpdatePolicedProxyImplProposal__factory } from '../../../typechain-types/factories/contracts/test/UpdatePolicedProxyImpl.propo.sol'
 import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
-const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
+const INITIAL_SUPPLY = ethers.utils.parseUnits('30000000', 'ether')
 
 describe('Policy E2E Tests', () => {
   let alice: SignerWithAddress

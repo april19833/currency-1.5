@@ -33,8 +33,9 @@ use(smock.matchers)
 
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
-const INIT_BALANCE = 20000
-const INIT_BIG_BALANCE = 100000
+const INIT_BALANCE = ethers.constants.WeiPerEther.mul(20000)
+const INIT_BIG_BALANCE = ethers.constants.WeiPerEther.mul(100000)
+const EXPECTED_CYCLE_START = 1040
 
 // Stage enums
 const DONE = 0
@@ -130,7 +131,7 @@ describe('Community Governance', () => {
     })
 
     it('has correct values for cycleCount, cycleStart, stage, currentStageEnd', async () => {
-      expect(await cg.cycleCount()).to.eq(1000)
+      expect(await cg.cycleCount()).to.eq(EXPECTED_CYCLE_START)
       expect(await cg.cycleStart()).to.eq(0)
       expect(await cg.currentStageEnd()).to.eq(currentStageEnd)
       expect(await cg.stage()).to.eq(DONE)
@@ -236,11 +237,11 @@ describe('Community Governance', () => {
       ).to.not.be.reverted
     })
     it('only lets policy sweep', async () => {
-      await eco.connect(alice).transfer(cg.address, 20000)
+      await eco.connect(alice).transfer(cg.address, INIT_BALANCE)
       expect(await eco.balanceOf(alice.address)).to.eq(0)
-      expect(await eco.balanceOf(cg.address)).to.eq(20000)
+      expect(await eco.balanceOf(cg.address)).to.eq(INIT_BALANCE)
 
-      await cg.setVariable('pot', 1234)
+      await cg.setVariable('pot', 1234567890)
 
       await expect(cg.connect(alice).sweep(alice.address)).to.be.revertedWith(
         ERRORS.Policed.POLICY_ONLY
@@ -250,8 +251,10 @@ describe('Community Governance', () => {
         .to.emit(cg, 'Sweep')
         .withArgs(alice.address)
 
-      expect(await eco.balanceOf(alice.address)).to.eq(1234)
-      expect(await eco.balanceOf(cg.address)).to.eq(20000 - 1234)
+      expect(await eco.balanceOf(alice.address)).to.eq(1234567890)
+      expect(await eco.balanceOf(cg.address)).to.eq(
+        INIT_BALANCE.sub(1234567890)
+      )
       expect(await cg.pot()).to.eq(0)
     })
   })
@@ -281,7 +284,7 @@ describe('Community Governance', () => {
       expect(await cg.stage()).to.eq(DONE)
       await expect(cg.updateStage())
         .to.emit(cg, 'NewCycle')
-        .withArgs(1001)
+        .withArgs(EXPECTED_CYCLE_START + 1)
         .to.emit(cg, 'StageUpdated')
         .withArgs(PROPOSAL)
       expect(await cg.cycleStart()).to.eq(await time.latest())
@@ -461,12 +464,13 @@ describe('Community Governance', () => {
         expect((await cg.proposals(A1)).cycle).to.eq(await cg.cycleCount())
         expect((await cg.proposals(A1)).proposer).to.eq(alice.address)
         expect((await cg.proposals(A1)).totalSupport).to.eq(0)
-        expect((await cg.proposals(A1)).refund).to.eq(await cg.feeRefund())
+        expect((await cg.proposals(A1)).refund.eq(await cg.feeRefund())).to.be
+          .true
         expect(await cg.pot()).to.eq(
-          (await cg.proposalFee()) - (await cg.proposals(A1)).refund
+          (await cg.proposalFee()).sub((await cg.proposals(A1)).refund)
         )
         expect(await eco.balanceOf(alice.address)).to.eq(
-          INIT_BALANCE - (await cg.proposalFee())
+          INIT_BALANCE.sub(await cg.proposalFee())
         )
       })
       it('doesnt allow submitting duplicate proposals', async () => {
@@ -641,7 +645,9 @@ describe('Community Governance', () => {
           expect(await cg.getSupport(bob.address, A1)).to.eq(15)
           expect(await cg.getSupport(bob.address, A2)).to.eq(20)
 
-          expect((await cg.proposals(A1)).totalSupport).to.eq(INIT_BALANCE + 15)
+          expect((await cg.proposals(A1)).totalSupport).to.eq(
+            INIT_BALANCE.add(15)
+          )
           expect((await cg.proposals(A2)).totalSupport).to.eq(20)
 
           await expect(cg.connect(bob).unsupport(A1))
@@ -709,7 +715,7 @@ describe('Community Governance', () => {
           await cg.proposalFee()
         )
         expect(await cg.pot()).to.eq(
-          initialPot - ((await cg.proposalFee()) - initialRefund)
+          initialPot.sub((await cg.proposalFee()).sub(initialRefund))
         )
       })
     })
@@ -778,8 +784,8 @@ describe('Community Governance', () => {
     context('votePartial', () => {
       it('fails if sum of allocations > voting power', async () => {
         const vp = await cg.votingPower(alice.address)
-        const enactVotes = vp / 2
-        const rejectVotes = vp / 2
+        const enactVotes = vp.div(2)
+        const rejectVotes = vp.div(2)
         const abstainVotes = 1
         await expect(
           cg.votePartial(enactVotes, rejectVotes, abstainVotes)
@@ -787,9 +793,9 @@ describe('Community Governance', () => {
       })
       it('suceeds if allocations total to less than senders voting power', async () => {
         const vp = await cg.votingPower(alice.address)
-        const votes1 = vp / 4
-        const votes2 = vp / 2
-        const votes3 = vp / 4
+        const votes1 = vp.div(4)
+        const votes2 = vp.div(2)
+        const votes3 = vp.div(4)
 
         await expect(cg.connect(alice).votePartial(votes1, votes2, votes3))
           .to.emit(cg, 'VotesChanged')
@@ -806,9 +812,9 @@ describe('Community Governance', () => {
       })
       it('overwrites votes properly when voting a second time in same cycle', async () => {
         const vp = await cg.votingPower(alice.address)
-        const votes1 = vp / 5
-        const votes2 = vp / 10
-        const votes3 = vp / 20
+        const votes1 = vp.div(5)
+        const votes2 = vp.div(10)
+        const votes3 = vp.div(20)
 
         await cg.connect(alice).votePartial(votes1, votes2, votes3)
         let votes = await cg.getVotes(alice.address)
@@ -954,7 +960,9 @@ describe('Community Governance', () => {
 
     await cg.execute()
     await time.increaseTo((await cg.cycleStart()).add(await cg.CYCLE_LENGTH()))
-    await expect(cg.updateStage()).to.emit(cg, 'NewCycle').withArgs(1002)
+    await expect(cg.updateStage())
+      .to.emit(cg, 'NewCycle')
+      .withArgs(EXPECTED_CYCLE_START + 2)
 
     expect(await cg.stage()).to.eq(PROPOSAL)
     expect(await cg.cycleCount()).to.eq(currCycle.add(1))

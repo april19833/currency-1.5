@@ -21,7 +21,7 @@ import {
 } from '../../../typechain-types'
 import { TrustedNodes__factory } from '../../../typechain-types/factories/contracts/governance/monetary'
 
-const INITIAL_SUPPLY = ethers.utils.parseUnits('30000', 'ether')
+const INITIAL_SUPPLY = ethers.utils.parseUnits('30000000', 'ether')
 
 describe('E2E tests for common community governance actions', () => {
   let alice: SignerWithAddress

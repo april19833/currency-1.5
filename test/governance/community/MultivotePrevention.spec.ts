@@ -30,8 +30,8 @@ import { BigNumber } from 'ethers'
 
 const A1 = '0x1111111111111111111111111111111111111111'
 const A2 = '0x2222222222222222222222222222222222222222'
-const INIT_BALANCE = 20000
-const INIT_BIG_BALANCE = 1000000
+const INIT_BALANCE = ethers.constants.WeiPerEther.mul(20000)
+const INIT_BIG_BALANCE = ethers.constants.WeiPerEther.mul(100000)
 const NUM_SUBVOTERS = 16
 
 describe('Snapshot safety test', () => {
