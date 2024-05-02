@@ -20,7 +20,7 @@ const ecoxProxyAddress = '0xcccD1Ba9f7acD6117834E0D28F25645dECb1736a'
 const ecoXStakingProxyAddress = '0x3a16f2Fee32827a9E476d0c87E454aB7C75C92D7'
 const pauser = '0x99f98ea4A883DB4692Fa317070F4ad2dC94b05CE'
 
-const startTime = 170000000
+const startTime = '1715399999'
 
 async function main() {
   const [wallet] = await ethers.getSigners()

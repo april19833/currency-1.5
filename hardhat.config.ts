@@ -68,6 +68,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
       url: `https://mainnet.infura.io/v3/${apiKey}`,
       accounts: [privateKey],
+      gasPrice: 10000000000
     },
   },
   mocha: {
