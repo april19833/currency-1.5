@@ -70,19 +70,19 @@ contract NoMonetaryMigrationLinker is Policy, Proposal {
     /** The name of the proposal.
      */
     function name() public pure override returns (string memory) {
-        return "Eco Protocol Migrator and Linker";
+        return "ECO v1.5 upgrade";
     }
 
     /** A description of what the proposal does.
      */
     function description() public pure override returns (string memory) {
-        return "Update 1.0 proxies and add role permissions";
+        return "This proposal represents the first step of a two-step migration which implements the v1.5 technical upgrade to the Eco Protocol";
     }
 
     /** A URL for more information.
      */
     function url() public pure override returns (string memory) {
-        return "n/a";
+        return "https://forums.eco.org/t/the-next-eco-era-governance-proposal-1-trustee-winddown-eco-v1-5-implementation/376";
     }
 
     /** Enact the proposal.
